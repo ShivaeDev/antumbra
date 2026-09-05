@@ -1,5 +1,6 @@
 import type { ChangeRow } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import type { ChangeStage } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -72,6 +73,7 @@ export const berthed = (agentId: string, source = REEF_SOURCE) =>
 	});
 
 export const reefWithPiece = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const repo = yield* domain.repos.register({
 		defaultRef: "main",
@@ -83,7 +85,7 @@ export const reefWithPiece = Effect.gen(function* () {
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "sound the shallows",
 		dependsOn: [],
 		expectation: "soundings are landed",
@@ -91,6 +93,6 @@ export const reefWithPiece = Effect.gen(function* () {
 		title: "alpha",
 		voyageId: voyage.id,
 	});
-	yield* domain.voyages.launch(piece.id);
+	yield* pieces.launch(piece.id);
 	return { piece, repo, voyage };
 });

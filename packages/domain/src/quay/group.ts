@@ -1,6 +1,5 @@
 import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeView } from "#change-view.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
 
 export type QuayGroup = "alongside" | "checksRunning" | "draft" | "needsAttention";
 
@@ -18,4 +17,5 @@ export const quayGroup = (change: ChangeView): QuayGroup => {
 	return change.mergeable === "clean" && change.checks !== "pending" ? "alongside" : "checksRunning";
 };
 
-export const liesAtQuay = (world: VoyageWorld, change: ChangeRow): boolean => change.stage !== "landed" && !world.dismissedChangeIds.has(change.id);
+export const liesAtQuay = (world: { readonly dismissedChangeIds: ReadonlySet<string> }, change: ChangeRow): boolean =>
+	change.stage !== "landed" && !world.dismissedChangeIds.has(change.id);

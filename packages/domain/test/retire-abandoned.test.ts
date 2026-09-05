@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { changeOf } from "#test/change-fixtures.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
@@ -25,13 +25,13 @@ const statusOf = (agentId: string) =>
 
 const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const pieces = yield* Pieces;
 		const { pieceId, voyageId } = yield* chartered;
 		yield* born(handFor(HAND, pieceId, voyageId));
 		if (quiet) {
 			yield* standDown(scripted, HAND);
 		}
-		yield* domain.voyages.landPieceVerdict(pieceId, "abandoned");
+		yield* pieces.landVerdict(pieceId, "abandoned");
 		return pieceId;
 	});
 

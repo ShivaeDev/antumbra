@@ -5,6 +5,7 @@ import { Effect } from "effect";
 import { addContext } from "#add-context.ts";
 import { awaitingAscent } from "#awaiting-ascent.ts";
 import { awaitingDelivery } from "#awaiting-delivery.ts";
+import { binding } from "#binding.ts";
 import { gate } from "#gate.ts";
 import { get } from "#get.ts";
 import { markDelivered } from "#mark-delivered.ts";
@@ -30,6 +31,7 @@ export const Rulings = defineService({
 		addContext,
 		awaitingAscent,
 		awaitingDelivery,
+		binding,
 		gate,
 		get,
 		markDelivered,

@@ -1,6 +1,7 @@
 import { AgentDomain } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import type { ScriptedBackend } from "@antumbra/testing-runtime";
 import { expect } from "@effect/vitest";
@@ -20,6 +21,7 @@ const standDown = (scripted: ScriptedBackend, sessionId: string) =>
 	});
 
 const workingCrew = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const db = yield* Database;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
@@ -31,8 +33,8 @@ const workingCrew = Effect.gen(function* () {
 			northStar: "every shoal is known",
 		})
 		.pipe(Effect.orDie);
-	const piece = yield* domain.voyages
-		.charterPiece({
+	const piece = yield* pieces
+		.charter({
 			charter: "sound the northern shoals",
 			dependsOn: [],
 			expectation: "the depths are recorded",
@@ -90,11 +92,12 @@ const seedRetirementRows = (input: {
 	});
 
 it.effectApp("an abandoned piece's crew is retired on the very next pass", { clock: "live" }, function* ({ db, scripted }) {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const kernel = yield* Kernel;
 	const crewed = yield* workingCrew;
 	yield* standDown(scripted, crewed.sessionId);
-	yield* domain.voyages.landPieceVerdict(crewed.pieceId, "abandoned").pipe(Effect.orDie);
+	yield* pieces.landVerdict(crewed.pieceId, "abandoned").pipe(Effect.orDie);
 	const demand = Option.getOrThrow(Option.fromUndefinedOr(domain.intentDemands.find((registration) => registration.tag === "agent/retire")));
 	yield* demand.pass.pipe(Effect.orDie);
 	const demanded = yield* db.Intent.where({ tag: "agent/retire" }).all();

@@ -20,16 +20,17 @@ import { IntentDemandLive } from "@antumbra/intent-demand";
 import { type Kernel, KernelLive } from "@antumbra/kernel";
 import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import type { Pieces } from "@antumbra/pieces";
 import { makeEffectApp, makeScriptedBackend, passiveRunner, type ScriptedBackend } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
-import { Effect, Layer } from "effect";
+import { type Context, Effect, Layer } from "effect";
 
 interface AppHarness {
 	readonly db: DatabaseService;
 	readonly scripted: ScriptedBackend;
 }
 
-type AppRequirements = AgentDomain | Kernel;
+type AppRequirements = AgentDomain | Kernel | Context.Service.Identifier<typeof Pieces>;
 
 const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) => {
 	const directory = dirname(temporary.database);

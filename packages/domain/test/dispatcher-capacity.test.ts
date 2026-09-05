@@ -1,5 +1,6 @@
 import { isTerminalIntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
@@ -61,11 +62,12 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 		capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
 		const backend = { ...scripted.backend, capacity: capacity.source };
 		const recovered = yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const { alpha, voyage } = yield* chain;
-			const probe = yield* domain.voyages.charterPiece({
+			const probe = yield* pieces.charter({
 				charter: "prove the recovered dispatch is still pending",
 				dependsOn: [],
 				expectation: "the dispatcher reaches the next ready Piece",
@@ -73,7 +75,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				title: "Observe a dispatcher pass",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.launch(probe.id);
+			yield* pieces.launch(probe.id);
 			yield* db.Piece.where({ id: alpha.id }).update({
 				launchedAt: new Date(1),
 			});

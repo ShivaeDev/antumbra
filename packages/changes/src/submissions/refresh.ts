@@ -2,10 +2,10 @@ import { Database } from "@antumbra/persistence";
 import type { ChangeRef } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
-import { applyObservations } from "#change-submissions/observations.ts";
-import { ChangeHostRegistry } from "#change-submissions/registries.ts";
-import { watchableChanges } from "#change-submissions/watchable.ts";
 import { UnknownChangeHostTag } from "#errors.ts";
+import { ChangeHostRegistry } from "#registries.ts";
+import { applyObservations } from "#submissions/observations.ts";
+import { watchableChanges } from "#submissions/watchable.ts";
 
 const changeRef = (
 	row: ChangeRow,

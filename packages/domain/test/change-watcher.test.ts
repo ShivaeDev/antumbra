@@ -1,6 +1,7 @@
 import { Changes } from "@antumbra/changes";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Queue } from "effect";
 import { TestClock } from "effect/testing";
@@ -201,6 +202,7 @@ describe("a chain gated on a change", () => {
 	it.live("sails when the watcher sees the merge", () =>
 		watched(BRISK, (scripted, backend) =>
 			Effect.gen(function* () {
+				const pieces = yield* Pieces;
 				const domain = yield* AgentDomain;
 				const repo = yield* domain.repos.register({
 					defaultRef: "main",
@@ -208,7 +210,7 @@ describe("a chain gated on a change", () => {
 				});
 				const voyage = yield* openReefVoyage;
 				const charter = (title: string, dependsOn: ReadonlyArray<string>) =>
-					domain.voyages.charterPiece({
+					pieces.charter({
 						charter: `do ${title}`,
 						dependsOn,
 						expectation: `${title} is landed`,
@@ -218,8 +220,8 @@ describe("a chain gated on a change", () => {
 					});
 				const alpha = yield* charter("alpha", []);
 				const bravo = yield* charter("bravo", [alpha.id]);
-				yield* domain.voyages.launch(alpha.id);
-				yield* domain.voyages.launch(bravo.id);
+				yield* pieces.launch(alpha.id);
+				yield* pieces.launch(bravo.id);
 
 				const crew = yield* eventually(crewOn(backend, alpha.id));
 				expect(

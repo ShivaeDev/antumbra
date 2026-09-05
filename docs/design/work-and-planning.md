@@ -73,10 +73,9 @@ Chartering reports the frontier rather than stopping at it. A charter always lan
 Voyage and counts the Pieces already chartered and not yet launched; a Piece already launched, parked, or abandoned is settled and counts for nothing.
 
 Those facts inform the captain without deciding for it. Work that does not need an open answer is worth chartering while the question stands, and a
-plan that lays out many parallel Pieces before any of them sails is legitimate—its captain may learn only once all of them have run. Refusing would
-stop those plans along with the careless ones, and any fixed number of unlaunched Pieces is a guess about a Voyage the rule has never seen. The back
-pressure is therefore social: the reply says what stands, the standing orders say to charter what does not need the answer, and the judgment stays
-with the captain.
+plan that lays out many parallel Pieces before any of them sails is legitimate: its captain may learn only once all of them have run. Refusing would
+stop those plans along with the careless ones, and any fixed number of unlaunched Pieces is a guess about a Voyage the rule has never seen. The reply
+says what stands, the standing orders say to charter what does not need the answer, and the judgment stays with the captain.
 
 ## Occultations and dependency blockage
 

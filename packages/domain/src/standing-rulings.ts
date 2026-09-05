@@ -1,6 +1,6 @@
 import { type Ruling, type RulingAnswer, type RulingSubject, Rulings } from "@antumbra/rulings";
+import { ruledByWords } from "@antumbra/rulings/answer/ruled-by-words";
 import { Effect, Option } from "effect";
-import { ruledByWords } from "#ruling-words.ts";
 
 interface RulingReader {
 	readonly agentId: string;

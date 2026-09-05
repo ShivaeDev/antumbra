@@ -1,20 +1,21 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
+import { endsTurn, it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
+import { Effect, Queue, Stream } from "effect";
+import { rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
+	idleBackend,
 	openedNatively,
 	passedAt,
 	presenceOf,
 	sessionRow,
-	sightLayer,
 	spawned,
 } from "#test/session-idle-fixture.ts";
-import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const CHILD = "native-child";
 
@@ -35,115 +36,101 @@ const finishes = (live: ScriptedSession) =>
 	});
 
 const restingAt = (canSleep: boolean) =>
-	eventually(
-		Effect.gen(function* () {
-			const summary = yield* presenceOf;
-			expect(summary.presence).toBe("idle");
-			expect(summary.canSleep).toBe(canSleep);
-		}),
-	);
+	Effect.gen(function* () {
+		const sight = yield* SightSource;
+		yield* sight.fleetFeed.pipe(
+			Stream.map((fleet) => fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === HAND.sessionId)),
+			Stream.filter((session) => session?.presence === "idle" && session.canSleep === canSleep),
+			Stream.runHead,
+		);
+	});
 
 const siestaIntents = Effect.gen(function* () {
 	const db = yield* Database;
 	return yield* db.Intent.where({ tag: "session/siesta" }).all();
 });
 
-it.live("rest is withheld while a delegated conversation is still speaking", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* delegates(live);
-			yield* endTurn(scripted, HAND.agentId);
+it.effectApp.withProviders("the fleet updates rest eligibility as delegated conversations start and finish", idleBackend, function* (_, scripted) {
+	const sight = yield* SightSource;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
+	const readings = yield* Queue.unbounded<boolean | undefined>();
+	yield* sight.fleetFeed.pipe(
+		Stream.map((fleet) => fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === HAND.sessionId)?.canSleep),
+		Stream.changes,
+		Stream.runForEach((canSleep) => Queue.offer(readings, canSleep)),
+		Effect.forkChild,
+	);
+	expect(yield* Queue.take(readings)).toBe(true);
 
-			yield* restingAt(false);
+	yield* delegates(live);
+	expect(yield* Queue.take(readings)).toBe(false);
 
-			yield* finishes(live);
-			yield* restingAt(true);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* finishes(live);
+	expect(yield* Queue.take(readings)).toBe(true);
+});
 
-it.live("the admiral's request rests a session through the clock's own act", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			const sight = yield* SightSource;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* endTurn(scripted, HAND.agentId);
-			yield* restingAt(true);
+it.effectApp.withProviders("the admiral's request rests a session through the clock's own act", idleBackend, function* (_, scripted) {
+	const kernel = yield* Kernel;
+	const sight = yield* SightSource;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
+	yield* restingAt(true);
 
-			yield* sight.sleep(HAND.sessionId);
-			const asked = yield* siestaIntents;
-			expect(asked).toHaveLength(1);
-			expect(asked[0]?.payload).toContain(HAND.sessionId);
-			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("succeeded");
+	yield* sight.sleep(HAND.sessionId);
+	const asked = yield* siestaIntents;
+	expect(asked).toHaveLength(1);
+	expect(asked[0]?.payload).toContain(HAND.sessionId);
+	expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("succeeded");
 
-			expect(yield* live.closed).toBe(true);
-			const row = yield* sessionRow;
-			expect(row.status).toBe("open");
-			expect(row.executionStatus).toBe("idle");
-			expect(row.nativeRef).toBe("native-idle");
-			expect((yield* presenceOf).presence).toBe("asleep");
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	expect(yield* live.closed).toBe(true);
+	const row = yield* sessionRow;
+	expect(row.status).toBe("open");
+	expect(row.executionStatus).toBe("idle");
+	expect(row.nativeRef).toBe("native-idle");
+	expect((yield* presenceOf).presence).toBe("asleep");
+});
 
-it.live("a request that races a child starting refuses and names itself", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			const sight = yield* SightSource;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* endTurn(scripted, HAND.agentId);
-			yield* restingAt(true);
+it.effectApp.withProviders("a request that races a child starting refuses and names itself", idleBackend, function* (_, scripted) {
+	const kernel = yield* Kernel;
+	const sight = yield* SightSource;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* endsTurn(scripted, HAND.sessionId);
+	yield* restingAt(true);
 
-			yield* delegates(live);
-			yield* restingAt(false);
-			yield* sight.sleep(HAND.sessionId);
-			const asked = yield* siestaIntents;
-			expect(asked).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("failed");
+	yield* delegates(live);
+	yield* restingAt(false);
+	yield* sight.sleep(HAND.sessionId);
+	const asked = yield* siestaIntents;
+	expect(asked).toHaveLength(1);
+	expect(yield* untilTerminal(kernel.changes(asked[0]?.id ?? ""))).toBe("failed");
 
-			const refused = yield* siestaIntents;
-			expect(refused[0]?.detail).toContain("delegated conversation");
-			expect(yield* live.closed).toBe(false);
-			expect((yield* presenceOf).presence).toBe("idle");
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	const refused = yield* siestaIntents;
+	expect(refused[0]?.detail).toContain("delegated conversation");
+	expect(yield* live.closed).toBe(false);
+	expect((yield* presenceOf).presence).toBe("idle");
+});
 
-it.live("the clock waits for the tree before it reclaims", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* delegates(live);
-			yield* endTurn(scripted, HAND.agentId);
-			yield* restingAt(false);
+it.effectApp.withProviders("the clock waits for the tree before it reclaims", idleBackend, function* (_, scripted) {
+	const kernel = yield* Kernel;
+	yield* spawned;
+	const live = yield* openedNatively(scripted);
+	yield* delegates(live);
+	yield* endsTurn(scripted, HAND.sessionId);
+	yield* restingAt(false);
 
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-			expect(yield* siestaIntents).toEqual([]);
-			expect(yield* live.closed).toBe(false);
+	yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+	expect(yield* siestaIntents).toEqual([]);
+	expect(yield* live.closed).toBe(false);
 
-			yield* finishes(live);
-			yield* restingAt(true);
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
-			const demanded = yield* siestaIntents;
-			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
-			expect(yield* live.closed).toBe(true);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
+	yield* finishes(live);
+	yield* restingAt(true);
+	yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);
+	const demanded = yield* siestaIntents;
+	expect(demanded).toHaveLength(1);
+	expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
+	expect(yield* live.closed).toBe(true);
+});

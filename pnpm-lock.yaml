@@ -807,6 +807,9 @@ importers:
       '@antumbra/kernel':
         specifier: workspace:*
         version: link:../kernel
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112

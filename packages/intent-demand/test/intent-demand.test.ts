@@ -1,15 +1,15 @@
-import { IntentDemand, IntentDemandLive, IntentDemandPassFailed, type IntentDemandRegistration } from "@antumbra/intent-demand";
+import { IntentDemand, IntentDemandPassFailed, type IntentDemandRegistration, intentDemandLayer } from "@antumbra/intent-demand";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
 
 const registration = (tag: string, pass: Effect.Effect<void, IntentDemandPassFailed>): IntentDemandRegistration<never> => ({ pass, tag });
 
-const demandHealth = IntentDemand.use((service) => service.health);
-const requestPass = IntentDemand.use((service) => service.request);
+const demandHealth = IntentDemand.use((service) => service.health());
+const requestPass = IntentDemand.use((service) => service.request());
 
 const runWith = <A, E>(registrations: ReadonlyArray<IntentDemandRegistration<never>>, effect: Effect.Effect<A, E, IntentDemand>) =>
-	effect.pipe(Effect.provide(IntentDemandLive(registrations)));
+	effect.pipe(Effect.provide(intentDemandLayer(registrations)));
 
 it.effect("finishes the initial pass before exposing healthy service", () =>
 	Effect.gen(function* () {

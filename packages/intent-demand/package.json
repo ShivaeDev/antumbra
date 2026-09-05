@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@antumbra/kernel": "workspace:*",
+		"@antumbra/service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

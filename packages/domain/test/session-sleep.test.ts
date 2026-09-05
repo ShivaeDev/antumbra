@@ -4,46 +4,20 @@ import { Database } from "@antumbra/persistence";
 import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Queue, Stream } from "effect";
-import { rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
+	delegates,
+	finishes,
 	HAND,
 	idleBackend,
 	openedNatively,
 	passedAt,
 	presenceOf,
+	restingAt,
 	sessionRow,
 	spawned,
 } from "#test/session-idle-fixture.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
-
-const CHILD = "native-child";
-
-const delegates = (live: ScriptedSession) =>
-	live.emit({
-		raw: rawOf("subsession/opened"),
-		spawnedBy: "tool-1",
-		subsessionRef: CHILD,
-		type: "subsession.opened",
-	});
-
-const finishes = (live: ScriptedSession) =>
-	live.emit({
-		outcome: "completed",
-		raw: rawOf("subsession/ended"),
-		subsessionRef: CHILD,
-		type: "subsession.ended",
-	});
-
-const restingAt = (canSleep: boolean) =>
-	Effect.gen(function* () {
-		const sight = yield* SightSource;
-		yield* sight.fleetFeed.pipe(
-			Stream.map((fleet) => fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === HAND.sessionId)),
-			Stream.filter((session) => session?.presence === "idle" && session.canSleep === canSleep),
-			Stream.runHead,
-		);
-	});
 
 const siestaIntents = Effect.gen(function* () {
 	const db = yield* Database;

@@ -1,13 +1,20 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import type { BerthPlan } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
+
+const runnerSetup = makeScriptedRunner.pipe(
+	Effect.map((recorder) => ({
+		providers: { runners: new Map([[recorder.runner.tag, recorder.runner]]) },
+		state: recorder,
+	})),
+);
 
 const spawnPayload = (suffix: string): SpawnFields => ({
 	agentId: `agent-${suffix}`,
@@ -29,73 +36,53 @@ const submitSpawn = (suffix: string) =>
 const bySource = (berths: ReadonlyArray<BerthPlan>) =>
 	berths.map((berth) => ({ ref: berth.ref, source: berth.source })).sort((left, right) => left.source.localeCompare(right.source));
 
-it.live("a spawn is moored to every registered repo at its default ref", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const recorder = yield* makeScriptedRunner;
-		yield* Effect.gen(function* () {
-			const repos = yield* Repos;
-			yield* repos.register({
-				defaultRef: "main",
-				source: "/reefs/one",
-			});
-			yield* repos.register({
-				defaultRef: "trunk",
-				source: "/reefs/two",
-			});
-			expect(yield* submitSpawn("a")).toBe("succeeded");
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
-		const requests = yield* recorder.provisioned;
-		expect(requests).toHaveLength(1);
-		expect(bySource(requests[0]?.berths ?? [])).toEqual([
-			{ ref: "main", source: "/reefs/one" },
-			{ ref: "trunk", source: "/reefs/two" },
-		]);
-	}),
-);
+it.effectApp.withProviders("a spawn is moored to every registered repo at its default ref", runnerSetup, function* (_, recorder) {
+	const repos = yield* Repos;
+	yield* repos.register({
+		defaultRef: "main",
+		source: "/reefs/one",
+	});
+	yield* repos.register({
+		defaultRef: "trunk",
+		source: "/reefs/two",
+	});
+	expect(yield* submitSpawn("a")).toBe("succeeded");
+	const requests = yield* recorder.provisioned;
+	expect(requests).toHaveLength(1);
+	expect(bySource(requests[0]?.berths ?? [])).toEqual([
+		{ ref: "main", source: "/reefs/one" },
+		{ ref: "trunk", source: "/reefs/two" },
+	]);
+});
 
-it.live("a forgotten repo leaves the next spawn a bare moorage", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const recorder = yield* makeScriptedRunner;
-		yield* Effect.gen(function* () {
-			const repos = yield* Repos;
-			const repo = yield* repos.register({
-				defaultRef: "main",
-				source: "/reefs/one",
-			});
-			yield* repos.forget(repo.id);
-			expect(yield* submitSpawn("b")).toBe("succeeded");
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
-		const requests = yield* recorder.provisioned;
-		expect(requests[0]?.berths).toEqual([]);
-	}),
-);
+it.effectApp.withProviders("a forgotten repo leaves the next spawn a bare moorage", runnerSetup, function* (_, recorder) {
+	const repos = yield* Repos;
+	const repo = yield* repos.register({
+		defaultRef: "main",
+		source: "/reefs/one",
+	});
+	yield* repos.forget(repo.id);
+	expect(yield* submitSpawn("b")).toBe("succeeded");
+	const requests = yield* recorder.provisioned;
+	expect(requests[0]?.berths).toEqual([]);
+});
 
-it.live("the fleet snapshot carries the registry", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const repos = yield* Repos;
-			const repo = yield* repos.register({
-				defaultRef: "main",
-				source: "/reefs/one.git",
-			});
-			const fleet = yield* fleetSnapshot(["scripted"], new Set(), [], [], {
-				attached: new Set(),
-				delegating: new Set(),
-			});
-			expect(fleet.repos).toMatchObject([
-				{
-					defaultRef: "main",
-					id: repo.id,
-					name: "one",
-					source: "/reefs/one.git",
-				},
-			]);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
-	}),
-);
+it.effectApp("the fleet snapshot carries the registry", function* () {
+	const repos = yield* Repos;
+	const repo = yield* repos.register({
+		defaultRef: "main",
+		source: "/reefs/one.git",
+	});
+	const fleet = yield* fleetSnapshot(["scripted"], new Set(), [], [], {
+		attached: new Set(),
+		delegating: new Set(),
+	});
+	expect(fleet.repos).toMatchObject([
+		{
+			defaultRef: "main",
+			id: repo.id,
+			name: "one",
+			source: "/reefs/one.git",
+		},
+	]);
+});

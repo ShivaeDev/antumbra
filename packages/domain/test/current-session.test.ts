@@ -1,12 +1,12 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
 
 const payload: SpawnFields = {
 	agentId: "agent-one-current-session",
@@ -37,31 +37,31 @@ const blockFirstProvision = (
 		),
 });
 
-it.live("a concurrent birth cannot give one Agent two Sessions", () =>
+it.effectApp.withProviders(
+	"a concurrent birth cannot give one Agent two Sessions",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
 		const provisioning = yield* Deferred.make<void>();
 		const release = yield* Deferred.make<void>();
 		const first = yield* Ref.make(true);
 		const runner = blockFirstProvision(recorded.runner, provisioning, release, first);
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const kernel = yield* Kernel;
-			const domain = yield* AgentDomain;
-			const firstBirth = yield* kernel.submit(domain.spawn, payload);
-			yield* Deferred.await(provisioning);
-			const secondBirth = yield* kernel.submit(domain.spawn, {
-				...payload,
-				sessionId: "session-second",
-			});
-			expect(yield* untilTerminal(secondBirth.changes)).toBe("failed");
-			yield* Deferred.succeed(release, undefined);
-			expect(yield* untilTerminal(firstBirth.changes)).toBe("succeeded");
-			const sessions = yield* db.AgentSession.all();
-			expect(sessions.map((session) => session.id)).toEqual(["session-first"]);
-			expect(Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first()).currentSessionId).toBe("session-first");
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner)));
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: { provisioning, release } };
 	}),
+	function* (_, { provisioning, release }) {
+		const db = yield* Database;
+		const kernel = yield* Kernel;
+		const domain = yield* AgentDomain;
+		const firstBirth = yield* kernel.submit(domain.spawn, payload);
+		yield* Deferred.await(provisioning);
+		const secondBirth = yield* kernel.submit(domain.spawn, {
+			...payload,
+			sessionId: "session-second",
+		});
+		expect(yield* untilTerminal(secondBirth.changes)).toBe("failed");
+		yield* Deferred.succeed(release, undefined);
+		expect(yield* untilTerminal(firstBirth.changes)).toBe("succeeded");
+		const sessions = yield* db.AgentSession.all();
+		expect(sessions.map((session) => session.id)).toEqual(["session-first"]);
+		expect(Option.getOrThrow(yield* db.Agent.where({ id: payload.agentId }).first()).currentSessionId).toBe("session-first");
+	},
 );

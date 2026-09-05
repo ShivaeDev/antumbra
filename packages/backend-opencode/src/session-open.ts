@@ -1,7 +1,7 @@
 import type { BackendFailure, OpenSessionOptions } from "@antumbra/plugin-api";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { Effect, Option, Schema } from "effect";
-import { wireName } from "#adapters/tool-server.ts";
+import { CONSTRAINED_AGENT, wireName } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 import { rawOf } from "#mapping.ts";
 import { SessionResponse } from "#protocol.ts";
@@ -10,6 +10,7 @@ import type { OpencodeServer } from "#server.ts";
 const decodeSession = Schema.decodeUnknownOption(SessionResponse);
 
 export interface PromptSettings {
+	readonly agent?: string;
 	readonly model?: { readonly modelID: string; readonly providerID: string };
 	readonly system?: string;
 	readonly variant?: string;
@@ -23,7 +24,7 @@ const namedModel = (model: string): Effect.Effect<PromptSettings, BackendFailure
 };
 
 export const promptSettings = (options: OpenSessionOptions): Effect.Effect<PromptSettings, BackendFailure> => {
-	const constrained: PromptSettings = options.constrainedPrompt === undefined ? {} : { system: options.constrainedPrompt };
+	const constrained: PromptSettings = options.constrainedPrompt === undefined ? {} : { agent: CONSTRAINED_AGENT, system: options.constrainedPrompt };
 	const variant = Option.match(options.effort, {
 		onNone: (): PromptSettings => constrained,
 		onSome: (effort) => ({ ...constrained, variant: effort }),

@@ -6,7 +6,7 @@ import { openEventStream } from "#adapters/event-stream.ts";
 import { httpCalls } from "#adapters/http.ts";
 import { listeningUrl } from "#adapters/listening.ts";
 import { freeLoopbackPort, LOOPBACK } from "#adapters/loopback.ts";
-import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
+import { CONSTRAINED_AGENT, TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";
 
 interface ServeOptions {
@@ -33,11 +33,17 @@ const CONSTRAINED_ENV = {
 	OPENCODE_DISABLE_PROJECT_CONFIG: "1",
 };
 
+// opencode writes its own coding prompt as the first system element unless the chosen agent carries one, so the constrained server declares an agent
+// whose prompt says nothing but that Antumbra's prompt follows.
+const CONSTRAINED_CONFIG = {
+	agent: { [CONSTRAINED_AGENT]: { prompt: "Follow the instructions in the system message." } },
+};
+
 const configContent = (options: ServeOptions): string =>
 	JSON.stringify({
 		mcp: { [TOOL_SERVER_NAME]: { timeout: TOOL_TIMEOUT, type: "remote", url: options.tools } },
 		plugin: [pathToFileURL(options.plugin).href],
-		...(options.constrained ? {} : { skills: { paths: [options.skills] } }),
+		...(options.constrained ? CONSTRAINED_CONFIG : { skills: { paths: [options.skills] } }),
 	});
 
 const serveEnv = (options: ServeOptions) => ({

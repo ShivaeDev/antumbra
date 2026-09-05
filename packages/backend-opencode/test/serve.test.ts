@@ -79,7 +79,7 @@ it.effect("asks for a port the machine handed out, naming Antumbra's skills, too
 	}),
 );
 
-it.effect("the server constrained sessions run on drops the admiral's configuration and is offered no skills", () =>
+it.effect("the constrained server drops the admiral's configuration, offers no skills, and declares the agent that displaces opencode's prompt", () =>
 	Effect.gen(function* () {
 		const fake = opencodeThat({ exitCode: Effect.never, stderr: "", stdout: LISTENING });
 		yield* Effect.scoped(Effect.provide(serveOpencode({ ...OPTIONS, constrained: true }), fake.layer));
@@ -90,6 +90,7 @@ it.effect("the server constrained sessions run on drops the admiral's configurat
 						OPENCODE_CONFIG_CONTENT: JSON.stringify({
 							mcp: { antumbra: { timeout: 300_000, type: "remote", url: "http://127.0.0.1:52001" } },
 							plugin: ["file:///antumbra/opencode/caller-session.js"],
+							agent: { antumbra: { prompt: "Follow the instructions in the system message." } },
 						}),
 						OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1",
 						OPENCODE_DISABLE_EXTERNAL_SKILLS: "1",

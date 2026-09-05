@@ -2,10 +2,10 @@ import { IntentExecution, Kernel, KernelLive } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import { type AgentBackend, type BackendCapacitySource, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { capacityHoldDetail } from "#backend-capacity-hold.ts";
 import { BackendCapacityReleaseLive, BackendCapacityReleases } from "#backend-capacity-release.ts";
 import {
 	makeCapacities,

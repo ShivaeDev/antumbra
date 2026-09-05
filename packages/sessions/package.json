@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -36,6 +37,7 @@
 		"@antumbra/session-inputs": "workspace:*",
 		"@antumbra/service-definition": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/provider-capacity": "workspace:*"
 	}
 }

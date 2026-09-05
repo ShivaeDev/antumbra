@@ -1,11 +1,10 @@
-import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
-import { asked, layer, seedFleet } from "#test/rulings-harness.ts";
+import { asked, it, layer, seedFleet } from "#test/rulings-harness.ts";
 
-it.effectDB("binds effective fleet rulings and named subjects once, newest first", function* () {
+it.effectApp("binds effective fleet rulings and named subjects once, newest first", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const rulings = yield* Rulings;

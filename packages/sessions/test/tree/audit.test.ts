@@ -1,6 +1,6 @@
-import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
+import { it } from "@antumbra/persistence/testing";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { expect, it } from "@effect/vitest";
+import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { journalOf, scriptedLane, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";
 import { makeSessionTreeAudits } from "#tree/audit.ts";
@@ -47,75 +47,63 @@ const rows = Effect.gen(function* () {
 
 const completenessOf = (id: string) => sessionRow(id).pipe(Effect.map((row) => Option.getOrThrow(row).completeness));
 
-it.live("a node whose ledger holds nothing reads complete", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const lane = yield* scriptedLane([]);
-			const audits = yield* makeSessionTreeAudits;
-			yield* seedTree("recording");
-			const tree = yield* rows;
+it.effectDB("a node whose ledger holds nothing reads complete", function* () {
+	yield* Effect.gen(function* () {
+		const lane = yield* scriptedLane([]);
+		const audits = yield* makeSessionTreeAudits;
+		yield* seedTree("recording");
+		const tree = yield* rows;
 
-			yield* audits.audit(lane.audit, tree.root, tree.node);
+		yield* audits.audit(lane.audit, tree.root, tree.node);
 
-			expect(yield* completenessOf(NODE)).toBe("complete");
-			expect(yield* lane.readings).toBe(1);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
-);
+		expect(yield* completenessOf(NODE)).toBe("complete");
+		expect(yield* lane.readings).toBe(1);
+	}).pipe(Effect.provide(treeLayer));
+});
 
-it.live("the same ledger read twice reaches the same verdict", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const lane = yield* scriptedLane([missedLine]);
-			const audits = yield* makeSessionTreeAudits;
-			yield* seedTree("recording");
-			const first = yield* rows;
+it.effectDB("the same ledger read twice reaches the same verdict", function* () {
+	yield* Effect.gen(function* () {
+		const lane = yield* scriptedLane([missedLine]);
+		const audits = yield* makeSessionTreeAudits;
+		yield* seedTree("recording");
+		const first = yield* rows;
 
-			yield* audits.audit(lane.audit, first.root, first.node);
+		yield* audits.audit(lane.audit, first.root, first.node);
 
-			const second = yield* rows;
-			expect(second.node.completeness).toBe("incomplete");
-			yield* audits.audit(lane.audit, second.root, second.node);
+		const second = yield* rows;
+		expect(second.node.completeness).toBe("incomplete");
+		yield* audits.audit(lane.audit, second.root, second.node);
 
-			expect(yield* completenessOf(NODE)).toBe("incomplete");
-			expect(yield* lane.readings).toBe(2);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
-);
+		expect(yield* completenessOf(NODE)).toBe("incomplete");
+		expect(yield* lane.readings).toBe(2);
+	}).pipe(Effect.provide(treeLayer));
+});
 
-it.live("a row from before the record kept gaps is never audited", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const lane = yield* scriptedLane([missedLine]);
-			const audits = yield* makeSessionTreeAudits;
-			yield* seedTree("unaudited");
-			const tree = yield* rows;
+it.effectDB("a row from before the record kept gaps is never audited", function* () {
+	yield* Effect.gen(function* () {
+		const lane = yield* scriptedLane([missedLine]);
+		const audits = yield* makeSessionTreeAudits;
+		yield* seedTree("unaudited");
+		const tree = yield* rows;
 
-			yield* audits.audit(lane.audit, tree.root, tree.node);
+		yield* audits.audit(lane.audit, tree.root, tree.node);
 
-			expect(yield* completenessOf(NODE)).toBe("unaudited");
-			expect(yield* lane.readings).toBe(0);
-			expect(yield* journalOf(NODE)).toHaveLength(0);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
-);
+		expect(yield* completenessOf(NODE)).toBe("unaudited");
+		expect(yield* lane.readings).toBe(0);
+		expect(yield* journalOf(NODE)).toHaveLength(0);
+	}).pipe(Effect.provide(treeLayer));
+});
 
-it.live("a node still being written to has nothing to audit yet", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const lane = yield* scriptedLane([missedLine]);
-			const audits = yield* makeSessionTreeAudits;
-			yield* seedTree("recording", "open");
-			const tree = yield* rows;
+it.effectDB("a node still being written to has nothing to audit yet", function* () {
+	yield* Effect.gen(function* () {
+		const lane = yield* scriptedLane([missedLine]);
+		const audits = yield* makeSessionTreeAudits;
+		yield* seedTree("recording", "open");
+		const tree = yield* rows;
 
-			yield* audits.audit(lane.audit, tree.root, tree.node);
+		yield* audits.audit(lane.audit, tree.root, tree.node);
 
-			expect(yield* completenessOf(NODE)).toBe("recording");
-			expect(yield* lane.readings).toBe(0);
-		}).pipe(Effect.provide(treeLayer(temporary)));
-	}),
-);
+		expect(yield* completenessOf(NODE)).toBe("recording");
+		expect(yield* lane.readings).toBe(0);
+	}).pipe(Effect.provide(treeLayer));
+});

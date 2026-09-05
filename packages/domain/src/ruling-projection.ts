@@ -1,5 +1,12 @@
-import type { RulingReclassificationView, RulingSubjectView, RulingView, RulingVoyageView, StandingRulingView } from "@antumbra/contract";
-import type { Ruling, RulingAnswer, RulingReclassification, RulingSubject } from "@antumbra/rulings";
+import type {
+	RulingContextView,
+	RulingReclassificationView,
+	RulingSubjectView,
+	RulingView,
+	RulingVoyageView,
+	StandingRulingView,
+} from "@antumbra/contract";
+import type { Ruling, RulingAnswer, RulingContext, RulingReclassification, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
 import { type GatedPieceRows, gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { type RungRows, rungSeen } from "#ruling-rung-view.ts";
@@ -25,6 +32,12 @@ const reclassificationSeen = (reclassification: RulingReclassification): RulingR
 	}),
 });
 
+const contextSeen = (context: RulingContext): RulingContextView => ({
+	at: context.at.toISOString(),
+	authorAgentId: Option.getOrNull(context.authorAgentId),
+	body: context.body,
+});
+
 const voyageSeen = (ruling: Ruling, world: Pick<GatedPieceRows, "voyages">): RulingVoyageView | null => {
 	const named = new Set(ruling.subjects.flatMap((subject) => (subject.kind === "voyage" ? [subject.id] : [])));
 	const voyage = world.voyages.find((row) => named.has(row.id));
@@ -38,9 +51,11 @@ export const rulingSeen = (ruling: Ruling, world: GatedPieceRows & RungRows): Ru
 		label: choice.label,
 	})),
 	context: ruling.context,
+	contexts: ruling.contexts.map(contextSeen),
 	declared: ruling.declared,
 	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
 	id: ruling.id,
+	parked: Option.getOrNull(Option.map(ruling.parked, (parked) => ({ at: parked.at.toISOString(), note: parked.note }))),
 	question: ruling.question,
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),

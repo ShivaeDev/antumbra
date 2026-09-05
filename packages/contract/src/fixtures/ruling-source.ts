@@ -16,8 +16,10 @@ const onStanding = (rulingId: string) =>
 
 export const rulingFixture = (feeds: FixtureFeeds) =>
 	Layer.succeed(RulingSource, {
+		askMore: (request) => onOpen(request.rulingId),
 		open: Effect.succeed(openRulings),
 		openFeed: feeds.rulings,
+		park: (request) => onOpen(request.rulingId),
 		proclaim: (request) =>
 			request.answer.trim() === ""
 				? new RulingRefused({ reason: "a proclamation stands on no words" })

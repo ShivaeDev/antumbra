@@ -1,22 +1,18 @@
 import type { EdgeRow } from "#model.ts";
 
-export const wouldCycle = (edges: ReadonlyArray<EdgeRow>, from: string, to: string): boolean => {
+export const reachablePieces = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlySet<string> => {
+	const outgoing = Map.groupBy(edges, (edge) => edge.fromPieceId);
 	const seen = new Set<string>();
-	const frontier = [to];
+	const frontier = [pieceId];
 	while (frontier.length > 0) {
 		const at = frontier.pop();
 		if (at === undefined || seen.has(at)) {
 			continue;
 		}
-		if (at === from) {
-			return true;
-		}
 		seen.add(at);
-		for (const edge of edges) {
-			if (edge.fromPieceId === at) {
-				frontier.push(edge.toPieceId);
-			}
+		for (const edge of outgoing.get(at) ?? []) {
+			frontier.push(edge.toPieceId);
 		}
 	}
-	return false;
+	return seen;
 };

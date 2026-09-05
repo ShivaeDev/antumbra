@@ -160,8 +160,10 @@ it.effectApp("a refused rewire preserves the previous dependencies", function* (
 			title: "beta",
 			voyageId: voyage.id,
 		});
-		const failure = yield* Effect.flip(pieces.setDependencies(beta.id, ["missing"]));
-		expect(failure).toMatchObject({ _tag: "PieceNotFound" });
+		const failure = yield* Effect.flip(pieces.setDependencies(beta.id, [alpha.id, "missing", beta.id]));
+		expect(failure).toMatchObject({ _tag: "PieceNotFound", pieceId: "missing" });
+		const cycle = yield* Effect.flip(pieces.setDependencies(beta.id, [alpha.id, beta.id, "missing"]));
+		expect(cycle).toMatchObject({ _tag: "EdgeWouldCycle", fromPieceId: beta.id, toPieceId: beta.id });
 		expect(yield* db.PieceEdge.where({ toPieceId: beta.id }).all()).toMatchObject([{ fromPieceId: alpha.id, toPieceId: beta.id }]);
 	}).pipe(Effect.provide(PiecesLive), Effect.provide(Voyages.layer));
 });

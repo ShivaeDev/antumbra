@@ -1,6 +1,7 @@
 import { Changes } from "@antumbra/changes";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -97,8 +98,8 @@ it.live("a repo no host claims is named in the refusal", () =>
 it.live("adopting the same change twice is one row and one link per piece", () =>
 	withHost(() =>
 		Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const changes = yield* Changes;
 			const { piece, repo, voyage } = yield* reefWithPiece;
 			yield* db.Agent.create({
@@ -107,7 +108,7 @@ it.live("adopting the same change twice is one row and one link per piece", () =
 				role: "crew",
 				status: "alive",
 			});
-			const second = yield* domain.voyages.charterPiece({
+			const second = yield* pieces.charter({
 				charter: "draw the chart",
 				dependsOn: [],
 				expectation: "the chart is landed",

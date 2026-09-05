@@ -24,7 +24,7 @@ import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
-import { VoyageProcedureService } from "#voyage-procedures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {

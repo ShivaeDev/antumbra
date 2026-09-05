@@ -1,5 +1,7 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import type { ReportRow } from "@antumbra/reports";
+import { Reports } from "@antumbra/reports";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -12,11 +14,12 @@ const BODY = "the eastern shoal is steeper than charted";
 
 const landedOn = (pieceId: string, title: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return yield* domain.voyages.landReport({ body: BODY, pieceId, title });
+		const reports = yield* Reports;
+		return yield* reports.land({ body: BODY, pieceId, title });
 	});
 
 const reportOnAnotherVoyage = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const shoals = yield* domain.voyages.open({
 		backend: "scripted",
@@ -24,7 +27,7 @@ const reportOnAnotherVoyage = Effect.gen(function* () {
 		name: "Name the shoals",
 		northStar: "every shoal has a name",
 	});
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "name the northern shoal",
 		dependsOn: [],
 		expectation: "the shoal is named",
@@ -42,14 +45,15 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(scripted, row.agentId);
 	});
 
-const withCaptain = <A, E>(body: (captain: ScriptedSession, report: ReportRow) => Effect.Effect<A, E, AgentDomain>) =>
+const withCaptain = <A, E, R>(body: (captain: ScriptedSession, report: ReportRow) => Effect.Effect<A, E, R>) =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the eastern shoal",
 				dependsOn: [],
 				expectation: "soundings land",

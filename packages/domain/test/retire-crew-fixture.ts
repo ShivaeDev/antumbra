@@ -1,4 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
+import { Pieces } from "@antumbra/pieces";
+import { Reports } from "@antumbra/reports";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -16,9 +18,10 @@ const REEF = {
 };
 
 export const chartered = Effect.gen(function* () {
+	const pieces = yield* Pieces;
 	const domain = yield* AgentDomain;
 	const voyage = yield* domain.voyages.open(REEF);
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "sound the northern shoals",
 		dependsOn: [],
 		expectation: "the depths are recorded",
@@ -50,8 +53,8 @@ export const born = (fields: SpawnFields) =>
 
 export const landed = (pieceId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		yield* domain.voyages.landReport({
+		const reports = yield* Reports;
+		yield* reports.land({
 			body: "the depths are recorded",
 			pieceId,
 			title: "soundings",

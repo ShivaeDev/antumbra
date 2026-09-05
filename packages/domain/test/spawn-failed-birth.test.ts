@@ -1,5 +1,6 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { type AgentBackend, BackendFailure } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
@@ -34,6 +35,7 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 			openSession: () => Effect.fail(new BackendFailure({ detail: "open denied", tag: "scripted" })),
 		};
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const kernel = yield* Kernel;
 			const domain = yield* AgentDomain;
@@ -42,7 +44,7 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 				source: "/somewhere/repo",
 			});
 			const voyage = yield* openReefVoyage;
-			const piece = yield* domain.voyages.charterPiece({
+			const piece = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -50,7 +52,7 @@ it.live("births that fail leave no claim standing on their Piece", () =>
 				title: "alpha",
 				voyageId: voyage.id,
 			});
-			yield* domain.voyages.launch(piece.id);
+			yield* pieces.launch(piece.id);
 
 			const failBirth = (suffix: string) =>
 				Effect.gen(function* () {

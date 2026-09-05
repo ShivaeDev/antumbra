@@ -1,5 +1,6 @@
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
@@ -44,11 +45,12 @@ it.live("a request carries who asked and where the asker stood", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const voyage = yield* openReefVoyage;
-			const alpha = yield* domain.voyages.charterPiece({
+			const alpha = yield* pieces.charter({
 				charter: "do alpha",
 				dependsOn: [],
 				expectation: "alpha is landed",
@@ -206,11 +208,11 @@ it.live("a hold naming another voyage's piece is refused, not stored", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const { bravo, voyage } = yield* chain;
 			const other = yield* openReefVoyage;
-			const foreign = yield* domain.voyages.charterPiece({
+			const foreign = yield* pieces.charter({
 				charter: "do delta",
 				dependsOn: [],
 				expectation: "delta is landed",
@@ -240,11 +242,12 @@ it.live("crew on a piece may hold a sibling piece of its voyage", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const voyage = yield* openReefVoyage;
 			const charter = (title: string) =>
-				domain.voyages.charterPiece({
+				pieces.charter({
 					charter: `do ${title}`,
 					dependsOn: [],
 					expectation: `${title} is landed`,

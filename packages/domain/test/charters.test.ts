@@ -1,5 +1,6 @@
 import { BoardScope, EntryInput } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -27,9 +28,10 @@ it.live("a dispatched crew is told both registers of its boards", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const reef = yield* openReefVoyage;
-			const alpha = yield* domain.voyages.charterPiece({
+			const alpha = yield* pieces.charter({
 				charter: "sound the shallows",
 				dependsOn: [],
 				expectation: "soundings are landed",
@@ -49,7 +51,7 @@ it.live("a dispatched crew is told both registers of its boards", () =>
 					register: "smooth",
 				}),
 			);
-			yield* domain.voyages.launch(alpha.id);
+			yield* pieces.launch(alpha.id);
 
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charter = yield* eventually(charterDelivered(scripted, agentId));
@@ -65,10 +67,10 @@ it.live("a dispatched crew is told the standing rulings that bind it", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			const reef = yield* openReefVoyage;
 			const charter = (title: string) =>
-				domain.voyages.charterPiece({
+				pieces.charter({
 					charter: `do ${title}`,
 					dependsOn: [],
 					expectation: `${title} is landed`,
@@ -95,7 +97,7 @@ it.live("a dispatched crew is told the standing rulings that bind it", () =>
 				radius: "piece",
 				subjects: onPiece(bravo.id),
 			});
-			yield* domain.voyages.launch(alpha.id);
+			yield* pieces.launch(alpha.id);
 
 			const agentId = yield* eventually(crewOf(alpha.id));
 			const charterText = yield* eventually(charterDelivered(scripted, agentId));

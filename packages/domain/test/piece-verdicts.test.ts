@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -7,9 +8,9 @@ import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.
 import { aliveAgent, chain, land, openReefVoyage, stateOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const soleReefPiece = Effect.gen(function* () {
-	const domain = yield* AgentDomain;
+	const pieces = yield* Pieces;
 	const voyage = yield* openReefVoyage;
-	const piece = yield* domain.voyages.charterPiece({
+	const piece = yield* pieces.charter({
 		charter: "sound the eastern shoal",
 		dependsOn: [],
 		expectation: "the depths are recorded",
@@ -17,7 +18,7 @@ const soleReefPiece = Effect.gen(function* () {
 		title: "soundings",
 		voyageId: voyage.id,
 	});
-	yield* domain.voyages.launch(piece.id);
+	yield* pieces.launch(piece.id);
 	return { piece, voyage };
 });
 
@@ -26,12 +27,12 @@ it.live("a delivered verdict is an outcome and the ladder reads done", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const { piece, voyage } = yield* soleReefPiece;
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("ready");
 
-			yield* domain.voyages.landPieceVerdict(piece.id, "delivered");
+			yield* pieces.landVerdict(piece.id, "delivered");
 
 			expect(yield* db.PieceVerdict.all()).toMatchObject([{ pieceId: piece.id, verdict: "delivered" }]);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
@@ -44,10 +45,11 @@ it.live("an abandoned piece says so rather than passing for landed work", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const { piece, voyage } = yield* soleReefPiece;
 
-			yield* domain.voyages.landPieceVerdict(piece.id, "abandoned");
+			yield* pieces.landVerdict(piece.id, "abandoned");
 
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("abandoned");
 			const view = Option.getOrThrow(yield* domain.voyages.read(voyage.id));
@@ -62,16 +64,16 @@ it.live("a corrected verdict replaces the one standing, never joins it", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const db = yield* Database;
-			const domain = yield* AgentDomain;
 			const { piece, voyage } = yield* soleReefPiece;
 
-			yield* domain.voyages.landPieceVerdict(piece.id, "abandoned");
-			yield* domain.voyages.landPieceVerdict(piece.id, "delivered");
+			yield* pieces.landVerdict(piece.id, "abandoned");
+			yield* pieces.landVerdict(piece.id, "delivered");
 
 			expect(yield* db.PieceVerdict.all()).toHaveLength(1);
 			expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
-			expect(yield* Effect.flip(domain.voyages.landPieceVerdict("no-such-piece", "delivered"))).toMatchObject({ _tag: "PieceNotFound" });
+			expect(yield* Effect.flip(pieces.landVerdict("no-such-piece", "delivered"))).toMatchObject({ _tag: "PieceNotFound" });
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
@@ -81,11 +83,11 @@ it.live("abandoning a piece releases what was waiting behind it", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
+			const pieces = yield* Pieces;
 			const { alpha, bravo, voyage } = yield* chain;
 			expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
 
-			yield* domain.voyages.landPieceVerdict(alpha.id, "abandoned");
+			yield* pieces.landVerdict(alpha.id, "abandoned");
 
 			expect(yield* stateOf(voyage.id, alpha.id)).toBe("abandoned");
 			expect(yield* stateOf(voyage.id, bravo.id)).toBe("ready");
@@ -120,9 +122,10 @@ it.live("an abandoned piece refuses crew until its verdict changes", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
+			const pieces = yield* Pieces;
 			const domain = yield* AgentDomain;
 			const { piece } = yield* soleReefPiece;
-			yield* domain.voyages.landPieceVerdict(piece.id, "abandoned");
+			yield* pieces.landVerdict(piece.id, "abandoned");
 
 			expect(yield* Effect.flip(domain.voyages.workNow(piece.id))).toMatchObject({ _tag: "PieceAbandoned" });
 			expect(yield* Effect.flip(domain.voyages.workNow("no-such-piece"))).toMatchObject({ _tag: "PieceNotFound" });

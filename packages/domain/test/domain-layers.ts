@@ -10,7 +10,7 @@ import { SessionFabricLive } from "@antumbra/session-fabric";
 import { SettingsSourceLive } from "@antumbra/settings";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
-import { BackendCapacityReleaseLive } from "#backend-capacity-release.ts";
+import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
@@ -101,7 +101,7 @@ export const dispatchingLayer = (
 	changeHosts: ReadonlyMap<string, ChangeHost> = new Map(),
 ) => DispatcherLive(dispatcher).pipe(Layer.provideMerge(domainKernelLayer(temporary, backend, options, runner, changeHosts)));
 
-export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleaseLive));
+export const sightSourceTestLayer = SightSourceLive.pipe(Layer.provideMerge(BackendCapacityReleases.layer));
 
 export const watchingLayer = (
 	temporary: TemporaryPersistence,

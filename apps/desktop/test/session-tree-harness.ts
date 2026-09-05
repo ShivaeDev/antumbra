@@ -2,7 +2,7 @@ import { dirname, join } from "node:path";
 import { type Delivery, laneEvents, openSessionLanes } from "@antumbra/backend-claude";
 import { openThreadClaims, openThreadTree, type RpcNotification, threadOpened } from "@antumbra/backend-codex";
 import type { SightSource } from "@antumbra/contract";
-import { AgentDomain, AgentDomainLive, BackendCapacityReleaseLive, SettingsSourceLive, SightSourceLive } from "@antumbra/domain";
+import { AgentDomain, AgentDomainLive, BackendCapacityReleases, SettingsSourceLive, SightSourceLive } from "@antumbra/domain";
 import { KernelLive } from "@antumbra/kernel";
 import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
@@ -95,7 +95,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	SightSourceLive.pipe(
-		Layer.provideMerge(BackendCapacityReleaseLive),
+		Layer.provideMerge(BackendCapacityReleases.layer),
 		Layer.provideMerge(
 			Layer.unwrap(
 				Effect.gen(function* () {

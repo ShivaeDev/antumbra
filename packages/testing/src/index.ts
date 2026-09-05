@@ -2,7 +2,7 @@ import { dirname, join } from "node:path";
 import {
 	AgentDomain,
 	AgentDomainLive,
-	BackendCapacityReleaseLive,
+	BackendCapacityReleases,
 	ChangeWatcher,
 	DispatcherLive,
 	FlagshipLive,
@@ -65,7 +65,7 @@ const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBac
 		RulingAscentLive,
 		RulingDeliveryLive,
 		SessionShutdownLive,
-	).pipe(Layer.provideMerge(BackendCapacityReleaseLive), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
+	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
 };
 
 const makeApp = (temporary: TemporaryPersistence) =>

@@ -43,7 +43,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			sinkFor,
 		});
 		const retire = yield* makeRetireKind;
-		const compileTools = yield* makeAgentToolCompiler;
+		const compileTools = yield* makeAgentToolCompiler(backends);
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recoveryRuntime = yield* makeSessionRecoveryRuntime({
 			backends,

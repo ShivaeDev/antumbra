@@ -2,12 +2,40 @@ import { RulingUrgencySchema } from "@antumbra/vocabulary/ruling";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 
+const backendField = (role: string) =>
+	Schema.optional(
+		Schema.String.annotate({
+			description: `The backend the ${role} runs on, named as \`read_fleet\` names it. Omitted, the voyage takes the fleet's default.`,
+		}),
+	);
+
+const modelField = (role: string) =>
+	Schema.optional(
+		Schema.String.annotate({
+			description: `The model the ${role} runs, named as its backend names it. Omitted, the backend picks.`,
+		}),
+	);
+
+const effortField = (role: string) =>
+	Schema.optional(
+		Schema.String.annotate({
+			description: `How hard the ${role} thinks, named as its backend names it. Omitted, the backend picks.`,
+		}),
+	);
+
 export const openVoyageSpec = defineTool({
-	description: "Create a Voyage for an objective. Hail its captain separately to begin work.",
+	description:
+		"Create a Voyage for an objective, with the backend, model and effort its captain and crew run on. Hail its captain separately to begin work.",
 	input: Schema.Struct({
+		captainBackend: backendField("captain"),
+		captainEffort: effortField("captain"),
+		captainModel: modelField("captain"),
 		context: Schema.String.annotate({
 			description: "Relevant background for the work.",
 		}),
+		crewBackend: backendField("crew"),
+		crewEffort: effortField("crew"),
+		crewModel: modelField("crew"),
 		name: Schema.String.annotate({
 			description: "One line naming the voyage.",
 		}),
@@ -16,6 +44,20 @@ export const openVoyageSpec = defineTool({
 		}),
 	}),
 	name: "open_voyage",
+});
+
+export const registerRepoSpec = defineTool({
+	description:
+		"Register a repository so voyages can work in it. Registering one the fleet already has sets its default branch again rather than failing.",
+	input: Schema.Struct({
+		defaultRef: Schema.String.annotate({
+			description: "The branch work starts from, such as `main`.",
+		}),
+		source: Schema.String.annotate({
+			description: "The repository's clone URL.",
+		}),
+	}),
+	name: "register_repo",
 });
 
 export const charterVoyagePieceSpec = defineTool({
@@ -76,7 +118,7 @@ export const proclaimRulingSpec = defineTool({
 });
 
 export const readFleetSpec = defineTool({
-	description: "List Voyages with their IDs, captains and progress to find the work you need.",
+	description: "List Voyages with their IDs, captains and progress, the registered repositories, and the models and efforts each backend offers.",
 	input: Schema.Struct({}),
 	name: "read_fleet",
 });

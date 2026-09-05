@@ -5,7 +5,7 @@ import { Effect, Option } from "effect";
 import { agentSettingsOf } from "#agent-settings.ts";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
-import { KernelReach } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { workingAssignee } from "#piece-work/working-assignee.ts";
 import { PieceAbandoned, PieceAlreadyCrewed, PieceNotOnVoyage } from "#piece-work-errors.ts";
 

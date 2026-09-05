@@ -3,7 +3,7 @@ import { holding, SettingsSource } from "@antumbra/contract";
 import { IntentDemandPassFailed, type IntentDemandRegistration } from "@antumbra/intent-demand";
 import { mailWords } from "@antumbra/prompts";
 import { Cause, Effect } from "effect";
-import { KernelReach } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { makeDueWakes } from "#mail-due-wakes.ts";
 
 export const MAIL_DELIVERY_TAG = "session/mail-delivery";

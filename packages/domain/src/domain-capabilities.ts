@@ -16,7 +16,7 @@ import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ExecutionSource } from "#execution/service.ts";
-import { KernelReachDeferredLive } from "#kernel-reach.ts";
+import { sessionReachLayer } from "#kernel-reach/session.ts";
 import { Quay } from "#quay/service.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { VoyageSummaries } from "#voyage/summaries/service.ts";
@@ -37,7 +37,7 @@ export const domainCapabilities = (
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
 		SessionEventJournalLive,
 		SessionTrees.layer,
-		KernelReachDeferredLive,
+		sessionReachLayer,
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));

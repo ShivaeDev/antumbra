@@ -5,7 +5,7 @@ import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import { type DispatchState, holdInFlight, recordFailure, recordSuccess, releaseInFlight } from "#dispatch-state.ts";
-import type { SpawnRefused } from "#kernel-reach.ts";
+import type { SpawnRefused } from "#kernel-rouse.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export interface DispatchPort {

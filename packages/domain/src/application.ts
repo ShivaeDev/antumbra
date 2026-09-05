@@ -10,7 +10,7 @@ import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { FlagshipLive } from "#flagship.ts";
 import { HoldSourceLive } from "#hold-source.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
-import { KernelReachLive } from "#kernel-reach.ts";
+import { installKernelReach } from "#kernel-reach/bind.ts";
 import { RulingAscent } from "#ruling-ascent/observer.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { RulingSourceLive } from "#ruling-source.ts";
@@ -41,7 +41,7 @@ export const applicationLayers = (...providers: Parameters<typeof AgentDomainLiv
 		),
 		FlagshipLive,
 		IntentFeedLive,
-		KernelReachLive,
+		installKernelReach,
 		RulingAscent,
 		RulingDeliveryLive,
 		SessionShutdown.layer,

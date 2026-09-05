@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
-import { KernelReach, type KernelReachService } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
@@ -65,7 +65,8 @@ it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, onc
 			);
 
 			const wakes = yield* Ref.make<ReadonlyArray<RecordedWake>>([]);
-			const recordingReach: KernelReachService = {
+			const recordingReach = KernelReach.of({
+				...(yield* KernelReach),
 				...fakeKernelReach,
 				submitWake: ({ sessionId }) =>
 					Effect.gen(function* () {
@@ -73,7 +74,7 @@ it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, onc
 						yield* Ref.update(wakes, (all) => [...all, { intentStillRecorded: Option.isSome(intent), sessionId }]);
 						return `wake-${sessionId}`;
 					}),
-			};
+			});
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
 			expect(yield* Ref.get(wakes)).toEqual([
 				{ intentStillRecorded: false, sessionId: "restart-session-one" },

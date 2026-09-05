@@ -5,7 +5,7 @@ import { Effect, Option } from "effect";
 import { agentSettingsOf } from "#agent-settings.ts";
 import { charterForKind } from "#charter-flagship.ts";
 import { CaptainAlreadyHailed, CaptainSessionUnavailable, VoyageNotFound } from "#errors.ts";
-import { KernelReach } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { pieceLineWithOutcomes } from "#piece-line.ts";
 import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";

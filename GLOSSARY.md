@@ -47,13 +47,6 @@ Owner: [The flagship](docs/design/flagship.md)
 
 - [**Flagship**](docs/design/flagship.md#the-flagship-voyage) — the one Voyage carrying the fleet's own north star, Board, and highest-level captain.
 
-## Charters
-
-Owner: [Charters](docs/design/charters.md)
-
-- [**Skill**](docs/design/charters.md#context-and-delivery) — a document Antumbra gives an Agent's harness, which the Agent loads when the work calls
-  for it.
-
 ## Changes and delivery
 
 Owner: [Changes and delivery](docs/design/changes-and-delivery.md)

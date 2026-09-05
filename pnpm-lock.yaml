@@ -395,9 +395,6 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@antumbra/skills':
-        specifier: workspace:*
-        version: link:../skills
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
@@ -426,9 +423,6 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@antumbra/skills':
-        specifier: workspace:*
-        version: link:../skills
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary
@@ -1503,24 +1497,6 @@ importers:
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
-    devDependencies:
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.10.1
-      '@typescript/native':
-        specifier: 'catalog:'
-        version: typescript@7.0.2
-      typescript:
-        specifier: 'catalog:'
-        version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0))
-
-  packages/skills:
     devDependencies:
       '@effect/vitest':
         specifier: 'catalog:'

@@ -3,7 +3,7 @@ import { Deferred, Effect, PubSub, Queue, type Scope } from "effect";
 import type { LineProcess } from "#adapters/process.ts";
 import { connectRpc, type RpcConnection, type RpcNotification, type RpcServerRequest } from "#adapters/rpc.ts";
 import { codexFailure } from "#failure.ts";
-import { handshake, offerSkills } from "#handshake.ts";
+import { handshake } from "#handshake.ts";
 import { rawOf } from "#mapping.ts";
 import { type Request, requestOn } from "#requests.ts";
 import { answerServerRequest } from "#server-answers.ts";
@@ -12,7 +12,6 @@ import { makeToolRegistry, type ToolRegistry } from "#tool-registry.ts";
 
 interface CodexServerOptions {
 	readonly observeCapacity?: BackendCapacityController["observe"];
-	readonly skills: string;
 	readonly spawn: () => LineProcess;
 }
 
@@ -79,7 +78,6 @@ export const makeCodexServer = (options: CodexServerOptions): Effect.Effect<Code
 		const request = requestOn(rpc);
 		yield* handshake(request);
 		rpc.notify("initialized", {});
-		yield* offerSkills(request, options.skills);
 		return {
 			exited: Deferred.await(exited),
 			notifications,

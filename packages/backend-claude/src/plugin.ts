@@ -3,11 +3,7 @@ import { Effect, Option } from "effect";
 import { claudeBackend } from "#backend.ts";
 import { classifyClaudeCapacity } from "#capacity.ts";
 
-interface ClaudePluginOptions {
-	readonly skills: string;
-}
-
-export const claudePlugin = (options: ClaudePluginOptions): AntumbraPlugin => ({
+export const claudePlugin = (): AntumbraPlugin => ({
 	activate: (context) =>
 		Effect.flatMap(
 			context.findExecutable("claude"),
@@ -15,7 +11,7 @@ export const claudePlugin = (options: ClaudePluginOptions): AntumbraPlugin => ({
 				onNone: () => Effect.logWarning("claude: no executable found on the login PATH; backend not registered"),
 				onSome: (executable) =>
 					Effect.flatMap(makeBackendCapacityController(classifyClaudeCapacity), (capacity) =>
-						context.registerAgentBackend(claudeBackend({ executable, skills: options.skills }, capacity)),
+						context.registerAgentBackend(claudeBackend({ executable }, capacity)),
 					),
 			}),
 		),

@@ -15,7 +15,7 @@ it.live("successive censuses use the live server and claim the children they fin
 						})
 					: Option.none(),
 		});
-		const server = yield* RcRef.make({ acquire: makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process }) });
+		const server = yield* RcRef.make({ acquire: makeCodexServer({ spawn: () => fake.process }) });
 		const live = yield* RcRef.get(server);
 		const audit = codexAudit(server);
 		const request = { admitted: () => false, cwd: "/moorage", rootRef: "root" };

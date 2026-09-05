@@ -6,7 +6,6 @@ import {
 	makeBackendCapacityController,
 	type PluginContext,
 } from "@antumbra/plugin-api";
-import { skillFolders } from "@antumbra/skills";
 import { Effect, Option, RcRef } from "effect";
 import { bundledCodex } from "#adapters/chatgpt-bundle.ts";
 import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";
@@ -18,7 +17,6 @@ import { openThreadSession } from "#thread.ts";
 
 interface CodexPluginOptions {
 	readonly cwd: string;
-	readonly skills: string;
 }
 
 const spawnAppServer = (command: string, cwd: string) => (): LineProcess => spawnLineProcess({ args: ["app-server"], command, cwd });
@@ -37,11 +35,11 @@ const codexBackend = (server: RcRef.RcRef<CodexServer, BackendFailure>, capacity
 const codexCommand = (context: PluginContext) =>
 	Effect.flatMap(context.findExecutable("codex"), (found) => (Option.isSome(found) ? Effect.succeed(found) : bundledCodex));
 
-const registerCodex = (context: PluginContext, spawn: () => LineProcess, skills: string) =>
+const registerCodex = (context: PluginContext, spawn: () => LineProcess) =>
 	Effect.gen(function* () {
 		const capacity = yield* makeBackendCapacityController(classifyCodexCapacity);
 		const server = yield* RcRef.make({
-			acquire: makeCodexServer({ observeCapacity: capacity.observe, skills, spawn }),
+			acquire: makeCodexServer({ observeCapacity: capacity.observe, spawn }),
 		});
 		yield* context.registerAgentBackend(codexBackend(server, capacity.source));
 	});
@@ -52,7 +50,7 @@ export const codexPlugin = (options: CodexPluginOptions): AntumbraPlugin => ({
 			codexCommand(context),
 			Option.match({
 				onNone: () => Effect.logWarning("codex: no executable found on the login PATH or in the ChatGPT app; backend not registered"),
-				onSome: (command) => registerCodex(context, spawnAppServer(command, options.cwd), skillFolders(options.skills)),
+				onSome: (command) => registerCodex(context, spawnAppServer(command, options.cwd)),
 			}),
 		),
 	name: "codex",

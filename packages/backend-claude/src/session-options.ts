@@ -15,7 +15,6 @@ interface SessionShape {
 	readonly executable: string;
 	readonly model: string | undefined;
 	readonly resume: string | undefined;
-	readonly skills: string;
 	readonly store: SessionStore;
 	readonly tools: Option.Option<ToolAccess>;
 }
@@ -32,7 +31,6 @@ const served = (access: ToolAccess) => ({
 	},
 });
 
-// Antumbra's skills reach Claude Code as a local plugin: the directory holds the plugin manifest and one folder per skill.
 // Claude keys transcript storage by canonical cwd. Delegated-agent text requires `forwardSubagentText`; workflow-agent records are available only
 // through `sessionStore`.
 export const sessionOptions = (session: SessionShape): Options => ({
@@ -40,7 +38,6 @@ export const sessionOptions = (session: SessionShape): Options => ({
 	forwardSubagentText: true,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
-	plugins: [{ path: session.skills, type: "local" }],
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
 	...(session.effort === undefined ? {} : { effort: session.effort }),

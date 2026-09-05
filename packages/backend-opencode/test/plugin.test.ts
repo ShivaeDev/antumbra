@@ -9,7 +9,7 @@ it.effect("registers the backend for the opencode CLI it finds", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const host = yield* hostFinding(Option.some("/opt/homebrew/bin/opencode"));
-			yield* Effect.orDie(opencodePlugin({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills" }).activate(host.context));
+			yield* Effect.orDie(opencodePlugin({ cwd: "/tmp/antumbra" }).activate(host.context));
 			const backend = (yield* host.backends).get("opencode");
 			expect(backend?.capabilities).toEqual({
 				imageInput: false,
@@ -23,7 +23,7 @@ it.effect("registers nothing when no opencode CLI is found", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const host = yield* hostFinding(Option.none());
-			yield* Effect.orDie(opencodePlugin({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills" }).activate(host.context));
+			yield* Effect.orDie(opencodePlugin({ cwd: "/tmp/antumbra" }).activate(host.context));
 			expect([...(yield* host.backends).keys()]).toEqual([]);
 		}),
 	),

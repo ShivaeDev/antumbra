@@ -43,7 +43,6 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/session-inputs` | Ordered durable Session inputs, validated image custody, delivery readings, and transcript thumbnails |
 | `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
-| `packages/skills`         | The skills Antumbra gives every harness: one folder per skill, each holding the SKILL.md the harness reads (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
 | `packages/service-definition` | One constructor for inferred process-lifetime Effect services |

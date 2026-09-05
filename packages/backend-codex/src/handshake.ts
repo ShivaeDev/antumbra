@@ -1,4 +1,3 @@
-import type { BackendFailure } from "@antumbra/plugin-api";
 import { Effect, Option, Schema } from "effect";
 import { InitializeResponse, PINNED_CLI_VERSION } from "#protocol.ts";
 import type { Request } from "#requests.ts";
@@ -33,13 +32,6 @@ const checkVersion = (response: unknown) =>
 					});
 		},
 	});
-
-// An older app-server has no skills request; the backend still opens threads without Antumbra's skills.
-export const offerSkills = (request: Request, folder: string) =>
-	request("skills/extraRoots/set", { extraRoots: [folder] }).pipe(
-		Effect.asVoid,
-		Effect.catch((failure: BackendFailure) => Effect.logWarning("codex: skills were not accepted", { detail: failure.detail })),
-	);
 
 // Codex requires one initialize followed by initialized, with experimentalApi enabled for dynamic tools.
 export const handshake = (request: Request) =>

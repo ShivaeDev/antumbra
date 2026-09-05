@@ -51,7 +51,6 @@ describe("codex capacity evidence", () => {
 				const fake = makeFakeAppServer();
 				const server = yield* makeCodexServer({
 					observeCapacity: controller.observe,
-					skills: "/antumbra/skills",
 					spawn: () => fake.process,
 				});
 				const received = yield* PubSub.subscribe(server.notifications);

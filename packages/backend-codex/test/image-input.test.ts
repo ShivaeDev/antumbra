@@ -9,7 +9,7 @@ import { openThreadSession } from "#thread.ts";
 it.live("an ordered local image reaches codex and its echo keeps the input id", () =>
 	Effect.gen(function* () {
 		const fake = makeFakeAppServer();
-		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
+		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),

@@ -1,40 +1,18 @@
 import type { BoardWriteRequest } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { BoardComposer } from "#views/board-composer.tsx";
 
 const { writeBoard } = vi.hoisted(() => ({ writeBoard: vi.fn() }));
 vi.mock("#adapters/trpc-voyages.ts", () => ({ writeBoard }));
-const settle = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
 const button = (text: string) => [...document.querySelectorAll("button")].find((entry) => entry.textContent === text);
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		yield* settle(() => root.render(<BoardComposer scope={{ kind: "piece", pieceId: "piece" }} />));
-	});
-const write = (body: string) => {
+const draft = (): HTMLTextAreaElement => {
 	const textarea = document.querySelector("textarea");
 	if (textarea === null) return Effect.runSync(Effect.die("Missing board draft"));
-	Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set?.call(textarea, body);
-	textarea.dispatchEvent(new Event("input", { bubbles: true }));
+	return textarea;
 };
 
 it.effect("keeps raw board text after failure and clears only the body after a successful retry", () =>
@@ -45,12 +23,13 @@ it.effect("keeps raw board text after failure and clears only the body after a s
 		const retried = yield* Deferred.make<void>();
 		writeBoard.mockImplementationOnce((value: BoardWriteRequest) => Deferred.succeed(started, value).pipe(Effect.andThen(Deferred.await(first))));
 		writeBoard.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		yield* mount();
+		const { root } = yield* mount();
+		yield* settle(() => root.render(<BoardComposer scope={{ kind: "piece", pieceId: "piece" }} />));
 		expect(button("Write")?.disabled).toBe(true);
 		yield* settle(() => document.querySelector("form")?.requestSubmit());
 		expect(writeBoard).not.toHaveBeenCalled();
 		yield* settle(() => {
-			write("  **soundings**\n\nLeave the spacing.  ");
+			write(draft(), "  **soundings**\n\nLeave the spacing.  ");
 			button("Rough log")?.click();
 		});
 		yield* settle(() => document.querySelector("form")?.requestSubmit());

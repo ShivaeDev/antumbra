@@ -1,9 +1,8 @@
 import type { BoardSmoothing } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
+import { mount, settle } from "#test/dom.ts";
 import { BoardPanel } from "#views/board.tsx";
 import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 
@@ -13,34 +12,19 @@ const body = (smoothing: BoardSmoothing) => renderToStaticMarkup(<SmoothingLine 
 
 const clicked = (label: string, smoothing: BoardSmoothing) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		const root = createRoot(container);
+		const { container, root } = yield* mount();
 		let smoothed = 0;
-		yield* Effect.promise(() =>
-			act(() => {
-				root.render(
-					<>
-						<SmoothNow onSmooth={() => smoothed++} smoothing={smoothing} />
-						<SmoothingLine onSmooth={() => smoothed++} smoothing={smoothing} />
-					</>,
-				);
-				return Promise.resolve();
-			}),
+		yield* settle(() =>
+			root.render(
+				<>
+					<SmoothNow onSmooth={() => smoothed++} smoothing={smoothing} />
+					<SmoothingLine onSmooth={() => smoothed++} smoothing={smoothing} />
+				</>,
+			),
 		);
-		yield* Effect.promise(() =>
-			act(() => {
-				[...container.querySelectorAll("button")].find((button) => button.textContent === label)?.click();
-				return Promise.resolve();
-			}),
-		);
-		yield* Effect.promise(() =>
-			act(() => {
-				root.unmount();
-				return Promise.resolve();
-			}),
-		);
+		yield* settle(() => [...container.querySelectorAll("button")].find((button) => button.textContent === label)?.click());
 		return smoothed;
-	});
+	}).pipe(Effect.scoped);
 
 it("offers the pass only while rough entries stand uncovered", () => {
 	expect(header({ state: "idle", uncovered: 9 })).toContain("Smooth now");

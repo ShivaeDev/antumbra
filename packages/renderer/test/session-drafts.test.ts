@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import { expect, it } from "@effect/vitest";
 import { beforeEach } from "vitest";
 import { draftStorageKey } from "#session-drafts/storage.ts";

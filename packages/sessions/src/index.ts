@@ -18,8 +18,6 @@ export {
 	SessionStillDelegating,
 } from "#errors.ts";
 export { promptInput } from "#input.ts";
-export { compileSessionMailDemands, makeMailDelivery } from "#mail/delivery.ts";
-export { dueMail, type MailBatch, type MailReading, type UnreadMail } from "#mail/due.ts";
 export { SessionReach } from "#reach.ts";
 export type {
 	SessionIdentity,

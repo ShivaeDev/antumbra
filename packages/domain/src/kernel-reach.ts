@@ -42,7 +42,6 @@ export const KernelReachDeferredLive = Layer.unwrap(
 			Layer.succeed(SessionReach)({
 				rouseSession: (payload) => withReach((reach) => reach.rouseSession(payload)),
 				settleWakes: (sessionId) => withReach((reach) => reach.settleWakes(sessionId)),
-				wakePending: (sessionId) => withReach((reach) => reach.wakePending(sessionId)),
 			}),
 			Layer.succeed(KernelReachInstaller)({
 				install: (reach) => Deferred.succeed(deferred, reach).pipe(Effect.asVoid),

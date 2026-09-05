@@ -12,7 +12,7 @@ interface SessionTurnRest {
 	readonly stranded: Effect.Effect<void>;
 }
 
-export const makeSessionTurnRests = (deliverMail: Effect.Effect<void, unknown>) =>
+export const makeSessionTurnRests = (afterRest: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const fabric = yield* SessionFabric;
@@ -50,7 +50,7 @@ export const makeSessionTurnRests = (deliverMail: Effect.Effect<void, unknown>) 
 			Effect.gen(function* () {
 				if (yield* settle(sessionId, mark)) {
 					yield* announce;
-					yield* deliverMail;
+					yield* afterRest;
 				}
 			});
 		return (rootSessionId: string) =>

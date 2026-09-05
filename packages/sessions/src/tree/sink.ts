@@ -16,13 +16,13 @@ type RecordEvent = (event: AgentEvent) => Effect.Effect<boolean, unknown>;
 
 export type SinkFor = (rootSessionId: string, audit: SessionAudit) => Effect.Effect<EventSink>;
 
-export const makeSessionTreeSinks = (deliverMail: Effect.Effect<void, unknown>) =>
+export const makeSessionTreeSinks = (afterRest: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		const journal = yield* SessionEventJournal;
 		const lifecycle = yield* makeSessionTreeLifecycle;
 		const sweepsFor = yield* makeSessionTreeSweeps;
 		const live = yield* LiveDelegations;
-		const turnRestFor = yield* makeSessionTurnRests(deliverMail);
+		const turnRestFor = yield* makeSessionTurnRests(afterRest);
 		const sinkFor: SinkFor = (rootSessionId, audit) =>
 			Effect.gen(function* () {
 				const report = (operation: string, cause: unknown) => Effect.logError("session tree persistence failed", { operation, rootSessionId }, cause);

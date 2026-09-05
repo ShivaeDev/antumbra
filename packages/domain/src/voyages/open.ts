@@ -2,7 +2,14 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Clock, Effect } from "effect";
 import type { VoyageRow } from "#voyage-rows.ts";
-import type { OpenVoyageInput } from "#voyages/input.ts";
+
+export interface OpenVoyageInput {
+	readonly backend: string;
+	readonly context: string;
+	readonly focused?: boolean;
+	readonly name: string;
+	readonly northStar: string;
+}
 
 export const openVoyage = Effect.fn("Voyages.open")(function* (input: OpenVoyageInput) {
 	const db = yield* Database;

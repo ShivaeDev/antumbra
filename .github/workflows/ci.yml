@@ -115,6 +115,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/electron/**/*.zip
+            ~/Library/Caches/electron-builder/*/*.tar.gz
+          key: packaging-archives-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:

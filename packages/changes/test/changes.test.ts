@@ -134,7 +134,7 @@ it.effectApp("owns preparation and host reconciliation as one aggregate", functi
 			url: "https://scripted.test/changes/41",
 		});
 		expect(yield* scripted.openings).toHaveLength(1);
-		expect(yield* changes.snapshot).toEqual({
+		expect(yield* changes.snapshot()).toEqual({
 			changes: [opened],
 			dismissedChangeIds: new Set(),
 			pieceChanges: [

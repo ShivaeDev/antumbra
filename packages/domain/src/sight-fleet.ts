@@ -31,7 +31,7 @@ export const fleetSnapshot = (
 			.all();
 		const pointers = new Map(agents.map((agent) => [agent.id, agent.currentSessionId]));
 		const attribution = attributeIntents(intents, new Set(agents.map((agent) => agent.id)), new Set(sessions.map((session) => session.id)));
-		const snapshot = yield* changes.snapshot;
+		const snapshot = yield* changes.snapshot();
 		const assignments = yield* db.PieceAgent.orderBy((assignment) => assignment.assignedAt.asc()).all();
 		const situations = situationsByAgent(
 			{ ...snapshot, assignments },

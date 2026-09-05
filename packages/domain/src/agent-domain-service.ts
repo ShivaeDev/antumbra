@@ -1,7 +1,7 @@
 import type { BoardsService } from "@antumbra/boards";
 import type { IntentDemandRegistration } from "@antumbra/intent-demand";
 import type { AnyIntentKind, IntentKind } from "@antumbra/kernel";
-import type { BackendFailure } from "@antumbra/plugin-api";
+import type { BackendFailure, ModelChoice } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import type { BackendCapacityService } from "@antumbra/provider-capacity";
 import type { RepoRegistry } from "@antumbra/repos";
@@ -26,6 +26,7 @@ export class AgentDomain extends Context.Service<
 		readonly kinds: ReadonlyArray<AnyIntentKind>;
 		readonly imageInputBackends: ReadonlySet<string>;
 		readonly intentDemands: ReadonlyArray<IntentDemandRegistration>;
+		readonly listModels: (backend: string) => Effect.Effect<ReadonlyArray<ModelChoice>, BackendFailure>;
 		readonly repos: RepoRegistry;
 		readonly retryResourceReclaim: Effect.Effect<void>;
 		readonly reopenSessionStarts: Effect.Effect<void>;

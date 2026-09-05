@@ -18,6 +18,7 @@ import {
 	SessionRecoveryRuntime,
 } from "@antumbra/sessions";
 import { Effect } from "effect";
+import { makeBackendModels } from "#backend-models.ts";
 import { ChangeProcedureService } from "#change-procedures.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { makeRetireKind } from "#retire.ts";
@@ -72,6 +73,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			imageInputBackends,
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
+			listModels: makeBackendModels(backends),
 			repos,
 			retryResourceReclaim: resourceReconciler.reconcile(),
 			reopenSessionStarts: fabric.reopenStarts(),

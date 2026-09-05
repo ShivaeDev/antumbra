@@ -1,6 +1,6 @@
 import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
-import type { Fleet, RepoSummary } from "#fleet.ts";
+import type { Fleet, ModelChoice, RepoSummary } from "#fleet.ts";
 import type { SessionImage, SessionImageRequest, SessionInputReceipt, SessionInputRequest } from "#session-inputs.ts";
 import { ChangeSituation } from "#session-situations.ts";
 import type { SessionTree } from "#session-tree.ts";
@@ -50,6 +50,7 @@ export class SightFailure extends Data.TaggedError("SightFailure")<{
 export class SightSource extends Context.Service<
 	SightSource,
 	{
+		readonly backendModels: (backend: string) => Effect.Effect<ReadonlyArray<ModelChoice>, SightFailure>;
 		readonly fleet: Effect.Effect<Fleet, SightFailure>;
 		readonly fleetFeed: Stream.Stream<Fleet, SightFailure>;
 		readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;

@@ -1,5 +1,5 @@
 import type { AppInfo } from "#app-info.ts";
-import type { Fleet } from "#fleet.ts";
+import type { Fleet, ModelChoice } from "#fleet.ts";
 
 export const info: AppInfo = {
 	chromeVersion: "138.0.0.0",
@@ -63,3 +63,8 @@ export const fleet: Fleet = {
 	diag: { intents: [] },
 	repos: [{ defaultRef: "main", id: "repo-1", name: "shoals", source: "/tmp/shoals" }],
 };
+
+export const backendModels: ReadonlyArray<ModelChoice> = [
+	{ efforts: ["low", "medium", "high"], id: "claude-sonnet-4-6", isDefault: true, name: "Sonnet 4.6" },
+	{ efforts: ["medium", "high", "max"], id: "claude-opus-4-6", isDefault: false, name: "Opus 4.6" },
+];

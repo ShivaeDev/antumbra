@@ -1,4 +1,4 @@
-import type { AppInfo, RepoRegistration, RepoSummary, SituationDraft, SpawnReceipt, SpawnRequest } from "@antumbra/contract";
+import type { AppInfo, ModelChoice, RepoRegistration, RepoSummary, SituationDraft, SpawnReceipt, SpawnRequest } from "@antumbra/contract";
 import { Data, Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
 
@@ -24,6 +24,13 @@ export const loadAppInfo: Effect.Effect<AppInfo, AppInfoLoadError> = Effect.tryP
 	catch: (cause) => new AppInfoLoadError({ message: String(cause) }),
 	try: () => client.appInfo.query(),
 });
+
+export const backendModels = (backend: string, onModels: (models: ReadonlyArray<ModelChoice>) => void, onError: (message: string) => void): void => {
+	client.backendModels
+		.query({ backend })
+		.then(onModels)
+		.catch((cause: unknown) => onError(toError(cause).message));
+};
 
 export const restartApp = (onError: (message: string) => void): void => fired(client.restart.mutate(), onError);
 

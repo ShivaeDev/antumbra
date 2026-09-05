@@ -3,6 +3,8 @@ import { Input } from "#components/ui/input.tsx";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
 import { SelectItem } from "#components/ui/select-parts.tsx";
 import { Textarea } from "#components/ui/textarea.tsx";
+import type { ModelCatalog } from "#hooks/backend-models.ts";
+import { AgentSettingsChoice } from "#views/agent-settings-choice.tsx";
 import { Field, LabelledField } from "#views/field.tsx";
 
 export interface VoyageDraft {
@@ -41,6 +43,9 @@ export const openVoyageRequest = (draft: VoyageDraft, backend: string): OpenVoya
 export const chosenBackend = (backends: ReadonlyArray<string>, backend: string): string =>
 	backends.includes(backend) ? backend : (backends[0] ?? "");
 
+export const withPresetModels = (draft: VoyageDraft, model: string): VoyageDraft =>
+	model === "" || draft.captainModel !== "" || draft.crewModel !== "" ? draft : { ...draft, captainModel: model, crewModel: model };
+
 const BackendOptions = ({ backends }: { readonly backends: ReadonlyArray<string> }) => (
 	<>
 		{backends.map((tag) => (
@@ -72,53 +77,14 @@ const BackendField = ({
 	</Field>
 );
 
-const AgentSettingsFields = ({
-	draft,
-	effortKey,
-	label,
-	modelKey,
-	onChange,
-}: {
-	readonly draft: VoyageDraft;
-	readonly effortKey: "captainEffort" | "crewEffort";
-	readonly label: string;
-	readonly modelKey: "captainModel" | "crewModel";
-	readonly onChange: (draft: VoyageDraft) => void;
-}) => (
-	<div className="flex min-w-0 flex-wrap gap-2">
-		<div className="min-w-40 flex-1">
-			<LabelledField label={`${label} model`}>
-				{(id) => (
-					<Input
-						id={id}
-						onChange={(event) => onChange({ ...draft, [modelKey]: event.target.value })}
-						placeholder="the backend's own"
-						value={draft[modelKey]}
-					/>
-				)}
-			</LabelledField>
-		</div>
-		<div className="min-w-24">
-			<LabelledField label={`${label} effort`}>
-				{(id) => (
-					<Input
-						id={id}
-						onChange={(event) => onChange({ ...draft, [effortKey]: event.target.value })}
-						placeholder="the backend's own"
-						value={draft[effortKey]}
-					/>
-				)}
-			</LabelledField>
-		</div>
-	</div>
-);
-
 export const VoyageFields = ({
 	backends,
+	catalog,
 	draft,
 	onChange,
 }: {
 	readonly backends: ReadonlyArray<string>;
+	readonly catalog: ModelCatalog;
 	readonly draft: VoyageDraft;
 	readonly onChange: (draft: VoyageDraft) => void;
 }) => (
@@ -133,7 +99,19 @@ export const VoyageFields = ({
 			{(id) => <Textarea id={id} onChange={(event) => onChange({ ...draft, context: event.target.value })} rows={3} value={draft.context} />}
 		</LabelledField>
 		<BackendField backends={backends} draft={draft} onChange={onChange} />
-		<AgentSettingsFields draft={draft} effortKey="captainEffort" label="Captain" modelKey="captainModel" onChange={onChange} />
-		<AgentSettingsFields draft={draft} effortKey="crewEffort" label="Crew" modelKey="crewModel" onChange={onChange} />
+		<AgentSettingsChoice
+			catalog={catalog}
+			effort={draft.captainEffort}
+			label="Captain"
+			model={draft.captainModel}
+			onChange={(chosen) => onChange({ ...draft, captainEffort: chosen.effort, captainModel: chosen.model })}
+		/>
+		<AgentSettingsChoice
+			catalog={catalog}
+			effort={draft.crewEffort}
+			label="Crew"
+			model={draft.crewModel}
+			onChange={(chosen) => onChange({ ...draft, crewEffort: chosen.effort, crewModel: chosen.model })}
+		/>
 	</div>
 );

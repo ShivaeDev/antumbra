@@ -1,4 +1,5 @@
 import type {
+	ModelChoice,
 	RepoRegistration,
 	RepoSummary,
 	SessionImage,
@@ -23,6 +24,7 @@ import { toFailure } from "#sight-failure.ts";
 import { makeSituationDraft } from "#situation/draft.ts";
 
 interface SightActs {
+	readonly backendModels: (backend: string) => Effect.Effect<ReadonlyArray<ModelChoice>, SightFailure>;
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
 	readonly interrupt: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly registerRepo: (registration: RepoRegistration) => Effect.Effect<RepoSummary, SightFailure>;
@@ -46,6 +48,7 @@ export const makeSightActs = Effect.gen(function* () {
 	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {
+		backendModels: (backend) => domain.listModels(backend).pipe(Effect.mapError(toFailure)),
 		forgetRepo: (repoId) => domain.repos.forget(repoId).pipe(Effect.mapError(toFailure)),
 		interrupt: (sessionId) => domain.interruptSession(sessionId).pipe(Effect.mapError(toFailure)),
 		registerRepo: (registration) => domain.repos.register(registration).pipe(Effect.mapError(toFailure)),

@@ -24,13 +24,22 @@ export const VoyageHeader = ({ onError, voyage }: { readonly onError: (message: 
 		<div className="flex min-w-0 flex-wrap items-end gap-4">
 			<AgentSettingsEditor
 				agentRole="captain"
+				backend={voyage.captainBackend}
 				effort={voyage.captainEffort}
 				label="Captain"
 				model={voyage.captainModel}
 				onError={onError}
 				voyageId={voyage.id}
 			/>
-			<AgentSettingsEditor agentRole="crew" effort={voyage.crewEffort} label="Crew" model={voyage.crewModel} onError={onError} voyageId={voyage.id} />
+			<AgentSettingsEditor
+				agentRole="crew"
+				backend={voyage.crewBackend}
+				effort={voyage.crewEffort}
+				label="Crew"
+				model={voyage.crewModel}
+				onError={onError}
+				voyageId={voyage.id}
+			/>
 		</div>
 		<p className="min-w-0 text-xs wrap-anywhere">
 			<span className="text-2xs text-muted-foreground">North star </span>

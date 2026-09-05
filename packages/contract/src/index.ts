@@ -32,6 +32,7 @@ export {
 	BackendCapacitySummary,
 	BerthSummary,
 	Fleet,
+	ModelChoice,
 	PieceWork,
 	RepoSummary,
 	SessionSummary,

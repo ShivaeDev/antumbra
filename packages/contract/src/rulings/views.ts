@@ -65,6 +65,18 @@ export const AwaitingRulingView = Schema.Struct({
 });
 export type AwaitingRulingView = typeof AwaitingRulingView.Type;
 
+export const RulingRecommendationView = Schema.Struct({
+	choiceId: Schema.String,
+	reasoning: Schema.String,
+});
+export type RulingRecommendationView = typeof RulingRecommendationView.Type;
+
+export const RulingVoyageView = Schema.Struct({
+	id: Schema.String,
+	name: Schema.String,
+});
+export type RulingVoyageView = typeof RulingVoyageView.Type;
+
 export const RulingRungView = Schema.Union([
 	Schema.Struct({
 		kind: Schema.Literal("captain"),
@@ -86,11 +98,13 @@ export const RulingView = Schema.Struct({
 	question: Schema.String,
 	radius: RulingRadiusSchema,
 	reclassifications: Schema.Array(RulingReclassificationView),
+	recommendation: Schema.NullOr(RulingRecommendationView),
 	requestedAt: Schema.String,
 	requester: RulingRequesterView,
 	rung: RulingRungView,
 	subjects: Schema.Array(RulingSubjectView),
 	urgency: RulingUrgencySchema,
+	voyage: Schema.NullOr(RulingVoyageView),
 });
 export type RulingView = typeof RulingView.Type;
 

@@ -39,11 +39,13 @@ const shoal: RulingView = {
 	question: "Which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [],
+	recommendation: null,
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-surveyor", kind: "agent" },
 	rung: { kind: "admiral" },
 	subjects: [],
 	urgency: "blocking",
+	voyage: { id: "voyage-1", name: "Chart the reef" },
 };
 
 const later: RulingView = {

@@ -1,7 +1,7 @@
 import type { EdgeRow, PieceRow } from "@antumbra/pieces";
 import { atWork } from "#agent-at-work.ts";
 import { pieceOutcomeTally } from "#outcome-status.ts";
-import type { AwaitingRuling, VoyageWorld } from "#voyage-rows.ts";
+import type { AwaitingRuling, DispatchWorld, RetirementWorld } from "#voyage-rows.ts";
 
 export const PIECE_STATES = ["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"] as const;
 export type PieceState = (typeof PIECE_STATES)[number];
@@ -9,10 +9,10 @@ export type PieceState = (typeof PIECE_STATES)[number];
 export const dependenciesOf = (edges: ReadonlyArray<EdgeRow>, pieceId: string): ReadonlyArray<string> =>
 	edges.filter((edge) => edge.toPieceId === pieceId).map((edge) => edge.fromPieceId);
 
-export const awaitingRulingsOf = (world: VoyageWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>
+export const awaitingRulingsOf = (world: DispatchWorld, pieceId: string): ReadonlyArray<AwaitingRuling> =>
 	world.rulingGates.filter((gate) => gate.pieceId === pieceId).map((gate) => ({ question: gate.question, rulingId: gate.rulingId }));
 
-export const workingAssignees = (world: VoyageWorld, pieceId: string): ReadonlyArray<string> =>
+export const workingAssignees = (world: RetirementWorld, pieceId: string): ReadonlyArray<string> =>
 	world.assignments
 		.filter((assignment) => assignment.pieceId === pieceId)
 		.filter((assignment) => atWork(world, assignment.agentId))
@@ -24,15 +24,20 @@ interface Settled {
 	readonly landing: ReadonlySet<string>;
 }
 
-const stateOf = (world: VoyageWorld, settled: Settled, piece: PieceRow): PieceState => {
-	if (settled.abandoned.has(piece.id)) {
+const pieceExecutionState = (world: RetirementWorld, settled: Settled, pieceId: string) => {
+	if (settled.abandoned.has(pieceId)) {
 		return "abandoned";
 	}
-	if (workingAssignees(world, piece.id).length > 0) {
+	if (workingAssignees(world, pieceId).length > 0) {
 		return "active";
 	}
-	if (settled.done.has(piece.id)) {
-		return "done";
+	return settled.done.has(pieceId) ? "done" : undefined;
+};
+
+const stateOf = (world: DispatchWorld, settled: Settled, piece: PieceRow): PieceState => {
+	const execution = pieceExecutionState(world, settled, piece.id);
+	if (execution !== undefined) {
+		return execution;
 	}
 	if (piece.parkedAt !== null) {
 		return "parked";
@@ -50,7 +55,7 @@ const stateOf = (world: VoyageWorld, settled: Settled, piece: PieceRow): PieceSt
 	return settled.landing.has(piece.id) ? "landing" : "ready";
 };
 
-export const pieceStates = (world: VoyageWorld): ReadonlyMap<string, PieceState> => {
+const settledPieces = (world: RetirementWorld): Settled => {
 	const settled = {
 		abandoned: new Set<string>(),
 		done: new Set<string>(),
@@ -68,5 +73,20 @@ export const pieceStates = (world: VoyageWorld): ReadonlyMap<string, PieceState>
 			settled.landing.add(piece.id);
 		}
 	}
+	return settled;
+};
+
+export const pieceStates = (world: DispatchWorld): ReadonlyMap<string, PieceState> => {
+	const settled = settledPieces(world);
 	return new Map(world.pieces.map((piece) => [piece.id, stateOf(world, settled, piece)]));
+};
+
+export const concludedPieces = (world: RetirementWorld): ReadonlyMap<string, "abandoned" | "done"> => {
+	const settled = settledPieces(world);
+	return new Map(
+		world.pieces.flatMap((piece) => {
+			const state = pieceExecutionState(world, settled, piece.id);
+			return state === "abandoned" || state === "done" ? [[piece.id, state] as const] : [];
+		}),
+	);
 };

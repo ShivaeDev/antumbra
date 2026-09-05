@@ -23,10 +23,12 @@ export {
 	RulingGatedPieceView,
 	RulingParkedView,
 	RulingReclassificationView,
+	RulingRecommendationView,
 	RulingRequesterView,
 	RulingRungView,
 	RulingSubjectView,
 	RulingView,
+	RulingVoyageView,
 	StandingRulingsView,
 	StandingRulingView,
 } from "#rulings/views.ts";

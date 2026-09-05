@@ -1,14 +1,14 @@
 import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
 import { sessionPresence } from "@antumbra/vocabulary/agent-runtime";
 import type { PieceView } from "#piece-view.ts";
-import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
+import type { AgentSessionRow, RetirementWorld } from "#voyage-rows.ts";
 
 export interface CrewRuntime {
 	readonly attached: ReadonlySet<string>;
 	readonly delegating: ReadonlySet<string>;
 }
 
-const openRootsOf = (world: VoyageWorld, agentId: string): ReadonlyArray<AgentSessionRow> =>
+const openRootsOf = (world: RetirementWorld, agentId: string): ReadonlyArray<AgentSessionRow> =>
 	world.sessions.filter((session) => session.agentId === agentId && session.status === "open");
 
 const restful = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
@@ -30,7 +30,7 @@ const working = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
 		}),
 	);
 
-export const restingCrew = (world: VoyageWorld, runtime: CrewRuntime): ReadonlyMap<string, ReadonlyArray<string>> =>
+export const restingCrew = (world: RetirementWorld, runtime: CrewRuntime): ReadonlyMap<string, ReadonlyArray<string>> =>
 	new Map(
 		[...world.agentStatus].flatMap(([agentId, status]) => {
 			const roots = openRootsOf(world, agentId);
@@ -40,7 +40,7 @@ export const restingCrew = (world: VoyageWorld, runtime: CrewRuntime): ReadonlyM
 		}),
 	);
 
-export const retirableCrew = (world: VoyageWorld, runtime: CrewRuntime): ReadonlySet<string> =>
+export const retirableCrew = (world: RetirementWorld, runtime: CrewRuntime): ReadonlySet<string> =>
 	new Set(
 		[...world.agentStatus].flatMap(([agentId, status]) =>
 			status === "alive" && openRootsOf(world, agentId).every((session) => !working(runtime, session)) ? [agentId] : [],
@@ -52,5 +52,5 @@ export const crewReleasable = (piece: PieceView, resting: ReadonlyMap<string, Re
 	return piece.state === "done" && crew.length > 0 && crew.every((agent) => resting.has(agent.agentId));
 };
 
-export const claimedCrew = (world: VoyageWorld, pieceId: string): ReadonlyArray<string> =>
+export const claimedCrew = (world: RetirementWorld, pieceId: string): ReadonlyArray<string> =>
 	world.assignments.filter((assignment) => assignment.pieceId === pieceId).map((assignment) => assignment.agentId);

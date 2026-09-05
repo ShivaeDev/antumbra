@@ -81,6 +81,7 @@ const ask = (question: string, rung: Rung, radius: "fleet" | "voyage" = "voyage"
 			gates: [],
 			question,
 			radius,
+			recommendation: { choice: "resurvey", reasoning: "both soundings are a season old" },
 			requester: { agentId, kind: "agent" },
 			rung,
 			subjects: [],
@@ -138,6 +139,7 @@ it.live("a crew member's question reaches its own captain as one mail", () =>
 					"Context: two voyages dredged each other's soundings",
 					"Choices offered:",
 					"- resurvey — and chart it again",
+					`${ASKER} would choose "resurvey": both soundings are a season old`,
 					`Rule on it with rule_on, naming ruling ${rulingId}. If it is not yours to settle, pass_up carries it to the rung above with what you know.`,
 				].join("\n"),
 			);

@@ -40,6 +40,15 @@ export class RulingChoiceUnknown extends Data.TaggedError("RulingChoiceUnknown")
 	readonly rulingId: string;
 }> {}
 
+export class RulingRecommendationMissing extends Data.TaggedError("RulingRecommendationMissing")<{
+	readonly choice: string;
+	readonly offered: ReadonlyArray<string>;
+}> {
+	override get message(): string {
+		return `the recommended choice "${this.choice}" is not among the offered ${this.offered.map((label) => `"${label}"`).join(", ")}`;
+	}
+}
+
 export class RulingOutsideAuthority extends Data.TaggedError("RulingOutsideAuthority")<{
 	readonly by: RulingAuthority;
 	readonly radius: RulingRadius;

@@ -18,6 +18,7 @@ const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	question: "which reading do we plot against?",
 	radius: "voyage",
 	reclassifications: [],
+	recommendation: Option.none(),
 	requester: { agentId: "agent-1", kind: "agent" },
 	rung: Option.some("captain"),
 	subjects,

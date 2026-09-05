@@ -19,11 +19,13 @@ const courseCall: RulingView = {
 			note: "both repositories are the admiral's to name; I have nothing to add",
 		},
 	],
+	recommendation: { choiceId: "choice-3", reasoning: "moving the chart now would strand two open changes" },
 	requestedAt: "2026-08-15T10:05:00.000Z",
 	requester: { agentId: "agent-1", kind: "agent" },
 	rung: { kind: "admiral" },
 	subjects: [{ kind: "tag", label: "charting" }],
 	urgency: "blocking",
+	voyage: null,
 };
 
 export const urgentRulings: OpenRulingsView = {

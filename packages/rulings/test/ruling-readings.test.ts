@@ -112,3 +112,30 @@ it.effectApp("matches references exactly and tags by name", function* () {
 		expect(yield* rulings.standing([{ kind: "tag", tag: "provisioning" }])).toEqual([]);
 	}).pipe(Effect.provide(layer));
 });
+
+it.effectApp("keeps each ruling's choices, subjects, gates and reclassifications together", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const first = yield* rulings.request({
+			...asked,
+			choices: [{ label: "trust the soundings" }, { label: "trust the chart" }],
+			gates: [pieceId],
+			subjects: [{ id: voyageId, kind: "voyage" }],
+		});
+		yield* TestClock.adjust(1_000);
+		const second = yield* rulings.request({
+			...asked,
+			choices: [{ label: "survey again" }],
+			subjects: [{ kind: "tag", tag: "surveying" }],
+		});
+		yield* TestClock.adjust(1_000);
+		const withoutRelations = yield* rulings.request(asked);
+		yield* rulings.reclassify({ by: "captain", rulingId: first.id, urgency: "eventual" });
+		yield* TestClock.adjust(1_000);
+		const reclassified = yield* rulings.reclassify({ by: "admiral", rulingId: first.id, urgency: "blocking" });
+
+		expect(yield* rulings.open()).toEqual([reclassified, second, withoutRelations]);
+		expect(yield* rulings.awaitingAscent()).toEqual([reclassified, second, withoutRelations]);
+	}).pipe(Effect.provide(layer));
+});

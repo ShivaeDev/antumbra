@@ -36,6 +36,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 				question: asked.question,
 				radius: "voyage",
 				reclassifications: [],
+				recommendation: null,
 				requestedAt: expect.any(String),
 				requester: { agentId: requesterId, kind: "agent" },
 				rung: { kind: "captain", voyageId, voyageName: "Chart the reef" },
@@ -44,6 +45,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 					{ kind: "tag", label: "surveying" },
 				]),
 				urgency: "blocking",
+				voyage: { id: voyageId, name: "Chart the reef" },
 			},
 		]);
 	}).pipe(Effect.provide(layer));

@@ -46,6 +46,11 @@ export interface RulingParking {
 	readonly note: string;
 }
 
+export interface RulingRecommendation {
+	readonly choiceId: string;
+	readonly reasoning: string;
+}
+
 export interface RulingAnswer {
 	readonly at: Date;
 	readonly by: RulingAuthority;
@@ -67,6 +72,7 @@ export interface Ruling {
 	readonly question: string;
 	readonly radius: RulingRadius;
 	readonly reclassifications: ReadonlyArray<RulingReclassification>;
+	readonly recommendation: Option.Option<RulingRecommendation>;
 	readonly requester: RulingRequester;
 	readonly rung: Option.Option<RulingAuthority>;
 	readonly subjects: ReadonlyArray<RulingSubject>;

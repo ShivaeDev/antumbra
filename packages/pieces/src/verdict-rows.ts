@@ -5,7 +5,7 @@ import { StoredPieceVerdictInvalid } from "#errors.ts";
 
 export type { PieceVerdict };
 
-const pieceVerdictRow = (row: { readonly pieceId: string; readonly verdict: string }) =>
+export const pieceVerdictRow = (row: { readonly pieceId: string; readonly verdict: string }) =>
 	Schema.decodeUnknownEffect(PieceVerdictSchema)(row.verdict).pipe(
 		Effect.mapError(
 			(cause) =>

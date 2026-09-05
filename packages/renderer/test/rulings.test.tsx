@@ -70,6 +70,7 @@ const shoal: RulingView = {
 			urgency: "blocking",
 		},
 	],
+	recommendation: { choiceId: "choice-2", reasoning: "the chart was surveyed at slack water" },
 	requestedAt: "2026-08-15T09:40:00.000Z",
 	requester: { agentId: "agent-surveyor", kind: "agent" },
 	rung: {
@@ -79,6 +80,7 @@ const shoal: RulingView = {
 	},
 	subjects: [{ kind: "tag", label: "surveying" }],
 	urgency: "blocking",
+	voyage: { id: "voyage-1", name: "Chart the reef" },
 };
 
 const berths: RulingView = {
@@ -92,11 +94,13 @@ const berths: RulingView = {
 	question: "What do we call the branch a berth is cut from?",
 	radius: "fleet",
 	reclassifications: [],
+	recommendation: null,
 	requestedAt: "2026-08-15T08:10:00.000Z",
 	requester: { agentId: "agent-bosun", kind: "agent" },
 	rung: { kind: "flagship" },
 	subjects: [],
 	urgency: "eventual",
+	voyage: null,
 };
 
 const settle = (change: () => void): Effect.Effect<void> =>
@@ -151,6 +155,21 @@ it.effect("shows every open ruling in the order the feed sent them", () =>
 		expect(mounted.container.textContent).toContain("Tag: surveying");
 		expect(mounted.container.textContent).toContain("two metres shallower");
 		expect(mounted.container.textContent).toContain("Unblocks: the chart (Chart the reef)");
+		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("groups open rulings under the voyage they are about", () =>
+	Effect.gen(function* () {
+		const mounted = mount();
+		yield* showing(mounted, { rulings: [berths, shoal, { ...berths, id: "ruling-3", voyage: shoal.voyage }] });
+
+		const groups = [...mounted.container.querySelectorAll("section[aria-label]")];
+		expect(groups.map((group) => group.getAttribute("aria-label"))).toEqual(["The fleet", "Chart the reef"]);
+		expect(groups.map((group) => [...group.querySelectorAll("li h3")].map((heading) => heading.textContent))).toEqual([
+			[berths.question],
+			[shoal.question, berths.question],
+		]);
 		yield* settle(() => mounted.root.unmount());
 	}),
 );

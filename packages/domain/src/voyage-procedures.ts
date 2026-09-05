@@ -6,7 +6,7 @@ import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend";
 import { Context, type Effect, type Option } from "effect";
 import type { VoyageNotFound } from "#errors.ts";
 import type { HailedCaptain, HailRefused } from "#hail.ts";
-import type { CrewedPiece, WorkRefused } from "#piece-work.ts";
+import type { CrewedPiece, WorkRefused } from "#piece-work/work.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 import type { VoyageSummary, VoyageView } from "#voyage-view.ts";
 import type { VoyageWorldReadFailure } from "#voyage-world/read.ts";

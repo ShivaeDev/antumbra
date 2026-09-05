@@ -15,6 +15,7 @@ const ASK = {
 	context: "the chart disagrees with what we sounded",
 	question: "which reading do we trust?",
 	radius: "voyage",
+	recommendation: { choice: "resurvey", reasoning: "a fresh sounding settles it either way" },
 };
 
 const rulingTool = (tools: ReadonlyArray<DirectTool>): DirectTool =>

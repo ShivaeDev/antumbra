@@ -5,6 +5,7 @@ export type {
 	RulingParkInput,
 	RulingProclamation,
 	RulingReclassifyInput,
+	RulingRecommendationInput,
 	RulingRequest,
 	RulingVerdict,
 } from "#acts.ts";
@@ -28,6 +29,7 @@ export type {
 	RulingGate,
 	RulingParking,
 	RulingReclassification,
+	RulingRecommendation,
 	RulingSubject,
 } from "#model.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

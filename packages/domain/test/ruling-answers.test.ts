@@ -42,10 +42,11 @@ const calling = (agentId: string, name: string, input: Record<string, unknown>) 
 
 const ask = (urgency: "blocking" | "pressing") =>
 	calling(ASKER, "request_ruling", {
-		choices: [],
+		choices: [{ label: "resurvey" }],
 		context: "the chart disagrees with what we sounded",
 		question: "which reading do we trust?",
 		radius: "voyage",
+		recommendation: { choice: "resurvey", reasoning: "a fresh sounding settles it either way" },
 		urgency,
 	});
 

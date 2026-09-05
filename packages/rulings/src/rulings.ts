@@ -10,6 +10,7 @@ import { get } from "#get.ts";
 import { markDelivered } from "#mark-delivered.ts";
 import { open } from "#open.ts";
 import { openGates } from "#open-gates.ts";
+import { openGatesForPieces } from "#open-gates-for-pieces.ts";
 import { park } from "#park.ts";
 import { passUp } from "#pass-up.ts";
 import { proclaim } from "#proclaim.ts";
@@ -34,6 +35,7 @@ export const Rulings = defineService({
 		markDelivered,
 		open,
 		openGates,
+		openGatesForPieces,
 		park,
 		passUp,
 		proclaim,

@@ -6,18 +6,18 @@ import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
 import { makeCaptainVerdictToolCompiler } from "#captain-verdicts.ts";
-import { makeEdgeCharter } from "#charter-edge.ts";
+import { makeReportingCharter, withNotice } from "#charter-notice.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
-import { StandDown } from "#stand-down.ts";
+import { makeStandDownTool } from "#stand-down.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
-	const charter = yield* makeEdgeCharter;
+	const charter = yield* makeReportingCharter;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
@@ -26,7 +26,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
 	const compileVerdictTools = yield* makeCaptainVerdictToolCompiler;
 	const compileRulingMoveTools = yield* makeCaptainRulingMoveToolCompiler;
-	const standDown = yield* StandDown;
+	const standDownTool = yield* makeStandDownTool;
 	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
 		bind(charterPieceSpec, (input) =>
 			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
@@ -41,7 +41,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 						title: input.title,
 						voyageId,
 					}),
-					(piece) => `chartered ${piece.id}`,
+					(chartered) => withNotice(chartered, `chartered ${chartered.piece.id}`),
 				),
 			),
 		),
@@ -52,7 +52,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 		...compileRulingTools(identity),
 		...compileVerdictTools(identity),
 		...compileRulingMoveTools(identity),
-		standDown.tool(identity),
+		standDownTool(identity),
 		...compileRulingReadingTools(identity),
 	];
 });

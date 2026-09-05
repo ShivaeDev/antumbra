@@ -1,4 +1,11 @@
-import type { RulingContextView, RulingReclassificationView, RulingSubjectView, RulingView, StandingRulingView } from "@antumbra/contract";
+import type {
+	RulingContextView,
+	RulingReclassificationView,
+	RulingSubjectView,
+	RulingView,
+	RulingVoyageView,
+	StandingRulingView,
+} from "@antumbra/contract";
 import type { Ruling, RulingAnswer, RulingContext, RulingReclassification, RulingSubject } from "@antumbra/rulings";
 import { Option } from "effect";
 import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
@@ -32,6 +39,12 @@ const contextSeen = (context: RulingContext): RulingContextView => ({
 	body: context.body,
 });
 
+const voyageSeen = (ruling: Ruling, world: VoyageWorld): RulingVoyageView | null => {
+	const named = new Set(ruling.subjects.flatMap((subject) => (subject.kind === "voyage" ? [subject.id] : [])));
+	const voyage = world.voyages.find((row) => named.has(row.id));
+	return voyage === undefined ? null : { id: voyage.id, name: voyage.name };
+};
+
 export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	choices: ruling.choices.map((choice) => ({
 		detail: choice.detail,
@@ -47,11 +60,13 @@ export const rulingSeen = (ruling: Ruling, world: VoyageWorld): RulingView => ({
 	question: ruling.question,
 	radius: ruling.radius,
 	reclassifications: ruling.reclassifications.map(reclassificationSeen),
+	recommendation: Option.getOrNull(ruling.recommendation),
 	requestedAt: ruling.createdAt.toISOString(),
 	requester: ruling.requester,
 	rung: rungSeen(ruling, world),
 	subjects: ruling.subjects.map(subjectSeen),
 	urgency: ruling.urgency,
+	voyage: voyageSeen(ruling, world),
 });
 
 const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>

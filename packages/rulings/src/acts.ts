@@ -6,12 +6,18 @@ export interface RulingChoiceInput {
 	readonly label: string;
 }
 
+export interface RulingRecommendationInput {
+	readonly choice: string;
+	readonly reasoning: string;
+}
+
 export interface RulingRequest {
 	readonly choices: ReadonlyArray<RulingChoiceInput>;
 	readonly context: string;
 	readonly gates: ReadonlyArray<string>;
 	readonly question: string;
 	readonly radius: RulingRadius;
+	readonly recommendation?: RulingRecommendationInput;
 	readonly requester: RulingRequester;
 	readonly rung: RulingAuthority | null;
 	readonly subjects: ReadonlyArray<RulingSubject>;

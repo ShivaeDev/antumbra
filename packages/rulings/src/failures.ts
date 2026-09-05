@@ -11,13 +11,14 @@ import type {
 	RulingNotRuled,
 	RulingOutsideAuthority,
 	RulingReclassificationEmpty,
+	RulingRecommendationMissing,
 	RulingSubjectMissing,
 	RulingSupersedesItself,
 } from "#errors.ts";
 
 export type RulingReadFailure = PrismaError | StoredRulingValueInvalid;
 
-type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingSubjectMissing;
+type RulingRequestFailure = RulingGatePieceMissing | RulingReadFailure | RulingRecommendationMissing | RulingSubjectMissing;
 
 export type RulingVerdictFailure =
 	| RulingAlreadyRuled

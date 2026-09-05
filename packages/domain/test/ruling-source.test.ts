@@ -34,6 +34,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 				question: asked.question,
 				radius: "voyage",
 				reclassifications: [],
+				recommendation: null,
 				requestedAt: expect.any(String),
 				requester: { agentId: requesterId, kind: "agent" },
 				rung: { kind: "captain", voyageId, voyageName: "Chart the reef" },
@@ -42,6 +43,7 @@ it.effectDB("the open feed carries a request the moment it lands", function* () 
 					{ kind: "tag", label: "surveying" },
 				]),
 				urgency: "blocking",
+				voyage: { id: voyageId, name: "Chart the reef" },
 			},
 		]);
 	}).pipe(Effect.provide(layer));
@@ -196,5 +198,15 @@ it.effectDB("an open gate names every berthing of its piece", function* (db) {
 			]),
 		);
 		expect(open.rulings[0]?.gatedPieces).toHaveLength(2);
+	}).pipe(Effect.provide(layer));
+});
+
+it.effectDB("an admiral-rung ruling names its subject voyage without a gate", function* () {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		yield* rulings.request({ ...asked, rung: "admiral" });
+		expect((yield* source.open).rulings[0]?.voyage).toEqual({ id: voyageId, name: "Chart the reef" });
 	}).pipe(Effect.provide(layer));
 });

@@ -16,7 +16,12 @@ export const open = Effect.fn("RulingDisplay.open")(function* () {
 		.all();
 	const memberships = yield* db.VoyagePiece.where((membership) => membership.pieceId.in(pieceIds)).all();
 	const crews = yield* db.VoyageAgent.where((crew) => crew.agentId.in(requesterIds)).all();
-	const voyageIds = [...memberships, ...crews].map((membership) => membership.voyageId);
-	const voyages = yield* db.Voyage.where((voyage) => voyage.id.in(voyageIds)).all();
+	const voyageIds = [
+		...[...memberships, ...crews].map((membership) => membership.voyageId),
+		...requested.flatMap((ruling) => ruling.subjects.flatMap((subject) => (subject.kind === "voyage" ? [subject.id] : []))),
+	];
+	const voyages = yield* db.Voyage.where((voyage) => voyage.id.in(voyageIds))
+		.orderBy((voyage) => voyage.createdAt.asc())
+		.all();
 	return { rulings: requested.map((ruling) => rulingSeen(ruling, { pieces, memberships, crews, voyages })) };
 });

@@ -1,38 +1,32 @@
 import type { DirectTool } from "@antumbra/plugin-api";
+import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
-import { expect, it } from "@effect/vitest";
-import { Effect, Option } from "effect";
-import { domainCapabilityLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence } from "#test/harness.ts";
+import { expect } from "@effect/vitest";
+import { Option } from "effect";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
 const readVoyage = (tools: ReadonlyArray<DirectTool>) => Option.getOrThrow(Option.fromUndefinedOr(tools.find((tool) => tool.name === "read_voyage")));
 
-it.live("an agent reads a voyage it names", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		yield* Effect.gen(function* () {
-			const voyageRecords = yield* Voyages;
-			const compile = yield* makeVoyageReadingToolCompiler;
-			const shoals = yield* voyageRecords.open({
-				backend: "scripted",
-				context: "the shoals are unnamed",
-				name: "Name the shoals",
-				northStar: "every shoal has a name",
-			});
-			const tool = readVoyage(
-				compile({
-					agentId: "agent-hand",
-					pieceId: Option.none(),
-					sessionId: "session-hand",
-					voyageId: Option.none(),
-				}),
-			);
+it.effectApp("an agent reads a voyage it names", function* () {
+	const voyageRecords = yield* Voyages;
+	const compile = yield* makeVoyageReadingToolCompiler;
+	const shoals = yield* voyageRecords.open({
+		backend: "scripted",
+		context: "the shoals are unnamed",
+		name: "Name the shoals",
+		northStar: "every shoal has a name",
+	});
+	const tool = readVoyage(
+		compile({
+			agentId: "agent-hand",
+			pieceId: Option.none(),
+			sessionId: "session-hand",
+			voyageId: Option.none(),
+		}),
+	);
 
-			const read = yield* tool.call({ voyageId: shoals.id });
+	const read = yield* tool.call({ voyageId: shoals.id });
 
-			expect(read.ok).toBe(true);
-			expect(read.text).toContain("# Name the shoals");
-		}).pipe(Effect.provide(domainCapabilityLayer(temporary)));
-	}),
-);
+	expect(read.ok).toBe(true);
+	expect(read.text).toContain("# Name the shoals");
+});

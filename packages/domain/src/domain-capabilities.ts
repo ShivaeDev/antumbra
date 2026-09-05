@@ -8,12 +8,12 @@ import { ReportsLive } from "@antumbra/reports";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { SessionStandDownLive } from "@antumbra/sessions";
 import { Layer } from "effect";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
 import { RulingHoldsLive } from "#ruling-holds.ts";
-import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSourceLive } from "#voyage-world.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
@@ -35,7 +35,7 @@ export const domainCapabilities = (
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = VoyageWorldSourceLive.pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
+	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);
 };

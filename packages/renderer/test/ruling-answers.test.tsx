@@ -1,9 +1,10 @@
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Deferred, Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { RendererRequestError } from "#adapters/request-error.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 const { askMoreOnRuling, opened, parkRuling, ruleOn } = vi.hoisted(() => {
@@ -61,12 +62,21 @@ const settle = (change: () => void): Effect.Effect<void> =>
 		}),
 	);
 
-const mount = () => {
-	const container = document.createElement("div");
-	return { container, root: createRoot(container) };
-};
+const mount = () =>
+	Effect.gen(function* () {
+		const container = document.createElement("div");
+		document.body.append(container);
+		const root = createRoot(container);
+		yield* Effect.addFinalizer(() =>
+			settle(() => {
+				root.unmount();
+				container.remove();
+			}),
+		);
+		return { container, root };
+	});
 
-type Mounted = ReturnType<typeof mount>;
+type Mounted = Effect.Success<ReturnType<typeof mount>>;
 
 const showing = (mounted: Mounted, view: OpenRulingsView): Effect.Effect<void> =>
 	Effect.gen(function* () {
@@ -98,45 +108,45 @@ const fieldsOf = (mounted: Mounted): ReadonlyArray<string | null> =>
 	[...mounted.container.querySelectorAll("li label")].map((each) => each.textContent);
 
 beforeEach(() => {
-	askMoreOnRuling.mockClear();
+	askMoreOnRuling.mockReset();
+	askMoreOnRuling.mockReturnValue(Effect.void);
 	opened.length = 0;
-	parkRuling.mockClear();
+	parkRuling.mockReset();
+	parkRuling.mockReturnValue(Effect.void);
 	ruleOn.mockClear();
 });
 
 it.effect("asks the asker for more without ruling anything", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		yield* opening(mounted, "Ask them for more");
 		yield* writing(mounted, "What do you need from them?", "which chart edition are you reading?");
 		yield* settle(() => buttonSaying(mounted, "Ask more")?.click());
 
-		expect(askMoreOnRuling).toHaveBeenCalledWith({ note: "which chart edition are you reading?", rulingId: "ruling-1" }, expect.any(Function));
+		expect(askMoreOnRuling).toHaveBeenCalledWith({ note: "which chart edition are you reading?", rulingId: "ruling-1" });
 		expect(ruleOn).not.toHaveBeenCalled();
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("leaves a request for later with the words for why", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		yield* opening(mounted, "Leave it for later");
 		yield* writing(mounted, "Why not now?", "the survey lands first");
 		yield* settle(() => buttonSaying(mounted, "Not now")?.click());
 
-		expect(parkRuling).toHaveBeenCalledWith({ note: "the survey lands first", rulingId: "ruling-1" }, expect.any(Function));
+		expect(parkRuling).toHaveBeenCalledWith({ note: "the survey lands first", rulingId: "ruling-1" });
 		expect(ruleOn).not.toHaveBeenCalled();
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("gathers what was left for later under its own heading", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal, later] });
 
 		const group = [...mounted.container.querySelectorAll("section")].find((section) => section.querySelector("h3")?.textContent === "Not now");
@@ -144,13 +154,12 @@ it.effect("gathers what was left for later under its own heading", () =>
 		expect(group?.textContent).toContain("after the survey lands");
 		expect(group?.textContent).not.toContain(shoal.question);
 		expect(mounted.container.querySelector("ul")?.textContent).toContain(shoal.question);
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("shows what was said since the request beside the question", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, {
 			rulings: [
 				{
@@ -165,19 +174,55 @@ it.effect("shows what was said since the request beside the question", () =>
 
 		expect(entrySaying(mounted, "which chart edition are you reading?")?.textContent).toContain("the admiral");
 		expect(entrySaying(mounted, "the 2019 edition")?.textContent).toContain("the surveyor");
-		yield* settle(() => mounted.root.unmount());
 	}),
 );
 
 it.effect("offers the answer alone until the admiral opens another act", () =>
 	Effect.gen(function* () {
-		const mounted = mount();
+		const mounted = yield* mount();
 		yield* showing(mounted, { rulings: [shoal] });
 
 		expect(fieldsOf(mounted)).toEqual(["Your answer"]);
 		yield* opening(mounted, "Change radius or urgency");
 
 		expect(fieldsOf(mounted)).toEqual(["Your answer", "Radius", "Urgency", "Why"]);
-		yield* settle(() => mounted.root.unmount());
+	}),
+);
+
+it.effect("retains a failed note and clears it only after a successful retry", () =>
+	Effect.gen(function* () {
+		const first = yield* Deferred.make<void, RendererRequestError>();
+		const second = yield* Deferred.make<void, RendererRequestError>();
+		const requested = yield* Deferred.make<void>();
+		const retried = yield* Deferred.make<void>();
+		askMoreOnRuling.mockReturnValueOnce(Deferred.succeed(requested, undefined).pipe(Effect.andThen(Deferred.await(first))));
+		askMoreOnRuling.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
+		const mounted = yield* mount();
+		yield* showing(mounted, { rulings: [shoal] });
+		yield* opening(mounted, "Ask them for more");
+		yield* writing(mounted, "What do you need from them?", "   ");
+		yield* settle(() => mounted.container.querySelector("form")?.requestSubmit());
+		expect(askMoreOnRuling).not.toHaveBeenCalled();
+		expect(mounted.container.querySelector("input")?.getAttribute("aria-invalid")).toBe("true");
+		yield* writing(mounted, "What do you need from them?", "  which edition?  ");
+		yield* settle(() => mounted.container.querySelector("form")?.requestSubmit());
+		yield* Deferred.await(requested);
+		expect(askMoreOnRuling).toHaveBeenCalledWith({ note: "which edition?", rulingId: "ruling-1" });
+		expect(buttonSaying(mounted, "Asking…")?.disabled).toBe(true);
+		expect(mounted.container.querySelector("input")?.closest("fieldset")?.disabled).toBe(true);
+		expect(mounted.container.querySelector("input")?.value).toBe("  which edition?  ");
+		yield* settle(() => {
+			Effect.runSync(Deferred.fail(first, new RendererRequestError({ message: "Ruling unavailable" })));
+		});
+		expect(mounted.container.querySelector('[role="alert"]')?.textContent).toContain("Ruling unavailable");
+		expect(mounted.container.querySelector("input")?.value).toBe("  which edition?  ");
+		expect(buttonSaying(mounted, "Ask more")?.disabled).toBe(false);
+		yield* settle(() => buttonSaying(mounted, "Ask more")?.click());
+		yield* Deferred.await(retried);
+		yield* settle(() => {
+			Effect.runSync(Deferred.succeed(second, undefined));
+		});
+		expect(mounted.container.querySelector("input")?.value).toBe("");
+		expect(mounted.container.querySelector('[role="alert"]')).toBeNull();
 	}),
 );

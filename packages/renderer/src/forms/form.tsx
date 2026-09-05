@@ -1,5 +1,5 @@
 import { useStore } from "@tanstack/react-form";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Button } from "#components/ui/button.tsx";
 import { useFormContext } from "#forms/context.ts";
 import { errorMessage } from "#forms/messages.ts";
@@ -33,12 +33,17 @@ const ValidationErrors = () => {
 	) : null;
 };
 
-export const Submit = ({ children, pending }: { readonly children: ReactNode; readonly pending: string }) => {
+export const Submit = ({
+	children,
+	pending,
+	disabled,
+	...props
+}: Omit<ComponentProps<typeof Button>, "type" | "asChild"> & { readonly pending: string }) => {
 	const form = useFormContext();
 	return (
 		<form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting] as const}>
 			{([canSubmit, busy]) => (
-				<Button disabled={!canSubmit || busy} type="submit">
+				<Button {...props} disabled={disabled || !canSubmit || busy} type="submit">
 					{busy ? pending : children}
 				</Button>
 			)}

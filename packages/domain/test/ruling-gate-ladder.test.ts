@@ -2,7 +2,7 @@ import { expect, it } from "@effect/vitest";
 import { readyPieces } from "#dispatch-policy.ts";
 import { pieceLine } from "#piece-line.ts";
 import { pieceStates } from "#piece-state.ts";
-import { pieceView } from "#piece-view.ts";
+import { pieceViews } from "#piece-view.ts";
 import { piece, stateOf, world } from "#test/piece-ladder-fixtures.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 
@@ -49,8 +49,8 @@ it("the dispatcher never sees a gated piece as ready", () => {
 });
 
 it("a piece names the rulings holding it by their questions", () => {
-	const view = pieceView(gated, pieceStates(gated), piece("alpha"));
-	expect(view.awaitingRulings).toEqual([{ question: "which reef?", rulingId: "ruling-1" }]);
-	expect(pieceLine(view)).toBe("- alpha alpha [blocked] awaits ruling ruling-1: which reef?");
-	expect(pieceView(released, pieceStates(released), piece("alpha")).awaitingRulings).toEqual([]);
+	const views = pieceViews(gated, pieceStates(gated), [piece("alpha")]);
+	expect(views[0]?.awaitingRulings).toEqual([{ question: "which reef?", rulingId: "ruling-1" }]);
+	expect(views.map(pieceLine)).toEqual(["- alpha alpha [blocked] awaits ruling ruling-1: which reef?"]);
+	expect(pieceViews(released, pieceStates(released), [piece("alpha")])[0]?.awaitingRulings).toEqual([]);
 });

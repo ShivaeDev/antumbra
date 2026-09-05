@@ -4,6 +4,8 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Repos } from "@antumbra/repos";
+import { SessionFabric } from "@antumbra/session-fabric";
+import { LiveDelegations } from "@antumbra/sessions";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeSightActs } from "#sight-acts.ts";
@@ -18,6 +20,8 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const changes = yield* Changes;
 		const repos = yield* Repos;
 		const domain = yield* AgentDomain;
+		const fabric = yield* SessionFabric;
+		const delegations = yield* LiveDelegations;
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
 		const db = yield* Database;
@@ -31,9 +35,9 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			Effect.flatMap((intents) =>
 				Effect.flatMap(
 					Effect.all({
-						attached: domain.sessionsAttached,
+						attached: fabric.attached(),
 						capacities: domain.backendCapacities.snapshot(),
-						delegating: domain.sessionsDelegating,
+						delegating: delegations.delegating(),
 					}),
 					(runtime) => fleetSnapshot(domain.backends, domain.imageInputBackends, intents, runtime.capacities, runtime),
 				),

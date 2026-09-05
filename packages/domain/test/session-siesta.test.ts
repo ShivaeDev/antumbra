@@ -1,5 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -31,6 +32,7 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			const domain = yield* AgentDomain;
+			const fabric = yield* SessionFabric;
 			const kernel = yield* Kernel;
 			const submission = yield* kernel.submit(domain.spawn, HAND);
 			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
@@ -50,7 +52,7 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 				agentId: HAND.agentId,
 			}).first();
 			const sessionBefore = yield* sessionRow;
-			const attached = yield* domain.sessionsAttached;
+			const attached = yield* fabric.attached();
 			expect(
 				(yield* fleetSnapshot(["scripted"], new Set(), [], [], {
 					attached,
@@ -63,7 +65,7 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 				text: "standing by",
 			});
 			expect((yield* sessionRow).executionStatus).toBe("idle");
-			const stillAttached = yield* domain.sessionsAttached;
+			const stillAttached = yield* fabric.attached();
 			expect(stillAttached.has(HAND.sessionId)).toBe(true);
 			const summary = (yield* fleetSnapshot(["scripted"], new Set(), [], [], {
 				attached: stillAttached,

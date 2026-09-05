@@ -3,8 +3,9 @@ import { Changes } from "@antumbra/changes";
 import { type AdoptChangeRequest, ArtifactMarkdownFailure, type ReportMarkdown, SightFailure, VoyageSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type ReportReading, Reports } from "@antumbra/reports";
+import { SessionFabric } from "@antumbra/session-fabric";
+import { LiveDelegations } from "@antumbra/sessions";
 import { Effect, Layer, Option } from "effect";
-import { AgentDomain } from "#agent-domain-service.ts";
 import { changeView } from "#change-view.ts";
 import { Quay } from "#quay/service.ts";
 import { quaySeen } from "#quay-projection.ts";
@@ -32,10 +33,11 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 		const changes = yield* Changes;
 		const quayReader = yield* Quay;
 		const feeds = yield* DomainFeeds;
-		const domain = yield* AgentDomain;
+		const fabric = yield* SessionFabric;
+		const delegations = yield* LiveDelegations;
 		const runtime = Effect.all({
-			attached: domain.sessionsAttached,
-			delegating: domain.sessionsDelegating,
+			attached: fabric.attached(),
+			delegating: delegations.delegating(),
 		});
 		const reads = yield* makeVoyageReads(runtime);
 		const acts = yield* makeVoyageActs(reads);

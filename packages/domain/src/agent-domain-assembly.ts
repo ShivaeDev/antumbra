@@ -6,7 +6,6 @@ import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
 	compileSessionSiestaDemands,
-	LiveDelegations,
 	makeCurrentSessionReconciler,
 	makeSessionNodeReconciler,
 	makeSessionRecoveryRuntime,
@@ -28,9 +27,8 @@ import { VoyageProcedureService } from "#voyages/service.ts";
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		const repos = yield* Repos;
 		const fabric = yield* SessionFabric;
-		const live = yield* LiveDelegations;
+		const repos = yield* Repos;
 		const resourceReconciler = yield* ResourceReconciler;
 		const voyages = yield* VoyageProcedureService;
 		const backendCapacities = yield* BackendCapacities;
@@ -62,19 +60,15 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			backendCapacities,
 			backends: [...backends.keys()],
 			boards,
-			closeSessionStarts: fabric.closeStarts(),
-			interruptSession: fabric.interrupt,
 			imageInputBackends,
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
 			repos,
 			retryResourceReclaim: resourceReconciler.reconcile(),
-			reopenSessionStarts: fabric.reopenStarts(),
 			retire,
 			sendSessionInput: sessionSend.sendInput,
 			sendToSession: sessionSend.sendPrompt,
 			sessionsAttached: fabric.attached(),
-			sessionsDelegating: live.delegating(),
 			siesta,
 			spawn,
 			voyages,

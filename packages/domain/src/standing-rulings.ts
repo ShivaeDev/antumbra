@@ -17,10 +17,7 @@ const subjectsOf = (reader: RulingReader, tags: ReadonlyArray<string>): Readonly
 
 export const standingRulingsFor = Effect.fn("Domain.standingRulingsFor")(function* (reader: RulingReader, tags: ReadonlyArray<string> = []) {
 	const rulings = yield* Rulings;
-	const named = yield* rulings.standing(subjectsOf(reader, tags));
-	const ruled = yield* rulings.standing([]);
-	const bound = new Set(named.map((ruling) => ruling.id));
-	return ruled.filter((ruling) => ruling.radius === "fleet" || bound.has(ruling.id));
+	return yield* rulings.binding(subjectsOf(reader, tags));
 });
 
 const REACH: Readonly<Record<Ruling["radius"], string>> = {

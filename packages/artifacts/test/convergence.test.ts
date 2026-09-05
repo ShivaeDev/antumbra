@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
+import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
@@ -18,7 +18,7 @@ mkdirSync(moorage);
 mkdirSync(published);
 persistence.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
-const layer = ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
+const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
 
 const land = (artifacts: Context.Service.Shape<typeof Artifacts>, title: string) =>
 	Effect.sync(() => writeFileSync(join(moorage, `${title}.md`), `# ${title}\n`)).pipe(

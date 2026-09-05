@@ -3,8 +3,7 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Layer, Option, Stream } from "effect";
 import { rulingAscentMail } from "#ruling-ascent-mail.ts";
-import { rungHolder } from "#ruling-ascent-rung.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
+import { rungHolders } from "#ruling-ascent-rung.ts";
 
 const guarded = <A, R>(act: Effect.Effect<A, unknown, R>, said: string) => act.pipe(Effect.catchCause((cause) => Effect.logError(said, cause)));
 
@@ -31,12 +30,11 @@ const onePass = Effect.gen(function* () {
 	if (climbing.length === 0) {
 		return;
 	}
-	const source = yield* VoyageWorldSource;
-	const world = yield* source.read();
+	const holders = yield* rungHolders(climbing);
 	yield* Effect.forEach(
 		climbing,
 		(ruling) =>
-			Option.match(rungHolder(world, ruling), {
+			Option.match(Option.fromUndefinedOr(holders.get(ruling.id)), {
 				onNone: () => Effect.void,
 				onSome: (toAgentId) => guarded(ascendOne(ruling, toAgentId), "a ruling could not be carried to the rung it waits on"),
 			}),

@@ -1,4 +1,4 @@
-import { ArtifactsLive } from "@antumbra/artifacts";
+import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { ChangesLive } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -9,12 +9,13 @@ import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { SessionStandDownLive } from "@antumbra/sessions/stand-down/service";
 import { Layer } from "effect";
+import { VoyageAuthority } from "#authority/service.ts";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
-import { StandDownLive } from "#stand-down.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
@@ -24,9 +25,10 @@ export const domainCapabilities = (
 	artifactsDirectory: string,
 ) => {
 	const foundations = Layer.mergeAll(
+		VoyageAuthority.layer,
 		PiecesLive,
 		BoardsLive,
-		ArtifactsLive(artifactsDirectory),
+		artifactsLayer(artifactsDirectory),
 		ReportsLive,
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
@@ -35,7 +37,7 @@ export const domainCapabilities = (
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = ChangesLive(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer).pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), StandDownLive, VoyageProceduresLive).pipe(
+	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);
 };

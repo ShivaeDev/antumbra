@@ -17,13 +17,6 @@ export interface VoyageCaptain {
 export const isVoyageCaptainIdentity = (role: string, identity: SessionIdentity) =>
 	role === CAPTAIN_ROLE && Option.isSome(identity.voyageId) && Option.isNone(identity.pieceId);
 
-export const isFlagshipCaptainIdentity = (world: VoyageWorld, role: string, identity: SessionIdentity): boolean =>
-	isVoyageCaptainIdentity(role, identity) &&
-	Option.match(identity.voyageId, {
-		onNone: () => false,
-		onSome: (voyageId) => world.voyages.some((voyage) => voyage.id === voyageId && voyage.kind === "flagship"),
-	});
-
 type CaptainWorld = Pick<VoyageWorld, "agentStatus" | "assignments" | "crews" | "currentSessionByAgent" | "sessions">;
 
 const isPieceAssigned = (world: CaptainWorld, agentId: string) => world.assignments.some((assignment) => assignment.agentId === agentId);

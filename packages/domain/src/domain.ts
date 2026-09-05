@@ -3,7 +3,7 @@ import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { BackendCapacitiesLive } from "@antumbra/provider-capacity";
 import { ResourceReclaimRunnersLive, type ResourceReconcileOptions, ResourceReconcilerLive } from "@antumbra/resource-reclamation";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import { SessionInputsLive } from "@antumbra/session-inputs";
+import { sessionInputsLayer } from "@antumbra/session-inputs";
 import { LiveDelegationsLive } from "@antumbra/sessions";
 import { Layer } from "effect";
 import { makeAgentDomain } from "#agent-domain-assembly.ts";
@@ -29,6 +29,6 @@ export const AgentDomainLive = (
 		),
 		Layer.provideMerge(capabilities),
 		Layer.provide(SessionFabricLive),
-		Layer.provideMerge(SessionInputsLive(sessionInputsDirectory)),
+		Layer.provideMerge(sessionInputsLayer(sessionInputsDirectory)),
 	);
 };

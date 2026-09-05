@@ -1,14 +1,10 @@
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
 import { Effect } from "effect";
-import { rulesAs } from "#ruling-station.ts";
+import { VoyageAuthority } from "#authority/service.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 export const makeRulingSpeaker = Effect.gen(function* () {
-	const source = yield* VoyageWorldSource;
+	const authority = yield* VoyageAuthority;
 	return (identity: SessionIdentity): Effect.Effect<RulingAuthority> =>
-		source.read().pipe(
-			Effect.map((world) => rulesAs(world, identity)),
-			Effect.orElseSucceed((): RulingAuthority => "captain"),
-		);
+		authority.rulesAs(identity).pipe(Effect.orElseSucceed((): RulingAuthority => "captain"));
 });

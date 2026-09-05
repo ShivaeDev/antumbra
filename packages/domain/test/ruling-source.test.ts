@@ -208,3 +208,30 @@ it.effectDB("an admiral-rung ruling names its subject voyage without a gate", fu
 		expect((yield* source.open).rulings[0]?.voyage).toEqual({ id: voyageId, name: "Chart the reef" });
 	}).pipe(Effect.provide(layer));
 });
+
+it.effectDB("open and standing rulings resolve all subject names from the current rows", function* (db) {
+	yield* Effect.gen(function* () {
+		yield* seedFleet;
+		yield* db.Repo.create({ id: "charts", name: "Charts", source: "/charts", defaultRef: "main" });
+		const rulings = yield* Rulings;
+		const source = yield* RulingSource;
+		const requested = yield* rulings.request({
+			...asked,
+			subjects: [...asked.subjects, { kind: "agent", id: requesterId }, { kind: "piece", id: pieceId }, { kind: "repo", id: "charts" }],
+		});
+		const subjects = (yield* source.open).rulings[0]?.subjects;
+		expect(subjects).toEqual(
+			expect.arrayContaining([
+				{ id: voyageId, kind: "voyage", label: "Chart the reef" },
+				{ id: "surveying", kind: "tag", label: "surveying" },
+				{ id: requesterId, kind: "agent", label: "hand" },
+				{ id: pieceId, kind: "piece", label: "Plot the course" },
+				{ id: "charts", kind: "repo", label: "Charts" },
+			]),
+		);
+		yield* source.rule({ answer: "trust the soundings", rulingId: requested.id });
+		expect((yield* source.standing).rulings[0]?.subjects).toEqual(subjects);
+		yield* db.Repo.where({ id: "charts" }).update({ name: "Revised charts" });
+		expect((yield* source.standing).rulings[0]?.subjects).toContainEqual({ id: "charts", kind: "repo", label: "Revised charts" });
+	}).pipe(Effect.provide(layer));
+});

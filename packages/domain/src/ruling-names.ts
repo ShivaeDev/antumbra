@@ -6,31 +6,31 @@ import type { PieceRow, RepoRow } from "#voyage-rows.ts";
 
 type ReferenceKind = Exclude<RulingSubjectView["kind"], "tag">;
 
-export interface RulingNameRows {
-	readonly agents: ReadonlyArray<StoredAgent>;
-	readonly pieces: ReadonlyArray<PieceRow>;
-	readonly repos: ReadonlyArray<RepoRow>;
-	readonly voyages: ReadonlyArray<StoredVoyage>;
+export interface RulingNames {
+	readonly agents: ReadonlyMap<string, StoredAgent>;
+	readonly pieces: ReadonlyMap<string, PieceRow>;
+	readonly repos: ReadonlyMap<string, RepoRow>;
+	readonly voyages: ReadonlyMap<string, StoredVoyage>;
 }
 
-const NAME_OF: Readonly<Record<ReferenceKind, (world: RulingNameRows, id: string) => string | undefined>> = {
-	agent: (world, id) => world.agents.find((row) => row.id === id)?.role,
-	piece: (world, id) => world.pieces.find((row) => row.id === id)?.title,
-	repo: (world, id) => world.repos.find((row) => row.id === id)?.name,
-	voyage: (world, id) => world.voyages.find((row) => row.id === id)?.name,
+const NAME_OF: Readonly<Record<ReferenceKind, (world: RulingNames, id: string) => string | undefined>> = {
+	agent: (world, id) => world.agents.get(id)?.role,
+	piece: (world, id) => world.pieces.get(id)?.title,
+	repo: (world, id) => world.repos.get(id)?.name,
+	voyage: (world, id) => world.voyages.get(id)?.name,
 };
 
-export const subjectSeen = (world: RulingNameRows, subject: RulingSubject): RulingSubjectView =>
+export const subjectSeen = (world: RulingNames, subject: RulingSubject): RulingSubjectView =>
 	subject.kind === "tag"
 		? { id: subject.tag, kind: "tag", label: subject.tag }
 		: { id: subject.id, kind: subject.kind, label: NAME_OF[subject.kind](world, subject.id) ?? subject.id };
 
-export const agentSeen = (world: RulingNameRows, agentId: string): RulingAgentView => ({
+export const agentSeen = (world: RulingNames, agentId: string): RulingAgentView => ({
 	id: agentId,
 	role: NAME_OF.agent(world, agentId) ?? "agent",
 });
 
-export const speakerSeen = (world: RulingNameRows, agentId: Option.Option<string>): RulingAgentView | null =>
+export const speakerSeen = (world: RulingNames, agentId: Option.Option<string>): RulingAgentView | null =>
 	Option.getOrNull(Option.map(agentId, (id) => agentSeen(world, id)));
 
 const subjectIds = (rulings: ReadonlyArray<Ruling>, kind: ReferenceKind): ReadonlyArray<string> =>

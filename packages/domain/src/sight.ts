@@ -9,6 +9,7 @@ import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
+import { BackendCatalog } from "#backend-catalog/service.ts";
 import { makeSightActs } from "#sight-acts.ts";
 import { toFailure } from "#sight-failure.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
@@ -22,6 +23,8 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const repos = yield* Repos;
 		const backendCapacities = yield* BackendCapacities;
 		const domain = yield* AgentDomain;
+		const catalog = yield* BackendCatalog;
+		const backends = yield* catalog.snapshot();
 		const fabric = yield* SessionFabric;
 		const delegations = yield* LiveDelegations;
 		const feeds = yield* DomainFeeds;
@@ -41,7 +44,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 						capacities: backendCapacities.snapshot(),
 						delegating: delegations.delegating(),
 					}),
-					(runtime) => fleetSnapshot(domain.backends, domain.imageInputBackends, intents, runtime.capacities, runtime),
+					(runtime) => fleetSnapshot(backends.backends, backends.imageInputBackends, intents, runtime.capacities, runtime),
 				),
 			),
 			Effect.provideService(Changes, changes),

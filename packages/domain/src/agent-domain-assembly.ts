@@ -12,8 +12,6 @@ import {
 } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
 import { Effect } from "effect";
-import { makeBackendModels } from "#backend-models.ts";
-import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { compileMailDeliveryDemands, makeMailDelivery } from "#mail-delivery-demands.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
@@ -40,7 +38,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			sinkFor,
 		});
 		const retire = yield* makeRetireKind;
-		const compileTools = yield* makeAgentToolCompiler(backends);
+		const compileTools = yield* makeAgentToolCompiler;
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recovery = sessionRecoveryLayer({
 			backends,
@@ -55,13 +53,9 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			...compileMailDeliveryDemands(deliverMail),
 			...(yield* compileRetireSweepDemands(retire)),
 		];
-		const imageInputBackends = imageInputBackendsOf(backends);
 		return {
-			backends: [...backends.keys()],
-			imageInputBackends,
 			intentDemands,
 			kinds: [spawn, retire, siesta, wake],
-			listModels: makeBackendModels(backends),
 			retryResourceReclaim: resourceReconciler.reconcile(),
 			retire,
 			sessionsAttached: fabric.attached(),

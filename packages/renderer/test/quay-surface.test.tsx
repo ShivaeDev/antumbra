@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import type { QuayGroup, QuayRow, QuayView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";

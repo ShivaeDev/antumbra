@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import type { SessionEvent, SessionSummary, SessionTreeNode } from "@antumbra/contract";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { renderToStaticMarkup } from "react-dom/server";

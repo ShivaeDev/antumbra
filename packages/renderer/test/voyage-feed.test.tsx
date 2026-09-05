@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import type { VoyageView } from "@antumbra/contract";
 import { reefView } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";

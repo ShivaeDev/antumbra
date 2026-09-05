@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import type { SessionEvent } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";

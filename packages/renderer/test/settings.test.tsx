@@ -1,5 +1,3 @@
-// @vitest-environment happy-dom
-
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { act } from "react";

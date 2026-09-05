@@ -18,6 +18,7 @@ export default defineConfig({
 	test: {
 		projects: workspacePackageNames.map((name) => ({
 			root: join(repoRoot, "packages", name),
+			...(name === "renderer" ? { extends: join(repoRoot, "packages", name, "vitest.config.ts") } : {}),
 			test: {
 				include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
 				name,

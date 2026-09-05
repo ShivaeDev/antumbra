@@ -10,39 +10,33 @@ export interface WorkLinks {
 	readonly voyages: ReadonlyArray<Pick<VoyageRow, "id" | "name">>;
 }
 
-const pieceWork = (links: WorkLinks, pieceId: string): ReadonlyArray<PieceWork> => {
-	const piece = links.pieces.find((row) => row.id === pieceId);
-	if (piece === undefined) {
-		return [];
+export const workByAgent = (links: WorkLinks): ReadonlyMap<string, ReadonlyArray<AgentWork>> => {
+	const pieces = new Map(links.pieces.map((piece) => [piece.id, piece]));
+	const voyages = new Map(links.voyages.map((voyage) => [voyage.id, voyage]));
+	const pieceWork = new Map<string, Array<PieceWork>>();
+	for (const membership of links.memberships) {
+		const piece = pieces.get(membership.pieceId);
+		const voyage = voyages.get(membership.voyageId);
+		if (piece !== undefined && voyage !== undefined) {
+			const work = pieceWork.get(piece.id) ?? [];
+			work.push({ kind: "piece", pieceId: piece.id, pieceTitle: piece.title, voyageId: voyage.id, voyageName: voyage.name });
+			pieceWork.set(piece.id, work);
+		}
 	}
-	return links.memberships
-		.filter((membership) => membership.pieceId === pieceId)
-		.flatMap((membership) => {
-			const voyage = links.voyages.find((row) => row.id === membership.voyageId);
-			return voyage === undefined
-				? []
-				: [
-						{
-							kind: "piece" as const,
-							pieceId,
-							pieceTitle: piece.title,
-							voyageId: voyage.id,
-							voyageName: voyage.name,
-						},
-					];
-		});
-};
-
-export const workOf = (links: WorkLinks, agentId: string): ReadonlyArray<AgentWork> => {
-	const assignments = links.assignments.filter((assignment) => assignment.agentId === agentId);
-	if (assignments.length > 0) {
-		return assignments.flatMap((assignment) => pieceWork(links, assignment.pieceId));
+	const work = new Map<string, Array<AgentWork>>();
+	for (const assignment of links.assignments) {
+		const assigned = work.get(assignment.agentId) ?? [];
+		assigned.push(...(pieceWork.get(assignment.pieceId) ?? []));
+		work.set(assignment.agentId, assigned);
 	}
-	const voyages = links.crews
-		.filter((crew) => crew.agentId === agentId && crew.role === CAPTAIN_ROLE)
-		.flatMap((crew) => {
-			const voyage = links.voyages.find((row) => row.id === crew.voyageId);
-			return voyage === undefined ? [] : [{ kind: "voyage" as const, voyageId: voyage.id, voyageName: voyage.name }];
-		});
-	return voyages;
+	const assignedAgents = new Set(work.keys());
+	for (const crew of links.crews) {
+		const voyage = voyages.get(crew.voyageId);
+		if (crew.role === CAPTAIN_ROLE && !assignedAgents.has(crew.agentId) && voyage !== undefined) {
+			const commanded = work.get(crew.agentId) ?? [];
+			commanded.push({ kind: "voyage", voyageId: voyage.id, voyageName: voyage.name });
+			work.set(crew.agentId, commanded);
+		}
+	}
+	return work;
 };

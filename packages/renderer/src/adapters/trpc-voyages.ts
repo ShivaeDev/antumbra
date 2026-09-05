@@ -5,6 +5,7 @@ import type {
 	OpenVoyageRequest,
 	ReportMarkdown,
 	RewireRequest,
+	VoyageAgentSettingsRequest,
 	VoyageBackendRequest,
 	VoyageSummary,
 	VoyageView,
@@ -56,6 +57,9 @@ export const openVoyage = (request: OpenVoyageRequest, onDone: (voyage: VoyageSu
 
 export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
+
+export const setAgentSettings = (request: VoyageAgentSettingsRequest, onError: OnError): void =>
+	fired(client.setAgentSettings.mutate(request), onError);
 
 export const setCaptainBackend = (request: VoyageBackendRequest, onError: OnError): void => fired(client.setCaptainBackend.mutate(request), onError);
 

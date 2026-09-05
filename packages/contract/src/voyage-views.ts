@@ -88,8 +88,12 @@ export type VoyageState = typeof VoyageState.Type;
 export const VoyageSummary = Schema.Struct({
 	captain: Schema.NullOr(VoyageCaptainView),
 	captainBackend: Schema.String,
+	captainEffort: Schema.NullOr(Schema.String),
+	captainModel: Schema.NullOr(Schema.String),
 	counts: PieceCounts,
 	crewBackend: Schema.String,
+	crewEffort: Schema.NullOr(Schema.String),
+	crewModel: Schema.NullOr(Schema.String),
 	focusedAt: Schema.NullOr(Schema.String),
 	id: Schema.String,
 	kind: VoyageKindSchema,

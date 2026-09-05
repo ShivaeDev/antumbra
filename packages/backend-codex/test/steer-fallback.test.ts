@@ -17,6 +17,7 @@ const steeringRejected = (detail: string) =>
 				request: (method, params, timeout) => (method === "turn/steer" ? Effect.fail(codexFailure(detail)) : server.request(method, params, timeout)),
 			},
 			"thread-1",
+			{},
 		);
 		yield* driver.steer(textInput("first"));
 		return { driver, fake };
@@ -45,7 +46,7 @@ it.live("interrupt accepts an inactive turn or a timeout while draining", () =>
 		const fake = makeFakeAppServer();
 		const server = yield* makeCodexServer({ spawn: () => fake.process });
 		for (const detail of ["no active turn", "timeout waiting for turn/interrupt"]) {
-			const requests = turnRequests({ ...server, request: () => Effect.fail(codexFailure(detail)) }, "thread-1");
+			const requests = turnRequests({ ...server, request: () => Effect.fail(codexFailure(detail)) }, "thread-1", {});
 			expect(yield* Effect.exit(requests.interrupt("turn-1"))).toMatchObject({ _tag: "Success" });
 		}
 	}),

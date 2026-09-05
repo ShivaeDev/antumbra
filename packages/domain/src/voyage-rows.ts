@@ -13,8 +13,12 @@ export type AwaitingRuling = Pick<RulingGate, "question" | "rulingId">;
 
 export interface VoyageRow {
 	readonly captainBackend: string;
+	readonly captainEffort: string | null;
+	readonly captainModel: string | null;
 	readonly context: string;
 	readonly crewBackend: string;
+	readonly crewEffort: string | null;
+	readonly crewModel: string | null;
 	readonly focusedAt: Date | null;
 	readonly id: string;
 	readonly kind: VoyageKind;

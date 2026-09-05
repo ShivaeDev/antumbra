@@ -8,6 +8,7 @@ export {
 	SessionInputId,
 	type SessionMessagePart,
 } from "@antumbra/vocabulary/session-input";
+export type { VoyageAgentRole } from "@antumbra/vocabulary/voyage";
 export { AppInfo, AppInfoSource } from "#app-info.ts";
 export { AppLifecycleSource } from "#app-lifecycle.ts";
 export { ArtifactMarkdown, ArtifactView } from "#artifact-views.ts";
@@ -106,6 +107,7 @@ export {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
+	VoyageAgentSettingsRequest,
 	VoyageBackendRequest,
 } from "#voyage-requests.ts";
 export {

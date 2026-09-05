@@ -61,7 +61,7 @@ export {
 	type SessionCensusRequest,
 } from "#session-audit.ts";
 export { callWhileOpen } from "#tool-call.ts";
-export {
-	type DirectTool,
-	type DirectToolOutcome,
+export type {
+	DirectTool,
+	DirectToolOutcome,
 } from "#tools.ts";

@@ -12,8 +12,12 @@ export const ensureFlagship = Effect.fn("Voyages.ensureFlagship")(function* (inp
 	}
 	yield* db.Voyage.create({
 		captainBackend: input.backend,
+		captainEffort: null,
+		captainModel: null,
 		context: input.context,
 		crewBackend: input.backend,
+		crewEffort: null,
+		crewModel: null,
 		focusedAt: null,
 		id: crypto.randomUUID(),
 		kind: "flagship",

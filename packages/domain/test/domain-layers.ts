@@ -15,7 +15,9 @@ import { DispatcherLive, type DispatcherOptions } from "#dispatcher.ts";
 import { AgentDomain, AgentDomainLive } from "#domain.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
 import { IntentFeedLive } from "#intent-feed.ts";
-import { KernelReachInstaller, KernelReachLive, type KernelReachService } from "#kernel-reach.ts";
+import { installKernelReach } from "#kernel-reach/bind.ts";
+import type { KernelReachService } from "#kernel-reach/installed.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { RulingAscent } from "#ruling-ascent/observer.ts";
 import { RulingDeliveryLive } from "#ruling-delivery.ts";
 import { SessionShutdown } from "#shutdown/service.ts";
@@ -30,7 +32,7 @@ const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname
 const kernelReachLive = (reach: KernelReachService) =>
 	Layer.effectDiscard(
 		Effect.gen(function* () {
-			const installer = yield* KernelReachInstaller;
+			const installer = yield* KernelReach;
 			yield* installer.install(reach);
 		}),
 	);
@@ -57,7 +59,7 @@ export const domainKernelServices = (
 ) =>
 	Layer.mergeAll(
 		IntentFeedLive,
-		KernelReachLive,
+		installKernelReach,
 		Layer.unwrap(
 			Effect.gen(function* () {
 				const domain = yield* AgentDomain;

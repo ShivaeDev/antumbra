@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { KernelReachService } from "#kernel-reach.ts";
+import type { KernelReachService } from "#kernel-reach/installed.ts";
 
 const unexpected = (act: string) => Effect.die(new Error(`kernel-free test called KernelReach.${act}`));
 

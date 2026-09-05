@@ -2,7 +2,7 @@ import { Database } from "@antumbra/persistence";
 import { openSessions, rootSessions } from "@antumbra/sessions";
 import { Effect, Option, Schema } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import { KernelReach } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 
 const RESTART_RESUME = { key: "restart:resume" };
 

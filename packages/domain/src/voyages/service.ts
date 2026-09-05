@@ -5,7 +5,7 @@ import { Rulings } from "@antumbra/rulings";
 import { defineService } from "@antumbra/service-definition";
 import { type Context, Effect } from "effect";
 import { hailCaptain } from "#hail.ts";
-import { KernelReach } from "#kernel-reach.ts";
+import { KernelReach } from "#kernel-reach/service.ts";
 import { workPieceNow } from "#piece-work/work.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { VoyageSummaries } from "#voyage/summaries/service.ts";

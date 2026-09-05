@@ -1,7 +1,7 @@
 import { lstatSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { Artifacts, ArtifactsLive } from "@antumbra/artifacts";
+import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { persistenceIt } from "@antumbra/persistence/testing";
@@ -80,7 +80,7 @@ const platformWith = (make: (fs: FileSystem.FileSystem) => FileSystem.FileSystem
 };
 
 const artifactLayer = (published: string, platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>) =>
-	ArtifactsLive(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
+	artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
 
 const syncEvidenceFile = (
 	file: FileSystem.File,

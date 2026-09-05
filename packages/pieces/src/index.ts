@@ -3,7 +3,6 @@ export {
 	EdgeWouldCycle,
 	PieceNotFound,
 	StoredPieceVerdictInvalid,
-	VoyageNotFound,
 } from "#errors.ts";
 export type { CharterInput, EdgeRow, PieceRow } from "#model.ts";
 export { Pieces, PiecesLive } from "#pieces.ts";

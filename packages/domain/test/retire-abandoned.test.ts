@@ -1,12 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
-import { it } from "@antumbra/testing";
+import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { changeOf } from "#test/change-fixtures.ts";
-import { endTurn, type ScriptedBackend } from "#test/harness.ts";
-import { born, chartered, handFor, landed, MINUTE_MILLIS, swept, sweptAt } from "#test/retire-crew-fixture.ts";
-import { eventually } from "#test/session-recovery-fixture.ts";
+import type { ScriptedBackend } from "#test/harness.ts";
+import { awaitRetirement, born, chartered, handFor, landed, MINUTE_MILLIS, swept, sweptAt } from "#test/retire-crew-fixture.ts";
 import { stateOf } from "#test/voyage-fixtures.ts";
 
 const HAND = "agent-written-off";
@@ -23,25 +22,13 @@ const statusOf = (agentId: string) =>
 		return Option.getOrThrow(agent).status;
 	});
 
-const writtenOffPiece = (scripted: ScriptedBackend, quiet: boolean) =>
-	Effect.gen(function* () {
-		const pieces = yield* Pieces;
-		const { pieceId, voyageId } = yield* chartered;
-		yield* born(handFor(HAND, pieceId, voyageId));
-		if (quiet) {
-			yield* endTurn(scripted, HAND);
-		}
-		yield* pieces.landVerdict(pieceId, "abandoned");
-		return pieceId;
-	});
-
 const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
 		const { pieceId, voyageId } = yield* chartered;
-		yield* born(handFor(HAND, pieceId, voyageId));
+		const sessionId = yield* born(handFor(HAND, pieceId, voyageId));
 		yield* landed(pieceId);
-		yield* endTurn(scripted, HAND);
+		yield* endsTurn(scripted, sessionId);
 		yield* Effect.all([
 			db.Change.create(
 				changeOf({
@@ -56,7 +43,7 @@ const closedWithoutVerdict = (scripted: ScriptedBackend) =>
 		return { pieceId, voyageId };
 	});
 
-it.effectApp("a piece whose change merely closed waits out the ordinary rest", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("a piece whose change merely closed waits out the ordinary rest", function* ({ scripted }) {
 	const db = yield* Database;
 	const { pieceId, voyageId } = yield* closedWithoutVerdict(scripted);
 	expect(yield* db.PieceChange.where({ pieceId }).all()).toHaveLength(1);
@@ -71,21 +58,21 @@ it.effectApp("a piece whose change merely closed waits out the ordinary rest", {
 	expect(yield* retireIntents).toHaveLength(1);
 });
 
-it.effectApp("an abandoned piece's working crew is left alone until it stops", { clock: "live" }, function* ({ scripted }) {
-	yield* writtenOffPiece(scripted, false);
+it.effectApp("an abandoned piece's working crew is left alone until it stops", function* ({ scripted }) {
+	const pieces = yield* Pieces;
+	const { pieceId, voyageId } = yield* chartered;
+	const sessionId = yield* born(handFor(HAND, pieceId, voyageId));
+	yield* pieces.landVerdict(pieceId, "abandoned");
 
 	yield* sweptAt(24 * 60 * MINUTE_MILLIS);
 
 	expect(yield* retireIntents).toEqual([]);
 	expect(yield* statusOf(HAND)).toBe("alive");
 
-	yield* endTurn(scripted, HAND);
+	yield* endsTurn(scripted, sessionId);
 	yield* swept;
 
 	expect(yield* retireIntents).toHaveLength(1);
-	yield* eventually(
-		Effect.gen(function* () {
-			expect(yield* statusOf(HAND)).toBe("retired");
-		}),
-	);
+	yield* awaitRetirement;
+	expect(yield* statusOf(HAND)).toBe("retired");
 });

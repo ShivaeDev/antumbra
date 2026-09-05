@@ -1,11 +1,12 @@
-import { Database } from "@antumbra/persistence";
-import { Effect, Option } from "effect";
+import { Database, or } from "@antumbra/persistence";
+import { Effect } from "effect";
 import { decodeRuling } from "#read.ts";
 
 export const awaitingAscent = Effect.fn("Rulings.awaitingAscent")(function* () {
 	const db = yield* Database;
 	const rows = yield* db.Ruling.where({ ruledAt: null })
 		.where((ruling) => ruling.requesterAgentId.isNotNull())
+		.where((ruling) => or(ruling.rung.isNull(), ruling.rung.neq("admiral")))
 		.orderBy((ruling) => ruling.createdAt.asc())
 		.include(
 			"choices",
@@ -22,6 +23,5 @@ export const awaitingAscent = Effect.fn("Rulings.awaitingAscent")(function* () {
 		.include("gates")
 		.include("subjects")
 		.all();
-	const rulings = yield* Effect.forEach(rows, decodeRuling);
-	return rulings.filter((ruling) => Option.exists(ruling.rung, (rung) => rung !== "admiral"));
+	return yield* Effect.forEach(rows, decodeRuling);
 });

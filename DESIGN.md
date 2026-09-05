@@ -89,8 +89,8 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
   for compute, while v1 leaves the final selection to the admiral.
 - **Boards preserve coordination across attention gaps.** Durable entities have one append-only Board with rough and smooth salience registers. Boards
   never duplicate derivable database state and are never resource-reclamation targets.
-- **Smoothing advances a frontier without erasing evidence.** It appends a provenance-bearing summary that carries the span it covers; every source
-  remains reachable.
+- **Smoothing settles what a reader meets first without erasing evidence.** It appends a provenance-bearing summary that carries the span it covers;
+  every source remains reachable.
 - **Reach and interruption are different.** Ruling requests and mail land durably before policy decides whether, when, and how to interrupt. In v1 the
   admiral chooses what interrupts an Agent at work; an Agent at rest is woken by its own unread mail and by nothing else persisted.
 - **A Ruling is a record, not a Board entry.** One typed record binds the context, the question, and the answer, and the answer is read in the light

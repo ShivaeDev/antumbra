@@ -25,8 +25,8 @@ are never resource-reclamation targets.
 
 **Smoothing** advances what an ordinary reader sees first without rewriting history. A **smoother** reads the rough entries no summary yet covers, one
 calendar day at a time, and appends one **summary** to the smooth log for each of them. A summary carries the level it stands at and the span it
-covers as data, never as words in its text, so every label a reader is shown is derived rather than written; the frontier a reader meets is where the
-summaries stop.
+covers as data, never as words in its text, so every label a reader is shown is derived rather than written. A reader meets the summaries where the
+smoothed stretch ends and the tail of later entries begins.
 
 The smoother is a constrained role: Antumbra writes its prompt, it holds one tool, and it sees only the entries of the day it was given. It is an
 Agent of its Voyage all the same, so what a pass costs is that voyage's cost like every other agent's. A pass that writes no summary changes nothing —
@@ -34,7 +34,7 @@ the log stands as it was and the admiral may ask again — and a day smoothed tw
 appends.
 
 Every reader takes the same shape: the summary in place of what it covers, and every entry since in full. Naming a summary reads the entries behind it
-instead, so covered sources stay reachable. Smoothing may make derivable material recede from the frontier, but it never deletes the underlying graph.
+instead, so covered sources stay reachable. Smoothing may let derivable material fall behind a summary, but it never deletes the underlying graph.
 That is how a Board can preserve evidence without making every old detail equally salient.
 
 The admiral asks for a pass from the Board. The triggers that ask without being asked, and the page that reads the smooth log as a tree, are

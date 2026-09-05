@@ -1,8 +1,7 @@
 import { Effect } from "effect";
-import { voyageSummaries } from "#voyage-view.ts";
-import { VoyageWorldSource } from "#voyage-world/service.ts";
+import { VoyageSummaries } from "#voyage/summaries/service.ts";
 
 export const list = Effect.fn("Voyages.list")(function* () {
-	const world = yield* VoyageWorldSource;
-	return voyageSummaries(yield* world.read());
+	const summaries = yield* VoyageSummaries;
+	return yield* summaries.read();
 });

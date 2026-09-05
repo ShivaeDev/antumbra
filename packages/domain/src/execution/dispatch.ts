@@ -3,8 +3,8 @@ import { Rulings } from "@antumbra/rulings";
 import { Effect } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
+import { decodeVoyage } from "#voyage/decode.ts";
 import type { DispatchWorld } from "#voyage-rows.ts";
-import { decodeVoyage } from "#voyage-world/voyages.ts";
 
 export const dispatch = Effect.fn("ExecutionSource.dispatch")(function* () {
 	const db = yield* Database;

@@ -2,8 +2,7 @@ import type { ArtifactRow } from "@antumbra/artifacts";
 import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
-import type { ReportRow } from "@antumbra/reports";
-import type { Ruling, RulingGate } from "@antumbra/rulings";
+import type { RulingGate } from "@antumbra/rulings";
 import type { AgentSessionStatus, AgentStatus, SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
 import type { VoyageKind } from "@antumbra/vocabulary/voyage";
 
@@ -78,11 +77,8 @@ export interface DispatchWorld extends RetirementWorld {
 	readonly voyages: ReadonlyArray<VoyageRow>;
 }
 
-export interface VoyageWorld extends DispatchWorld {
+export interface VoyageSummaryRows extends DispatchWorld {
 	readonly crews: ReadonlyArray<CrewRow>;
-	readonly openRulings: ReadonlyArray<Ruling>;
-	readonly reports: ReadonlyMap<string, ReportRow>;
-	readonly repos: ReadonlyMap<string, RepoRow>;
 }
 
 export type AgentExecutionWorld = Pick<RetirementWorld, "agentStatus" | "currentSessionByAgent" | "sessions">;

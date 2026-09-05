@@ -1,8 +1,8 @@
 import type { RulingGatedPieceView } from "@antumbra/contract";
 import type { StoredVoyage } from "@antumbra/persistence";
-import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import type { PieceRow, VoyageSummaryRows } from "#voyage-rows.ts";
 
-export type GatedPieceRows = Pick<VoyageWorld, "memberships" | "pieces"> & {
+export type GatedPieceRows = Pick<VoyageSummaryRows, "memberships" | "pieces"> & {
 	readonly voyages: ReadonlyArray<StoredVoyage>;
 };
 

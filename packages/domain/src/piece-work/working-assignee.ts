@@ -3,7 +3,7 @@ import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { atWork } from "#agent-at-work.ts";
-import { decodeRootSession } from "#voyage-world/root-sessions.ts";
+import { decodeRootSession } from "#execution/decode-session.ts";
 
 export const workingAssignee = Effect.fn("Pieces.workingAssignee")(function* (pieceId: string) {
 	const db = yield* Database;

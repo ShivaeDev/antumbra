@@ -1,3 +1,7 @@
-import type { VoyageWorld } from "#voyage-rows.ts";
+import type { ReportRow } from "@antumbra/reports";
+import type { RepoRow, VoyageSummaryRows } from "#voyage-rows.ts";
 
-export type VoyageDetailRows = Omit<VoyageWorld, "openRulings" | "voyages">;
+export interface VoyageDetailRows extends Omit<VoyageSummaryRows, "voyages"> {
+	readonly reports: ReadonlyMap<string, ReportRow>;
+	readonly repos: ReadonlyMap<string, RepoRow>;
+}

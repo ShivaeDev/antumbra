@@ -24,7 +24,6 @@ const reef: VoyageRow = {
 const gated = world({
 	memberships: [{ pieceId: "alpha", voyageId: "voyage-1" }],
 	rulingGates: [{ pieceId: "alpha", question: "which reef?", rulingId: "ruling-1" }],
-	voyages: [reef],
 });
 
 const released = world({ ...gated, rulingGates: [] });
@@ -45,8 +44,8 @@ it("an open ruling holds a piece even when its dependencies landed", () => {
 });
 
 it("the dispatcher never sees a gated piece as ready", () => {
-	expect(readyPieces(gated)).toEqual([]);
-	expect(readyPieces(released).map((ready) => ready.piece.id)).toEqual(["alpha"]);
+	expect(readyPieces({ ...gated, voyages: [reef] })).toEqual([]);
+	expect(readyPieces({ ...released, voyages: [reef] }).map((ready) => ready.piece.id)).toEqual(["alpha"]);
 });
 
 it("a piece names the rulings holding it by their questions", () => {

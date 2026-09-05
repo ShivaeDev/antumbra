@@ -2,7 +2,9 @@ import type { AgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { expect, it } from "@effect/vitest";
 import { Option } from "effect";
 import { captainOf } from "#voyage-captain.ts";
-import type { AgentSessionRow, VoyageWorld } from "#voyage-rows.ts";
+import type { AgentSessionRow } from "#voyage-rows.ts";
+
+type CaptainRows = Parameters<typeof captainOf>[0];
 
 const session = (agentId: string, executionStatus: AgentSessionRow["executionStatus"]): AgentSessionRow => ({
 	agentId,
@@ -13,30 +15,16 @@ const session = (agentId: string, executionStatus: AgentSessionRow["executionSta
 	status: "open",
 });
 
-const world = (over: Partial<VoyageWorld>): VoyageWorld => ({
+const world = (over: Partial<CaptainRows>): CaptainRows => ({
 	agentStatus: new Map(),
-	artifacts: new Map(),
 	assignments: [],
-	changes: [],
 	crews: [],
 	currentSessionByAgent: new Map(),
-	dismissedChangeIds: new Set(),
-	edges: [],
-	memberships: [],
-	openRulings: [],
-	pieceChanges: [],
-	pieceReports: [],
-	pieceVerdicts: new Map(),
-	rulingGates: [],
-	pieces: [],
-	reports: new Map(),
-	repos: new Map(),
 	sessions: [],
-	voyages: [],
 	...over,
 });
 
-const captained = (agentId: string, status: AgentStatus, sessions: ReadonlyArray<AgentSessionRow> = []): VoyageWorld =>
+const captained = (agentId: string, status: AgentStatus, sessions: ReadonlyArray<AgentSessionRow> = []): CaptainRows =>
 	world({
 		agentStatus: new Map([[agentId, status]]),
 		crews: [{ agentId, role: "captain", voyageId: "voyage-1" }],
@@ -44,7 +32,7 @@ const captained = (agentId: string, status: AgentStatus, sessions: ReadonlyArray
 		sessions,
 	});
 
-const captain = (rows: VoyageWorld) => Option.getOrThrow(captainOf(rows, "voyage-1"));
+const captain = (rows: CaptainRows) => Option.getOrThrow(captainOf(rows, "voyage-1"));
 
 it("a captain that stood down is the voyage's address and not at work", () => {
 	const stoodDown = captained("agent-1", "alive", [session("agent-1", "idle")]);

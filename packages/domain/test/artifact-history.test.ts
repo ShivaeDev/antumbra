@@ -1,6 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { pieceView } from "#piece-view.ts";
-import type { PieceRow, VoyageWorld } from "#voyage-rows.ts";
+import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
+import type { PieceRow } from "#voyage-rows.ts";
 
 const piece: PieceRow = {
 	charter: "draw the reef",
@@ -23,7 +24,7 @@ const artifact = (id: string) => ({
 	title: id,
 });
 
-const world: VoyageWorld = {
+const world: VoyageDetailRows = {
 	agentStatus: new Map(),
 	artifacts: new Map([
 		["artifact-old", artifact("artifact-old")],
@@ -36,7 +37,6 @@ const world: VoyageWorld = {
 	dismissedChangeIds: new Set(),
 	edges: [],
 	memberships: [],
-	openRulings: [],
 	pieceChanges: [],
 	pieceReports: [],
 	pieceVerdicts: new Map(),
@@ -45,7 +45,6 @@ const world: VoyageWorld = {
 	reports: new Map(),
 	repos: new Map(),
 	sessions: [],
-	voyages: [],
 };
 
 it("shows only the terminal Artifact as current and keeps its predecessor in History", () => {

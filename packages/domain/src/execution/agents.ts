@@ -2,7 +2,7 @@ import { Database, type StoredAgent } from "@antumbra/persistence";
 import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
-import { decodeRootSession } from "#voyage-world/root-sessions.ts";
+import { decodeRootSession } from "#execution/decode-session.ts";
 
 export const readAgentExecution = Effect.fnUntraced(function* (agents: ReadonlyArray<StoredAgent>) {
 	const db = yield* Database;

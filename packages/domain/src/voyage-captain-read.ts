@@ -2,8 +2,8 @@ import { Database } from "@antumbra/persistence";
 import { rootSessions } from "@antumbra/sessions";
 import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
 import { Effect, Option } from "effect";
+import { decodeRootSession } from "#execution/decode-session.ts";
 import { CAPTAIN_ROLE, captainOf } from "#voyage-captain.ts";
-import { decodeRootSession } from "#voyage-world/root-sessions.ts";
 
 export const readCaptains = Effect.fn("VoyageCaptain.readCaptains")(function* (voyageIds: ReadonlyArray<string>) {
 	const db = yield* Database;

@@ -5,7 +5,7 @@ import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
-import type { PieceRow, VoyageRow, VoyageWorld } from "#voyage-rows.ts";
+import type { PieceRow, VoyageRow, VoyageSummaryRows } from "#voyage-rows.ts";
 import { piecesOfVoyage, type VoyageState, voyageState } from "#voyage-state.ts";
 
 export type PieceCounts = Readonly<Record<PieceState, number>>;
@@ -60,7 +60,7 @@ export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageVi
 	};
 };
 
-export const voyageSummaries = (world: VoyageWorld): ReadonlyArray<VoyageSummary> => {
+export const voyageSummaries = (world: VoyageSummaryRows): ReadonlyArray<VoyageSummary> => {
 	const states = pieceStates(world);
 	return world.voyages.map((voyage) => ({
 		...voyage,

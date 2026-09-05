@@ -3,7 +3,6 @@ import { expect, it } from "@effect/vitest";
 import { Option } from "effect";
 import { rulingStaleness } from "#ruling-staleness.ts";
 import { piece, world } from "#test/piece-ladder-fixtures.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
 
 const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	answer: Option.none(),
@@ -27,7 +26,7 @@ const ruling = (subjects: ReadonlyArray<RulingSubject>): Ruling => ({
 	withdrawal: Option.none(),
 });
 
-const staleIn = (built: VoyageWorld, subjects: ReadonlyArray<RulingSubject>) => rulingStaleness(built)(ruling(subjects));
+const staleIn = (built: Parameters<typeof rulingStaleness>[0], subjects: ReadonlyArray<RulingSubject>) => rulingStaleness(built)(ruling(subjects));
 
 const reef = {
 	memberships: [

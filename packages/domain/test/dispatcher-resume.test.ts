@@ -6,7 +6,7 @@ import { Deferred, Effect, Fiber, Option, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, makeScriptedRunner, rawOf, sessionFor } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, makeScriptedRunner, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
 import { assignedPieces, chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
 
@@ -135,7 +135,7 @@ it.live("assigned work wakes the same idle Agent where it stands, before spawn",
 			const stored = yield* db.AgentSession.where({ id: session.id }).first();
 			expect(Option.getOrThrow(stored).nativeRef).toBe("native-assigned");
 
-			yield* callTool(initial, "stand_down", undefined);
+			yield* endTurn(scripted, assignment.agentId);
 			yield* eventually(
 				Effect.gen(function* () {
 					expect(yield* initial.steered).toContain(WAKE_INSTRUCTION);

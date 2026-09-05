@@ -3,7 +3,7 @@ import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Stream } from "effect";
-import { acquireTemporaryPersistence, makeScriptedBackend, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend } from "#test/harness.ts";
 import { eventually, liveSession, note, sightLayer, spawnRequest } from "#test/sight-fixture.ts";
 
 it.live("spawn surfaces on the fleet feed once the agent lives", () =>
@@ -123,7 +123,7 @@ it.live("retire through sight lands on the fleet as retired and closed", () =>
 					expect(agent?.status).toBe("alive");
 				}),
 			);
-			yield* standDown(scripted, receipt.agentId);
+			yield* endTurn(scripted, receipt.agentId);
 			yield* sight.retire(receipt.agentId);
 			yield* eventually(
 				Effect.gen(function* () {

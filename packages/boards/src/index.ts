@@ -6,5 +6,5 @@ export {
 	MailNotAddressed,
 	StoredBoardEntryInvalid,
 } from "#errors.ts";
-export type { BoardEntryRow } from "#model.ts";
+export type { BoardEntryRow, MailPrecedence } from "#model.ts";
 export { BoardScope, EntryInput } from "#model.ts";

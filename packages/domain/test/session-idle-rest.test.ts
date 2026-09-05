@@ -3,11 +3,11 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend } from "#test/harness.ts";
 import { HAND, openedNatively, passedAt, presenceOf, sessionRow, sightLayer, spawned } from "#test/session-idle-fixture.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
-it.live("standing down keeps the acquisition, and the next words need no resume", () =>
+it.live("a turn ending keeps the acquisition, and the next words need no resume", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -16,11 +16,7 @@ it.live("standing down keeps the acquisition, and the next words need no resume"
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
 
-			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
-				ok: true,
-				text: "standing by",
-			});
-			expect((yield* sessionRow).executionStatus).toBe("idle");
+			yield* endTurn(scripted, HAND.agentId);
 			expect(yield* live.closed).toBe(false);
 			const idle = yield* presenceOf;
 			expect(idle.presence).toBe("idle");
@@ -48,8 +44,7 @@ it.live("the configured idle threshold controls when siesta begins", () =>
 			yield* settings.change({ key: "idleSiestaMinutes", value: 5 });
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
-			yield* callTool(live, "stand_down", undefined);
-			expect((yield* sessionRow).executionStatus).toBe("idle");
+			yield* endTurn(scripted, HAND.agentId);
 
 			yield* passedAt(4 * 60_000);
 			expect(yield* db.Intent.where({ tag: "session/siesta" }).all()).toEqual([]);

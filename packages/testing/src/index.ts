@@ -22,10 +22,10 @@ import { type Kernel, KernelLive } from "@antumbra/kernel";
 import { Database, type DatabaseService } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { Pieces } from "@antumbra/pieces";
-import { makeEffectApp, makeScriptedBackend, passiveRunner, type ScriptedBackend } from "@antumbra/testing-runtime";
+import { makeEffectApp, makeScriptedBackend, passiveRunner, rawOf, type ScriptedBackend } from "@antumbra/testing-runtime";
 import type { Voyages } from "@antumbra/voyages";
 import { NodeServices } from "@effect/platform-node";
-import { type Context, Effect, Layer } from "effect";
+import { type Context, Effect, Layer, Option, Schedule } from "effect";
 
 interface AppHarness {
 	readonly db: DatabaseService;
@@ -85,3 +85,19 @@ const makeApp = (temporary: TemporaryPersistence) =>
 	});
 
 export const it = { effectApp: makeEffectApp<AppHarness, AppRequirements>(makeApp) };
+
+export const endsTurn = (scripted: ScriptedBackend, sessionId: string) =>
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const session = yield* scripted.session(sessionId);
+		if (session === undefined) {
+			return yield* Effect.die(`the session was never opened: ${sessionId}`);
+		}
+		yield* session.emit({ durationMs: 1, raw: rawOf("turn/completed"), status: "completed", type: "turn.completed" });
+		yield* Effect.gen(function* () {
+			const row = yield* db.AgentSession.where({ id: sessionId }).first();
+			if (Option.getOrThrow(row).executionStatus !== "idle") {
+				return yield* Effect.fail("the session is still working");
+			}
+		}).pipe(Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))), Effect.orDie);
+	});

@@ -1409,6 +1409,9 @@ importers:
 
   packages/sessions:
     dependencies:
+      '@antumbra/boards':
+        specifier: workspace:*
+        version: link:../boards
       '@antumbra/changes':
         specifier: workspace:*
         version: link:../changes

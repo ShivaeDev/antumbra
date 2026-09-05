@@ -16,5 +16,6 @@ export class SessionReach extends Context.Service<
 	{
 		readonly rouseSession: (payload: WakeFields) => Effect.Effect<SessionRouse, RouseRefused>;
 		readonly settleWakes: (sessionId: string) => Effect.Effect<void>;
+		readonly wakePending: (sessionId: string) => Effect.Effect<boolean, RouseRefused>;
 	}
 >()("@antumbra/sessions/SessionReach") {}

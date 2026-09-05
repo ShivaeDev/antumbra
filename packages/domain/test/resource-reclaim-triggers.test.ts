@@ -6,7 +6,7 @@ import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
@@ -50,7 +50,7 @@ it.live("retirement rings the reconciler without waiting for cadence", () =>
 			});
 			const spawn = yield* kernel.submit(domain.spawn, payload("retire-trigger"));
 			expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
-			yield* standDown(backend, "agent-retire-trigger");
+			yield* endTurn(backend, "agent-retire-trigger");
 			const retire = yield* kernel.submit(domain.retire, {
 				agentId: "agent-retire-trigger",
 			});

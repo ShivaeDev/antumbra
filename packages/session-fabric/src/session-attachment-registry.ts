@@ -20,7 +20,6 @@ export interface SessionAttachmentRegistry {
 	readonly idleSince: Effect.Effect<ReadonlyMap<string, number>>;
 	readonly interrupt: (sessionId: string) => Effect.Effect<void, BackendFailure | SessionNotLive>;
 	readonly send: (sessionId: string, input: SessionInput) => Effect.Effect<void, BackendFailure | SessionNotLive>;
-	readonly standDown: (sessionId: string) => Effect.Effect<void>;
 	readonly stop: (sessionId: string) => Effect.Effect<void>;
 	readonly stopIdle: (sessionId: string) => Effect.Effect<boolean>;
 	readonly turnEnded: (sessionId: string, mark: SessionTurnMark | undefined) => Effect.Effect<SessionTurnEnding>;
@@ -81,7 +80,6 @@ export const makeSessionAttachmentRegistry = Effect.gen(function* () {
 				Effect.flatMap((handle) => handle.steer(input)),
 				Effect.annotateSpans({ sessionId }),
 			),
-		standDown: (sessionId) => Effect.flatMap(Clock.currentTimeMillis, (now) => entries.rest(sessionId, now)),
 		stop: remove,
 		stopIdle: (sessionId) => entries.take(sessionId, (entry) => entry.idleSince !== undefined),
 		turnEnded: (sessionId, mark) => Effect.flatMap(Clock.currentTimeMillis, (now) => entries.endTurn(sessionId, now, mark)),

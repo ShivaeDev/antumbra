@@ -3,7 +3,7 @@ import { AgentDomain, type SpawnFields } from "@antumbra/domain";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
-import { it } from "@antumbra/testing";
+import { endsTurn, it } from "@antumbra/testing";
 import type { ScriptedBackend, ScriptedSession } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
@@ -76,7 +76,7 @@ it.effectApp("a crew member lands a report against the piece it was spawned for"
 		text: "report landed",
 	});
 	expect(yield* db.Report.where({ authorAgentId: crew.agentId }).all()).toMatchObject([{ authorAgentId: crew.agentId, title: "soundings" }]);
-	expect(yield* callTool(live, "stand_down", undefined)).toEqual({ ok: true, text: "standing by" });
+	yield* endsTurn(scripted, Option.getOrThrow(yield* db.AgentSession.where({ agentId: crew.agentId }).first()).id);
 	expect(
 		Option.getOrThrow(yield* domain.voyages.read(crew.voyage.id).pipe(Effect.orDie)).pieces.find((piece) => piece.id === crew.piece.id)?.state,
 	).toBe("done");
@@ -152,7 +152,7 @@ it.effectApp("a session with no piece has no board but its own", { clock: "live"
 	expect(yield* callTool(live, "read_board", { scope: "self" })).toEqual({ ok: true, text: "[rough] sounded nothing yet" });
 });
 
-it.effectApp("standing down preserves the agent and session that called it", { clock: "live" }, function* ({ db, scripted }) {
+it.effectApp("a turn ending preserves the agent and session that took it", { clock: "live" }, function* ({ db, scripted }) {
 	const hand = yield* spawnByHand;
 	const live = yield* sessionOf(scripted, hand.agentId);
 	const before = {
@@ -160,7 +160,7 @@ it.effectApp("standing down preserves the agent and session that called it", { c
 		moorage: yield* db.Moorage.where({ agentId: hand.agentId }).first(),
 		session: yield* db.AgentSession.where({ id: hand.sessionId }).first(),
 	};
-	expect(yield* callTool(live, "stand_down", undefined)).toEqual({ ok: true, text: "standing by" });
+	yield* endsTurn(scripted, hand.sessionId);
 	const agent = Option.getOrThrow(yield* db.Agent.where({ id: hand.agentId }).first());
 	const session = Option.getOrThrow(yield* db.AgentSession.where({ id: hand.sessionId }).first());
 	expect(agent.status).toBe("alive");

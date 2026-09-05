@@ -13,6 +13,7 @@ export interface KernelReachService {
 	readonly settleWakes: (sessionId: string) => Effect.Effect<void>;
 	readonly submitSpawn: (payload: SpawnFields) => Effect.Effect<string, SpawnRefused>;
 	readonly submitWake: (payload: WakeFields) => Effect.Effect<string, SpawnRefused>;
+	readonly wakePending: (sessionId: string) => Effect.Effect<boolean, RouseRefused>;
 }
 
 export class KernelReach extends Context.Service<KernelReach, KernelReachService>()("@antumbra/domain/KernelReach") {}
@@ -36,10 +37,12 @@ export const KernelReachDeferredLive = Layer.unwrap(
 				settleWakes: (sessionId) => withReach((reach) => reach.settleWakes(sessionId)),
 				submitSpawn: (payload) => withReach((reach) => reach.submitSpawn(payload)),
 				submitWake: (payload) => withReach((reach) => reach.submitWake(payload)),
+				wakePending: (sessionId) => withReach((reach) => reach.wakePending(sessionId)),
 			}),
 			Layer.succeed(SessionReach)({
 				rouseSession: (payload) => withReach((reach) => reach.rouseSession(payload)),
 				settleWakes: (sessionId) => withReach((reach) => reach.settleWakes(sessionId)),
+				wakePending: (sessionId) => withReach((reach) => reach.wakePending(sessionId)),
 			}),
 			Layer.succeed(KernelReachInstaller)({
 				install: (reach) => Deferred.succeed(deferred, reach).pipe(Effect.asVoid),
@@ -57,12 +60,14 @@ export const KernelReachLive = Layer.effectDiscard(
 			queueSiesta: (sessionId) =>
 				kernel.submit(domain.siesta, { sessionId }).pipe(
 					Effect.asVoid,
-					Effect.catchCause((cause) => Effect.logWarning("a stand down could not be queued", { sessionId }, cause)),
+					Effect.catchCause((cause) => Effect.logWarning("a siesta could not be queued", { sessionId }, cause)),
 				),
 			rouseSession: yield* makeRouseSession(domain.wake),
 			settleWakes: yield* makeSettleWakes(domain.wake),
 			submitSpawn: (payload) => kernel.submit(domain.spawn, payload).pipe(Effect.map((submission) => submission.id)),
 			submitWake: (payload) => kernel.submit(domain.wake, payload).pipe(Effect.map((submission) => submission.id)),
+			wakePending: (sessionId) =>
+				kernel.active(domain.wake).pipe(Effect.map((intents) => intents.some((intent) => intent.payload.sessionId === sessionId))),
 		};
 		yield* installer.install(reach);
 	}),

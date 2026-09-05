@@ -7,14 +7,12 @@ it("keeps Session execution status closed and transitions explicit", () => {
 	expect(Result.isFailure(sessionExecutionTransition("session-1", "active", "settle"))).toBe(true);
 });
 
-it("separates standing down from draining toward siesta", () => {
-	expect(sessionExecutionTransition("session-1", "active", "stand-down")).toEqual(Result.succeed("idle"));
+it("separates resting at a turn boundary from draining toward siesta", () => {
 	expect(sessionExecutionTransition("session-1", "active", "request-siesta")).toEqual(Result.succeed("draining"));
-	expect(Result.isFailure(sessionExecutionTransition("session-1", "idle", "stand-down"))).toBe(true);
 	expect(sessionExecutionTransition("session-1", "idle", "wake")).toEqual(Result.succeed("active"));
 });
 
-it("separates a completed turn from the declaration that stands down", () => {
+it("rests only a session that was taking a turn", () => {
 	expect(sessionExecutionTransition("session-1", "active", "turn-completed")).toEqual(Result.succeed("idle"));
 	expect(Result.isFailure(sessionExecutionTransition("session-1", "idle", "turn-completed"))).toBe(true);
 	expect(Result.isFailure(sessionExecutionTransition("session-1", "draining", "turn-completed"))).toBe(true);

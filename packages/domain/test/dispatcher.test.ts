@@ -6,7 +6,7 @@ import { TestClock } from "effect/testing";
 import { nextBackoffMillis } from "#dispatch-policy.ts";
 import { dispatchingLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, standDownOneAlive, stateOf } from "#test/voyage-fixtures.ts";
+import { assignedPieces, chain, eventually, land, openReefVoyage, PATIENCE, restOneAlive, stateOf } from "#test/voyage-fixtures.ts";
 
 it("nextBackoffMillis doubles from patience and stops at five minutes", () => {
 	expect(nextBackoffMillis(0, 50)).toBe(50);
@@ -32,7 +32,7 @@ it.effect("an idle agent does not hold a dispatch berth", () =>
 			yield* TestClock.adjust(300);
 			expect(yield* assignedPieces).toEqual([alpha.id]);
 
-			yield* TestClock.withLive(standDownOneAlive(scripted));
+			yield* TestClock.withLive(restOneAlive(scripted));
 			yield* TestClock.withLive(
 				eventually(
 					Effect.gen(function* () {

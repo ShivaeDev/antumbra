@@ -44,7 +44,7 @@ interface RecordedWake {
 	readonly sessionId: string;
 }
 
-it.live("a restart wakes exactly the roots it stopped, once the intent is forgotten", () =>
+it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, once the intent is forgotten", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -61,7 +61,7 @@ it.live("a restart wakes exactly the roots it stopped, once the intent is forgot
 
 			yield* recordRestartIntent;
 			expect(Option.getOrThrow(yield* db.AppMeta.where(RESTART_RESUME).first()).value).toBe(
-				JSON.stringify(["restart-session-one", "restart-session-two", "restart-session-idle"]),
+				JSON.stringify(["restart-session-one", "restart-session-two"]),
 			);
 
 			const wakes = yield* Ref.make<ReadonlyArray<RecordedWake>>([]);
@@ -78,17 +78,16 @@ it.live("a restart wakes exactly the roots it stopped, once the intent is forgot
 			expect(yield* Ref.get(wakes)).toEqual([
 				{ intentStillRecorded: false, sessionId: "restart-session-one" },
 				{ intentStillRecorded: false, sessionId: "restart-session-two" },
-				{ intentStillRecorded: false, sessionId: "restart-session-idle" },
 			]);
 
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
-			expect(yield* Ref.get(wakes)).toHaveLength(3);
+			expect(yield* Ref.get(wakes)).toHaveLength(2);
 
 			yield* recordRestartIntent;
 			yield* abandonRestartIntent;
 			expect(yield* db.AppMeta.where(RESTART_RESUME).first()).toEqual(Option.none());
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
-			expect(yield* Ref.get(wakes)).toHaveLength(3);
+			expect(yield* Ref.get(wakes)).toHaveLength(2);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -17,7 +17,6 @@ export {
 	landArtifactSpec,
 	landReportSpec,
 	removeArtifactSupersessionSpec,
-	standDownSpec,
 	supersedeArtifactSpec,
 } from "#crew.ts";
 export { bind } from "#define.ts";

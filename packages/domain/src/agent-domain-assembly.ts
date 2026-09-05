@@ -2,8 +2,10 @@ import type { AgentBackend, Runner } from "@antumbra/plugin-api";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionFabric } from "@antumbra/session-fabric";
 import {
+	compileSessionMailDemands,
 	compileSessionSiestaDemands,
 	makeCurrentSessionReconciler,
+	makeMailDelivery,
 	makeSessionNodeReconciler,
 	makeSessionRecoveryRuntime,
 	makeSessionSend,
@@ -28,7 +30,8 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		const fabric = yield* SessionFabric;
 		const resourceReconciler = yield* ResourceReconciler;
 		const voyages = yield* VoyageProcedureService;
-		const sinkFor = yield* makeSessionTreeSinks;
+		const deliverMail = yield* makeMailDelivery;
+		const sinkFor = yield* makeSessionTreeSinks(deliverMail);
 		const reconcileCurrentSessions = yield* makeCurrentSessionReconciler;
 		const reconcileSessionNodes = yield* makeSessionNodeReconciler;
 		yield* reconcileCurrentSessions;
@@ -50,7 +53,11 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		});
 		const wake = yield* makeWakeKind.pipe(Effect.provideService(SessionRecoveryRuntime, recoveryRuntime));
 		const siesta = yield* makeSiestaKind;
-		const intentDemands = [...(yield* compileSessionSiestaDemands(siesta)), ...(yield* compileRetireSweepDemands(retire))];
+		const intentDemands = [
+			...(yield* compileSessionSiestaDemands(siesta)),
+			...compileSessionMailDemands(deliverMail),
+			...(yield* compileRetireSweepDemands(retire)),
+		];
 		const imageInputBackends = imageInputBackendsOf(backends);
 		const sessionSend = yield* makeSessionSend(imageInputBackends);
 		return {

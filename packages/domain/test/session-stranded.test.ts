@@ -66,7 +66,7 @@ it.live("an ending that lands after the attachment went still settles", () =>
 		const scripted = yield* makeScriptedBackend;
 		yield* Effect.gen(function* () {
 			const fabric = yield* SessionFabric;
-			const turnRestFor = yield* makeSessionTurnRests;
+			const turnRestFor = yield* makeSessionTurnRests(Effect.void);
 			yield* spawned;
 			const turns = yield* turnRestFor(HAND.sessionId);
 			yield* turns.observed(spoke);
@@ -85,7 +85,7 @@ it.live("an ending is refused when a newer attachment holds the session", () =>
 		yield* Effect.gen(function* () {
 			const fabric = yield* SessionFabric;
 			const sight = yield* SightSource;
-			const turnRestFor = yield* makeSessionTurnRests;
+			const turnRestFor = yield* makeSessionTurnRests(Effect.void);
 			yield* spawned;
 			yield* openedNatively(scripted);
 			const turns = yield* turnRestFor(HAND.sessionId);

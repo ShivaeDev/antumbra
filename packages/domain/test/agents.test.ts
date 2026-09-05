@@ -9,7 +9,7 @@ import type { SpawnFields } from "#index.ts";
 import type { RetireFields } from "#retire.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner, rawOf, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, makeScriptedRunner, rawOf } from "#test/harness.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
@@ -193,7 +193,7 @@ it.live("retire closes the session, the rows, and is idempotent", () =>
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
 			yield* submitSpawn(spawnPayload("c"));
-			yield* standDown(scripted, "agent-c");
+			yield* endTurn(scripted, "agent-c");
 			const first = yield* submitRetire({ agentId: "agent-c" });
 			expect(first).toBe("succeeded");
 			const agent = yield* db.Agent.where({ id: "agent-c" }).first();

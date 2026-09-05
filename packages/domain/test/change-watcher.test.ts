@@ -13,13 +13,14 @@ import {
 	acquireTemporaryPersistence,
 	callTool,
 	changeHostsOf,
+	completesTurn,
 	makeScriptedBackend,
 	makeScriptedRunner,
 	type ScriptedBackend,
 	sessionFor,
 } from "#test/harness.ts";
 import { makeScriptedHost, type ScriptedHost } from "#test/scripted-host.ts";
-import { assignedPieces, eventually, openReefVoyage, standDownAll, stateOf } from "#test/voyage-fixtures.ts";
+import { assignedPieces, eventually, openReefVoyage, restAllCrew, stateOf } from "#test/voyage-fixtures.ts";
 
 const CREW = "agent-crew";
 
@@ -143,7 +144,7 @@ describe("watching open changes", () => {
 				yield* TestClock.withLive(
 					eventually(
 						Effect.gen(function* () {
-							yield* Effect.ignore(standDownAll(backend));
+							yield* Effect.ignore(restAllCrew(backend));
 							expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 						}),
 					),
@@ -232,11 +233,12 @@ describe("a chain gated on a change", () => {
 						title: "chart the eastern spit",
 					}),
 				).toMatchObject({ ok: true });
-				expect(yield* callTool(crew, "stand_down", undefined)).toEqual({
-					ok: true,
-					text: "standing by",
-				});
-				expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
+				yield* completesTurn(crew);
+				yield* eventually(
+					Effect.gen(function* () {
+						expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
+					}),
+				);
 				expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
 
 				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });

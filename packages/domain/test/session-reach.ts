@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { rootSessionsOf } from "@antumbra/sessions";
-import { Effect, Option } from "effect";
+import { rawOf } from "@antumbra/testing-runtime";
+import { Effect, Option, Schedule } from "effect";
 import type { ScriptedBackend, ScriptedSession } from "#test/harness.ts";
 
 export const sessionFor = (scripted: ScriptedBackend, agentId: string) =>
@@ -20,14 +21,25 @@ export const callTool = (session: ScriptedSession, name: string, args: unknown) 
 		onSome: (tool) => tool.call(args),
 	});
 
-export const standDown = (scripted: ScriptedBackend, agentId: string) =>
+export const completesTurn = (session: ScriptedSession) =>
+	session.emit({
+		durationMs: 1,
+		raw: rawOf("turn/completed"),
+		status: "completed",
+		type: "turn.completed",
+	});
+
+const restedRoots = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const live = yield* sessionFor(scripted, agentId);
-		const settled = yield* callTool(live, "stand_down", undefined);
 		const roots = yield* db.AgentSession.where(rootSessionsOf(agentId)).all();
-		if (!roots.every((row) => row.executionStatus === "idle")) {
+		if (roots.length === 0 || !roots.every((row) => row.executionStatus === "idle")) {
 			return yield* Effect.fail("the session is still working");
 		}
-		return settled;
+	}).pipe(Effect.retry(Schedule.spaced(10).pipe(Schedule.upTo({ duration: 2000 }))));
+
+export const endTurn = (scripted: ScriptedBackend, agentId: string) =>
+	Effect.gen(function* () {
+		yield* completesTurn(yield* sessionFor(scripted, agentId));
+		yield* restedRoots(agentId);
 	});

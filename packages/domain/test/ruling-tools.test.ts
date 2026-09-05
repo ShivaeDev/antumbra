@@ -77,7 +77,7 @@ it.live("a request carries who asked and where the asker stood", () =>
 			});
 			expect(outcome).toEqual({
 				ok: true,
-				text: `ruling ${stored?.id} requested — voyage radius, pressing. The answer reaches you as mail; nothing here waits for it.`,
+				text: `ruling ${stored?.id} requested — voyage radius, pressing. The answer reaches you as mail and wakes you when you are at rest; carry on with what does not need it.`,
 			});
 			expect((yield* db.RulingSubject.all()).map((row) => [row.kind, row.agentId ?? row.pieceId ?? row.voyageId ?? row.tag])).toEqual([
 				["piece", alpha.id],
@@ -196,7 +196,7 @@ it.live("a captain holds pieces of its own voyage until it is ruled", () =>
 			const stored = (yield* db.Ruling.all())[0];
 			expect(outcome).toEqual({
 				ok: true,
-				text: `ruling ${stored?.id} requested — voyage radius, pressing; holds 2 piece(s). The answer reaches you as mail; nothing here waits for it.`,
+				text: `ruling ${stored?.id} requested — voyage radius, pressing; holds 2 piece(s). The answer reaches you as mail and wakes you when you are at rest; carry on with what does not need it.`,
 			});
 			expect(yield* gatedPieceIds).toEqual([bravo.id, charlie.id]);
 		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));

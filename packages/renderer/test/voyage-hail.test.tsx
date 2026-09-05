@@ -20,7 +20,7 @@ it("shows the captain at work instead of offering another call", () => {
 	expect(html).not.toContain("Wake");
 });
 
-it("offers to wake a captain that stood down", () => {
+it("offers to wake a captain at rest", () => {
 	expect(render(stoodDown)).toContain("Wake the captain");
 });
 

@@ -57,7 +57,7 @@ const nodeRows = Database.use((db) => db.AgentSession.where({ rootSessionId: ROO
 const reopened = (event: AgentEvent) =>
 	Effect.gen(function* () {
 		yield* seedTree;
-		const sinkFor = yield* makeSessionTreeSinks;
+		const sinkFor = yield* makeSessionTreeSinks(Effect.void);
 		const sink = yield* sinkFor(ROOT, noSessionAudit);
 		yield* sink.record(event);
 		return Option.getOrThrow(yield* sessionRow(NODE));

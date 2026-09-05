@@ -34,7 +34,7 @@ const captained = (agentId: string, status: AgentStatus, sessions: ReadonlyArray
 
 const captain = (rows: CaptainRows) => Option.getOrThrow(captainOf(rows, "voyage-1"));
 
-it("a captain that stood down is the voyage's address and not at work", () => {
+it("a captain at rest is the voyage's address and not at work", () => {
 	const stoodDown = captained("agent-1", "alive", [session("agent-1", "idle")]);
 	expect(captain(stoodDown)).toEqual({
 		agentId: "agent-1",

@@ -1,6 +1,7 @@
 import { Boards } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { mailWords } from "@antumbra/prompts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
@@ -8,7 +9,7 @@ import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { fleetSnapshot } from "#sight-fleet.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { eventually, reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const HAND: SpawnFields = {
@@ -25,7 +26,24 @@ const sessionRow = Effect.gen(function* () {
 	return Option.getOrThrow(yield* db.AgentSession.where({ id: HAND.sessionId }).first());
 });
 
-it.live("stand down records the declaration and disturbs nothing else", () =>
+const deliversMail = Effect.gen(function* () {
+	const domain = yield* AgentDomain;
+	const demand = domain.intentDemands.find((registration) => registration.tag === "session/mail-delivery");
+	return demand === undefined ? yield* Effect.die("no mail delivery demand is registered") : yield* demand.pass;
+});
+
+const priorityMail = (body: string, sourceRef: string) =>
+	Effect.flatMap(Boards, (boards) =>
+		boards.mail({
+			authorAgentId: Option.none(),
+			body,
+			precedence: "priority",
+			sourceRef,
+			toAgentId: HAND.agentId,
+		}),
+	);
+
+it.live("a turn ending rests the session and disturbs nothing else", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -61,11 +79,7 @@ it.live("stand down records the declaration and disturbs nothing else", () =>
 				})).agents[0]?.sessions[0]?.canInterrupt,
 			).toBe(true);
 
-			expect(yield* callTool(live, "stand_down", undefined)).toEqual({
-				ok: true,
-				text: "standing by",
-			});
-			expect((yield* sessionRow).executionStatus).toBe("idle");
+			yield* endTurn(scripted, HAND.agentId);
 			const stillAttached = yield* fabric.attached();
 			expect(stillAttached.has(HAND.sessionId)).toBe(true);
 			const summary = (yield* fleetSnapshot(["scripted"], new Set(), [], [], {
@@ -117,15 +131,13 @@ it.live("boot settles a draining Session without recovering its provider thread"
 	}),
 );
 
-it.live("idle survives restart and addressed mail does not wake it", () =>
+it.live("mail that arrived while an agent slept wakes it on the next restart", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const backend = reportsNativeRef(scripted.backend, scripted, "native-siesta");
-		const before = yield* Effect.gen(function* () {
-			const db = yield* Database;
+		yield* Effect.gen(function* () {
 			const domain = yield* AgentDomain;
-			const boards = yield* Boards;
 			const kernel = yield* Kernel;
 			const submission = yield* kernel.submit(domain.spawn, HAND);
 			expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
@@ -140,29 +152,21 @@ it.live("idle survives restart and addressed mail does not wake it", () =>
 					expect((yield* sessionRow).nativeRef).toBe("native-siesta");
 				}),
 			);
-			yield* callTool(live, "stand_down", undefined);
-			expect((yield* sessionRow).executionStatus).toBe("idle");
-			yield* boards.mail({
-				authorAgentId: Option.none(),
-				body: "wait for explicit selection",
-				precedence: "priority",
-				sourceRef: "test:mail-does-not-wake",
-				toAgentId: HAND.agentId,
-			});
+			yield* endTurn(scripted, HAND.agentId);
+			yield* priorityMail("the eastern approach is closed", "test:mail-wakes");
 			expect(yield* scripted.opened).toHaveLength(1);
-			return {
-				agent: yield* db.Agent.where({ id: HAND.agentId }).first(),
-				moorage: yield* db.Moorage.where({ agentId: HAND.agentId }).first(),
-				session: yield* sessionRow,
-			};
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend)));
 
 		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			expect(yield* scripted.opened).toHaveLength(1);
-			expect(yield* db.Agent.where({ id: HAND.agentId }).first()).toEqual(before.agent);
-			expect(yield* db.Moorage.where({ agentId: HAND.agentId }).first()).toEqual(before.moorage);
-			expect(yield* sessionRow).toEqual(before.session);
+			expect((yield* sessionRow).executionStatus).toBe("idle");
+			yield* deliversMail;
+			yield* eventually(
+				Effect.gen(function* () {
+					expect(yield* scripted.opened).toHaveLength(2);
+					const resumed = yield* sessionFor(scripted, HAND.agentId);
+					expect(yield* resumed.sent).toEqual([mailWords({ count: 1, precedence: "priority" })]);
+				}),
+			);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, backend)));
 	}),
 );

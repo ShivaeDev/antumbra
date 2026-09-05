@@ -27,12 +27,12 @@ it("a session without tools carries no server and no allowance", () => {
 it("a session with tools hands the SDK the server instance itself", () => {
 	const options = sessionOptions({
 		...base,
-		tools: Option.some({ names: ["land_report", "stand_down"], server }),
+		tools: Option.some({ names: ["land_report", "read_mail"], server }),
 	});
 	expect(options.mcpServers).toEqual({
 		antumbra: { instance: server, name: "antumbra", type: "sdk" },
 	});
-	expect(options.allowedTools).toEqual(["mcp__antumbra__land_report", "mcp__antumbra__stand_down"]);
+	expect(options.allowedTools).toEqual(["mcp__antumbra__land_report", "mcp__antumbra__read_mail"]);
 });
 
 it("resuming names the transcript the provider already has", () => {

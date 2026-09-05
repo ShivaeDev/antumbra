@@ -6,7 +6,7 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 import { born, chartered, handFor, landed } from "#test/retire-crew-fixture.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
@@ -44,9 +44,9 @@ it.live("retiring a piece's crew retires exactly the agents claimed to it", () =
 			yield* born(handFor(MATE, pieceId, voyageId));
 			yield* born(handFor(ELSEWHERE, other.pieceId, other.voyageId));
 			yield* landed(pieceId);
-			yield* standDown(scripted, SOUNDER);
-			yield* standDown(scripted, MATE);
-			yield* standDown(scripted, ELSEWHERE);
+			yield* endTurn(scripted, SOUNDER);
+			yield* endTurn(scripted, MATE);
+			yield* endTurn(scripted, ELSEWHERE);
 
 			yield* sight.retireCrew(pieceId);
 
@@ -70,8 +70,8 @@ it.live("retiring a piece's crew never retires the voyage captain", () =>
 			expect(yield* untilTerminal(kernel.changes(captain.intentId))).toBe("succeeded");
 			yield* born(handFor(SOUNDER, pieceId, voyageId));
 			yield* landed(pieceId);
-			yield* standDown(scripted, captain.agentId);
-			yield* standDown(scripted, SOUNDER);
+			yield* endTurn(scripted, captain.agentId);
+			yield* endTurn(scripted, SOUNDER);
 
 			yield* sight.retireCrew(pieceId);
 

@@ -3,11 +3,10 @@ import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { acquireTemporaryPersistence, callTool, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, rawOf, type ScriptedSession } from "#test/harness.ts";
 import {
 	DEFAULT_IDLE_SIESTA_AFTER_MILLIS,
 	HAND,
-	laterBy,
 	openedNatively,
 	passedAt,
 	presenceOf,
@@ -57,10 +56,9 @@ it.live("rest is withheld while a delegated conversation is still speaking", () 
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
 			yield* delegates(live);
-			yield* callTool(live, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 
 			yield* restingAt(false);
-			expect((yield* sessionRow).executionStatus).toBe("idle");
 
 			yield* finishes(live);
 			yield* restingAt(true);
@@ -77,7 +75,7 @@ it.live("the admiral's request rests a session through the clock's own act", () 
 			const sight = yield* SightSource;
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
-			yield* callTool(live, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 			yield* restingAt(true);
 
 			yield* sight.sleep(HAND.sessionId);
@@ -105,7 +103,7 @@ it.live("a request that races a child starting refuses and names itself", () =>
 			const sight = yield* SightSource;
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
-			yield* callTool(live, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 			yield* restingAt(true);
 
 			yield* delegates(live);
@@ -123,28 +121,6 @@ it.live("a request that races a child starting refuses and names itself", () =>
 	}),
 );
 
-it.live("standing down again does not push the idle wait out", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const kernel = yield* Kernel;
-			yield* spawned;
-			const live = yield* openedNatively(scripted);
-			yield* callTool(live, "stand_down", undefined);
-			yield* restingAt(true);
-
-			yield* laterBy(50 * 60_000, callTool(live, "stand_down", undefined));
-
-			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 5 * 60_000);
-			const demanded = yield* siestaIntents;
-			expect(demanded).toHaveLength(1);
-			expect(yield* untilTerminal(kernel.changes(demanded[0]?.id ?? ""))).toBe("succeeded");
-			expect(yield* live.closed).toBe(true);
-		}).pipe(Effect.provide(sightLayer(temporary, scripted)));
-	}),
-);
-
 it.live("the clock waits for the tree before it reclaims", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
@@ -154,7 +130,7 @@ it.live("the clock waits for the tree before it reclaims", () =>
 			yield* spawned;
 			const live = yield* openedNatively(scripted);
 			yield* delegates(live);
-			yield* callTool(live, "stand_down", undefined);
+			yield* endTurn(scripted, HAND.agentId);
 			yield* restingAt(false);
 
 			yield* passedAt(DEFAULT_IDLE_SIESTA_AFTER_MILLIS + 60_000);

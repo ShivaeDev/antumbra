@@ -7,7 +7,7 @@ import { SessionInputId } from "@antumbra/vocabulary/session-input";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend, standDown } from "#test/harness.ts";
+import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
 
 const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
 	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
@@ -126,7 +126,7 @@ it.live("only an ended session and an unknown id refuse the message", () =>
 			const receipt = yield* sight.spawn(spawnRequest);
 			const session = yield* liveSession(scripted, receipt.sessionId);
 			expect(yield* session.sent).toEqual([spawnRequest.charter]);
-			yield* standDown(scripted, receipt.agentId);
+			yield* endTurn(scripted, receipt.agentId);
 			yield* sight.retire(receipt.agentId);
 			yield* awaitIntent("agent/retire");
 			expect(yield* session.closed).toBe(true);

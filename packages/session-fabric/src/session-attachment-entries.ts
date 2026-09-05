@@ -9,7 +9,6 @@ export interface SessionAttachmentEntries {
 	readonly holds: (sessionId: string) => Effect.Effect<boolean>;
 	readonly idleSince: Effect.Effect<ReadonlyMap<string, number>>;
 	readonly insert: (sessionId: string, entry: Omit<Entry, "acquisition">) => Effect.Effect<void>;
-	readonly rest: (sessionId: string, since: number) => Effect.Effect<void>;
 	readonly rouse: (sessionId: string) => Effect.Effect<void>;
 	readonly snapshot: Effect.Effect<ReadonlyMap<string, Entry>>;
 	readonly take: (sessionId: string, when: (entry: Entry) => boolean) => Effect.Effect<boolean>;
@@ -67,7 +66,6 @@ export const makeSessionAttachmentEntries = Effect.gen(function* () {
 				Ref.updateAndGet(acquisitions, (count) => count + 1),
 				(acquisition) => Ref.update(entries, (current) => new Map(current).set(sessionId, { ...entry, acquisition })),
 			),
-		rest: (sessionId, since) => revise(sessionId, (entry) => rested(entry, since)),
 		rouse: (sessionId) =>
 			revise(sessionId, (entry) => ({
 				...entry,

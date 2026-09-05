@@ -11,7 +11,7 @@ export {
 	type ScriptedRunner,
 	type ScriptedSession,
 } from "@antumbra/testing-runtime";
-export { callTool, sessionFor, standDown } from "#test/session-reach.ts";
+export { callTool, completesTurn, endTurn, sessionFor } from "#test/session-reach.ts";
 
 export const changeHostsOf = (...hosts: ReadonlyArray<ChangeHost>): ReadonlyMap<string, ChangeHost> =>
 	new Map(hosts.map((host) => [host.tag, host] as const));

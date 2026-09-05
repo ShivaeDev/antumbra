@@ -1,8 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
-import type { SessionIdentity } from "#tool-identity.ts";
+import type { AuthorityIdentity } from "#authority/identity.ts";
 
-export const roleOn = Effect.fn("VoyageAuthority.roleOn")(function* (identity: SessionIdentity) {
+export const roleOn = Effect.fn("VoyageAuthority.roleOn")(function* (identity: AuthorityIdentity) {
 	if (Option.isNone(identity.voyageId)) {
 		return "";
 	}

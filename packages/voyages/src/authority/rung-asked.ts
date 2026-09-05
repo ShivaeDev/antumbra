@@ -1,10 +1,10 @@
 import { Effect, Option } from "effect";
+import { isVoyageCaptainIdentity } from "#authority/captain.ts";
 import { isFlagshipCaptain } from "#authority/flagship-captain.ts";
+import type { AuthorityIdentity } from "#authority/identity.ts";
 import { roleOn } from "#authority/role.ts";
-import type { SessionIdentity } from "#tool-identity.ts";
-import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
-export const rungAsked = Effect.fn("VoyageAuthority.rungAsked")(function* (identity: SessionIdentity) {
+export const rungAsked = Effect.fn("VoyageAuthority.rungAsked")(function* (identity: AuthorityIdentity) {
 	const role = yield* roleOn(identity);
 	if (yield* isFlagshipCaptain(role, identity)) {
 		return "admiral";

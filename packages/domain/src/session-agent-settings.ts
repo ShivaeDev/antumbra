@@ -1,9 +1,9 @@
 import { Database } from "@antumbra/persistence";
 import type { OpenSessionOptions } from "@antumbra/plugin-api";
 import type { SessionRecoveryContext } from "@antumbra/sessions";
+import { isVoyageCaptainIdentity } from "@antumbra/voyages/authority/captain";
 import { Effect, Option } from "effect";
 import { agentSettingsOf } from "#agent-settings.ts";
-import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
 type ChosenSettings = Pick<OpenSessionOptions, "effort" | "model">;
 

@@ -1,6 +1,5 @@
 import { Option } from "effect";
 import { atWork } from "#agent-at-work.ts";
-import type { SessionIdentity } from "#tool-identity.ts";
 import { crewOf, type VoyageCrewMember } from "#voyage-crew.ts";
 import { executionSessionOfAgent } from "#voyage-execution-selection.ts";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
@@ -13,9 +12,6 @@ export interface VoyageCaptain {
 	readonly sessionId: string | null;
 	readonly status: string;
 }
-
-export const isVoyageCaptainIdentity = (role: string, identity: SessionIdentity) =>
-	role === CAPTAIN_ROLE && Option.isSome(identity.voyageId) && Option.isNone(identity.pieceId);
 
 type CaptainWorld = Pick<VoyageSummaryRows, "agentStatus" | "assignments" | "crews" | "currentSessionByAgent" | "sessions">;
 

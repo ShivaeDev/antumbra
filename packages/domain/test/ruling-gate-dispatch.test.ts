@@ -1,12 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { TestClock } from "effect/testing";
-import { dispatchingLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
-import { assignedPieces, eventually, openReefVoyage, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
+import { assignedPieces, eventually, openReefVoyage, stateOf } from "#test/voyage-fixtures.ts";
 
 const askerId = "agent-asker";
 
@@ -32,41 +31,35 @@ const requestedRuling = Effect.gen(function* () {
 	});
 });
 
-it.effect("a gated piece is not dispatched until its ruling lands", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const pieces = yield* Pieces;
-			const rulings = yield* Rulings;
-			const voyage = yield* openReefVoyage;
-			const piece = yield* pieces.charter({
-				charter: "sound the shallows",
-				dependsOn: [],
-				expectation: "soundings are landed",
-				role: "hand",
-				title: "alpha",
-				voyageId: voyage.id,
-			});
-			const ruling = yield* requestedRuling;
-			yield* rulings.gate({ pieceIds: [piece.id], rulingId: ruling.id });
-			yield* pieces.launch(piece.id);
-			yield* TestClock.adjust(300);
-			expect(yield* assignedPieces).toEqual([]);
-			expect(yield* stateOf(voyage.id, piece.id)).toBe("blocked");
+it.effectApp("a gated piece is not dispatched until its ruling lands", function* () {
+	const pieces = yield* Pieces;
+	const rulings = yield* Rulings;
+	const voyage = yield* openReefVoyage;
+	const piece = yield* pieces.charter({
+		charter: "sound the shallows",
+		dependsOn: [],
+		expectation: "soundings are landed",
+		role: "hand",
+		title: "alpha",
+		voyageId: voyage.id,
+	});
+	const ruling = yield* requestedRuling;
+	yield* rulings.gate({ pieceIds: [piece.id], rulingId: ruling.id });
+	yield* pieces.launch(piece.id);
+	yield* TestClock.adjust(300);
+	expect(yield* assignedPieces).toEqual([]);
+	expect(yield* stateOf(voyage.id, piece.id)).toBe("blocked");
 
-			yield* rulings.rule({
-				answer: "trust the soundings",
-				by: "admiral",
-				rulingId: ruling.id,
-			});
-			yield* TestClock.withLive(
-				eventually(
-					Effect.gen(function* () {
-						expect(yield* assignedPieces).toEqual([piece.id]);
-					}),
-				),
-			);
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE)));
-	}),
-);
+	yield* rulings.rule({
+		answer: "trust the soundings",
+		by: "admiral",
+		rulingId: ruling.id,
+	});
+	yield* TestClock.withLive(
+		eventually(
+			Effect.gen(function* () {
+				expect(yield* assignedPieces).toEqual([piece.id]);
+			}),
+		),
+	);
+});

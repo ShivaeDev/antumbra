@@ -1,12 +1,12 @@
 import { Changes } from "@antumbra/changes";
 import type { AgentSummary, Fleet } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import type { BackendCapacityReading } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { rootSessions, situationsByAgent } from "@antumbra/sessions";
 import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime";
 import { Effect } from "effect";
 import { workOf } from "#agent-work.ts";
-import type { BackendCapacityReading } from "#backend-capacity.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";

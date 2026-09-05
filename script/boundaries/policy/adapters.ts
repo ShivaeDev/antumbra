@@ -3,6 +3,16 @@ import type { BoundaryRule } from "#boundaries/model.ts";
 import { adapters, domainAndCapabilities, domainAndCapabilitiesExceptIntentDemand } from "#boundaries/policy/selectors.ts";
 
 export const adapterPolicy = [
+	fence("provider-capacity-imports-no-orchestration-or-adapter")
+		.because(
+			"Provider capacity owns durable capacity evidence and observation through ports; Intent admission, Session recovery, and concrete providers stay outside this capability.",
+		)
+		.forbidsImportsFrom(packages.named("provider-capacity"))
+		.to(anyOf(applications.all, packages.named("domain", "kernel", "sessions"), adapters))
+		.demonstratedBy({
+			illegal: importFrom(files.inPackage("provider-capacity", "src/current.ts")).to(files.inPackage("domain", "src/domain.ts")),
+			legal: importFrom(files.inPackage("provider-capacity", "src/current.ts")).to(files.inPackage("plugin-api", "src/backend.ts")),
+		}),
 	fence("resource-reclamation-imports-no-domain-change-or-provider")
 		.because(
 			"Resource reclamation owns replaceable-resource claims and Runner cleanup through lower ports; Change truth reaches it only as a held-resource read it is handed, while Domain, applications, and concrete providers stay outside the capability.",

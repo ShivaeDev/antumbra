@@ -48,7 +48,7 @@ const parkFirstAttempt = (attempts: Attempts, template: AgentDomainService, name
 		if (attempt !== 1) {
 			return;
 		}
-		const reading = (yield* template.backendCapacities.snapshot)[0];
+		const reading = (yield* template.backendCapacities.snapshot())[0];
 		if (reading === undefined) {
 			return yield* Effect.die("scripted capacity is missing");
 		}
@@ -99,7 +99,7 @@ const verifyRestartedRelease = (ids: ReadonlyArray<string>, attempts: Attempts) 
 	Effect.gen(function* () {
 		const domain = yield* AgentDomain;
 		const kernel = yield* Kernel;
-		expect((yield* domain.backendCapacities.snapshot)[0]).toMatchObject({
+		expect((yield* domain.backendCapacities.snapshot())[0]).toMatchObject({
 			status: "available",
 		});
 		yield* Effect.all(

@@ -1,10 +1,10 @@
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
+import { makeScriptedBackend } from "@antumbra/testing-runtime";
 import { it } from "@antumbra/testing-runtime/domain";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
 import { expect } from "@effect/vitest";
-import { Clock, Effect, Option } from "effect";
-import { makeBackendCapacities } from "#backend-capacity.ts";
-import { makeScriptedBackend } from "#test/harness.ts";
+import { Clock, Context, Effect, Layer, Option } from "effect";
+import { BackendCapacities, BackendCapacitiesLive } from "#index.ts";
 
 const quotaRaw = {
 	kind: "quota/rejected",
@@ -96,7 +96,7 @@ it.effectApp("recovers a provider-wide hold from durable session evidence", func
 				sessionId: "session-2",
 			});
 
-			const capacities = yield* makeBackendCapacities(new Map([[backend.tag, backend]]));
+			const capacities = Context.get(yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]]))), BackendCapacities);
 			expect(yield* capacities.current("scripted")).toMatchObject({
 				observedAt: new Date(42),
 				reason: "usage-limit",
@@ -131,7 +131,7 @@ it.effectApp("recovers a provider-wide hold from durable session evidence", func
 				seq: 1,
 				sessionId: "session-1",
 			});
-			const recoveredAgain = yield* makeBackendCapacities(new Map([[backend.tag, backend]]));
+			const recoveredAgain = Context.get(yield* Layer.build(BackendCapacitiesLive(new Map([[backend.tag, backend]]))), BackendCapacities);
 			expect(yield* recoveredAgain.current("scripted")).toMatchObject({
 				status: "available",
 			});

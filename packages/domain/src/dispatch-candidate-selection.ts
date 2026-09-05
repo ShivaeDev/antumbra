@@ -1,7 +1,7 @@
 import { Kernel } from "@antumbra/kernel";
+import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
-import type { BackendCapacities } from "#backend-capacity.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";
 import { type DispatchPort, dispatchPiece } from "#dispatch-spawn.ts";
 import type { AssignedExecution } from "#voyage-execution-selection.ts";
@@ -21,15 +21,16 @@ export const pendingDispatches = Effect.gen(function* () {
 	} satisfies PendingDispatches;
 });
 
-const available = (capacities: BackendCapacities, backend: string) =>
-	Effect.map(capacities.current(backend), (capacity) => capacity.status !== "blocked");
+const available = Effect.fnUntraced(function* (backend: string) {
+	const capacities = yield* BackendCapacities;
+	return (yield* capacities.current(backend)).status !== "blocked";
+});
 
 export const dispatchCandidate = (
 	port: DispatchPort,
 	candidate: ReadyPiece,
 	assigned: AssignedExecution,
 	budget: number,
-	capacities: BackendCapacities,
 	pending: PendingDispatches,
 ) =>
 	Effect.gen(function* () {
@@ -41,7 +42,7 @@ export const dispatchCandidate = (
 			return budget;
 		}
 		if (assigned._tag === "resume") {
-			if (pending.sessionIds.has(assigned.sessionId) || !(yield* available(capacities, assigned.backend))) {
+			if (pending.sessionIds.has(assigned.sessionId) || !(yield* available(assigned.backend))) {
 				return budget;
 			}
 			yield* dispatchPiece(port, candidate, {
@@ -57,7 +58,7 @@ export const dispatchCandidate = (
 			pending.sessionIds.add(assigned.sessionId);
 			return budget;
 		}
-		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id) || !(yield* available(capacities, candidate.voyage.crewBackend))) {
+		if (budget <= 0 || pending.pieceIds.has(candidate.piece.id) || !(yield* available(candidate.voyage.crewBackend))) {
 			return budget;
 		}
 		yield* dispatchPiece(port, candidate, { _tag: "spawn" }).pipe(Effect.annotateSpans({ pieceId: candidate.piece.id }));

@@ -188,7 +188,7 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 			expect(yield* live.steered).not.toContain(WAKE_INSTRUCTION);
 
 			yield* domain.backendCapacities.clear("scripted");
-			yield* domain.backendCapacities.announce;
+			yield* domain.backendCapacities.announce();
 			yield* eventually(
 				Effect.gen(function* () {
 					expect(yield* live.steered).toContain(WAKE_INSTRUCTION);

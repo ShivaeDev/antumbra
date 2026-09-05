@@ -6,11 +6,11 @@ import { ReposLive } from "@antumbra/repos";
 import { Rulings, RulingsLive } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { VoyageWorldSource, VoyageWorldSourceLive } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const it = persistenceIt();
 
-const WorldLive = VoyageWorldSourceLive.pipe(
+const WorldLive = VoyageWorldSource.layer.pipe(
 	Layer.provideMerge(
 		ChangesLive(new Map(), new Map()).pipe(
 			Layer.provideMerge(PiecesLive),
@@ -55,7 +55,7 @@ it.effectDB("owns the aggregate read and preserves voyage birth order", function
 
 	yield* Effect.gen(function* () {
 		const source = yield* VoyageWorldSource;
-		const world = yield* source.read;
+		const world = yield* source.read();
 		expect(world.voyages.map((voyage) => voyage.id)).toEqual(["older-voyage", "newer-voyage"]);
 	}).pipe(Effect.provide(WorldLive));
 });
@@ -97,7 +97,7 @@ it.effectDB("carries each open ruling and names its question on its gate", funct
 		yield* rulings.rule({ answer: "the newest", by: "admiral", rulingId: settled.id });
 
 		const source = yield* VoyageWorldSource;
-		const world = yield* source.read;
+		const world = yield* source.read();
 		expect(world.openRulings.map((ruling) => ruling.id)).toEqual([asked.id]);
 		expect(world.rulingGates).toEqual([
 			{

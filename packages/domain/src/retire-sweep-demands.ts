@@ -7,7 +7,7 @@ import { Clock, Effect } from "effect";
 import { claimedCrew, restingCrew, retirableCrew } from "#crew-rest.ts";
 import { type PieceState, pieceStates } from "#piece-state.ts";
 import type { RetireFields } from "#retire.ts";
-import { VoyageWorldSource } from "#voyage-world.ts";
+import { VoyageWorldSource } from "#voyage-world/service.ts";
 
 const MILLIS_PER_MINUTE = 60_000;
 
@@ -20,7 +20,7 @@ const sweptCrew = Effect.gen(function* () {
 	if (!chosen.retireSweep) {
 		return [];
 	}
-	const world = yield* source.read;
+	const world = yield* source.read();
 	const runtime = {
 		attached: yield* fabric.attached(),
 		delegating: yield* live.delegating(),

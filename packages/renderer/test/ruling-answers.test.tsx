@@ -1,10 +1,9 @@
 import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 const { askMoreOnRuling, opened, parkRuling, ruleOn } = vi.hoisted(() => {
@@ -54,28 +53,6 @@ const later: RulingView = {
 	question: "What do we call the branch a berth is cut from?",
 };
 
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return { container, root };
-	});
-
 type Mounted = Effect.Success<ReturnType<typeof mount>>;
 
 const showing = (mounted: Mounted, view: OpenRulingsView): Effect.Effect<void> =>
@@ -84,16 +61,11 @@ const showing = (mounted: Mounted, view: OpenRulingsView): Effect.Effect<void> =
 		yield* settle(() => opened.at(-1)?.(view));
 	});
 
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-
 const writing = (mounted: Mounted, label: string, words: string): Effect.Effect<void> =>
 	settle(() => {
 		const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
 		const box = tag === undefined ? null : mounted.container.querySelector<HTMLInputElement>(`input[id="${tag.htmlFor}"]`);
-		if (box !== null && nativeValue !== undefined) {
-			nativeValue.call(box, words);
-			box.dispatchEvent(new Event("input", { bubbles: true }));
-		}
+		if (box !== null) write(box, words);
 	});
 
 const buttonSaying = (mounted: Mounted, words: string) =>

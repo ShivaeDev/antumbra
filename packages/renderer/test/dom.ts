@@ -24,7 +24,8 @@ export const mount = () =>
 		return { container, root };
 	});
 
-export const write = (input: HTMLInputElement, value: string): void => {
-	Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, value);
+export const write = (input: HTMLInputElement | HTMLTextAreaElement, value: string): void => {
+	const prototype = input instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+	Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(input, value);
 	input.dispatchEvent(new Event("input", { bubbles: true }));
 };

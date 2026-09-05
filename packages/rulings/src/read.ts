@@ -5,7 +5,7 @@ import { effectiveAxes } from "#axes.ts";
 import { RulingNotFound } from "#errors.ts";
 import type { Ruling, RulingAxes, RulingChoice } from "#model.ts";
 import { storedRequester } from "#requester.ts";
-import { storedAnswer, storedReclassification, storedRung } from "#stored.ts";
+import { storedAnswer, storedReclassification, storedRecommendation, storedRung } from "#stored.ts";
 import { storedSupersession, storedWithdrawal } from "#stored-retirement.ts";
 import type { StoredRuling } from "#stored-rows.ts";
 import { storedSubject } from "#stored-subjects.ts";
@@ -71,6 +71,7 @@ export const loadRuling = (row: StoredRuling) =>
 			id: row.id,
 			question: row.question,
 			reclassifications,
+			recommendation: yield* storedRecommendation(row),
 			requester: yield* storedRequester(row),
 			rung: yield* storedRung(row),
 			subjects: yield* subjectsOf(row.id),

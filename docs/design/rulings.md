@@ -25,6 +25,12 @@ record: an answer separated from its question loses its meaning.
 Every ruling begins as a request. An authority that wants a standing rule requests and answers a ruling of its own, so that context is never missing.
 Whether a question and its answer ever become separable records is deliberately undecided.
 
+A request is ready to ask when the asker can say which answer it would choose and why. Every request an agent makes therefore carries a
+**recommendation**: one of its own choices, marked as the one it would take, with the reasoning beside it. An asker that offers no other choice offers
+that one. The recommendation is where the asker's judgment lands on the record, so whoever answers reads a proposed decision rather than an open
+field, and so the answer can be read against what was proposed. It limits nobody: the authority may pick another choice or answer in free words. An
+authority proclaiming a rule of its own answers at once and recommends nothing.
+
 ## Radius and urgency
 
 A request declares two axes, and the two answer different questions.

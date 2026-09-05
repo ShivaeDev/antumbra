@@ -1,4 +1,5 @@
 import type { Ruling, RulingChoice } from "@antumbra/rulings";
+import { Option } from "effect";
 import { bindsWords } from "#ruling-words.ts";
 
 const WAITING: Readonly<Record<Ruling["urgency"], string>> = {
@@ -12,11 +13,21 @@ const choiceLine = (choice: RulingChoice): string => (choice.detail === null ? `
 const offered = (ruling: Ruling): ReadonlyArray<string> =>
 	ruling.choices.length === 0 ? [] : ["Choices offered:", ...ruling.choices.map(choiceLine)];
 
+const recommended = (ruling: Ruling, askerId: string): ReadonlyArray<string> =>
+	Option.match(ruling.recommendation, {
+		onNone: (): ReadonlyArray<string> => [],
+		onSome: (recommendation) => {
+			const label = ruling.choices.find((choice) => choice.id === recommendation.choiceId)?.label ?? recommendation.choiceId;
+			return [`${askerId} would choose "${label}": ${recommendation.reasoning}`];
+		},
+	});
+
 export const rulingAscentMail = (ruling: Ruling, askerId: string): string =>
 	[
 		`${askerId} asks for a ruling that would bind ${bindsWords[ruling.radius]} — ${WAITING[ruling.urgency]}.`,
 		`Question: ${ruling.question}`,
 		`Context: ${ruling.context}`,
 		...offered(ruling),
+		...recommended(ruling, askerId),
 		`Rule on it with rule_on, naming ruling ${ruling.id}. If it is not yours to settle, pass_up carries it to the rung above with what you know.`,
 	].join("\n");

@@ -32,6 +32,7 @@ it.effectApp("a rule the admiral asks and answers stands at once", function* () 
 
 			expect(yield* PubSub.take(notices)).toBeUndefined();
 			expect(ruling.requester).toEqual({ by: "admiral", kind: "authority" });
+			expect(Option.isNone(ruling.recommendation)).toBe(true);
 			expect(Option.getOrUndefined(ruling.answer)).toMatchObject({
 				by: "admiral",
 				text: proclaimed.answer,

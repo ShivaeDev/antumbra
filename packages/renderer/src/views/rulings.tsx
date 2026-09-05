@@ -1,9 +1,26 @@
-import type { OpenRulingsView } from "@antumbra/contract";
+import type { OpenRulingsView, RulingView } from "@antumbra/contract";
 import { watchOpenRulings, watchStandingRulings } from "#adapters/trpc-rulings.ts";
 import { useFeed } from "#hooks/feed.ts";
 import { RulingCard } from "#views/ruling-card.tsx";
 import { RulingProclaim } from "#views/ruling-proclaim.tsx";
 import { StandingRulings } from "#views/standing-rulings.tsx";
+
+interface VoyageGroup {
+	readonly key: string;
+	readonly name: string;
+	readonly rulings: ReadonlyArray<RulingView>;
+}
+
+const FLEET: VoyageGroup = { key: "", name: "The fleet", rulings: [] };
+
+const byVoyage = (rulings: ReadonlyArray<RulingView>): ReadonlyArray<VoyageGroup> => {
+	const groups = new Map<string, VoyageGroup>();
+	for (const ruling of rulings) {
+		const group = groups.get(ruling.voyage?.id ?? FLEET.key) ?? (ruling.voyage === null ? FLEET : { key: ruling.voyage.id, name: ruling.voyage.name, rulings: [] });
+		groups.set(group.key, { ...group, rulings: [...group.rulings, ruling] });
+	}
+	return [...groups.values()];
+};
 
 const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 	<header className="flex flex-col gap-1 border-b border-border px-4 py-3">
@@ -11,7 +28,7 @@ const Header = ({ open }: { readonly open: OpenRulingsView }) => (
 			<h2 className="text-base">The rulings</h2>
 			<span className="text-2xs text-muted-foreground tabular-nums">{open.rulings.length}</span>
 		</div>
-		<p className="text-2xs text-muted-foreground">Open questions from the fleet, in the order they should be answered.</p>
+		<p className="text-2xs text-muted-foreground">Open questions from the fleet, voyage by voyage, in the order they should be answered.</p>
 	</header>
 );
 
@@ -21,11 +38,18 @@ const RulingList = ({ onError, open }: { readonly onError: (message: string) => 
 			Nothing is waiting on you. A ruling appears here the moment an agent asks for one.
 		</p>
 	) : (
-		<ul className="flex min-w-0 flex-col gap-2 p-4">
-			{open.rulings.map((ruling) => (
-				<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
+		<div className="flex min-w-0 flex-col gap-3 p-4">
+			{byVoyage(open.rulings).map((group) => (
+				<section className="flex min-w-0 flex-col gap-2" key={group.key}>
+					<h3 className="text-sm">{group.name}</h3>
+					<ul className="flex min-w-0 flex-col gap-2">
+						{group.rulings.map((ruling) => (
+							<RulingCard key={ruling.id} onError={onError} ruling={ruling} />
+						))}
+					</ul>
+				</section>
 			))}
-		</ul>
+		</div>
 	);
 
 export const RulingsPanel = ({ onError }: { readonly onError: (message: string) => void }) => {

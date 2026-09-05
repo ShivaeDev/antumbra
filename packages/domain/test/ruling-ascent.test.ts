@@ -6,9 +6,9 @@ import { Rulings } from "@antumbra/rulings";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const ASKER = "agent-asker";
 
@@ -22,9 +22,9 @@ const openFlagship = Effect.gen(function* () {
 
 const hailCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const procedures = yield* VoyageProcedureService;
 		const kernel = yield* Kernel;
-		const captain = yield* domain.voyages.hail(voyageId);
+		const captain = yield* procedures.hail(voyageId);
 		const status = yield* kernel
 			.changes(captain.intentId)
 			.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));

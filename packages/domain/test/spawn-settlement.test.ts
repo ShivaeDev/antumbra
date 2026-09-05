@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { settlementFor } from "#agent-birth/current-session.ts";
 import type { SpawnFields } from "#index.ts";
-import { settlementFor } from "#spawn-current-session.ts";
 
 const payload: SpawnFields = {
 	agentId: "agent-birth",

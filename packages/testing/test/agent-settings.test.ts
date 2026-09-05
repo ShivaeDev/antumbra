@@ -1,4 +1,4 @@
-import { AgentDomain } from "@antumbra/domain";
+import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Pieces } from "@antumbra/pieces";
 import { RoleSettings } from "@antumbra/settings";
@@ -38,7 +38,7 @@ const openReef = (crew: { readonly effort: string | null; readonly model: string
 
 const crewSounding = (voyageId: string, title: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const procedures = yield* VoyageProcedureService;
 		const pieces = yield* Pieces;
 		const piece = yield* pieces.charter({
 			charter: "sound the eastern shoal",
@@ -48,13 +48,13 @@ const crewSounding = (voyageId: string, title: string) =>
 			title,
 			voyageId,
 		});
-		yield* settled((yield* domain.voyages.workNow(piece.id)).intentId);
+		yield* settled((yield* procedures.workNow(piece.id)).intentId);
 	}).pipe(Effect.orDie);
 
 const hailed = (voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		yield* settled((yield* domain.voyages.hail(voyageId)).intentId);
+		const procedures = yield* VoyageProcedureService;
+		yield* settled((yield* procedures.hail(voyageId)).intentId);
 	}).pipe(Effect.orDie);
 
 const settingsChanged = (voyageId: string, model: string, effort: string) =>

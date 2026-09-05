@@ -8,6 +8,7 @@ import type { SpawnFields } from "#index.ts";
 import { callTool, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { onVoyage, proclaimed, seedAsker, unruled } from "#test/ruling-fixtures.ts";
 import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const HAND: SpawnFields = {
 	agentId: "agent-hand",
@@ -29,10 +30,10 @@ const anotherVoyage = Effect.gen(function* () {
 
 const captainOnVoyage = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
+		const procedures = yield* VoyageProcedureService;
 		const voyage = yield* openReefVoyage;
 		yield* seedAsker;
-		const hailed = yield* domain.voyages.hail(voyage.id);
+		const hailed = yield* procedures.hail(voyage.id);
 		expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 		const captain = yield* sessionFor(scripted, hailed.agentId);
 		return { captain, voyageId: voyage.id };

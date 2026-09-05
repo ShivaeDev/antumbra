@@ -5,9 +5,9 @@ import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { callTool, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { chain, eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const OUT_OF_REACH = "no report with that id is on your voyage";
 const BODY = "the eastern shoal is steeper than charted";
@@ -46,7 +46,7 @@ const crewOn = (scripted: ScriptedBackend, pieceId: string) =>
 
 const seedCaptain = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const pieces = yield* Pieces;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const voyage = yield* openReefVoyage;
 	const piece = yield* pieces.charter({
 		charter: "sound the eastern shoal",
@@ -57,7 +57,7 @@ const seedCaptain = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 		voyageId: voyage.id,
 	});
 	const report = yield* landedOn(piece.id, "soundings");
-	const hailed = yield* domain.voyages.hail(voyage.id);
+	const hailed = yield* procedures.hail(voyage.id);
 	expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 	const captain = yield* sessionFor(scripted, hailed.agentId);
 	return { captain, report };

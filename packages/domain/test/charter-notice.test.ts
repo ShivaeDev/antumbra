@@ -2,9 +2,9 @@ import { Rulings } from "@antumbra/rulings";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { ASKER, crewLadder, type Ladder } from "#test/captain-verdict-fixtures.ts";
 import { callTool } from "#test/harness.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const PIECE = {
 	charter: "sound the eastern shoal",
@@ -30,8 +30,8 @@ const asks = (voyageId: string, urgency: "blocking" | "pressing") =>
 
 const piecesOf = (voyageId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		return Option.getOrThrow(yield* domain.voyages.read(voyageId)).pieces.map((piece) => piece.id);
+		const procedures = yield* VoyageProcedureService;
+		return Option.getOrThrow(yield* procedures.read(voyageId)).pieces.map((piece) => piece.id);
 	});
 
 const noticeOf = (text: string): ReadonlyArray<string> => text.split("\n").slice(1);

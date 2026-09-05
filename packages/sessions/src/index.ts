@@ -35,7 +35,6 @@ export { requireSiestaSucceeded } from "#shutdown-verdict.ts";
 export { makeSiestaKind, type SiestaFields } from "#siesta.ts";
 export { compileSessionSiestaDemands } from "#siesta-demands.ts";
 export { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
-export { makeSessionNodeReconciler } from "#tree/reconcile.ts";
 export { makeSessionTreeSinks, type SinkFor } from "#tree/sink.ts";
 export { makeSessionTurnRests } from "#turn-rest.ts";
 export { waitFor } from "#unresumable.ts";

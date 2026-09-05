@@ -12,12 +12,14 @@ import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionDrain } from "@antumbra/sessions/drain/service";
 import { SessionRegistration } from "@antumbra/sessions/registration/service";
+import { SessionRestart } from "@antumbra/sessions/restart/service";
 import { SessionRetirement } from "@antumbra/sessions/retirement/service";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Layer } from "effect";
+import { AgentBirth } from "#agent-birth/service.ts";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { sessionReachLayer } from "#kernel-reach/session.ts";
@@ -44,9 +46,10 @@ export const domainCapabilities = (
 		SessionRegistration.layer,
 		SessionDrain.layer,
 		SessionRetirement.layer,
+		SessionRestart.layer,
 		sessionReachLayer,
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(RoleSettings.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(Layer.provideMerge(world));
+	return Layer.mergeAll(AgentBirth.layer, RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(Layer.provideMerge(world));
 };

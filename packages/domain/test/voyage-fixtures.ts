@@ -7,6 +7,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { endTurn, type ScriptedBackend } from "#test/harness.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const PATIENCE = { maxRunning: 4, patienceMillis: 50 };
 
@@ -69,8 +70,8 @@ export const chain = Effect.gen(function* () {
 
 export const stateOf = (voyageId: string, pieceId: string) =>
 	Effect.gen(function* () {
-		const domain = yield* AgentDomain;
-		const view = Option.getOrThrow(yield* domain.voyages.read(voyageId));
+		const procedures = yield* VoyageProcedureService;
+		const view = Option.getOrThrow(yield* procedures.read(voyageId));
 		return view.pieces.find((piece) => piece.id === pieceId)?.state;
 	});
 

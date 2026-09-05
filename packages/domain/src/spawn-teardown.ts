@@ -1,17 +1,17 @@
 import { IntentExecution } from "@antumbra/kernel";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { Cause, Effect } from "effect";
+import { AgentBirth } from "#agent-birth/service.ts";
 import { makeIsSpawnCancelling } from "#spawn-cancellation.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
-import { spawnResolution } from "#spawn-resolution.ts";
 
 export const makeSpawnTeardown = Effect.gen(function* () {
 	const isCancelling = yield* makeIsSpawnCancelling;
-	const resolution = yield* spawnResolution;
+	const birth = yield* AgentBirth;
 	const resources = yield* ResourceReconciler;
 	// Teardown cannot propagate settlement failure; log the stranded birth for boot reconciliation.
 	const settleAfterFailure = (payload: SpawnFields) =>
-		resolution.settleFailure(payload).pipe(
+		birth.settleFailure(payload).pipe(
 			Effect.tap(() => resources.request()),
 			Effect.catchCause((cause) =>
 				Effect.logError("spawn failure settlement failed", { agentId: payload.agentId, sessionId: payload.sessionId }, cause),

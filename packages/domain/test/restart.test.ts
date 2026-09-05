@@ -1,10 +1,11 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { SessionRestart } from "@antumbra/sessions/restart/service";
 import { expect, it } from "@effect/vitest";
 import { Effect, ManagedRuntime, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { KernelReach } from "#kernel-reach/service.ts";
-import { abandonRestartIntent, honorRestartIntent, recordRestartIntent } from "#restart.ts";
+import { honorRestartIntent } from "#restart.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
@@ -54,12 +55,13 @@ it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, onc
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
+			const restart = yield* SessionRestart;
 			yield* spawnHand("restart-one", "restart-session-one");
 			yield* spawnHand("restart-two", "restart-session-two");
 			yield* spawnHand("restart-idle", "restart-session-idle");
 			yield* restHand(scripted, "restart-idle");
 
-			yield* recordRestartIntent;
+			yield* restart.record();
 			expect(Option.getOrThrow(yield* db.AppMeta.where(RESTART_RESUME).first()).value).toBe(
 				JSON.stringify(["restart-session-one", "restart-session-two"]),
 			);
@@ -84,8 +86,8 @@ it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, onc
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
 			expect(yield* Ref.get(wakes)).toHaveLength(2);
 
-			yield* recordRestartIntent;
-			yield* abandonRestartIntent;
+			yield* restart.record();
+			yield* restart.abandon();
 			expect(yield* db.AppMeta.where(RESTART_RESUME).first()).toEqual(Option.none());
 			yield* honorRestartIntent.pipe(Effect.provideService(KernelReach, recordingReach));
 			expect(yield* Ref.get(wakes)).toHaveLength(2);

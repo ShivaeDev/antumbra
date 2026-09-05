@@ -1,7 +1,7 @@
 import { type AgentSettingsChoice, UNCHOSEN_AGENT_SETTINGS } from "@antumbra/settings";
 import type { Option } from "effect";
 import { type PieceState, pieceStates } from "#piece-state.ts";
-import { type PieceView, pieceView } from "#piece-view.ts";
+import { type PieceView, pieceViews } from "#piece-view.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import { lastStirredAt } from "#voyage-activity.ts";
 import { captainOf, type VoyageCaptain } from "#voyage-captain.ts";
@@ -65,7 +65,7 @@ export const countsOfVoyage = (
 
 export const voyageView = (world: VoyageDetailRows, voyage: VoyageRow): VoyageView => {
 	const states = pieceStates(world);
-	const pieces = memberPieces(world, voyage.id).map((piece) => pieceView(world, states, piece));
+	const pieces = pieceViews(world, states, memberPieces(world, voyage.id));
 	const settings = world.roleSettings.get(voyage.id);
 	const captain = captainOf(world, voyage.id);
 	const counts = countStates(pieces.map((piece) => piece.state));

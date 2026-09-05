@@ -8,9 +8,6 @@ export interface CrewRuntime {
 	readonly delegating: ReadonlySet<string>;
 }
 
-const openRootsOf = (world: RetirementWorld, agentId: string): ReadonlyArray<AgentSessionRow> =>
-	world.sessions.filter((session) => session.agentId === agentId && session.status === "open");
-
 const restful = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
 	sessionAtRest({
 		delegating: runtime.delegating.has(session.id),
@@ -30,27 +27,31 @@ const working = (runtime: CrewRuntime, session: AgentSessionRow): boolean =>
 		}),
 	);
 
-export const restingCrew = (world: RetirementWorld, runtime: CrewRuntime): ReadonlyMap<string, ReadonlyArray<string>> =>
-	new Map(
-		[...world.agentStatus].flatMap(([agentId, status]) => {
-			const roots = openRootsOf(world, agentId);
-			return status === "alive" && roots.length > 0 && roots.every((session) => restful(runtime, session))
-				? [[agentId, roots.map((session) => session.id)] as const]
-				: [];
-		}),
+export const crewRest = (world: RetirementWorld, runtime: CrewRuntime) => {
+	const resting = new Map<string, ReadonlyArray<string>>();
+	const retirable = new Set<string>();
+	const alive = new Set([...world.agentStatus].flatMap(([agentId, status]) => (status === "alive" ? [agentId] : [])));
+	if (alive.size === 0) return { resting, retirable };
+	const roots = Map.groupBy(
+		world.sessions.filter((session) => alive.has(session.agentId) && session.status === "open"),
+		(session) => session.agentId,
 	);
-
-export const retirableCrew = (world: RetirementWorld, runtime: CrewRuntime): ReadonlySet<string> =>
-	new Set(
-		[...world.agentStatus].flatMap(([agentId, status]) =>
-			status === "alive" && openRootsOf(world, agentId).every((session) => !working(runtime, session)) ? [agentId] : [],
-		),
-	);
+	for (const agentId of alive) {
+		const sessions = roots.get(agentId) ?? [];
+		if (sessions.length > 0 && sessions.every((session) => restful(runtime, session))) {
+			resting.set(
+				agentId,
+				sessions.map((session) => session.id),
+			);
+		}
+		if (sessions.every((session) => !working(runtime, session))) {
+			retirable.add(agentId);
+		}
+	}
+	return { resting, retirable };
+};
 
 export const crewReleasable = (piece: PieceView, resting: ReadonlyMap<string, ReadonlyArray<string>>): boolean => {
 	const crew = piece.agents.filter((agent) => agent.status === "alive");
 	return piece.state === "done" && crew.length > 0 && crew.every((agent) => resting.has(agent.agentId));
 };
-
-export const claimedCrew = (world: RetirementWorld, pieceId: string): ReadonlyArray<string> =>
-	world.assignments.filter((assignment) => assignment.pieceId === pieceId).map((assignment) => assignment.agentId);

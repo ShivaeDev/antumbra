@@ -4,9 +4,9 @@ import { Database } from "@antumbra/persistence";
 import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { AgentDomain } from "#domain.ts";
 import { awaitRetirement, born, chartered, handFor, landed } from "#test/retire-crew-fixture.ts";
 import { untilTerminal } from "#test/session-recovery-fixture.ts";
+import { VoyageProcedureService } from "#voyages/service.ts";
 
 const SOUNDER = "agent-sounder";
 const MATE = "agent-mate";
@@ -38,11 +38,11 @@ it.effectApp("retiring a piece's crew retires exactly the agents claimed to it",
 
 it.effectApp("retiring a piece's crew never retires the voyage captain", function* ({ scripted }) {
 	const db = yield* Database;
-	const domain = yield* AgentDomain;
+	const procedures = yield* VoyageProcedureService;
 	const kernel = yield* Kernel;
 	const sight = yield* SightSource;
 	const { pieceId, voyageId } = yield* chartered;
-	const captain = yield* domain.voyages.hail(voyageId);
+	const captain = yield* procedures.hail(voyageId);
 	expect(yield* untilTerminal(kernel.changes(captain.intentId))).toBe("succeeded");
 	const sounderSession = yield* born(handFor(SOUNDER, pieceId, voyageId));
 	yield* landed(pieceId);

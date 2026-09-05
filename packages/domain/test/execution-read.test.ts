@@ -8,7 +8,7 @@ import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { agentsAtWork } from "#agent-at-work.ts";
-import { restingCrew, retirableCrew } from "#crew-rest.ts";
+import { crewRest } from "#crew-rest.ts";
 import { readyPieces } from "#dispatch-policy.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { pieceOutcomeTallies } from "#outcome-status.ts";
@@ -142,7 +142,8 @@ it.effectDB("retirement reads alive crew's concluded work and retains working co
 		]),
 	);
 	const runtime = { attached: new Set(world.sessions.map((session) => session.id)), delegating: new Set<string>() };
-	expect(restingCrew(world, runtime).has("rested")).toBe(true);
-	expect(retirableCrew(world, runtime).has("abandoned-hand")).toBe(true);
-	expect(retirableCrew(world, runtime).has("busy")).toBe(false);
+	const { resting, retirable } = crewRest(world, runtime);
+	expect(resting.has("rested")).toBe(true);
+	expect(retirable.has("abandoned-hand")).toBe(true);
+	expect(retirable.has("busy")).toBe(false);
 });

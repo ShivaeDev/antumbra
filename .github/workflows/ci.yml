@@ -28,10 +28,21 @@ jobs:
 
   typecheck-compat:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        partition: [heavy, remaining]
+    env:
+      COMPAT_PACKAGES: "desktop changes domain pieces renderer reports rulings testing voyages harness"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck:compat
+      - run: |
+          filters=()
+          for package in $COMPAT_PACKAGES; do
+            filters+=(--filter "${{ matrix.partition == 'remaining' && '!' || '' }}@antumbra/$package")
+          done
+          pnpm "${filters[@]}" --recursive --no-sort --if-present typecheck:compat
 
   test:
     runs-on: ubuntu-latest

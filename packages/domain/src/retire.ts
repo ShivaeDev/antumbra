@@ -77,7 +77,7 @@ export const makeRetireKind = Effect.gen(function* () {
 			yield* execution.step("publish-fleet", feeds.publishFleetRefresh());
 		});
 	return defineIntent({
-		execute: (payload) => retireAgent(payload.agentId).pipe(Effect.tap(() => resources.request)),
+		execute: (payload) => retireAgent(payload.agentId).pipe(Effect.tap(() => resources.request())),
 		payload: RetirePayload,
 		reclaim: "requeue",
 		tag: "agent/retire",

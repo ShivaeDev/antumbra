@@ -1128,6 +1128,9 @@ importers:
       '@antumbra/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      '@antumbra/service-definition':
+        specifier: workspace:*
+        version: link:../service-definition
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../vocabulary

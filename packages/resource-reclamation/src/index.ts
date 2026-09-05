@@ -14,8 +14,6 @@ export {
 	ResourceReclaimRunners,
 	ResourceReclaimRunnersLive,
 } from "#resource-reclaim-runners.ts";
-export {
-	type ResourceReconcileOptions,
-	ResourceReconciler,
-	ResourceReconcilerLive,
-} from "#resource-reconciler.ts";
+export { ResourceReconciler } from "#resource-reconciler.ts";
+export { ResourceReconcilerLive } from "#resource-reconciler-live.ts";
+export type { ResourceReconcileOptions } from "#resource-reconciler-options.ts";

@@ -16,6 +16,7 @@ import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
+import { Quay } from "#quay/service.ts";
 import { VoyageWorldSource } from "#voyage-world/service.ts";
 import { VoyageProceduresLive } from "#voyages.ts";
 
@@ -36,7 +37,7 @@ export const domainCapabilities = (
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
-	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer).pipe(Layer.provideMerge(changes));
+	const world = Layer.mergeAll(VoyageWorldSource.layer, ExecutionSource.layer, Quay.layer).pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(CaptainMembershipLive, ChangeProceduresLive(changeHosts), SessionStandDownLive, VoyageProceduresLive).pipe(
 		Layer.provideMerge(world),
 	);

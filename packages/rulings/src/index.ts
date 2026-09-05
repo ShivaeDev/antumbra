@@ -3,6 +3,7 @@ export type {
 	RulingClimbingAuthority,
 	RulingProclamation,
 	RulingReclassifyInput,
+	RulingRecommendationInput,
 	RulingRequest,
 	RulingVerdict,
 } from "#acts.ts";
@@ -22,6 +23,7 @@ export type {
 	RulingChoice,
 	RulingGate,
 	RulingReclassification,
+	RulingRecommendation,
 	RulingSubject,
 } from "#model.ts";
 export { Rulings, RulingsLive } from "#rulings.ts";

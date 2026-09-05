@@ -3,8 +3,10 @@ import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
+import { changeById } from "#by-id.ts";
 import { dismissChange } from "#dismiss.ts";
 import { forPieces } from "#for-pieces.ts";
+import { pendingForPieces } from "#pending-for-pieces.ts";
 import { ChangeHostRegistry, RunnerRegistry } from "#registries.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
 import { adoptSubmittedChange } from "#submissions/adopt.ts";
@@ -20,11 +22,13 @@ export const Changes = defineService({
 	initialize: Effect.void,
 	methods: () => ({
 		adopt: adoptSubmittedChange,
+		byId: changeById,
 		dismiss: dismissChange,
 		forPieces,
 		heldResources: readHeldResources,
 		observed: observedChanges,
 		open: openSubmittedChange,
+		pendingForPieces,
 		refresh: refreshSubmittedChanges,
 		snapshot: readChangeSnapshot,
 		submit: submitChange,

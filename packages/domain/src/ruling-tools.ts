@@ -25,6 +25,7 @@ const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<s
 	gates,
 	question: input.question,
 	radius: input.radius,
+	recommendation: input.recommendation,
 	requester: { agentId: identity.agentId, kind: "agent" },
 	rung,
 	subjects: subjectsOf(identity, input.tags),

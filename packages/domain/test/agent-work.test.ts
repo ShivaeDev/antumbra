@@ -1,5 +1,7 @@
 import { expect, it } from "@effect/vitest";
-import { type WorkLinks, workOf } from "#agent-work.ts";
+import { type WorkLinks, workByAgent } from "#agent-work.ts";
+
+const workOf = (links: WorkLinks, agentId: string) => workByAgent(links).get(agentId) ?? [];
 
 const links = (overrides?: Partial<WorkLinks>): WorkLinks => ({
 	assignments: [{ agentId: "agent-1", pieceId: "piece-1" }],

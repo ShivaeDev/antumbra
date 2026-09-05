@@ -1,3 +1,4 @@
+import { Effect } from "effect";
 import type { OpencodeConnection, OpencodeEventListeners, OpencodeRequest } from "#adapters/connection.ts";
 import { SESSION } from "#test/frames.ts";
 import { PROVIDERS } from "#test/providers.ts";
@@ -10,7 +11,7 @@ interface FakeCall {
 
 export interface FakeOpencode {
 	readonly calls: FakeCall[];
-	readonly connect: () => Promise<OpencodeConnection>;
+	readonly connect: Effect.Effect<OpencodeConnection>;
 	readonly emit: (frame: unknown) => void;
 	readonly malformed: (line: string) => void;
 	readonly exit: () => void;
@@ -43,18 +44,17 @@ export const makeFakeOpencode = (): FakeOpencode => {
 	};
 	return {
 		calls,
-		connect: () =>
-			Promise.resolve({
-				close: () => exitListener?.(),
-				get: record,
-				onEvent: (onEvent) => {
-					listeners = onEvent;
-				},
-				onExit: (listener) => {
-					exitListener = listener;
-				},
-				post: record,
-			}),
+		connect: Effect.sync(() => ({
+			close: () => exitListener?.(),
+			get: record,
+			onEvent: (onEvent) => {
+				listeners = onEvent;
+			},
+			onExit: (listener) => {
+				exitListener = listener;
+			},
+			post: record,
+		})),
 		emit: (frame) => listeners?.onFrame(frame),
 		malformed: (line) => listeners?.onMalformed(line),
 		exit: () => exitListener?.(),

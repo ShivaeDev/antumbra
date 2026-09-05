@@ -11,7 +11,7 @@ export interface OpencodeServer {
 }
 
 export const makeOpencodeServer = Effect.fn("OpenCode.makeServer")(function* (
-	connect: () => Promise<OpencodeConnection>,
+	connect: Effect.Effect<OpencodeConnection, BackendFailure, Scope.Scope>,
 ): Effect.fn.Return<OpencodeServer, BackendFailure, Scope.Scope> {
 	const frames = yield* PubSub.unbounded<unknown>();
 	const malformed = yield* Queue.unbounded<string>();
@@ -21,9 +21,7 @@ export const makeOpencodeServer = Effect.fn("OpenCode.makeServer")(function* (
 			Effect.forever,
 		),
 	);
-	const connection = yield* Effect.acquireRelease(Effect.tryPromise({ catch: opencodeFailure, try: connect }), (open) =>
-		Effect.sync(() => open.close()),
-	);
+	const connection = yield* Effect.acquireRelease(connect, (open) => Effect.sync(() => open.close()));
 	const exited = yield* Deferred.make<void>();
 	connection.onExit(() => {
 		Deferred.doneUnsafe(exited, Effect.void);

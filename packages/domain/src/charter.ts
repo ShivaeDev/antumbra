@@ -3,10 +3,10 @@ import type { SessionHandle } from "@antumbra/plugin-api";
 import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
 import { Repos } from "@antumbra/repos";
 import { promptInput } from "@antumbra/sessions";
+import { isVoyageCaptainIdentity } from "@antumbra/voyages/authority/captain";
 import { Clock, Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
-import { isVoyageCaptainIdentity } from "#voyage-captain.ts";
 
 interface BerthRow {
 	readonly branch: string;

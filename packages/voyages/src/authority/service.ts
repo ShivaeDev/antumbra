@@ -6,7 +6,7 @@ import { rulesAs } from "#authority/rules-as.ts";
 import { rungAsked } from "#authority/rung-asked.ts";
 
 export const VoyageAuthority = defineService({
-	id: "@antumbra/domain/VoyageAuthority",
+	id: "@antumbra/voyages/VoyageAuthority",
 	initialize: Effect.void,
 	methods: () => ({ isFlagshipCaptain, rungAsked, rulesAs }),
 	requires: [Database],

@@ -19,25 +19,24 @@ const situationsOf = (change: ChangeRow): ReadonlyArray<ChangeSituation> => [
 const addressableChanges = (changes: ReadonlyArray<ChangeRow>): ReadonlyMap<string, ChangeRow> =>
 	new Map(changes.filter((change) => change.stage === "open" && change.externalId !== null).map((change) => [change.id, change]));
 
-const producedChangeIds = (pieceChanges: ReadonlyArray<PieceChangeRow>, pieceId: string): ReadonlyArray<string> =>
-	pieceChanges.filter((link) => link.pieceId === pieceId && link.purpose === "produces").map((link) => link.changeId);
-
-const situationsForAgent = (links: ChangeLinks, open: ReadonlyMap<string, ChangeRow>, agentId: string): ReadonlyArray<SessionSituation> =>
-	links.assignments
-		.filter((assignment) => assignment.agentId === agentId)
-		.flatMap((assignment) => producedChangeIds(links.pieceChanges, assignment.pieceId))
-		.flatMap((changeId) => {
-			const change = open.get(changeId);
-			return change === undefined
-				? []
-				: situationsOf(change).map((situation) => ({
-						changeId,
-						reference: `#${change.externalId}`,
-						situation,
-					}));
-		});
-
 export const situationsByAgent = (links: ChangeLinks, agentIds: ReadonlyArray<string>): ReadonlyMap<string, ReadonlyArray<SessionSituation>> => {
 	const open = addressableChanges(links.changes);
-	return new Map(agentIds.map((agentId) => [agentId, situationsForAgent(links, open, agentId)]));
+	const produced = Map.groupBy(
+		links.pieceChanges.filter((link) => link.purpose === "produces"),
+		(link) => link.pieceId,
+	);
+	const situations = new Map<string, Array<SessionSituation>>(agentIds.map((agentId) => [agentId, []]));
+	for (const assignment of links.assignments) {
+		const assigned = situations.get(assignment.agentId);
+		if (assigned === undefined) {
+			continue;
+		}
+		for (const link of produced.get(assignment.pieceId) ?? []) {
+			const change = open.get(link.changeId);
+			if (change !== undefined) {
+				assigned.push(...situationsOf(change).map((situation) => ({ changeId: change.id, reference: `#${change.externalId}`, situation })));
+			}
+		}
+	}
+	return situations;
 };

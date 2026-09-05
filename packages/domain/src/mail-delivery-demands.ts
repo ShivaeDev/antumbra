@@ -35,7 +35,6 @@ export const makeMailDelivery = Effect.gen(function* () {
 			}
 			const unread = yield* boards.unread(session.agentId);
 			const batch = dueMail({ nowMillis, quietMillis, unread });
-			// Nothing due asks the kernel nothing, so a settled turn with an empty mailbox never waits on a wake seam.
 			if (batch === undefined || (yield* reach.wakePending(session.id))) {
 				continue;
 			}

@@ -1,5 +1,5 @@
-import { BoardScope, EntryInput } from "@antumbra/boards";
-import { it } from "@antumbra/testing-runtime/capabilities";
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 
@@ -19,7 +19,8 @@ const noted = (body: string) =>
 		register: "smooth" as const,
 	});
 
-it.effectApp("every durable entity carries its own board", function* ({ boards, db }) {
+it.effectApp("every durable entity carries its own board", function* ({ db }) {
+	const boards = yield* Boards;
 	yield* db.Voyage.create(voyage("boards-entities-voyage"));
 	yield* db.Piece.create({
 		charter: "sound the shallows",
@@ -45,7 +46,8 @@ it.effectApp("every durable entity carries its own board", function* ({ boards, 
 	}
 });
 
-it.effectApp("an entity has one board, however often it is asked for", function* ({ boards, db }) {
+it.effectApp("an entity has one board, however often it is asked for", function* ({ db }) {
+	const boards = yield* Boards;
 	const voyageId = "boards-one-voyage";
 	yield* db.Voyage.create(voyage(voyageId));
 	const scope = BoardScope.Voyage({ voyageId });
@@ -56,7 +58,8 @@ it.effectApp("an entity has one board, however often it is asked for", function*
 	expect((yield* boards.read(scope)).length).toBe(1);
 });
 
-it.effectApp("an entity nobody has written to reads as an empty board", function* ({ boards, db }) {
+it.effectApp("an entity nobody has written to reads as an empty board", function* ({ db }) {
+	const boards = yield* Boards;
 	const voyageId = "boards-empty-voyage";
 	yield* db.Voyage.create(voyage(voyageId));
 	expect(yield* boards.read(BoardScope.Voyage({ voyageId }))).toEqual([]);

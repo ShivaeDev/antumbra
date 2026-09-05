@@ -45,10 +45,6 @@ export { situationsByAgent } from "#situations.ts";
 export { LiveDelegations, LiveDelegationsLive } from "#tree/live.ts";
 export { makeSessionNodeReconciler } from "#tree/reconcile.ts";
 export { makeSessionTreeSinks, type SinkFor } from "#tree/sink.ts";
-export {
-	assembleSessionTree,
-	type SessionTreeRow,
-} from "#tree/view.ts";
 export { makeSessionTurnRests } from "#turn-rest.ts";
 export { waitFor } from "#unresumable.ts";
 export { WakePayload } from "#wake/input.ts";

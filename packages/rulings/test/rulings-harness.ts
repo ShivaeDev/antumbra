@@ -1,16 +1,10 @@
 import { Database } from "@antumbra/persistence";
-import { RulingsLive } from "@antumbra/rulings";
-import { it } from "@antumbra/testing-runtime/domain";
 import { Effect } from "effect";
-
-export { it };
 
 export const requesterId = "agent-hand";
 export const voyageId = "voyage-reef";
 export const pieceId = "piece-soundings";
 export const repoId = "repo-charts";
-
-export const layer = RulingsLive;
 
 export const seedFleet = Effect.gen(function* () {
 	const db = yield* Database;

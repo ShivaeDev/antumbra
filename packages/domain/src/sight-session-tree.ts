@@ -1,9 +1,6 @@
 import type { SessionTree, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
-import { Database, type StoredAgentSession } from "@antumbra/persistence";
-import { assembleSessionTree, type SessionTreeRow } from "@antumbra/sessions";
-import { decodeStoredAgentSessionCompleteness, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
-import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events";
+import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 
@@ -16,40 +13,11 @@ const SHAPING: ReadonlySet<string> = new Set(["session.opened", "subsession.ende
 
 const shapesATree = (row: StoredEvent): boolean => SHAPING.has(row.kind);
 
-const readRow = (row: StoredAgentSession) =>
-	Effect.all({
-		completeness: Effect.fromResult(decodeStoredAgentSessionCompleteness(row.id, row.completeness)),
-		outcome: Effect.fromResult(decodeStoredSubsessionOutcome(row.id, row.outcome)),
-		status: Effect.fromResult(decodeStoredAgentSessionStatus(row.id, row.status)),
-	}).pipe(
-		Effect.map(
-			({ completeness, outcome, status }) =>
-				({
-					completeness,
-					id: row.id,
-					kind: row.kind,
-					label: row.label,
-					nativeRef: row.nativeRef,
-					outcome,
-					parentSessionId: row.parentSessionId,
-					status,
-				}) satisfies SessionTreeRow,
-		),
-	);
-
 export const makeSightSessionTree = Effect.gen(function* () {
 	const feeds = yield* DomainFeeds;
-	const db = yield* Database;
+	const trees = yield* SessionTrees;
 
-	const sessionTree = (rootSessionId: string) =>
-		db.AgentSession.where({ rootSessionId })
-			.orderBy((session) => session.createdAt.asc())
-			.all()
-			.pipe(
-				Effect.flatMap((rows) => Effect.forEach(rows, readRow)),
-				Effect.map((rows) => assembleSessionTree(rootSessionId, rows)),
-				Effect.mapError(toFailure),
-			);
+	const sessionTree = (rootSessionId: string) => trees.read(rootSessionId).pipe(Effect.mapError(toFailure));
 
 	return {
 		sessionTree,

@@ -2,11 +2,11 @@ import { BoardScope, Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Exit, Fiber, Option } from "effect";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
 import { ASKER, seedAsker } from "#test/ruling-fixtures.ts";
-import { it } from "#test/runtime-harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const ASK = {

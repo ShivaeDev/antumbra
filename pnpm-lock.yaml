@@ -507,6 +507,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
@@ -641,6 +644,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
@@ -907,6 +913,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
@@ -1122,6 +1131,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
@@ -1233,6 +1245,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
@@ -1501,30 +1516,18 @@ importers:
 
   packages/testing:
     dependencies:
-      '@antumbra/boards':
-        specifier: workspace:*
-        version: link:../boards
       '@antumbra/domain':
         specifier: workspace:*
         version: link:../domain
-      '@antumbra/intent-demand':
-        specifier: workspace:*
-        version: link:../intent-demand
-      '@antumbra/kernel':
-        specifier: workspace:*
-        version: link:../kernel
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
-      '@antumbra/pieces':
+      '@antumbra/plugin-api':
         specifier: workspace:*
-        version: link:../pieces
+        version: link:../plugin-api
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
-      '@antumbra/voyages':
-        specifier: workspace:*
-        version: link:../voyages
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
@@ -1532,6 +1535,21 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/boards':
+        specifier: workspace:*
+        version: link:../boards
+      '@antumbra/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../pieces
+      '@antumbra/repos':
+        specifier: workspace:*
+        version: link:../repos
+      '@antumbra/voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)))
@@ -1647,6 +1665,9 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/testing':
+        specifier: workspace:*
+        version: link:../testing
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime

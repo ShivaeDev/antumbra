@@ -3,30 +3,22 @@ import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { type ScriptedBackend, sessionFor } from "#test/harness.ts";
-import { it } from "#test/runtime-harness.ts";
 import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
 
 const ASKER = "agent-asker";
-const FLAGSHIP_ID = "voyage-flagship";
 
 type Rung = "admiral" | "captain" | "flagship";
 
 const openFlagship = Effect.gen(function* () {
 	const db = yield* Database;
-	yield* db.Voyage.create({
-		captainBackend: "scripted",
-		context: "Fleet-level rulings and findings belong here.",
-		crewBackend: "scripted",
-		focusedAt: null,
-		id: FLAGSHIP_ID,
-		kind: "flagship",
-		name: "Flagship",
-		northStar: "The fleet sails well.",
-	});
+	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
+	yield* db.Voyage.where({ id: flagship.id }).update({ captainBackend: "scripted" });
+	return flagship.id;
 });
 
 const hailCaptain = (scripted: ScriptedBackend, voyageId: string) =>
@@ -94,9 +86,9 @@ const carried = (agentId: string, count: number) =>
 
 const crewFleet = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const reefId = yield* crewReef;
-	yield* openFlagship;
+	const flagshipId = yield* openFlagship;
 	return {
-		flagshipCaptain: yield* hailCaptain(scripted, FLAGSHIP_ID),
+		flagshipCaptain: yield* hailCaptain(scripted, flagshipId),
 		reefCaptain: yield* hailCaptain(scripted, reefId),
 	};
 });

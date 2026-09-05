@@ -1,20 +1,22 @@
-import { BoardScope, EntryInput } from "@antumbra/boards";
-import { it as capabilityIt } from "@antumbra/testing-runtime/capabilities";
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
+import { Repos } from "@antumbra/repos";
+import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Clock, Option } from "effect";
 import { TestClock } from "effect/testing";
 
-capabilityIt.effectApp("uses TestClock unless live time is requested", function* () {
+it.effectApp("uses TestClock unless live time is requested", function* () {
 	const before = yield* Clock.currentTimeMillis;
 	yield* TestClock.adjust(100);
 	expect(yield* Clock.currentTimeMillis).toBe(before + 100);
 });
 
-capabilityIt.effectApp("uses the system clock when requested", { clock: "live" }, function* () {
+it.effectApp("uses the system clock when requested", { clock: "live" }, function* () {
 	expect(yield* Clock.currentTimeMillis).toBeGreaterThan(1_000_000_000_000);
 });
 
-capabilityIt.effectApp("keeps both Board registers in write order", function* ({ boards, db }) {
+it.effectApp("keeps both Board registers in write order", function* ({ db }) {
+	const boards = yield* Boards;
 	const voyageId = "testing-board-voyage";
 	yield* db.Voyage.create({
 		captainBackend: "scripted",
@@ -33,7 +35,8 @@ capabilityIt.effectApp("keeps both Board registers in write order", function* ({
 	]);
 });
 
-capabilityIt.effectApp("refreshes a registered source instead of duplicating it", function* ({ repos }) {
+it.effectApp("refreshes a registered source instead of duplicating it", function* () {
+	const repos = yield* Repos;
 	const first = yield* repos.register({ defaultRef: "main", source: "/testing/reefs/one" });
 	const again = yield* repos.register({ defaultRef: "trunk", source: "/testing/reefs/one" });
 	expect(again).toEqual({

@@ -1,90 +1,36 @@
 import { dirname, join } from "node:path";
-import type { Boards } from "@antumbra/boards";
-import {
-	AgentDomain,
-	AgentDomainLive,
-	BackendCapacityReleases,
-	ChangeWatcher,
-	DispatcherLive,
-	FlagshipLive,
-	IntentFeedLive,
-	KernelReachLive,
-	RulingAscent,
-	RulingDeliveryLive,
-	RulingSourceLive,
-	SessionShutdownLive,
-	SettingsSourceLive,
-	SightSourceLive,
-	VoyageSourceLive,
-} from "@antumbra/domain";
-import { IntentDemandLive } from "@antumbra/intent-demand";
-import { type Kernel, KernelLive } from "@antumbra/kernel";
-import { Database, type DatabaseService } from "@antumbra/persistence";
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
-import type { Pieces } from "@antumbra/pieces";
+import { applicationLayers } from "@antumbra/domain";
+import { Database } from "@antumbra/persistence";
+import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { makeEffectApp, makeScriptedBackend, passiveRunner, rawOf, type ScriptedBackend } from "@antumbra/testing-runtime";
-import type { Voyages } from "@antumbra/voyages";
 import { NodeServices } from "@effect/platform-node";
-import { type Context, Effect, Layer, Option, Schedule } from "effect";
+import { Effect, Layer, Option, Schedule } from "effect";
 
-interface AppHarness {
-	readonly db: DatabaseService;
-	readonly scripted: ScriptedBackend;
+interface Providers {
+	readonly backends?: ReadonlyMap<string, AgentBackend>;
+	readonly runners?: ReadonlyMap<string, Runner>;
+	readonly changeHosts?: ReadonlyMap<string, ChangeHost>;
 }
 
-type AppRequirements =
-	| AgentDomain
-	| Kernel
-	| Context.Service.Identifier<typeof Pieces>
-	| Context.Service.Identifier<typeof Voyages>
-	| Context.Service.Identifier<typeof Boards>;
-
-const applicationLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) => {
-	const directory = dirname(temporary.database);
-	const agents = AgentDomainLive(
-		new Map([[scripted.backend.tag, scripted.backend]]),
-		new Map([[passiveRunner.tag, passiveRunner]]),
-		new Map(),
-		join(directory, "artifacts"),
-		join(directory, "session-inputs"),
-	).pipe(Layer.provide(NodeServices.layer));
-	const kernel = Layer.unwrap(
+export const it = {
+	effectApp: makeEffectApp((temporary, providers: Providers = {}) =>
 		Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			return KernelLive({ kinds: domain.kinds });
+			const scripted = yield* makeScriptedBackend;
+			const directory = dirname(temporary.database);
+			const harness = Effect.gen(function* () {
+				return { db: yield* Database, scripted };
+			});
+			const layer = applicationLayers(
+				providers.backends ?? new Map([[scripted.backend.tag, scripted.backend]]),
+				providers.runners ?? new Map([[passiveRunner.tag, passiveRunner]]),
+				providers.changeHosts ?? new Map(),
+				join(directory, "artifacts"),
+				join(directory, "session-inputs"),
+			).pipe(Layer.provide(NodeServices.layer), Layer.orDie);
+			return { harness, layer };
 		}),
-	).pipe(Layer.provideMerge(agents));
-	return Layer.mergeAll(
-		RulingSourceLive,
-		SightSourceLive,
-		VoyageSourceLive,
-		ChangeWatcher(),
-		DispatcherLive(),
-		Layer.unwrap(
-			Effect.gen(function* () {
-				const domain = yield* AgentDomain;
-				return IntentDemandLive(domain.intentDemands);
-			}),
-		),
-		FlagshipLive,
-		IntentFeedLive,
-		KernelReachLive,
-		RulingAscent,
-		RulingDeliveryLive,
-		SessionShutdownLive,
-	).pipe(Layer.provideMerge(BackendCapacityReleases.layer), Layer.provideMerge(kernel), Layer.provideMerge(SettingsSourceLive), Layer.orDie);
+	),
 };
-
-const makeApp = (temporary: TemporaryPersistence) =>
-	Effect.gen(function* () {
-		const scripted = yield* makeScriptedBackend;
-		const harness = Effect.gen(function* () {
-			return { db: yield* Database, scripted };
-		});
-		return { harness, layer: applicationLayer(temporary, scripted) };
-	});
-
-export const it = { effectApp: makeEffectApp<AppHarness, AppRequirements>(makeApp) };
 
 export const endsTurn = (scripted: ScriptedBackend, sessionId: string) =>
 	Effect.gen(function* () {

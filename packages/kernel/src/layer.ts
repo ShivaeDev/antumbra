@@ -1,16 +1,17 @@
 import { Database } from "@antumbra/persistence";
-import { Clock, Context, Effect, Fiber, Layer, PubSub, Queue, Ref, Stream } from "effect";
+import { Clock, Context, Effect, type Fiber, Layer, PubSub, Queue, Ref, Stream } from "effect";
 import { activeIntents } from "#active-intents.ts";
 import { schedulerLoop } from "#admission.ts";
-import { UnregisteredIntentTag } from "#errors.ts";
+import { cancelIntent } from "#cancel.ts";
 import type { Gate } from "#gate.ts";
 import type { AnyIntentKind, IntentKind } from "#intent.ts";
 import { changesFor } from "#intent-changes.ts";
-import { type IntentChange, type IntentSubmission, Kernel } from "#kernel.ts";
+import { type IntentChange, Kernel } from "#kernel.ts";
 import { reclaim } from "#reclaim.ts";
+import { retryIntent } from "#retry.ts";
 import { retryIntentIfWaiting } from "#retry-if-waiting.ts";
 import { SchedulerState } from "#state.ts";
-import { announce, transitionRow } from "#transitions.ts";
+import { submitIntent } from "#submit.ts";
 
 export interface KernelOptions {
 	readonly gates?: ReadonlyArray<Gate>;
@@ -18,45 +19,6 @@ export interface KernelOptions {
 	readonly kinds: ReadonlyArray<AnyIntentKind>;
 	readonly nextId?: Effect.Effect<string>;
 }
-
-const submitIntent = <Payload>(kind: IntentKind<Payload>, payload: Payload, changes: (id: string) => IntentSubmission["changes"]) =>
-	Effect.gen(function* () {
-		const { kinds, nextId } = yield* SchedulerState;
-		if (kinds.get(kind.tag) !== kind) {
-			return yield* new UnregisteredIntentTag({ tag: kind.tag });
-		}
-		const encoded = yield* kind.encode(payload);
-		const id = yield* nextId;
-		const db = yield* Database;
-		yield* db.Intent.create({
-			detail: null,
-			id,
-			payload: encoded,
-			status: "queued",
-			tag: kind.tag,
-		});
-		yield* announce({ id, status: "queued" });
-		return { changes: changes(id), id };
-	});
-
-const cancelIntent = (id: string) =>
-	Effect.gen(function* () {
-		const change = yield* transitionRow(id, "cancel");
-		yield* announce(change);
-		if (change.status === "cancelling") {
-			const { running } = yield* SchedulerState;
-			const fiber = (yield* Ref.get(running)).get(id);
-			if (fiber !== undefined) {
-				yield* Fiber.interrupt(fiber);
-			}
-		}
-	});
-
-const retryIntent = (id: string) =>
-	Effect.gen(function* () {
-		const change = yield* transitionRow(id, "retry");
-		yield* announce(change);
-	});
 
 export const KernelLive = (options: KernelOptions) =>
 	Layer.effect(Kernel)(
@@ -82,7 +44,7 @@ export const KernelLive = (options: KernelOptions) =>
 				changes,
 				retry: (id) => retryIntent(id).pipe(Effect.provideContext(context)),
 				retryIfWaiting: (id, expectedDetail) => retryIntentIfWaiting(id, expectedDetail).pipe(Effect.provideContext(context)),
-				submit: <Payload>(kind: IntentKind<Payload>, payload: Payload) => submitIntent(kind, payload, changes).pipe(Effect.provideContext(context)),
+				submit: <Payload>(kind: IntentKind<Payload>, payload: Payload) => submitIntent(kind, payload).pipe(Effect.provideContext(context)),
 				transitions: Stream.fromPubSub(state.pubsub),
 			};
 		}),

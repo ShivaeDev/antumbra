@@ -19,18 +19,19 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/kernel": "workspace:*",
+		"@antumbra/pieces": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
+		"@antumbra/boards": "workspace:*",
+		"@antumbra/repos": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain": "workspace:*",
-		"@antumbra/intent-demand": "workspace:*",
-		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/pieces": "workspace:*",
-		"@antumbra/voyages": "workspace:*",
-		"@antumbra/boards": "workspace:*"
+		"@antumbra/plugin-api": "workspace:*"
 	}
 }

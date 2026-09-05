@@ -10,6 +10,7 @@ import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Layer } from "effect";
@@ -35,6 +36,7 @@ export const domainCapabilities = (
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
 		SessionEventJournalLive,
+		SessionTrees.layer,
 		KernelReachDeferredLive,
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));

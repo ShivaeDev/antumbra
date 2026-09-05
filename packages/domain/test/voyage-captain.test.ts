@@ -66,3 +66,21 @@ it("a retired or dormant captain of record stays history, never at work", () => 
 it("a voyage nobody has captained has no captain to read at all", () => {
 	expect(Option.isNone(captainOf(world({}), "voyage-1"))).toBe(true);
 });
+
+it("chooses the first working captain, then the newest eligible captain of record", () => {
+	const rows = world({
+		agentStatus: new Map([
+			["old", "dormant"],
+			["first", "alive"],
+			["second", "alive"],
+			["new", "retired"],
+			["assigned", "alive"],
+		]),
+		assignments: [{ agentId: "assigned", pieceId: "piece-1" }],
+		crews: ["assigned", "second", "old", "new", "first"].map((agentId) => ({ agentId, role: "captain", voyageId: "voyage-1" })),
+		currentSessionByAgent: new Map(["first", "second", "assigned"].map((agentId) => [agentId, `session-${agentId}`])),
+		sessions: ["first", "second", "assigned"].map((agentId) => session(agentId, "active")),
+	});
+	expect(captain(rows).agentId).toBe("second");
+	expect(captain({ ...rows, agentStatus: new Map([...rows.agentStatus].map(([id]) => [id, "retired"])) }).agentId).toBe("new");
+});

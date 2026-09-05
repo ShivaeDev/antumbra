@@ -1,6 +1,6 @@
 import { type IntentStatus, type IntentSubmission, isTerminalIntentStatus } from "@antumbra/kernel";
+import { agentSettingsOf } from "@antumbra/voyages/agent-settings";
 import { Effect, Option, Queue, Stream } from "effect";
-import { agentSettingsOf } from "#agent-settings.ts";
 import { charterFor } from "#crew-charter.ts";
 import { accountOfIntent } from "#dispatch-failure-account.ts";
 import type { ReadyPiece } from "#dispatch-policy.ts";

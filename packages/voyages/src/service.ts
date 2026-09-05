@@ -5,6 +5,7 @@ import { Effect } from "effect";
 import { assignAgent } from "#assign-agent.ts";
 import { ensureFlagship } from "#flagship.ts";
 import { open } from "#open.ts";
+import { readAgentSettings } from "#read-agent-settings.ts";
 import { setAgentSettings } from "#set-agent-settings.ts";
 import { setCaptainBackend } from "#set-captain-backend.ts";
 import { setCrewBackend } from "#set-crew-backend.ts";
@@ -15,5 +16,15 @@ export const Voyages = defineService({
 	id: "@antumbra/voyages/Voyages",
 	requires: [Database, DomainFeeds],
 	initialize: Effect.void,
-	methods: () => ({ assignAgent, ensureFlagship, open, setAgentSettings, setCaptainBackend, setCrewBackend, setFocus, verifyExists }),
+	methods: () => ({
+		assignAgent,
+		ensureFlagship,
+		open,
+		readAgentSettings,
+		setAgentSettings,
+		setCaptainBackend,
+		setCrewBackend,
+		setFocus,
+		verifyExists,
+	}),
 });

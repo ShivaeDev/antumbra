@@ -1,6 +1,6 @@
-import type { Ruling, RulingAnswer } from "@antumbra/rulings";
 import { Option } from "effect";
-import { ruledByWords } from "#ruling-words.ts";
+import { ruledByWords } from "#answer/ruled-by-words.ts";
+import type { Ruling, RulingAnswer } from "#model.ts";
 
 const labelOf = (ruling: Ruling, choiceId: string): string => ruling.choices.find((choice) => choice.id === choiceId)?.label ?? choiceId;
 

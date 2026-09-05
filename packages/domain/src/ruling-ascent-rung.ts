@@ -1,27 +1,44 @@
+import { Database } from "@antumbra/persistence";
 import type { Ruling } from "@antumbra/rulings";
-import { Option } from "effect";
-import { captainOf } from "#voyage-captain.ts";
-import type { VoyageWorld } from "#voyage-rows.ts";
+import { Effect, Option } from "effect";
+import { readVoyageCaptain } from "#voyage-captain-read.ts";
 
-const flagshipCaptain = (world: VoyageWorld): Option.Option<string> => {
-	const flagship = world.voyages.find((voyage) => voyage.kind === "flagship");
-	return flagship === undefined ? Option.none() : Option.map(captainOf(world, flagship.id), (captain) => captain.agentId);
-};
-
-const captainOver = (world: VoyageWorld, agentId: string): Option.Option<string> =>
-	Option.flatMap(Option.fromUndefinedOr(world.crews.find((crew) => crew.agentId === agentId)?.voyageId), (voyageId) =>
-		Option.map(captainOf(world, voyageId), (captain) => captain.agentId),
+const destinations = Effect.fn("RulingAscent.destinations")(function* (rulings: ReadonlyArray<Ruling>) {
+	const db = yield* Database;
+	const requesters = rulings.flatMap((ruling) =>
+		ruling.requester.kind === "agent" && Option.contains(ruling.rung, "captain") ? [ruling.requester.agentId] : [],
 	);
-
-export const rungHolder = (world: VoyageWorld, ruling: Ruling): Option.Option<string> => {
-	const requester = ruling.requester;
-	if (requester.kind !== "agent") {
-		return Option.none();
-	}
-	return Option.flatMap(ruling.rung, (rung) => {
-		if (rung === "flagship") {
-			return flagshipCaptain(world);
+	const crews = yield* db.VoyageAgent.where((member) => member.agentId.in(requesters)).all();
+	const flagship = rulings.some((ruling) => ruling.requester.kind === "agent" && Option.contains(ruling.rung, "flagship"))
+		? yield* db.Voyage.where({ kind: "flagship" })
+				.orderBy((voyage) => voyage.createdAt.asc())
+				.first()
+		: Option.none();
+	return rulings.flatMap((ruling) => {
+		const requester = ruling.requester;
+		if (requester.kind !== "agent" || (!Option.contains(ruling.rung, "captain") && !Option.contains(ruling.rung, "flagship"))) {
+			return [];
 		}
-		return rung === "captain" ? captainOver(world, requester.agentId) : Option.none();
+		const voyageId = Option.contains(ruling.rung, "flagship")
+			? Option.map(flagship, (voyage) => voyage.id)
+			: Option.fromUndefinedOr(crews.find((crew) => crew.agentId === requester.agentId)?.voyageId);
+		return Option.match(voyageId, { onNone: () => [], onSome: (id) => [[ruling.id, id] as const] });
 	});
-};
+});
+
+export const rungHolders = Effect.fn("RulingAscent.rungHolders")(function* (rulings: ReadonlyArray<Ruling>) {
+	const voyages = yield* destinations(rulings);
+	const captains = new Map(
+		yield* Effect.forEach([...new Set(voyages.map(([, voyageId]) => voyageId))], (voyageId) =>
+			readVoyageCaptain(voyageId).pipe(Effect.map((captain) => [voyageId, captain] as const)),
+		),
+	);
+	return new Map(
+		voyages.flatMap(([rulingId, voyageId]) =>
+			Option.match(captains.get(voyageId) ?? Option.none(), {
+				onNone: () => [],
+				onSome: (captain) => [[rulingId, captain.agentId] as const],
+			}),
+		),
+	);
+});

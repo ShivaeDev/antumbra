@@ -10,6 +10,7 @@ import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { Layer } from "effect";
+import { VoyageAuthority } from "#authority/service.ts";
 import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ChangeProceduresLive } from "#change-procedures.ts";
 import { KernelReachDeferredLive } from "#kernel-reach.ts";
@@ -23,6 +24,7 @@ export const domainCapabilities = (
 	artifactsDirectory: string,
 ) => {
 	const foundations = Layer.mergeAll(
+		VoyageAuthority.layer,
 		PiecesLive,
 		BoardsLive,
 		ArtifactsLive(artifactsDirectory),

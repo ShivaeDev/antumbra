@@ -22,7 +22,12 @@ export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess 
 	});
 	let lineListener: ((line: string) => void) | null = null;
 	let stderrListener: ((text: string) => void) | null = null;
-	let exitListener: ((code: number | null) => void) | null = null;
+	const exitListeners: Array<(code: number | null) => void> = [];
+	const emitExit = (code: number | null): void => {
+		for (const listener of exitListeners) {
+			listener(code);
+		}
+	};
 	let buffer = "";
 	child.stdout.setEncoding("utf8");
 	child.stdout.on("data", (chunk: string) => {
@@ -39,8 +44,8 @@ export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess 
 	});
 	child.stderr.setEncoding("utf8");
 	child.stderr.on("data", (chunk: string) => stderrListener?.(chunk));
-	child.on("exit", (code) => exitListener?.(code));
-	child.on("error", () => exitListener?.(null));
+	child.on("exit", (code) => emitExit(code));
+	child.on("error", () => emitExit(null));
 	return {
 		// Closing stdin lets app-server exit cleanly; SIGTERM handles a child that remains alive.
 		kill: () => {
@@ -48,7 +53,7 @@ export const spawnLineProcess = (options: SpawnLineProcessOptions): LineProcess 
 			child.kill("SIGTERM");
 		},
 		onExit: (listener) => {
-			exitListener = listener;
+			exitListeners.push(listener);
 		},
 		onLine: (listener) => {
 			lineListener = listener;

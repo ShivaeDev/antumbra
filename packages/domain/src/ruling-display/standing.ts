@@ -4,11 +4,12 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
-import { namedIds, type RulingNameRows } from "#ruling-names.ts";
+import { namedIds, type RulingNames } from "#ruling-names.ts";
 import { standingRulingSeen } from "#ruling-projection.ts";
 import { rulingStaleness } from "#ruling-staleness.ts";
+import { byId } from "#voyage-row-projection.ts";
 
-const standingSeen = (world: RulingNameRows, ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
+const standingSeen = (world: RulingNames, ruling: Ruling, stale: boolean): Effect.Effect<StandingRulingsView["rulings"][number], RulingFailure> =>
 	Option.match(ruling.answer, {
 		onNone: () => new RulingFailure({ message: `ruling ${ruling.id} stands without an answer` }),
 		onSome: (answer) => Effect.succeed(standingRulingSeen(world, ruling, answer, stale)),
@@ -27,10 +28,10 @@ export const standing = Effect.fn("RulingDisplay.standing")(function* () {
 		.where((agent) => agent.status.in(["alive", "spawning"]))
 		.all();
 	const world = {
-		agents: yield* db.Agent.where((agent) => agent.id.in(named.agents)).all(),
-		pieces,
-		repos: yield* db.Repo.where((repo) => repo.id.in(named.repos)).all(),
-		voyages: yield* db.Voyage.where((voyage) => voyage.id.in(named.voyages)).all(),
+		agents: byId(yield* db.Agent.where((agent) => agent.id.in(named.agents)).all()),
+		pieces: byId(pieces),
+		repos: byId(yield* db.Repo.where((repo) => repo.id.in(named.repos)).all()),
+		voyages: byId(yield* db.Voyage.where((voyage) => voyage.id.in(named.voyages)).all()),
 	};
 	const stale = rulingStaleness({
 		...(yield* readAgentExecution(working)),

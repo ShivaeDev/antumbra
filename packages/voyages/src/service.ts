@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { Effect } from "effect";
 import { assignAgent } from "#assign-agent.ts";
+import { captainRole } from "#captain-role.ts";
 import { ensureFlagship } from "#flagship.ts";
 import { open } from "#open.ts";
 import { setFocus } from "#set-focus.ts";
@@ -14,6 +15,7 @@ export const Voyages = defineService({
 	initialize: Effect.void,
 	methods: () => ({
 		assignAgent,
+		captainRole,
 		ensureFlagship,
 		open,
 		setFocus,

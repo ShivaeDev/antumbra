@@ -4,12 +4,12 @@ import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
 import { type EventSink, type SessionAttachment, SessionFabric } from "@antumbra/session-fabric";
 import { SessionRegistration } from "@antumbra/sessions/registration/service";
 import { type Cause, Effect, Option } from "effect";
-import { makeMarkMoorageReady } from "#moorage-ready.ts";
+import { AgentBirth } from "#agent-birth/service.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 
 export const makeSpawnSessionStart = Effect.gen(function* () {
 	const fabric = yield* SessionFabric;
-	const markMoorageReady = yield* makeMarkMoorageReady;
+	const birth = yield* AgentBirth;
 	const registration = yield* SessionRegistration;
 	const db = yield* Database;
 	return <ESink, RSink, EAdmit, RAdmit, RFailure>(
@@ -24,7 +24,7 @@ export const makeSpawnSessionStart = Effect.gen(function* () {
 		fabric
 			.withStartAdmission((permit) =>
 				Effect.gen(function* () {
-					yield* markMoorageReady(payload);
+					yield* birth.markMoorageReady(payload);
 					yield* ensureAgentCanOwnLocalWork(payload.agentId).pipe(Effect.provideService(Database, db));
 					yield* registration.ensureRoot(payload, plan.root);
 					const eventSink = yield* sink;

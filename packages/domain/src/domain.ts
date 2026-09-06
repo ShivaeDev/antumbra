@@ -6,8 +6,10 @@ import { SessionFabricLive } from "@antumbra/session-fabric";
 import { sessionInputsLayer } from "@antumbra/session-inputs";
 import { LiveDelegationsLive } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
+import { SessionRecoveryContexts } from "@antumbra/sessions/recovery/contexts/service";
 import { sessionSendLayer } from "@antumbra/sessions/send/layer";
 import { SessionNodeReconciler } from "@antumbra/sessions/tree/reconcile/service";
+import { SessionTreeSinks } from "@antumbra/sessions/tree/sink/service";
 import { Layer } from "effect";
 import { makeAgentDomain } from "#agent-domain-assembly.ts";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -29,7 +31,9 @@ export const AgentDomainLive = (
 ) => {
 	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
+		Layer.provideMerge(SessionTreeSinks.layer),
 		Layer.provideMerge(sessionSendLayer(imageInputBackendsOf(backends))),
+		Layer.provideMerge(SessionRecoveryContexts.layer),
 		Layer.provideMerge(CurrentSessions.layer),
 		Layer.provideMerge(SessionNodeReconciler.layer),
 		Layer.provideMerge(MailDelivery.layer),

@@ -2,10 +2,9 @@ import type { Fleet } from "@antumbra/contract";
 import { fleet as fleetFixture, reefView } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { VoyageHeader } from "#views/voyage-header.tsx";
 
 const { backendModels, setAgentSettings } = vi.hoisted(() => ({ backendModels: vi.fn(), setAgentSettings: vi.fn() }));
@@ -30,37 +29,16 @@ beforeEach(() => {
 	});
 });
 
-const settle = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-
 const shown = Effect.gen(function* () {
-	const container = document.createElement("div");
-	document.body.append(container);
-	const root = createRoot(container);
-	yield* Effect.addFinalizer(() =>
-		settle(() => {
-			root.unmount();
-			container.remove();
-		}),
-	);
+	const { container, root } = yield* mount();
 	yield* settle(() => root.render(<VoyageHeader fleet={fleet} onError={() => undefined} voyage={voyage} />));
 	return { container, root };
 });
 
-const named = (container: HTMLElement, name: string): HTMLInputElement | null =>
-	container.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
-
-const write = (element: HTMLInputElement | null, value: string) => {
-	if (element === null) return;
-	nativeValue?.call(element, value);
-	element.dispatchEvent(new Event("input", { bubbles: true }));
+const named = (container: HTMLElement, name: string): HTMLInputElement => {
+	const input = container.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
+	if (input === null) return Effect.runSync(Effect.die(`Missing field ${name}`));
+	return input;
 };
 
 const saveButton = (container: HTMLElement): HTMLButtonElement | undefined =>

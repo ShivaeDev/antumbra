@@ -1,14 +1,9 @@
 import type { AgentBackend, Runner } from "@antumbra/plugin-api";
-import {
-	compileSessionSiestaDemands,
-	makeSessionTreeSinks,
-	makeSiestaKind,
-	makeWakeKind,
-	type SessionRecoveryContext,
-	sessionRecoveryLayer,
-} from "@antumbra/sessions";
+import { compileSessionSiestaDemands, makeSiestaKind, makeWakeKind, type SessionRecoveryContext, sessionRecoveryLayer } from "@antumbra/sessions";
 import { CurrentSessions } from "@antumbra/sessions/current/service";
 import { SessionNodeReconciler } from "@antumbra/sessions/tree/reconcile/service";
+import { SessionTreeSinks } from "@antumbra/sessions/tree/sink/service";
+import type { SinkFor } from "@antumbra/sessions/tree/sink/sink-for";
 import { Effect } from "effect";
 import { mailDeliveryDemands } from "#mail-delivery/demands.ts";
 import { MailDelivery } from "#mail-delivery/service.ts";
@@ -22,7 +17,9 @@ import { makeAgentToolCompiler } from "#spawn-tools.ts";
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
 		const mail = yield* MailDelivery;
-		const sinkFor = yield* makeSessionTreeSinks(mail.deliver());
+		const sinks = yield* SessionTreeSinks;
+		const afterRest = mail.deliver();
+		const sinkFor: SinkFor = (rootSessionId, audit) => sinks.create(rootSessionId, audit, afterRest);
 		const currentSessions = yield* CurrentSessions;
 		const nodes = yield* SessionNodeReconciler;
 		yield* currentSessions.reconcile();

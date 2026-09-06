@@ -9,12 +9,12 @@ import type {
 import type { Ruling, RulingAnswer, RulingContext, RulingReclassification } from "@antumbra/rulings";
 import { Option } from "effect";
 import { type GatedPieceRows, gatedPiecesSeen } from "#ruling-gated-pieces.ts";
-import { agentSeen, type RulingNameRows, speakerSeen, subjectSeen } from "#ruling-names.ts";
+import { agentSeen, type RulingNames, speakerSeen, subjectSeen } from "#ruling-names.ts";
 import { type RungRows, rungSeen } from "#ruling-rung-view.ts";
 
-type RulingWorld = GatedPieceRows & RulingNameRows & RungRows;
+type RulingWorld = GatedPieceRows & RungRows & { readonly names: RulingNames };
 
-const reclassificationSeen = (world: RulingNameRows, reclassification: RulingReclassification): RulingReclassificationView => ({
+const reclassificationSeen = (world: RulingNames, reclassification: RulingReclassification): RulingReclassificationView => ({
 	at: reclassification.at.toISOString(),
 	by: reclassification.by,
 	byAgent: speakerSeen(world, reclassification.byAgentId),
@@ -32,13 +32,13 @@ const reclassificationSeen = (world: RulingNameRows, reclassification: RulingRec
 	}),
 });
 
-const contextSeen = (world: RulingNameRows, context: RulingContext): RulingContextView => ({
+const contextSeen = (world: RulingNames, context: RulingContext): RulingContextView => ({
 	at: context.at.toISOString(),
 	author: speakerSeen(world, context.authorAgentId),
 	body: context.body,
 });
 
-const requesterSeen = (world: RulingNameRows, requester: Ruling["requester"]): RulingRequesterView =>
+const requesterSeen = (world: RulingNames, requester: Ruling["requester"]): RulingRequesterView =>
 	requester.kind === "agent" ? { agent: agentSeen(world, requester.agentId), kind: "agent" } : requester;
 
 const voyageSeen = (ruling: Ruling, world: Pick<GatedPieceRows, "voyages">): RulingVoyageView | null => {
@@ -54,19 +54,19 @@ export const rulingSeen = (ruling: Ruling, world: RulingWorld): RulingView => ({
 		label: choice.label,
 	})),
 	context: ruling.context,
-	contexts: ruling.contexts.map((context) => contextSeen(world, context)),
+	contexts: ruling.contexts.map((context) => contextSeen(world.names, context)),
 	declared: ruling.declared,
 	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
 	id: ruling.id,
 	parked: Option.getOrNull(Option.map(ruling.parked, (parked) => ({ at: parked.at.toISOString(), note: parked.note }))),
 	question: ruling.question,
 	radius: ruling.radius,
-	reclassifications: ruling.reclassifications.map((move) => reclassificationSeen(world, move)),
+	reclassifications: ruling.reclassifications.map((move) => reclassificationSeen(world.names, move)),
 	recommendation: Option.getOrNull(ruling.recommendation),
 	requestedAt: ruling.createdAt.toISOString(),
-	requester: requesterSeen(world, ruling.requester),
+	requester: requesterSeen(world.names, ruling.requester),
 	rung: rungSeen(ruling, world),
-	subjects: ruling.subjects.map((subject) => subjectSeen(world, subject)),
+	subjects: ruling.subjects.map((subject) => subjectSeen(world.names, subject)),
 	urgency: ruling.urgency,
 	voyage: voyageSeen(ruling, world),
 });
@@ -78,7 +78,7 @@ const chosenLabel = (ruling: Ruling, answer: RulingAnswer): string | null =>
 		),
 	);
 
-export const standingRulingSeen = (world: RulingNameRows, ruling: Ruling, answer: RulingAnswer, stale: boolean): StandingRulingView => ({
+export const standingRulingSeen = (world: RulingNames, ruling: Ruling, answer: RulingAnswer, stale: boolean): StandingRulingView => ({
 	answer: answer.text,
 	chosen: chosenLabel(ruling, answer),
 	id: ruling.id,

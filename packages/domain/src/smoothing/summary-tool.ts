@@ -3,7 +3,7 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import type { EventSink } from "@antumbra/session-fabric";
 import { Deferred, Effect } from "effect";
 
-export type SummaryWritten = { readonly _tag: "silent" } | { readonly _tag: "written"; readonly text: string };
+export type SummaryWritten = { readonly _tag: "silent" } | { readonly _tag: "timedOut" } | { readonly _tag: "written"; readonly text: string };
 
 type Written = Deferred.Deferred<SummaryWritten>;
 

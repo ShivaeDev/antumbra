@@ -3,6 +3,7 @@ import { Rulings } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
 import { namedIds } from "#ruling-names.ts";
 import { rulingSeen } from "#ruling-projection.ts";
+import { byId } from "#voyage-row-projection.ts";
 
 export const open = Effect.fn("RulingDisplay.open")(function* () {
 	const db = yield* Database;
@@ -24,5 +25,6 @@ export const open = Effect.fn("RulingDisplay.open")(function* () {
 	const voyages = yield* db.Voyage.where((voyage) => voyage.id.in(voyageIds))
 		.orderBy((voyage) => voyage.createdAt.asc())
 		.all();
-	return { rulings: requested.map((ruling) => rulingSeen(ruling, { agents, crews, memberships, pieces, repos, voyages })) };
+	const names = { agents: byId(agents), pieces: byId(pieces), repos: byId(repos), voyages: byId(voyages) };
+	return { rulings: requested.map((ruling) => rulingSeen(ruling, { crews, memberships, names, pieces, voyages })) };
 });

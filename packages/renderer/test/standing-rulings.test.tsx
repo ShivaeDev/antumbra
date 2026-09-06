@@ -1,9 +1,8 @@
 import type { OpenRulingsView, StandingRulingsView, StandingRulingView } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
+import { mount, settle, write } from "#test/dom.ts";
 import { RulingsPanel } from "#views/rulings.tsx";
 
 const { openFeeds, standingFeeds, supersedeRuling, withdrawRuling } = vi.hoisted(() => {
@@ -63,28 +62,6 @@ const chartAuthority: StandingRulingView = {
 	urgency: "blocking",
 };
 
-const settle = (change: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return { container, root };
-	});
-
 const showing = (mounted: Effect.Success<ReturnType<typeof mount>>, standing: ReadonlyArray<StandingRulingView>): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		yield* settle(() => mounted.root.render(<RulingsPanel />));
@@ -114,11 +91,7 @@ const writing = (mounted: Effect.Success<ReturnType<typeof mount>>, label: strin
 	settle(() => {
 		const tag = [...mounted.container.querySelectorAll("label")].find((each) => each.textContent === label);
 		const box = mounted.container.querySelector<HTMLInputElement>(`[id="${tag?.htmlFor}"]`);
-		const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-		if (box !== null && set !== undefined) {
-			set.call(box, words);
-			box.dispatchEvent(new Event("input", { bubbles: true }));
-		}
+		if (box !== null) write(box, words);
 	});
 
 const questionsIn = (list: Element | undefined): ReadonlyArray<string | null> =>

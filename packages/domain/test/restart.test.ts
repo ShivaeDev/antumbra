@@ -1,15 +1,16 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionRestart } from "@antumbra/sessions/restart/service";
+import { endsTurn } from "@antumbra/testing";
 import { expect, it } from "@effect/vitest";
-import { Effect, ManagedRuntime, Option, Ref } from "effect";
+import { Effect, Option, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { KernelReach } from "#kernel-reach/service.ts";
 import { honorRestartIntent } from "#restart.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, type ScriptedBackend, sessionFor } from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
-import { eventually, untilTerminal } from "#test/session-recovery-fixture.ts";
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 const RESTART_RESUME = { key: "restart:resume" };
 
@@ -28,30 +29,16 @@ const spawnHand = (agentId: string, sessionId: string) =>
 		expect(yield* untilTerminal(submission.changes)).toBe("succeeded");
 	});
 
-const restHand = (scripted: ScriptedBackend, agentId: string) =>
-	Effect.gen(function* () {
-		const db = yield* Database;
-		const live = yield* sessionFor(scripted, agentId);
-		yield* live.emit({ durationMs: 1200, raw: rawOf("turn/completed"), status: "completed", type: "turn.completed" });
-		yield* eventually(
-			Effect.gen(function* () {
-				expect((yield* db.AgentSession.where({ agentId }).all())[0]?.executionStatus).toBe("idle");
-			}),
-		);
-	});
-
 interface RecordedWake {
 	readonly intentStillRecorded: boolean;
 	readonly sessionId: string;
 }
 
-it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, once the intent is forgotten", () =>
+it.effect("a restart wakes the roots it cut mid-turn and leaves those at rest, once the intent is forgotten", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		const abandoned = ManagedRuntime.make(domainKernelLayer(temporary, scripted.backend));
-		yield* Effect.promise(() => abandoned.runPromise(spawnHand("restart-stranded", "restart-session-stranded")));
-		yield* Effect.promise(() => abandoned.dispose());
+		yield* spawnHand("restart-stranded", "restart-session-stranded").pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 
 		yield* Effect.gen(function* () {
 			const db = yield* Database;
@@ -59,7 +46,7 @@ it.live("a restart wakes the roots it cut mid-turn and leaves those at rest, onc
 			yield* spawnHand("restart-one", "restart-session-one");
 			yield* spawnHand("restart-two", "restart-session-two");
 			yield* spawnHand("restart-idle", "restart-session-idle");
-			yield* restHand(scripted, "restart-idle");
+			yield* endsTurn(scripted, "restart-session-idle");
 
 			yield* restart.record();
 			expect(Option.getOrThrow(yield* db.AppMeta.where(RESTART_RESUME).first()).value).toBe(

@@ -19,6 +19,8 @@ import { SessionTreeLedger } from "@antumbra/sessions/tree/ledger/service";
 import { SessionTreeLifecycle } from "@antumbra/sessions/tree/lifecycle/service";
 import { SessionTreeRows } from "@antumbra/sessions/tree/rows/service";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
+import { SessionTreeSweeps } from "@antumbra/sessions/tree/sweeps/service";
+import { SessionTurnRests } from "@antumbra/sessions/turn-rest/service";
 import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
@@ -45,9 +47,14 @@ export const domainCapabilities = (
 		ReportsLive,
 		ReposLive,
 		RulingHoldsLive.pipe(Layer.provideMerge(RulingsLive)),
-		Layer.mergeAll(SessionTreeAudits.layer, SessionTreeLifecycle.layer).pipe(
-			Layer.provideMerge(Layer.mergeAll(SessionTreeLedger.layer, SessionTreeRows.layer, SessionEventJournalLive)),
+		SessionTreeSweeps.layer.pipe(
+			Layer.provideMerge(
+				Layer.mergeAll(SessionTreeAudits.layer, SessionTreeLifecycle.layer).pipe(
+					Layer.provideMerge(Layer.mergeAll(SessionTreeLedger.layer, SessionTreeRows.layer, SessionEventJournalLive)),
+				),
+			),
 		),
+		SessionTurnRests.layer,
 		SessionTrees.layer,
 		SessionRegistration.layer,
 		SessionDrain.layer,

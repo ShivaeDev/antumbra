@@ -1,36 +1,30 @@
 import type { BoardEntryView, BoardSmoothing, BoardTarget } from "@antumbra/contract";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "#components/ui/badge.tsx";
-import { cn } from "#lib/utils.ts";
 import { BoardComposer } from "#views/board-composer.tsx";
+import { BoardNodes } from "#views/board-entry.tsx";
 import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
-import { MarkdownView } from "#views/markdown-view.tsx";
 import { Section } from "#views/section.tsx";
-import { authorLabel, boardRegisterLabel, whenLabel } from "#voyages/labels.ts";
-import { bySalience } from "#voyages/order.ts";
+import { boardTree } from "#voyages/board-tree.ts";
 
-const EntryRow = ({ entry }: { readonly entry: BoardEntryView }) => {
-	const smooth = entry.register === "smooth";
-	return (
-		<li className={cn("flex min-w-0 flex-col gap-1 rounded-md border px-2.5 py-2", smooth ? "border-border bg-card" : "border-transparent")}>
-			<div className="flex min-w-0 items-center gap-2 text-2xs text-muted-foreground">
-				<Badge variant={smooth ? "info" : "outline"}>{boardRegisterLabel[entry.register]}</Badge>
-				<span className={cn("min-w-0 truncate", entry.authorAgentId === null ? null : "font-mono")}>{authorLabel(entry.authorAgentId)}</span>
-				<span className="ml-auto shrink-0 tabular-nums">{whenLabel(entry.createdAt)}</span>
-			</div>
-			<MarkdownView className={smooth ? "text-xs" : "text-2xs text-muted-foreground"} markdown={entry.body} />
-		</li>
-	);
+const EXPLAINER = "Entries newest first; open a summary to see the entries behind it.";
+
+const NO_ENTRIES = "No entries yet; agents write here as they work";
+
+const NO_SUMMARY: Readonly<Record<BoardTarget["kind"], string>> = {
+	piece: "No summary yet; one is written when the Piece completes",
+	voyage: "No summary yet; one is written at the end of each day or when you smooth now",
 };
 
 export const BoardPanel = ({
 	entries,
+	name,
 	onSmooth,
 	scope,
 	smoothing,
 }: {
 	readonly entries: ReadonlyArray<BoardEntryView>;
+	readonly name: string;
 	readonly onSmooth?: () => void;
 	readonly scope: BoardTarget;
 	readonly smoothing?: BoardSmoothing;
@@ -38,6 +32,7 @@ export const BoardPanel = ({
 	const [open, setOpen] = useState(false);
 	const Chevron = open ? ChevronDown : ChevronRight;
 	const pass = smoothing === undefined || onSmooth === undefined ? null : { onSmooth, smoothing };
+	const smoothed = entries.some((entry) => entry.kind === "summary");
 	return (
 		<Section>
 			<div className="flex min-w-0 items-center gap-2 border-b border-border pb-1.5">
@@ -55,13 +50,13 @@ export const BoardPanel = ({
 				{pass === null ? null : <SmoothNow onSmooth={pass.onSmooth} smoothing={pass.smoothing} />}
 			</div>
 			{pass === null ? null : <SmoothingLine onSmooth={pass.onSmooth} smoothing={pass.smoothing} />}
-			{open && entries.length === 0 ? <p className="text-2xs text-muted-foreground">Nothing written yet — the crew and you both write here</p> : null}
+			{open && entries.length === 0 ? <p className="text-2xs text-muted-foreground">{NO_ENTRIES}</p> : null}
 			{open && entries.length > 0 ? (
-				<ul className="flex min-w-0 flex-col gap-1">
-					{bySalience(entries).map((entry) => (
-						<EntryRow entry={entry} key={entry.id} />
-					))}
-				</ul>
+				<>
+					<p className="text-2xs text-muted-foreground">{EXPLAINER}</p>
+					{smoothed ? null : <p className="text-2xs text-muted-foreground">{NO_SUMMARY[scope.kind]}</p>}
+					<BoardNodes boardName={name} depth={0} nodes={boardTree(entries)} />
+				</>
 			) : null}
 			{open ? <BoardComposer scope={scope} /> : null}
 		</Section>

@@ -1,4 +1,4 @@
-import type { BoardEntryView, PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
+import type { PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
 
 const RUNG: Readonly<Record<PieceState, number>> = {
 	abandoned: 7,
@@ -16,11 +16,6 @@ export const byLadder = (pieces: ReadonlyArray<PieceView>): ReadonlyArray<PieceV
 		const rung = RUNG[left.state] - RUNG[right.state];
 		return rung === 0 ? left.title.localeCompare(right.title) : rung;
 	});
-
-export const bySalience = (entries: ReadonlyArray<BoardEntryView>): ReadonlyArray<BoardEntryView> => [
-	...entries.filter((entry) => entry.register === "smooth"),
-	...entries.filter((entry) => entry.register !== "smooth"),
-];
 
 export const byFlagship = (voyages: ReadonlyArray<VoyageSummary>): ReadonlyArray<VoyageSummary> => [
 	...voyages.filter((voyage) => voyage.kind === "flagship"),

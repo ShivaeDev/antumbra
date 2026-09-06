@@ -9,6 +9,10 @@ export {
 	type VoyageAgentRole,
 } from "@antumbra/vocabulary/agent-role";
 export {
+	SUMMARY_LEVELS,
+	type SummaryLevel,
+} from "@antumbra/vocabulary/board";
+export {
 	MAX_SESSION_IMAGE_SOURCE_BYTES,
 	MAX_SESSION_IMAGES,
 	SessionInputId,

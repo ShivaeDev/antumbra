@@ -1,5 +1,13 @@
 import { Data } from "effect";
 
+export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable")<{
+	readonly changeId: string;
+}> {
+	override get message(): string {
+		return `change ${this.changeId} is not open on a host that names it`;
+	}
+}
+
 export class UnknownChangeHostTag extends Data.TaggedError("UnknownChangeHostTag")<{
 	readonly tag: string;
 }> {}

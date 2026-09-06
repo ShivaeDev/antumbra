@@ -10,6 +10,7 @@ import { hostCapabilities } from "#host-capabilities.ts";
 import { hostTags } from "#host-tags.ts";
 import { pendingForPieces } from "#pending-for-pieces.ts";
 import { ChangeHostRegistry, RunnerRegistry } from "#registries.ts";
+import { addressable } from "#situations/addressable.ts";
 import { situationsForPieces } from "#situations/for-pieces.ts";
 import { readChangeSnapshot } from "#snapshot.ts";
 import { adoptSubmittedChange } from "#submissions/adopt.ts";
@@ -24,6 +25,7 @@ export const Changes = defineService({
 	id: "@antumbra/changes/Changes",
 	initialize: Effect.void,
 	methods: () => ({
+		addressable,
 		adopt: adoptSubmittedChange,
 		byId: changeById,
 		dismiss: dismissChange,

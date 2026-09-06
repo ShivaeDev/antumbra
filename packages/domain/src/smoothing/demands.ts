@@ -32,9 +32,8 @@ export const compileSmoothingDemands = (smooth: IntentKind<SmoothFields>, smooth
 		const pieces = yield* Pieces;
 		const spannedPieces = yield* makeSpannedPieces;
 		const settledPieces = Effect.gen(function* () {
-			const attempted = yield* piecesAttempted();
-			const concluded = yield* concludedPiecesOf(yield* voyageIds());
-			const spanned = yield* spannedPieces(concluded.filter((piece) => !attempted.has(piece.pieceId)));
+			const concluded = yield* concludedPiecesOf(yield* voyageIds(), yield* piecesAttempted());
+			const spanned = yield* spannedPieces(concluded);
 			return spanned.map((piece) => ({ pieceId: piece.pieceId, voyageId: piece.voyageId }) satisfies SmoothPieceFields);
 		});
 		return [

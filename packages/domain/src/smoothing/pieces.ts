@@ -15,9 +15,11 @@ export interface PieceToSmooth extends ConcludedPiece {
 	readonly span: SmoothingSpan;
 }
 
-export const concludedPiecesOf = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<string>) {
+export const concludedPiecesOf = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<string>, excluded: ReadonlySet<string>) {
 	const db = yield* Database;
-	const memberships = yield* db.VoyagePiece.where((membership) => membership.voyageId.in(voyageIds)).all();
+	const memberships = (yield* db.VoyagePiece.where((membership) => membership.voyageId.in(voyageIds)).all()).filter(
+		(membership) => !excluded.has(membership.pieceId),
+	);
 	const pieces = yield* db.Piece.where((piece) => piece.id.in(memberships.map((membership) => membership.pieceId)))
 		.orderBy((piece) => piece.createdAt.asc())
 		.all();

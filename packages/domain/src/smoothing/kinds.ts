@@ -10,6 +10,8 @@ import { makeSmoothingPasses } from "#smoothing/pass.ts";
 import { concludedPiecesOf, makeSpannedPieces } from "#smoothing/pieces.ts";
 import { makeSmootherAtHand, type SmoothRuntime } from "#smoothing/smoother.ts";
 
+const NOTHING_ATTEMPTED: ReadonlySet<string> = new Set();
+
 export const smoothingKinds = (runtime: SmoothRuntime) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
@@ -22,7 +24,7 @@ export const smoothingKinds = (runtime: SmoothRuntime) =>
 		const spannedPieces = yield* makeSpannedPieces;
 		const alone = yield* Semaphore.make(1);
 		const smoothableOf = (voyageId: string) =>
-			concludedPiecesOf([voyageId]).pipe(
+			concludedPiecesOf([voyageId], NOTHING_ATTEMPTED).pipe(
 				Effect.provideService(Changes, changes),
 				Effect.provideService(Database, db),
 				Effect.provideService(Pieces, pieces),

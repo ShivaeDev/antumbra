@@ -5,7 +5,8 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./stylesheet.css": "./src/styles/theme.css"
+		"./stylesheet.css": "./src/styles/theme.css",
+		"./package.json": "./package.json"
 	},
 	"imports": {
 		"#test/*": "./test/*",

@@ -8,7 +8,7 @@ export const vocabularyCapabilityPolicy = [
 		.allowsOnly("agent-runtime")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("platform/vocabulary", "src/agent-runtime.ts")),
+			legal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("platform/vocabulary", "src/agent-runtime/stored.ts")),
 		}),
 	vocabularyAccess("boards-uses-board-vocabulary")
 		.because("Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.")
@@ -34,10 +34,10 @@ export const vocabularyCapabilityPolicy = [
 		.allowsOnly("session-events")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(
-				files.inPackage("platform/vocabulary", "src/agent-runtime.ts"),
+				files.inPackage("platform/vocabulary", "src/agent-runtime/statuses.ts"),
 			),
 			legal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events.ts"),
+				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
 			),
 		}),
 	vocabularyAccess("session-fabric-uses-session-event-vocabulary")
@@ -47,7 +47,7 @@ export const vocabularyCapabilityPolicy = [
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
 			legal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events.ts"),
+				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
 			),
 		}),
 	vocabularyAccess("sessions-uses-session-vocabulary")
@@ -58,7 +58,9 @@ export const vocabularyCapabilityPolicy = [
 		.allowsOnly("agent-runtime", "session-events", "session-input")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("platform/vocabulary", "src/agent-runtime.ts")),
+			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(
+				files.inPackage("platform/vocabulary", "src/agent-runtime/statuses.ts"),
+			),
 		}),
 	vocabularyAccess("session-inputs-uses-session-input-vocabulary")
 		.because(
@@ -68,7 +70,7 @@ export const vocabularyCapabilityPolicy = [
 		.allowsOnly("session-input")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events.ts"),
+				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
 			),
 			legal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(
 				files.inPackage("platform/vocabulary", "src/session-input.ts"),

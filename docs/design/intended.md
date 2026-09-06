@@ -16,9 +16,9 @@ describes one of these carries a marker pointing here. When one ships, its line 
   `parkedAt` are the only stored posture. [Guide.](work-and-planning.md#posture-readiness-and-progress)
 - **Approvals as decisions** — recording who decided what, at what scope, when a provider asks. Claude runs with permission mode `auto`; the Codex
   adapter declines every approval request and says so, because no consumer is wired.
-- **Smoothing without being asked, and the smooth log as a tree** — the pass on a Piece's completion and the daily pass, the levels above the day that
-  a week and a month would carry, and the Board page that reads its summaries as a tree the admiral opens level by level. A smoother summarizes a day
-  when the admiral asks for it, and the Board page lists what it holds. [Guide.](attention-and-memory.md#smoothing)
+- **Levels above the day, and the smooth log as a tree** — the levels a week and a month would carry, and the Board page that reads its summaries as a
+  tree the admiral opens level by level. A smoother summarizes a Piece when its work is over and a Voyage once a day or when the admiral asks, and the
+  Board page lists what it holds. [Guide.](attention-and-memory.md#smoothing)
 - **Attention lanes and heave-to** — escalation, decision point, finding, and grievance as typed reasons for attention, all stop as a rail, and the
   discussion mode that holds an Agent's context. The decision point is the Ruling and has its record; the rest has no row.
   [Guide.](attention-and-memory.md#attention-lanes)

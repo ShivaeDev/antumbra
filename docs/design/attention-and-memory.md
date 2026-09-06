@@ -28,17 +28,24 @@ calendar day at a time, and appends one **summary** to the smooth log for each o
 covers as data, never as words in its text, so every label a reader is shown is derived rather than written. A reader meets the summaries where the
 smoothed stretch ends and the tail of later entries begins.
 
-The smoother is a constrained role: Antumbra writes its prompt, it holds one tool, and it sees only the entries of the day it was given. It is an
-Agent of its Voyage all the same, so what a pass costs is that voyage's cost like every other agent's. A pass that writes no summary changes nothing —
-the log stands as it was and the admiral may ask again — and a day smoothed twice carries two summaries, which is honest for a log that only ever
-appends.
+The smoother is a constrained role: Antumbra writes its prompt, it holds one tool, and it sees only the entries it was given. It is an Agent of its
+Voyage all the same, so what a pass costs is that voyage's cost like every other agent's. A pass that writes no summary changes nothing — the log
+stands as it was and the admiral may ask again — and a stretch smoothed twice carries two summaries, which is honest for a log that only ever appends.
+One smoother works at a time, so a pass never competes with another for the fleet.
 
 Every reader takes the same shape: the summary in place of what it covers, and every entry since in full. Naming a summary reads the entries behind it
 instead, so covered sources stay reachable. Smoothing may let derivable material fall behind a summary, but it never deletes the underlying graph.
 That is how a Board can preserve evidence without making every old detail equally salient.
 
-The admiral asks for a pass from the Board. The triggers that ask without being asked, and the page that reads the smooth log as a tree, are
-[intended](intended.md).
+Three things ask for a pass. A **Piece** is smoothed when its work is over: its whole board becomes one summary at the level of the Piece, however
+many days it took, and that summary is written again onto its Voyage's Board as an ordinary rough entry naming the Piece, so a captain reads one
+paragraph for a finished Piece rather than its whole log. Every **Voyage** is smoothed once a local day: the pass settles the finished Pieces still
+carrying an unsmoothed board, then the days that have closed, leaving the day under way to the admiral. The admiral asks for the third from the Board
+itself, and that pass takes the day under way as well. A pass that never ran because the machine was asleep runs when the app opens.
+
+A failed pass leaves no mark. Nothing records that it was tried, so the entries it did not settle are still uncovered and the next pass over that
+Voyage meets them again; what the admiral sees meanwhile is the tail the Board already shows. The levels above the day that a week and a month would
+carry, and the page that reads the smooth log as a tree, are [intended](intended.md).
 
 ## Coordination rails
 

@@ -1,4 +1,4 @@
-import { command, fact, feature, materializer, query, row } from "@antumbra/journal";
+import { command, fact, feature, materializer, query, row } from "@antumbra/feature";
 import { Effect, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 

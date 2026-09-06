@@ -1,4 +1,4 @@
-import { command } from "@antumbra/journal";
+import { command } from "@antumbra/feature";
 import { Effect, Option, Schema } from "effect";
 import { pieceParked } from "#example/facts/piece-parked.ts";
 import { PieceId } from "#example/ids.ts";

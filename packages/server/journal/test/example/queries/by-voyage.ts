@@ -1,4 +1,4 @@
-import { query } from "@antumbra/journal";
+import { query } from "@antumbra/feature";
 import { Effect, Schema } from "effect";
 import { VoyageId } from "#example/ids.ts";
 import { piece } from "#example/rows/piece.ts";

@@ -1,4 +1,4 @@
-import { AlreadyDone } from "@antumbra/journal";
+import { AlreadyDone } from "@antumbra/feature";
 import * as Id from "@antumbra/vocabulary/id";
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";

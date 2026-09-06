@@ -1,4 +1,4 @@
-import type { FeatureShape } from "@antumbra/journal";
+import type { FeatureShape } from "@antumbra/feature";
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import type { AppDefinition } from "#app.ts";

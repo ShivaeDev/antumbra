@@ -1,4 +1,4 @@
-import type { CommandShape, FeatureShape } from "@antumbra/journal";
+import type { CommandShape, FeatureShape } from "@antumbra/feature";
 import * as Id from "@antumbra/vocabulary/id";
 import type { Effect } from "effect";
 import type { AppDefinition } from "#app.ts";

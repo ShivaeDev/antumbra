@@ -1,4 +1,4 @@
-import { fact } from "@antumbra/journal";
+import { fact } from "@antumbra/feature";
 import { Schema } from "effect";
 import { PieceId } from "#example/ids.ts";
 

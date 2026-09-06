@@ -1,4 +1,4 @@
-import { row } from "@antumbra/journal";
+import { row } from "@antumbra/feature";
 import { it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { expect } from "vitest";

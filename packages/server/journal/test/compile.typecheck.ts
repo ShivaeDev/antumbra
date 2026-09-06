@@ -1,4 +1,4 @@
-import { type CommandInput, feature, type ReadHandles } from "@antumbra/journal";
+import { type CommandInput, feature, type ReadHandles } from "@antumbra/feature";
 import { Effect } from "effect";
 import type { park } from "#example/commands/park.ts";
 import { pieceParked } from "#example/facts/piece-parked.ts";

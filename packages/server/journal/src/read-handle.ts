@@ -1,4 +1,4 @@
-import { RowNotFound } from "@antumbra/journal";
+import { RowNotFound } from "@antumbra/feature";
 import { Effect, Option } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import type { Row } from "effect/unstable/sql/SqlConnection";

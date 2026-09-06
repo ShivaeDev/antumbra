@@ -1,4 +1,4 @@
-import type { RowShape } from "@antumbra/journal";
+import type { RowShape } from "@antumbra/feature";
 import { Effect, Schema } from "effect";
 import type { Row } from "effect/unstable/sql/SqlConnection";
 import { type Column, columnsOf } from "#column.ts";

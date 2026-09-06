@@ -1017,7 +1017,7 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
-  packages/platform/journal:
+  packages/platform/feature:
     dependencies:
       '@antumbra/vocabulary':
         specifier: workspace:*
@@ -1494,9 +1494,9 @@ importers:
 
   packages/server/journal:
     dependencies:
-      '@antumbra/journal':
+      '@antumbra/feature':
         specifier: workspace:*
-        version: link:../../platform/journal
+        version: link:../../platform/feature
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../../platform/vocabulary

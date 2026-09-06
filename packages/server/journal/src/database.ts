@@ -6,6 +6,6 @@ export interface Clients {
 	readonly write: SqlClient;
 }
 
-export class Database extends Context.Service<Database, Clients>()("@antumbra/journal-server/Database") {}
+export class Database extends Context.Service<Database, Clients>()("@antumbra/journal/Database") {}
 
-export class DataDirectory extends Context.Service<DataDirectory, { readonly path: string }>()("@antumbra/journal-server/DataDirectory") {}
+export class DataDirectory extends Context.Service<DataDirectory, { readonly path: string }>()("@antumbra/journal/DataDirectory") {}

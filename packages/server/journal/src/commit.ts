@@ -7,7 +7,7 @@ import {
 	type RejectedBy,
 	type RejectionSpecs,
 	type RowShape,
-} from "@antumbra/journal";
+} from "@antumbra/feature";
 import { Clock, Context, Effect, Schema } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
@@ -28,7 +28,7 @@ export interface CommitService {
 	) => Effect.Effect<number, AlreadyDone | RejectedBy<Specs>>;
 }
 
-export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/journal-server/Commit") {}
+export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/journal/Commit") {}
 
 export interface CommitContext {
 	readonly reactivity: Reactivity["Service"];

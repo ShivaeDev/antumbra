@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/journal-server",
+	"name": "@antumbra/journal",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -26,7 +26,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/journal": "workspace:*",
+		"@antumbra/feature": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:"

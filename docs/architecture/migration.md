@@ -39,7 +39,7 @@ apps/
 
 packages/
   platform/         shared by more than one process, no feature knowledge
-    vocabulary/  service-definition/  trace-sink/  prompts/  skills/  rpc/  testing/
+    vocabulary/  feature/  service-definition/  trace-sink/  prompts/  skills/  rpc/  testing/
   server/
     journal/        the kit: commit, materializers, live query, DDL from Schema classes, rebuild, fact migrations
     domains/        settings/  voyages/  pieces/  boards/  rulings/  repos/  changes/  artifacts/  reports/  sessions/  inputs/  reclamation/  capacity/

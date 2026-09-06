@@ -1,4 +1,4 @@
-import type { AlreadyDone, FeatureShape, Fields, QueryDefinition, ReadRows, RejectedBy, RowKey, RowShape, RowValue, Values } from "@antumbra/journal";
+import type { AlreadyDone, FeatureShape, Fields, QueryDefinition, ReadRows, RejectedBy, RowKey, RowShape, RowValue, Values } from "@antumbra/feature";
 import type { Effect, Schema } from "effect";
 
 export type Projections<Features extends readonly FeatureShape[]> = Features[number]["rows"][number];

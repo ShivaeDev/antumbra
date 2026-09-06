@@ -5,7 +5,7 @@ import { type AgentBackend, type BackendCapacitySource, makeBackendCapacityContr
 import { BackendCapacities } from "@antumbra/provider-capacity";
 import { capacityHoldDetail } from "@antumbra/sessions/admission/hold";
 import { expect, it } from "@effect/vitest";
-import { Clock, Deferred, Effect, Layer, ManagedRuntime, Option, Ref } from "effect";
+import { Clock, Deferred, Effect, Layer, Option, Ref } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 import {
@@ -114,37 +114,25 @@ const verifyRestartedRelease = (ids: ReadonlyArray<string>, attempts: Attempts) 
 		expect([...(yield* Ref.get(attempts)).values()]).toEqual([2, 2]);
 	});
 
-const runCrashRuntime = (layer: ReturnType<typeof domainKernelLayer>) =>
-	Effect.acquireUseRelease(
-		Effect.sync(() => ManagedRuntime.make(layer)),
-		(runtime) => Effect.promise(() => runtime.runPromise(parkWorkAndDurablyClear)),
-		(runtime) => Effect.promise(() => runtime.dispose()),
-	);
-
-const runRecoveryRuntime = (layer: ReturnType<typeof releaseRuntimeLayer>, ids: ReadonlyArray<string>, attempts: Attempts) =>
-	Effect.acquireUseRelease(
-		Effect.sync(() => ManagedRuntime.make(layer)),
-		(runtime) => Effect.promise(() => runtime.runPromise(verifyRestartedRelease(ids, attempts))),
-		(runtime) => Effect.promise(() => runtime.dispose()),
-	);
-
-it.live("repairs both parked births and wakes on boot after a durable clear", () =>
+it.effect("repairs both parked births and wakes on boot after a durable clear", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const controller = yield* controllerEffect;
 		controller.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
 		const attempts = yield* Ref.make(new Map<string, number>());
-		const ids = yield* runCrashRuntime(domainKernelLayer(temporary, scripted.backend, controller.source, attempts));
+		const ids = yield* parkWorkAndDurablyClear.pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, controller.source, attempts)));
 		expect(Option.isNone(yield* controller.source.current)).toBe(true);
 
 		const restartedController = yield* controllerEffect;
 		expect(Option.isNone(yield* restartedController.source.current)).toBe(true);
-		yield* runRecoveryRuntime(releaseRuntimeLayer(temporary, scripted.backend, restartedController.source, attempts), ids, attempts);
+		yield* verifyRestartedRelease(ids, attempts).pipe(
+			Effect.provide(releaseRuntimeLayer(temporary, scripted.backend, restartedController.source, attempts)),
+		);
 	}),
 );
 
-it.live("releases work that reaches waiting after the clear", () =>
+it.effect("releases work that reaches waiting after the clear", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const { capacities, state } = yield* makeCapacities;

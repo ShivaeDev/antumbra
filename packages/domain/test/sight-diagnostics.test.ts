@@ -8,7 +8,7 @@ import { AgentDomain } from "#domain.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";
-import { eventually } from "#test/session-recovery-fixture.ts";
+import { liveSession, spawnRequest } from "#test/sight-fixture.ts";
 
 interface Hold {
 	open: boolean;
@@ -28,16 +28,10 @@ const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend, 
 		),
 	);
 
-const spawnRequest = {
-	backend: "scripted",
-	charter: "chart the reef",
-	role: "navigator",
-};
-
 const words = (intents: ReadonlyArray<{ readonly kind: string; readonly state: string }>) =>
 	intents.map((intent) => `${intent.kind} ${intent.state}`);
 
-it.live("a spawn held before admission stands on the fleet itself", () =>
+it.effect("a spawn held before admission stands on the fleet itself", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -51,7 +45,7 @@ it.live("a spawn held before admission stands on the fleet itself", () =>
 	}),
 );
 
-it.live("a draining session shows its execution word beside its intent", () =>
+it.effect("a draining session shows its execution word beside its intent", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -62,14 +56,10 @@ it.live("a draining session shows its execution word beside its intent", () =>
 			const kernel = yield* Kernel;
 			const sight = yield* SightSource;
 			const receipt = yield* sight.spawn(spawnRequest);
-			yield* eventually(
-				Effect.gen(function* () {
-					const fleet = yield* sight.fleet;
-					const opened = fleet.agents.flatMap((agent) => agent.sessions).find((session) => session.id === receipt.sessionId);
-					expect(opened?.diag.execution).toBe("active");
-					expect(opened?.diag.current).toBe(true);
-				}),
-			);
+			yield* liveSession(scripted, receipt.sessionId);
+			const opened = (yield* sight.fleet).agents.flatMap((agent) => agent.sessions).find((session) => session.id === receipt.sessionId);
+			expect(opened?.diag.execution).toBe("active");
+			expect(opened?.diag.current).toBe(true);
 			hold.open = false;
 			yield* db.AgentSession.where({ id: receipt.sessionId }).update({
 				executionStatus: "draining",

@@ -1,8 +1,8 @@
-import type { BoardEntryView, PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
+import type { PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
 import { actsFor } from "#voyages/acts.ts";
 import { dependsOnLabel } from "#voyages/labels.ts";
-import { byFlagship, byLadder, bySalience } from "#voyages/order.ts";
+import { byFlagship, byLadder } from "#voyages/order.ts";
 
 const piece = (id: string, title: string, state: PieceState, dependsOn: ReadonlyArray<string> = []): PieceView => ({
 	agents: [],
@@ -24,15 +24,6 @@ const piece = (id: string, title: string, state: PieceState, dependsOn: Readonly
 	title,
 });
 
-const entry = (id: string, register: BoardEntryView["register"]): BoardEntryView => ({
-	authorAgentId: null,
-	body: id,
-	createdAt: "2026-08-15T09:10:00.000Z",
-	id,
-	pieceId: null,
-	register,
-});
-
 describe("byLadder", () => {
 	it("orders pieces by what deserves attention, then by title", () => {
 		const ordered = byLadder([
@@ -44,13 +35,6 @@ describe("byLadder", () => {
 			piece("6", "foxtrot", "abandoned"),
 		]);
 		expect(ordered.map((row) => row.title)).toEqual(["alpha", "bravo", "charlie", "echo", "delta", "foxtrot"]);
-	});
-});
-
-describe("bySalience", () => {
-	it("leads with the smooth log and keeps each register in order", () => {
-		const ordered = bySalience([entry("rough-1", "rough"), entry("smooth-1", "smooth"), entry("rough-2", "rough"), entry("smooth-2", "smooth")]);
-		expect(ordered.map((row) => row.id)).toEqual(["smooth-1", "smooth-2", "rough-1", "rough-2"]);
 	});
 });
 

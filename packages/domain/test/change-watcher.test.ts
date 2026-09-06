@@ -1,11 +1,11 @@
 import { Changes } from "@antumbra/changes";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Repos } from "@antumbra/repos";
+import { it as appIt, endsTurn } from "@antumbra/testing";
 import { describe, expect, it } from "@effect/vitest";
-import { Effect, Queue } from "effect";
+import { Effect, Option, Queue } from "effect";
 import { TestClock } from "effect/testing";
 import { berthed, REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
 import { watchingLayer } from "#test/domain-layers.ts";
@@ -13,14 +13,12 @@ import {
 	acquireTemporaryPersistence,
 	callTool,
 	changeHostsOf,
-	completesTurn,
 	makeScriptedBackend,
 	makeScriptedRunner,
 	type ScriptedBackend,
-	sessionFor,
 } from "#test/harness.ts";
 import { makeScriptedHost, type ScriptedHost } from "#test/scripted-host.ts";
-import { assignedPieces, eventually, openReefVoyage, restAllCrew, stateOf } from "#test/voyage-fixtures.ts";
+import { eventually, openReefVoyage, restAllCrew, stateOf } from "#test/voyage-fixtures.ts";
 
 const CREW = "agent-crew";
 
@@ -193,63 +191,56 @@ describe("watching open changes", () => {
 	);
 });
 
-const crewOn = (backend: ScriptedBackend, pieceId: string) =>
+appIt.effectApp.withProviders(
+	"a chain gated on a change sails when the watcher sees the merge",
 	Effect.gen(function* () {
-		const db = yield* Database;
-		const row = (yield* db.PieceAgent.where({ pieceId }).all())[0];
-		return row === undefined ? yield* Effect.fail("no crew yet") : yield* sessionFor(backend, row.agentId);
-	});
-
-describe("a chain gated on a change", () => {
-	it.live("sails when the watcher sees the merge", () =>
-		watched(BRISK, (scripted, backend) =>
-			Effect.gen(function* () {
-				const pieces = yield* Pieces;
-				const repos = yield* Repos;
-				const repo = yield* repos.register({
-					defaultRef: "main",
-					source: REEF_SOURCE,
-				});
-				const voyage = yield* openReefVoyage;
-				const charter = (title: string, dependsOn: ReadonlyArray<string>) =>
-					pieces.charter({
-						charter: `do ${title}`,
-						dependsOn,
-						expectation: `${title} is landed`,
-						role: "hand",
-						title,
-						voyageId: voyage.id,
-					});
-				const alpha = yield* charter("alpha", []);
-				const bravo = yield* charter("bravo", [alpha.id]);
-				yield* pieces.launch(alpha.id);
-				yield* pieces.launch(bravo.id);
-
-				const crew = yield* eventually(crewOn(backend, alpha.id));
-				expect(
-					yield* callTool(crew, "open_change", {
-						body: "three fathoms at the eastern spit",
-						repo: "reef",
-						title: "chart the eastern spit",
-					}),
-				).toMatchObject({ ok: true });
-				yield* completesTurn(crew);
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
-					}),
-				);
-				expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
-
-				yield* scripted.drive.transition(repo.id, "1", { stage: "landed" });
-
-				yield* eventually(
-					Effect.gen(function* () {
-						expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
-						expect(yield* assignedPieces).toContain(bravo.id);
-					}),
-				);
+		const recorder = yield* makeScriptedRunner;
+		const host = yield* makeScriptedHost();
+		return {
+			providers: { runners: new Map([[recorder.runner.tag, recorder.runner]]), changeHosts: new Map([[host.host.tag, host.host]]) },
+			state: host,
+		};
+	}),
+	function* ({ scripted, db }, host) {
+		const pieces = yield* Pieces;
+		const repos = yield* Repos;
+		const feeds = yield* DomainFeeds;
+		const repo = yield* repos.register({ defaultRef: "main", source: REEF_SOURCE });
+		const voyage = yield* openReefVoyage;
+		const charter = (title: string, dependsOn: ReadonlyArray<string>) =>
+			pieces.charter({
+				charter: `do ${title}`,
+				dependsOn,
+				expectation: `${title} is landed`,
+				role: "hand",
+				title,
+				voyageId: voyage.id,
+			});
+		const alpha = yield* charter("alpha", []);
+		const bravo = yield* charter("bravo", [alpha.id]);
+		yield* pieces.launch(alpha.id);
+		yield* pieces.launch(bravo.id);
+		const queued = yield* scripted.queued;
+		const session = Option.getOrThrow(yield* db.AgentSession.where({ id: queued.sessionId }).first());
+		expect(yield* db.PieceAgent.where({ pieceId: alpha.id, agentId: session.agentId }).all()).toHaveLength(1);
+		const crew = Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(queued.sessionId)));
+		expect(
+			yield* callTool(crew, "open_change", {
+				body: "three fathoms at the eastern spit",
+				repo: "reef",
+				title: "chart the eastern spit",
 			}),
-		),
-	);
-});
+		).toMatchObject({ ok: true });
+		yield* endsTurn(scripted, queued.sessionId);
+		expect(yield* stateOf(voyage.id, alpha.id)).toBe("landing");
+		expect(yield* stateOf(voyage.id, bravo.id)).toBe("blocked");
+
+		yield* host.drive.transition(repo.id, "1", { stage: "landed" });
+		yield* feeds.publishChangeRefresh();
+
+		const next = yield* scripted.queued;
+		const successor = Option.getOrThrow(yield* db.AgentSession.where({ id: next.sessionId }).first());
+		expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
+		expect(yield* db.PieceAgent.where({ pieceId: bravo.id, agentId: successor.agentId }).all()).toHaveLength(1);
+	},
+);

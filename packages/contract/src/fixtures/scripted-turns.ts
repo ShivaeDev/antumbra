@@ -67,9 +67,10 @@ export const answeredReef = {
 			authorAgentId: "agent-2",
 			body: "the eastern shoal is steeper than charted",
 			createdAt: "2026-08-15T09:30:00.000Z",
-			id: "entry-2",
-			pieceId: null,
+			id: "entry-3",
+			kind: "note" as const,
 			register: "rough" as const,
+			seq: 3,
 		},
 	],
 };

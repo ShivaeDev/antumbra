@@ -37,6 +37,7 @@ export const VoyagePanel = ({
 					<div className="flex min-w-0 flex-col gap-6">
 						<BoardPanel
 							entries={voyage.board}
+							name={voyage.name}
 							onPiece={(pieceId) => onPiece(voyage.id, pieceId)}
 							onSmooth={() => smoothBoard(voyage.id, onError)}
 							pieces={voyage.pieces}

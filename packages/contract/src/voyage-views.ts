@@ -1,4 +1,4 @@
-import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
+import { BoardRegisterSchema, SummaryLevelSchema } from "@antumbra/vocabulary/board";
 import { VoyageKindSchema } from "@antumbra/vocabulary/voyage";
 import { Schema } from "effect";
 import { AgentSettingsChoice } from "#agent-settings.ts";
@@ -30,14 +30,36 @@ export type ReportMarkdown = typeof ReportMarkdown.Type;
 export const PieceState = Schema.Literals(["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"]);
 export type PieceState = typeof PieceState.Type;
 
-export const BoardEntryView = Schema.Struct({
+const BoardEntryFields = {
 	authorAgentId: Schema.NullOr(Schema.String),
 	body: Schema.String,
 	createdAt: Schema.String,
 	id: Schema.String,
-	pieceId: Schema.NullOr(Schema.String),
 	register: BoardRegisterSchema,
+	seq: Schema.Number,
+};
+
+export const BoardSummaryView = Schema.Struct({
+	...BoardEntryFields,
+	coversFrom: Schema.Number,
+	coversTo: Schema.Number,
+	kind: Schema.Literal("summary"),
+	level: SummaryLevelSchema,
 });
+export type BoardSummaryView = typeof BoardSummaryView.Type;
+
+export const BoardPieceSummaryView = Schema.Struct({
+	...BoardEntryFields,
+	kind: Schema.Literal("pieceSummary"),
+	pieceId: Schema.String,
+});
+export type BoardPieceSummaryView = typeof BoardPieceSummaryView.Type;
+
+export const BoardEntryView = Schema.Union([
+	BoardSummaryView,
+	BoardPieceSummaryView,
+	Schema.Struct({ ...BoardEntryFields, kind: Schema.Literals(["mail", "note"]) }),
+]);
 export type BoardEntryView = typeof BoardEntryView.Type;
 
 export const PieceView = Schema.Struct({

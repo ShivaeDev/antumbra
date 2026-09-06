@@ -51,14 +51,20 @@ const pieceSeen = (piece: DerivedPiece, board: ReadonlyArray<BoardEntryRow>, res
 	title: piece.title,
 });
 
-const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
-	authorAgentId: entry.authorAgentId,
-	body: entry.body,
-	createdAt: entry.createdAt.toISOString(),
-	id: entry.id,
-	pieceId: entry.kind === "pieceSummary" ? entry.sourceRef : null,
-	register: entry.register,
-});
+const entrySeen = (entry: BoardEntryRow): BoardEntryView => {
+	const seen = {
+		authorAgentId: entry.authorAgentId,
+		body: entry.body,
+		createdAt: entry.createdAt.toISOString(),
+		id: entry.id,
+		register: entry.register,
+		seq: entry.seq,
+	};
+	if (entry.kind === "summary") {
+		return { ...seen, coversFrom: entry.coversFrom, coversTo: entry.coversTo, kind: entry.kind, level: entry.level };
+	}
+	return entry.kind === "pieceSummary" ? { ...seen, kind: entry.kind, pieceId: entry.sourceRef } : { ...seen, kind: entry.kind };
+};
 
 const countsSeen = (counts: DerivedCounts): PieceCounts => ({
 	active: counts.active,

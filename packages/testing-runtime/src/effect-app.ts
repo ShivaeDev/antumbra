@@ -20,7 +20,7 @@ interface EffectApp<Harness, Services> {
 }
 
 export const makeEffectApp = <Harness, Services, Providers = never>(
-	makeApp: (temporary: TemporaryPersistence, providers?: Providers) => Effect.Effect<EffectApp<Harness, Services>>,
+	makeApp: (temporary: TemporaryPersistence, providers?: Providers) => Effect.Effect<EffectApp<Harness, Services>, never, Scope.Scope>,
 ) => {
 	function effectApp<A>(
 		name: string,
@@ -44,7 +44,7 @@ export const makeEffectApp = <Harness, Services, Providers = never>(
 	}
 	function withProviders<State, A>(
 		name: string,
-		setup: Effect.Effect<{ readonly providers: Providers; readonly state: State }>,
+		setup: Effect.Effect<{ readonly providers: Providers; readonly state: State }, never, Scope.Scope>,
 		body: (harness: Harness, state: State) => Effect.fn.Return<A, unknown, Services | DatabaseRequirement | Scope.Scope>,
 	): void {
 		const configured = makeEffectApp((temporary) =>

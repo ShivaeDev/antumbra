@@ -23,10 +23,10 @@ are never resource-reclamation targets.
 
 ## Smoothing
 
-**Smoothing** advances what an ordinary reader sees first without rewriting history. A **smoother** reads the rough entries no summary yet covers, one
-calendar day at a time, and appends one **summary** to the smooth log for each of them. A summary carries the level it stands at and the span it
-covers as data, never as words in its text, so every label a reader is shown is derived rather than written. A reader meets the summaries where the
-smoothed stretch ends and the tail of later entries begins.
+**Smoothing** advances what an ordinary reader sees first without rewriting history. A **smoother** reads the rough entries no summary yet covers —
+one calendar day of a Voyage's Board, or the whole board of a finished Piece — and appends one **summary** to the smooth log for each stretch. A
+summary carries the level it stands at and the span it covers as data, never as words in its text, so every label a reader is shown is derived rather
+than written. A reader meets the summaries where the smoothed stretch ends and the tail of later entries begins.
 
 The smoother is a constrained role: Antumbra writes its prompt, it holds one tool, and it sees only the entries it was given. It is an Agent of its
 Voyage all the same, so what a pass costs is that voyage's cost like every other agent's. A pass that writes no summary changes nothing — the log
@@ -44,8 +44,11 @@ carrying an unsmoothed board, then the days that have closed, leaving the day un
 itself, and that pass takes the day under way as well. A pass that never ran because the machine was asleep runs when the app opens.
 
 A failed pass leaves no mark. Nothing records that it was tried, so the entries it did not settle are still uncovered and the next pass over that
-Voyage meets them again; what the admiral sees meanwhile is the tail the Board already shows. The levels above the day that a week and a month would
-carry, and the page that reads the smooth log as a tree, are [intended](intended.md).
+Voyage meets them again; what the admiral sees meanwhile is the tail the Board already shows.
+
+The Board page reads the smooth log as that same shape made visible: every entry sits once at its chronological position, newest first, either in full
+or folded into the highest summary that covers it, and opening a summary reads the entries behind it. The levels above the day that a week and a month
+would carry, and the drill-in past the three levels the page nests, are [intended](intended.md).
 
 ## Coordination rails
 

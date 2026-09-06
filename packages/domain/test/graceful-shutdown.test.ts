@@ -2,15 +2,16 @@ import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
-import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, ManagedRuntime, Option, Ref, Stream } from "effect";
+import { it } from "@antumbra/testing";
+import { expect, it as vitest } from "@effect/vitest";
+import { Effect, Fiber, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { drainActiveSessions } from "#shutdown.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { domainKernelLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
 import { reportsNativeRef, untilTerminal } from "#test/session-recovery-fixture.ts";
-import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
 const spawnHeld = (identity: { readonly agentId: string; readonly sessionId: string }) =>
@@ -32,78 +33,57 @@ const countAttachmentCloses = (backend: AgentBackend, closes: Ref.Ref<number>): 
 	openSession: (options) => backend.openSession(options).pipe(Effect.tap(() => Effect.addFinalizer(() => Ref.update(closes, (count) => count + 1)))),
 });
 
-it.live("drains every active Session", () =>
+it.effectApp("drains every active Session", function* ({ scripted }) {
+	const db = yield* Database;
+	const identities = [
+		{ agentId: "shutdown-one", sessionId: "shutdown-session-one" },
+		{ agentId: "shutdown-two", sessionId: "shutdown-session-two" },
+	];
+	yield* Effect.forEach(identities, spawnHeld);
+	const attachments = yield* Effect.forEach(identities, (identity) => sessionFor(scripted, identity.agentId));
+
+	yield* drainActiveSessions;
+
+	expect(
+		(yield* db.AgentSession.all()).map((session) => ({
+			id: session.id,
+			status: session.executionStatus,
+		})),
+	).toEqual([
+		{ id: "shutdown-session-one", status: "idle" },
+		{ id: "shutdown-session-two", status: "idle" },
+	]);
+	expect(yield* Effect.forEach(attachments, (live) => live.closed)).toEqual([true, true]);
+	expect(yield* db.Agent.all()).toHaveLength(2);
+	expect(yield* db.Moorage.all()).toHaveLength(2);
+});
+
+vitest.effect("leaves a stranded Session active while draining the attached one", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
-		const runtime = ManagedRuntime.make(domainKernelLayer(temporary, scripted.backend));
-		yield* Effect.promise(() =>
-			runtime.runPromise(
-				Effect.gen(function* () {
-					const db = yield* Database;
-					const identities = [
-						{ agentId: "shutdown-one", sessionId: "shutdown-session-one" },
-						{ agentId: "shutdown-two", sessionId: "shutdown-session-two" },
-					];
-					yield* Effect.forEach(identities, spawnHeld);
-					const attachments = yield* Effect.forEach(identities, (identity) => sessionFor(scripted, identity.agentId));
+		yield* spawnHeld({ agentId: "stranded", sessionId: "stranded-session" }).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 
-					yield* drainActiveSessions;
+		yield* Effect.gen(function* () {
+			const db = yield* Database;
+			yield* spawnHeld({ agentId: "attached", sessionId: "attached-session" });
 
-					expect(
-						(yield* db.AgentSession.all()).map((session) => ({
-							id: session.id,
-							status: session.executionStatus,
-						})),
-					).toEqual([
-						{ id: "shutdown-session-one", status: "idle" },
-						{ id: "shutdown-session-two", status: "idle" },
-					]);
-					expect(yield* Effect.forEach(attachments, (live) => live.closed)).toEqual([true, true]);
-					expect(yield* db.Agent.all()).toHaveLength(2);
-					expect(yield* db.Moorage.all()).toHaveLength(2);
-				}),
-			),
-		);
-		yield* Effect.promise(() => runtime.dispose());
+			yield* drainActiveSessions;
+
+			expect((yield* db.AgentSession.all()).map((session) => ({ id: session.id, status: session.executionStatus }))).toEqual([
+				{ id: "stranded-session", status: "active" },
+				{ id: "attached-session", status: "idle" },
+			]);
+		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );
 
-it.live("leaves a stranded Session active while draining the attached one", () =>
-	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
-		const abandoned = ManagedRuntime.make(domainKernelLayer(temporary, scripted.backend));
-		yield* Effect.promise(() => abandoned.runPromise(spawnHeld({ agentId: "stranded", sessionId: "stranded-session" })));
-		yield* Effect.promise(() => abandoned.dispose());
-
-		const runtime = ManagedRuntime.make(domainKernelLayer(temporary, scripted.backend));
-		yield* Effect.promise(() =>
-			runtime.runPromise(
-				Effect.gen(function* () {
-					const db = yield* Database;
-					yield* spawnHeld({ agentId: "attached", sessionId: "attached-session" });
-
-					yield* drainActiveSessions;
-
-					expect((yield* db.AgentSession.all()).map((session) => ({ id: session.id, status: session.executionStatus }))).toEqual([
-						{ id: "stranded-session", status: "active" },
-						{ id: "attached-session", status: "idle" },
-					]);
-				}),
-			),
-		);
-		yield* Effect.promise(() => runtime.dispose());
-	}),
-);
-
-it.live("drains once, rebuilds idle truth, and resumes the same native Session", () =>
+vitest.effect("drains once, rebuilds idle truth, and resumes the same native Session", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
 		const closes = yield* Ref.make(0);
 		const counted = countAttachmentCloses(scripted.backend, closes);
-		const firstRuntime = ManagedRuntime.make(domainKernelLayer(temporary, counted));
 		const prepareShutdown = Effect.gen(function* () {
 			const db = yield* Database;
 			const procedures = yield* VoyageProcedureService;
@@ -157,12 +137,10 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 			expect(yield* live.closed).toBe(true);
 			return { agentId: hailed.agentId, durable, voyageId: voyage.id };
 		});
-		const before = yield* Effect.promise(() => firstRuntime.runPromise(prepareShutdown));
-		yield* Effect.promise(() => firstRuntime.dispose());
+		const before = yield* prepareShutdown.pipe(Effect.provide(domainKernelLayer(temporary, counted)));
 		expect(yield* Ref.get(closes)).toBe(1);
 
 		const resumedBackend = reportsNativeRef(counted, scripted, "native-shutdown");
-		const secondRuntime = ManagedRuntime.make(domainKernelLayer(temporary, resumedBackend));
 		const verifyResume = Effect.gen(function* () {
 			const db = yield* Database;
 			const procedures = yield* VoyageProcedureService;
@@ -184,18 +162,14 @@ it.live("drains once, rebuilds idle truth, and resumes the same native Session",
 
 			const hailed = yield* procedures.hail(before.voyageId);
 			expect(hailed.agentId).toBe(before.agentId);
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* scripted.opened).toHaveLength(2);
-				}),
-			);
+			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
+			expect(yield* scripted.opened).toHaveLength(2);
 			const reopened = (yield* scripted.opened)[1];
 			expect(reopened?.sessionId).toBe(idle.id);
 			expect(reopened?.resume).toEqual(Option.some("native-shutdown"));
 			expect(yield* db.Agent.all()).toHaveLength(1);
 			expect(yield* db.AgentSession.all()).toHaveLength(1);
 		});
-		yield* Effect.promise(() => secondRuntime.runPromise(verifyResume));
-		yield* Effect.promise(() => secondRuntime.dispose());
+		yield* verifyResume.pipe(Effect.provide(domainKernelLayer(temporary, resumedBackend)));
 	}),
 );

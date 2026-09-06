@@ -47,16 +47,6 @@ export const anyOf = (...selectors: readonly ImportTarget[]): ImportTarget => ({
 	selectors,
 });
 
-export const sanctioned = (ruling: string) => ({
-	because: (rationale: string) => ({
-		permitting: (packageName: string): SanctionedException => ({
-			package: packageName,
-			rationale,
-			ruling,
-		}),
-	}),
-});
-
 const workspaceSource = (excludedPackages: readonly string[], exceptions: readonly SanctionedException[]): WorkspaceExcept => ({
 	excludedPackages,
 	kind: "workspace-except",

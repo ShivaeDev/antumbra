@@ -56,6 +56,7 @@ const entrySeen = (entry: BoardEntryRow): BoardEntryView => ({
 	body: entry.body,
 	createdAt: entry.createdAt.toISOString(),
 	id: entry.id,
+	pieceId: entry.kind === "pieceSummary" ? entry.sourceRef : null,
 	register: entry.register,
 });
 

@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
-import { type AgentPrompt, smootherWords } from "@antumbra/prompts";
+import type { AgentPrompt } from "@antumbra/prompts";
 import { type EventSink, SessionFabric } from "@antumbra/session-fabric";
 import { promptInput, type SinkFor } from "@antumbra/sessions";
 import { SessionRegistration } from "@antumbra/sessions/registration/service";
@@ -17,6 +17,7 @@ export interface SmootherSession {
 	readonly backend: AgentBackend;
 	readonly cwd: string;
 	readonly material: AgentPrompt;
+	readonly orders: AgentPrompt;
 	readonly settings: ResolvedAgentSettings;
 }
 
@@ -38,7 +39,7 @@ export const makeSmootherSession = (sinkFor: SinkFor) =>
 					session.agentId,
 					session.backend,
 					{
-						constrainedPrompt: smootherWords,
+						constrainedPrompt: session.orders,
 						cwd: session.cwd,
 						effort: Option.fromUndefinedOr(session.settings.effort),
 						model: Option.fromUndefinedOr(session.settings.model),

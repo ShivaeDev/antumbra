@@ -69,6 +69,7 @@ it.effectApp("a board entry the window writes carries no author agent", function
 			body: "the reef shifts after a storm",
 			createdAt: expect.any(String),
 			id: expect.any(String),
+			pieceId: null,
 			register: "smooth",
 		},
 	]);

@@ -23,10 +23,10 @@ const packageDirectories = (directory: string): readonly string[] =>
 // Package-level Vitest runs discover a root vitest.config.ts and would execute every project.
 export const workspacePackages: readonly WorkspacePackage[] = packageDirectories(join(repoRoot, "packages"))
 	.map((absolute) => ({
-		name: basename(absolute),
+		name: relative(join(repoRoot, "packages"), absolute).split(sep).join("/"),
 		path: relative(repoRoot, absolute).split(sep).join("/"),
 	}))
-	.filter(({ name }) => !isolatedPackageNames.has(name))
+	.filter(({ name }) => !isolatedPackageNames.has(basename(name)))
 	.toSorted((left, right) => left.name.localeCompare(right.name));
 
 export const workspacePackageNames: readonly string[] = workspacePackages.map(({ name }) => name);

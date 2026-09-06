@@ -10,7 +10,8 @@ import { MailDelivery } from "#mail-delivery/service.ts";
 import { makeRetireKind } from "#retire.ts";
 import { compileRetireSweepDemands } from "#retire-sweep-demands.ts";
 import { makeSessionAgentSettings } from "#session-agent-settings.ts";
-import { smoothKind } from "#smoothing/kind.ts";
+import { compileSmoothingDemands } from "#smoothing/demands.ts";
+import { smoothingKinds } from "#smoothing/kinds.ts";
 import { spawnKind } from "#spawn.ts";
 import { makeAgentToolCompiler } from "#spawn-tools.ts";
 
@@ -31,7 +32,7 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			sinkFor,
 		});
 		const retire = yield* makeRetireKind;
-		const smooth = yield* smoothKind({ backends, runners, sinkFor });
+		const { smooth, smoothPiece } = yield* smoothingKinds({ backends, runners, sinkFor });
 		const compileTools = yield* makeAgentToolCompiler;
 		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
 		const recovery = sessionRecoveryLayer({
@@ -46,13 +47,15 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 			...(yield* compileSessionSiestaDemands(siesta)),
 			...(yield* mailDeliveryDemands),
 			...(yield* compileRetireSweepDemands(retire)),
+			...(yield* compileSmoothingDemands(smooth, smoothPiece)),
 		];
 		return {
 			intentDemands,
-			kinds: [spawn, retire, siesta, smooth, wake],
+			kinds: [spawn, retire, siesta, smooth, smoothPiece, wake],
 			retire,
 			siesta,
 			smooth,
+			smoothPiece,
 			spawn,
 			wake,
 		};

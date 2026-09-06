@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/service-definition";
 import { type Context, Effect } from "effect";
 import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
-import { readBoard, readDigest, readUncoveredDays, readUnder } from "#read.ts";
+import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";
 import { ensureBoard, writeEntry } from "#write.ts";
 
 const requirements = [Database, DomainFeeds] as const;
@@ -18,6 +18,7 @@ export const Boards = defineService({
 		markDelivered: markMailDelivered,
 		markRead: markMailRead,
 		read: readBoard,
+		span: readUncoveredSpan,
 		uncovered: readUncoveredDays,
 		under: readUnder,
 		unread: unreadMail,

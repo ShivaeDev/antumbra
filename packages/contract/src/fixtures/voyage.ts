@@ -108,11 +108,21 @@ export const reefView: VoyageView = {
 			register: "rough",
 			seq: 2,
 		},
+		{
+			authorAgentId: "agent-3",
+			body: "The northern shoals were sounded and the depths recorded; the chart of the eastern channel is still open.",
+			createdAt: "2026-08-15T12:20:00.000Z",
+			id: "entry-3",
+			kind: "pieceSummary",
+			pieceId: "piece-1",
+			register: "rough",
+			seq: 3,
+		},
 	],
 	context: "the reef is uncharted",
 	crew: [{ agentId: "agent-1", role: "captain", status: "alive" }],
 	pieces: [soundings, chart],
-	smoothing: { state: "idle", uncovered: 1 },
+	smoothing: { state: "idle", uncovered: 2 },
 };
 
 export const quayView: QuayView = {

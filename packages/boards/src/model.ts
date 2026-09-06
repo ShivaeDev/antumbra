@@ -43,6 +43,11 @@ export type BoardEntryVariant =
 			readonly precedence: "routine";
 			readonly sourceRef: string | null;
 	  })
+	| (UnsummarizedFields & {
+			readonly kind: "pieceSummary";
+			readonly precedence: "routine";
+			readonly sourceRef: string;
+	  })
 	| {
 			readonly coversFrom: number;
 			readonly coversTo: number;
@@ -71,6 +76,11 @@ export type EntryInput = Data.TaggedEnum<{
 	};
 	Note: EntryFields & {
 		readonly sourceRef?: string;
+	};
+	PieceSummary: {
+		readonly authorAgentId: Option.Option<string>;
+		readonly body: string;
+		readonly pieceId: string;
 	};
 	Summary: {
 		readonly authorAgentId: Option.Option<string>;

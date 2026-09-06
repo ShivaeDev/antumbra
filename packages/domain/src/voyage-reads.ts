@@ -36,12 +36,13 @@ export const makeVoyageReads = (runtime: Effect.Effect<CrewRuntime>) =>
 				Effect.map((entries) => new Map(entries)),
 				Effect.mapError(toFailure),
 			);
-		const seenVoyage = (voyageId: string, view: DerivedVoyage, resting: ReadonlyMap<string, ReadonlyArray<string>>) =>
-			Effect.all({
-				board: boardOf(voyageId),
-				pieceBoards: pieceBoardsOf(view.pieces.map((piece) => piece.id)),
-				smoothing: smoothingOf(voyageId).pipe(Effect.mapError(toFailure)),
-			}).pipe(Effect.map((sighting) => voyageSeen(view, { ...sighting, resting })));
+		const seenVoyage = Effect.fnUntraced(function* (voyageId: string, view: DerivedVoyage, resting: ReadonlyMap<string, ReadonlyArray<string>>) {
+			const board = yield* boardOf(voyageId);
+			const pieceBoards = yield* pieceBoardsOf(view.pieces.map((piece) => piece.id));
+			const settled = view.pieces.flatMap((piece) => (piece.state === "abandoned" || piece.state === "done" ? [piece.id] : []));
+			const smoothing = yield* smoothingOf({ board, pieceBoards, settled, voyageId }).pipe(Effect.mapError(toFailure));
+			return voyageSeen(view, { board, pieceBoards, resting, smoothing });
+		});
 		const readVoyage = Effect.fn("VoyageReads.voyage")(function* (voyageId: string) {
 			const { rows, voyage } = yield* detailOf(voyageId);
 			const { resting } = crewRest(rows, yield* runtime);

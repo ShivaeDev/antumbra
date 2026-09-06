@@ -13,6 +13,10 @@ export const makeSmoothBoard = Effect.gen(function* () {
 	return Effect.fn("Voyages.smoothBoard")((voyageId: string) =>
 		voyages
 			.verifyExists(voyageId)
-			.pipe(Effect.andThen(kernel.submit(domain.smooth, { voyageId })), Effect.andThen(feeds.publishVoyageRefresh()), Effect.mapError(toFailure)),
+			.pipe(
+				Effect.andThen(kernel.submit(domain.smooth, { throughToday: true, voyageId })),
+				Effect.andThen(feeds.publishVoyageRefresh()),
+				Effect.mapError(toFailure),
+			),
 	);
 });

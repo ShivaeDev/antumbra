@@ -1,10 +1,14 @@
+import { Option } from "effect";
 import type { BoardEntryRow, SummaryRow } from "#model.ts";
 
-export interface SmoothingDay {
+export interface SmoothingSpan {
 	readonly coversFrom: number;
 	readonly coversTo: number;
-	readonly day: string;
 	readonly entries: ReadonlyArray<BoardEntryRow>;
+}
+
+export interface SmoothingDay extends SmoothingSpan {
+	readonly day: string;
 }
 
 const isSummary = (entry: BoardEntryRow): entry is SummaryRow => entry.kind === "summary";
@@ -16,11 +20,20 @@ const newestFirst = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<Board
 
 const pad = (value: number): string => String(value).padStart(2, "0");
 
-const localDay = (at: Date): string => `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
+export const localDay = (at: Date): string => `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
 
 export const uncoveredEntries = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<BoardEntryRow> => {
 	const summaries = entries.filter(isSummary);
 	return entries.filter((entry) => entry.register === "rough" && !isCovered(summaries, entry));
+};
+
+export const uncoveredSpan = (entries: ReadonlyArray<BoardEntryRow>): Option.Option<SmoothingSpan> => {
+	const uncovered = uncoveredEntries(entries);
+	const opens = uncovered[0];
+	const closes = uncovered.at(-1);
+	return opens === undefined || closes === undefined
+		? Option.none()
+		: Option.some({ coversFrom: opens.seq, coversTo: closes.seq, entries: uncovered });
 };
 
 export const uncoveredDays = (entries: ReadonlyArray<BoardEntryRow>): ReadonlyArray<SmoothingDay> => {

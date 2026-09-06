@@ -1,8 +1,8 @@
-import type { BoardEntryView, BoardSmoothing, BoardTarget } from "@antumbra/contract";
+import type { BoardEntryView, BoardSmoothing, BoardTarget, PieceView } from "@antumbra/contract";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { BoardComposer } from "#views/board-composer.tsx";
-import { BoardNodes } from "#views/board-entry.tsx";
+import { BoardNodes } from "#views/board-nodes.tsx";
 import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 import { Section } from "#views/section.tsx";
 import { boardTree } from "#voyages/board-tree.ts";
@@ -19,13 +19,17 @@ const NO_SUMMARY: Readonly<Record<BoardTarget["kind"], string>> = {
 export const BoardPanel = ({
 	entries,
 	name,
+	onPiece,
 	onSmooth,
+	pieces = [],
 	scope,
 	smoothing,
 }: {
 	readonly entries: ReadonlyArray<BoardEntryView>;
 	readonly name: string;
+	readonly onPiece?: (pieceId: string) => void;
 	readonly onSmooth?: () => void;
+	readonly pieces?: ReadonlyArray<PieceView>;
 	readonly scope: BoardTarget;
 	readonly smoothing?: BoardSmoothing;
 }) => {
@@ -55,7 +59,7 @@ export const BoardPanel = ({
 				<>
 					<p className="text-2xs text-muted-foreground">{EXPLAINER}</p>
 					{smoothed ? null : <p className="text-2xs text-muted-foreground">{NO_SUMMARY[scope.kind]}</p>}
-					<BoardNodes boardName={name} depth={0} nodes={boardTree(entries)} />
+					<BoardNodes boardName={name} depth={0} nodes={boardTree(entries)} pieces={{ known: pieces, onOpen: onPiece }} />
 				</>
 			) : null}
 			{open ? <BoardComposer scope={scope} /> : null}

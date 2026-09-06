@@ -9,4 +9,4 @@ export {
 } from "#errors.ts";
 export type { BoardEntryRow, MailPrecedence, SummaryRow, UnreadMailRow } from "#model.ts";
 export { BoardScope, EntryInput } from "#model.ts";
-export type { SmoothingDay } from "#summaries.ts";
+export { localDay, type SmoothingDay, type SmoothingSpan, uncoveredEntries } from "#summaries.ts";

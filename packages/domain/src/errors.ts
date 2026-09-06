@@ -76,11 +76,11 @@ export class MooragePlanConflict extends Data.TaggedError("MooragePlanConflict")
 }> {}
 
 export class SmoothingPassFailed extends Data.TaggedError("SmoothingPassFailed")<{
-	readonly day: string;
 	readonly detail: string;
+	readonly subject: string;
 	readonly voyageId: string;
 }> {
 	override get message(): string {
-		return `no summary for ${this.day} on voyage ${this.voyageId}: ${this.detail}`;
+		return `no summary for ${this.subject} on voyage ${this.voyageId}: ${this.detail}`;
 	}
 }

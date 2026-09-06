@@ -50,6 +50,7 @@ export const boardRegisterLabel: Readonly<Record<BoardEntryView["register"], str
 export const boardEntryKindLabel: Readonly<Record<Exclude<BoardEntryView["kind"], "summary">, string>> = {
 	mail: "Mail",
 	note: "Note",
+	pieceSummary: "Piece summary",
 };
 
 const summaryWords: Readonly<Record<SummaryLevel, { readonly heading: string; readonly many: string; readonly one: string }>> = {

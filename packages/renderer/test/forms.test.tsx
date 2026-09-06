@@ -2,12 +2,12 @@ import type { CharterPieceRequest } from "@antumbra/contract";
 import { soundings } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Schema } from "effect";
-import { act, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { useState } from "react";
 import { beforeEach, vi } from "vitest";
 import { useRequestForm } from "#adapters/form.ts";
 import { RendererRequestError } from "#adapters/request-error.ts";
 import { RequestForm } from "#forms/view.tsx";
+import { mount, settle, write } from "#test/dom.ts";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
 import { CharterPieceForm } from "#views/piece-form.tsx";
 
@@ -26,24 +26,13 @@ const input = (label: string): HTMLInputElement | HTMLTextAreaElement => {
 	return element;
 };
 const change = (label: string, value: string) => {
-	const element = input(label);
-	const prototype = element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
-	Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(element, value);
-	element.dispatchEvent(new Event("input", { bubbles: true }));
+	write(input(label), value);
 };
 const button = (label: string): HTMLButtonElement => {
 	const element = [...(document.querySelector("form") ?? document).querySelectorAll("button")].find((entry) => entry.textContent === label);
 	if (element === undefined) return Effect.runSync(Effect.die(`Missing button ${label}`));
 	return element;
 };
-const settle = (action: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			action();
-			return Promise.resolve();
-		}),
-	);
-
 it.effect(
 	"preserves a failed charter draft and waits for a successful retry before closing",
 	Effect.fnUntraced(function* () {
@@ -55,15 +44,7 @@ it.effect(
 			Deferred.succeed(requested, value).pipe(Effect.andThen(Deferred.await(first))),
 		);
 		charterPiece.mockImplementationOnce(() => Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<CharterPieceForm pieces={[soundings, { ...soundings, id: "harbor", title: "Harbor" }]} voyageId="voyage" />));
 		yield* settle(() => button("Charter piece").click());
 		yield* settle(() => {
@@ -112,15 +93,7 @@ it.effect(
 		adoptChange.mockImplementation((value: { readonly pieceId: string; readonly repoName: string; readonly url: string }) =>
 			Deferred.succeed(adopted, value),
 		);
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { root } = yield* mount();
 		yield* settle(() =>
 			root.render(<AdoptChangeForm onAdopted={() => undefined} pieces={[{ id: "piece", title: "Soundings", voyageName: "Reef" }]} />),
 		);
@@ -168,15 +141,7 @@ it.effect(
 	Effect.fnUntraced(function* () {
 		const started = yield* Deferred.make<number>();
 		const release = yield* Deferred.make<void>();
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { container, root } = yield* mount();
 		const render = () =>
 			root.render(
 				<QuantityForm

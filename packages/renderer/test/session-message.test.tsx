@@ -1,10 +1,9 @@
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { vi } from "vitest";
+import { mount, settle as step, write as writeText } from "#test/dom.ts";
 import { SessionMessage } from "#views/session-message.tsx";
 
 const { sendSessionInput } = vi.hoisted(() => ({ sendSessionInput: vi.fn() }));
@@ -53,15 +52,9 @@ const fleetWith = (presence: Presence, intents: ReadonlyArray<Intent> = [], canA
 
 const box = (fleet: Fleet | undefined) => <SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />;
 
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
-
 const write = (container: HTMLElement, text: string): void => {
 	const input = container.querySelector("textarea");
-	if (input === null || nativeValue === undefined) {
-		return;
-	}
-	nativeValue.call(input, text);
-	input.dispatchEvent(new Event("input", { bubbles: true }));
+	if (input !== null) writeText(input, text);
 };
 
 const pressEnter = (container: HTMLElement): void => {
@@ -70,31 +63,10 @@ const pressEnter = (container: HTMLElement): void => {
 
 const mounted = (fleet: Fleet | undefined) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			step(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		yield* Effect.promise(() =>
-			act(() => {
-				root.render(box(fleet));
-				return Promise.resolve();
-			}),
-		);
+		const { container, root } = yield* mount();
+		yield* step(() => root.render(box(fleet)));
 		return { container, root };
 	});
-
-const step = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
 
 it("says who is listening rather than refusing to take the words", () => {
 	const working = renderToStaticMarkup(box(fleetWith("working")));

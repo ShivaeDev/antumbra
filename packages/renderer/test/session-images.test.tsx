@@ -1,10 +1,9 @@
 import type { Fleet } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle as step, write as writeText } from "#test/dom.ts";
 import { SessionMessage } from "#views/session-message.tsx";
 
 const { sendSessionInput } = vi.hoisted(() => ({ sendSessionInput: vi.fn() }));
@@ -45,36 +44,16 @@ const fleet: Fleet = {
 	roleSettings: [],
 };
 
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
-
-const step = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
 const mounted = () =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			step(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { container, root } = yield* mount();
 		yield* step(() => root.render(<SessionMessage fleet={fleet} onError={() => undefined} sessionId="session-1" />));
 		return { container, root };
 	});
 
 const write = (container: HTMLElement, text: string): void => {
 	const input = container.querySelector("textarea");
-	if (input === null || nativeValue === undefined) return;
-	nativeValue.call(input, text);
-	input.dispatchEvent(new Event("input", { bubbles: true }));
+	if (input !== null) writeText(input, text);
 };
 
 const pressEnter = (container: HTMLElement): void => {

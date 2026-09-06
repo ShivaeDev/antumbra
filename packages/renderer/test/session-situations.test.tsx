@@ -1,12 +1,11 @@
 import type { SessionSituation } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
 import { discardMissingSessionDrafts } from "#session-drafts/store.ts";
+import { mount, settle as step, write as writeText } from "#test/dom.ts";
 import { SessionSituations } from "#views/session-situations.tsx";
 
 const { sendToSession, situationDraft } = vi.hoisted(() => ({
@@ -36,31 +35,10 @@ const controls = (situations: ReadonlyArray<SessionSituation>) => (
 
 const mounted = (situations: ReadonlyArray<SessionSituation>) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			step(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		yield* Effect.promise(() =>
-			act(() => {
-				root.render(controls(situations));
-				return Promise.resolve();
-			}),
-		);
+		const { container, root } = yield* mount();
+		yield* step(() => root.render(controls(situations)));
 		return { container, root };
 	});
-
-const step = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
 
 const clickLabelled = (label: string): void => {
 	const button = [...document.querySelectorAll("button")].find((candidate) => (candidate.textContent ?? "").includes(label));
@@ -69,15 +47,9 @@ const clickLabelled = (label: string): void => {
 
 const composer = (): HTMLTextAreaElement | null => document.querySelector("textarea");
 
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
-
 const rewrite = (text: string): void => {
 	const area = composer();
-	if (area === null || nativeValue === undefined) {
-		return;
-	}
-	nativeValue.call(area, text);
-	area.dispatchEvent(new Event("input", { bubbles: true }));
+	if (area !== null) writeText(area, text);
 };
 
 beforeEach(() => {

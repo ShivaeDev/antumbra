@@ -5,8 +5,8 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./testing": "./src/testing.ts",
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#contract.d.ts": "./contract.d.ts",

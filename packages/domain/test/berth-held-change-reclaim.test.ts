@@ -1,13 +1,14 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
-import { makeTestApp } from "@antumbra/testing";
-import { expect, it } from "@effect/vitest";
+import { ResourceReconciler } from "@antumbra/resource-reclamation";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Clock, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
 import { observed } from "#test/change-transition-fixtures.ts";
-import { acquireTemporaryPersistence, makeScriptedRunner } from "#test/harness.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
@@ -140,64 +141,64 @@ const expectReclaimed = (released: ReadonlyMap<string, string>) =>
 		expect(released.get(ELSEWHERE)).toBe("reclaimed");
 	});
 
-it.effect("a landed change observation wakes reclaim without waiting for cadence", () =>
+it.effectApp.withProviders(
+	"a landed change observation wakes reclaim without waiting for cadence",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
 		const recorder = yield* makeScriptedRunner;
 		const reclaims = yield* Ref.make(0);
 		const scraps = yield* Ref.make(0);
-		const now = yield* Clock.currentTimeMillis;
 		const runner = countingRunner(recorder.runner, reclaims, scraps);
-		const app = yield* makeTestApp(temporary, { runners: new Map([[runner.tag, runner]]) });
-		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(Effect.provide(temporary.layer));
-
-		yield* Effect.gen(function* () {
-			const changes = yield* Changes;
-			const swept = yield* berthStatuses;
-			expect(swept.get(HELD)).toBe("stranded");
-			expect(swept.get(AT_WORK)).toBe("ready");
-			expect(swept.get(SIBLING)).toBe("stranded");
-			expect(swept.get(ELSEWHERE)).toBe("stranded");
-			expect(yield* Ref.get(reclaims)).toBe(0);
-			expect(yield* Ref.get(scraps)).toBe(0);
-			yield* Effect.yieldNow;
-
-			const landing = observed(
-				changeOf({
-					headRef: HELD_BRANCH,
-					id: "change-open",
-					repoId: "repo-reef",
-					stage: "open",
-				}),
-				"repo-reef",
-				1,
-				{ stage: "landed" },
-			);
-			const [landed] = yield* changes.observed("scripted", [landing]);
-			expect(landed?.stage).toBe("landed");
-			yield* TestClock.withLive(eventually(berthStatuses.pipe(Effect.tap(expectReclaimed))));
-			expect(yield* Ref.get(reclaims)).toBe(4);
-			expect(yield* Ref.get(scraps)).toBe(0);
-
-			yield* changes.observed("scripted", [landing]);
-			yield* TestClock.adjust(25);
-			expect(yield* Ref.get(reclaims)).toBe(4);
-			expect(yield* Ref.get(scraps)).toBe(0);
-		}).pipe(Effect.provide(app.layer), Effect.provide(temporary.layer));
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: { reclaims, scraps } };
 	}),
+	function* (_, { reclaims, scraps }) {
+		const now = yield* Clock.currentTimeMillis;
+		yield* moored(new Date(now - EIGHT_DAYS_MILLIS));
+		const changes = yield* Changes;
+		const swept = yield* berthStatuses;
+		expect(swept.get(HELD)).toBe("stranded");
+		expect(swept.get(AT_WORK)).toBe("ready");
+		expect(swept.get(SIBLING)).toBe("stranded");
+		expect(swept.get(ELSEWHERE)).toBe("stranded");
+		expect(yield* Ref.get(reclaims)).toBe(0);
+		expect(yield* Ref.get(scraps)).toBe(0);
+		yield* Effect.yieldNow;
+
+		const landing = observed(
+			changeOf({
+				headRef: HELD_BRANCH,
+				id: "change-open",
+				repoId: "repo-reef",
+				stage: "open",
+			}),
+			"repo-reef",
+			1,
+			{ stage: "landed" },
+		);
+		const [landed] = yield* changes.observed("scripted", [landing]);
+		expect(landed?.stage).toBe("landed");
+		yield* TestClock.withLive(eventually(berthStatuses.pipe(Effect.tap(expectReclaimed))));
+		expect(yield* Ref.get(reclaims)).toBe(4);
+		expect(yield* Ref.get(scraps)).toBe(0);
+
+		yield* changes.observed("scripted", [landing]);
+		yield* TestClock.adjust(25);
+		expect(yield* Ref.get(reclaims)).toBe(4);
+		expect(yield* Ref.get(scraps)).toBe(0);
+	},
 );
 
-it.live("a landed replacement releases its withdrawn branch", () =>
+it.effectApp.withProviders(
+	"a landed replacement releases its withdrawn branch",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
 		const recorder = yield* makeScriptedRunner;
-		const now = yield* Clock.currentTimeMillis;
-		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(Effect.provide(temporary.layer));
-		yield* replaceWithdrawnChange(now).pipe(Effect.provide(temporary.layer));
-
-		const app = yield* makeTestApp(temporary, { runners: new Map([[recorder.runner.tag, recorder.runner]]) });
-		yield* Effect.void.pipe(Effect.provide(app.layer), Effect.provide(temporary.layer));
-
-		yield* berthStatuses.pipe(Effect.tap(expectReclaimed)).pipe(Effect.provide(temporary.layer));
+		return { providers: { runners: new Map([[recorder.runner.tag, recorder.runner]]) }, state: undefined };
 	}),
+	function* () {
+		const now = yield* Clock.currentTimeMillis;
+		yield* moored(new Date(now - EIGHT_DAYS_MILLIS));
+		yield* replaceWithdrawnChange(now);
+		const reconciler = yield* ResourceReconciler;
+		yield* reconciler.reconcile();
+		yield* berthStatuses.pipe(Effect.tap(expectReclaimed));
+	},
 );

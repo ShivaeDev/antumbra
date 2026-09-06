@@ -4,6 +4,12 @@ description: Install pnpm, Node, and the frozen lockfile.
 runs:
   using: composite
   steps:
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/electron
+        key: electron-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          electron-cache-${{ runner.os }}-
     - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v4
       with:

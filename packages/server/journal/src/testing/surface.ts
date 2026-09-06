@@ -4,6 +4,7 @@ import type { ReadRows } from "@antumbra/feature/handles.ts";
 import type { QueryDefinition } from "@antumbra/feature/query.ts";
 import type { AlreadyDone, RejectedBy } from "@antumbra/feature/rejection.ts";
 import type { RowKey, RowShape, RowValue } from "@antumbra/feature/row.ts";
+import type { Api } from "@antumbra/rpc/client.ts";
 import type { Effect, Schema } from "effect";
 
 export type Projections<Features extends readonly FeatureShape[]> = Features[number]["rows"][number];
@@ -32,7 +33,7 @@ export interface Watching {
 	readonly advance: (millis: number) => Effect.Effect<void>;
 }
 
-export interface TestApp<Features extends readonly FeatureShape[]> {
+export interface TestKit<Features extends readonly FeatureShape[]> {
 	readonly clock: Watching;
 	readonly commit: Commits<Features>;
 	readonly live: <Name extends string, Input extends Fields, Output extends Schema.Top, Watched extends readonly RowShape[]>(
@@ -42,4 +43,8 @@ export interface TestApp<Features extends readonly FeatureShape[]> {
 	readonly rows: Reads<Features>;
 	readonly seed: Seeds<Features>;
 	readonly settle: () => Effect.Effect<void>;
+}
+
+export interface TestApp<Features extends readonly FeatureShape[]> extends TestKit<Features> {
+	readonly api: Api<Features>;
 }

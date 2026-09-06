@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/journal",
+	"name": "@antumbra/rpc",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -7,7 +7,6 @@
 		"./*": "./src/*"
 	},
 	"imports": {
-		"#example/*": "./test/example/*",
 		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
@@ -17,7 +16,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -26,9 +24,7 @@
 	},
 	"dependencies": {
 		"@antumbra/feature": "workspace:*",
-		"@antumbra/rpc": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
-		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:"
 	}
 }

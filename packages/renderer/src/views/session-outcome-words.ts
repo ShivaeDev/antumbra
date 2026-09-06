@@ -1,4 +1,4 @@
-import type { SubsessionEnded } from "@antumbra/vocabulary/session-events";
+import type { SubsessionEnded } from "@antumbra/vocabulary/session-events.ts";
 
 type Outcome = (typeof SubsessionEnded.Type)["outcome"];
 

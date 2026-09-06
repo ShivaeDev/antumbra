@@ -1,4 +1,4 @@
-import type { AgentPrompt } from "@antumbra/prompts";
+import type { AgentPrompt } from "@antumbra/prompts/mint.ts";
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect, type Scope } from "effect";

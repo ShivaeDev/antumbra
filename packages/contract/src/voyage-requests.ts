@@ -1,6 +1,6 @@
-import { VoyageAgentRoleSchema } from "@antumbra/vocabulary/agent-role";
-import { BoardRegisterSchema } from "@antumbra/vocabulary/board";
-import { PieceVerdict } from "@antumbra/vocabulary/verdict";
+import { VoyageAgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
+import { BoardRegisterSchema } from "@antumbra/vocabulary/board.ts";
+import { PieceVerdict } from "@antumbra/vocabulary/verdict.ts";
 import { Schema } from "effect";
 import { AgentSettingsChoice } from "#agent-settings.ts";
 

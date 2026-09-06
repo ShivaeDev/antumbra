@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, type Ref } from "effect";
 import type { SessionTree, TreeNode } from "#tree/attribution.ts";
 import { adopt } from "#tree/lifecycle/adopt.ts";

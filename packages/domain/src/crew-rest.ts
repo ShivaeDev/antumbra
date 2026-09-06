@@ -1,5 +1,5 @@
 import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
-import { sessionPresence } from "@antumbra/vocabulary/agent-runtime";
+import { sessionPresence } from "@antumbra/vocabulary/agent-runtime.ts";
 import type { PieceView } from "#piece-view.ts";
 import type { AgentSessionRow, RetirementWorld } from "#voyage-rows.ts";
 

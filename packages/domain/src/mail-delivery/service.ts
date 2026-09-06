@@ -1,7 +1,7 @@
 import { Boards } from "@antumbra/boards";
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { KernelReach } from "#kernel-reach/service.ts";
 import { deliver } from "#mail-delivery/deliver.ts";

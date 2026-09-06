@@ -1,6 +1,6 @@
 import { Boards } from "@antumbra/boards";
 import { holding, SettingsSource } from "@antumbra/contract";
-import { mailWords } from "@antumbra/prompts";
+import { mailWords } from "@antumbra/prompts/mail.ts";
 import { Effect } from "effect";
 import { KernelReach } from "#kernel-reach/service.ts";
 import { dueWakes } from "#mail-delivery/due-wakes.ts";

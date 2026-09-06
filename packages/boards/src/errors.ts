@@ -1,4 +1,4 @@
-import type { BoardOwnerKind } from "@antumbra/vocabulary/board";
+import type { BoardOwnerKind } from "@antumbra/vocabulary/board.ts";
 import { Data } from "effect";
 
 export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{

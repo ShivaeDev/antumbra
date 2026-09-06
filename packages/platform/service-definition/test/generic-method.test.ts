@@ -1,4 +1,5 @@
-import { defineService, genericMethod } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
+import { genericMethod } from "@antumbra/service-definition/generic-method.ts";
 import { expect, it } from "@effect/vitest";
 import { Context, Effect } from "effect";
 

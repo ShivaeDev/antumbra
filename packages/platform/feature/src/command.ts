@@ -1,4 +1,4 @@
-import { Request } from "@antumbra/vocabulary/id";
+import { Request } from "@antumbra/vocabulary/id.ts";
 import { type Effect, Schema } from "effect";
 import type { FactPayload, FactShape } from "#fact.ts";
 import type { Fields, Values } from "#fields.ts";

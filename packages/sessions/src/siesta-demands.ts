@@ -3,7 +3,7 @@ import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { Database, or } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, decodeStoredAgentStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Clock, Effect, Result } from "effect";
 import { sessionAtRest } from "#at-rest.ts";
 import { openSessions, rootSessions } from "#roots.ts";

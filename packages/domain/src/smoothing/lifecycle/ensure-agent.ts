@@ -1,7 +1,7 @@
 import { BoardScope, Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { smootherWords } from "@antumbra/prompts";
+import { smootherWords } from "@antumbra/prompts/smoother.ts";
 import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { SMOOTHER_ROLE } from "#smoothing/fields.ts";

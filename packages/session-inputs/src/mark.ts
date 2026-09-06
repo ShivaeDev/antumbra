@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
+import type { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import type { SessionInputDeliveryStatus } from "#model.ts";
 

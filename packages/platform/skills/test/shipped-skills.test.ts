@@ -1,10 +1,10 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { expect, it } from "@effect/vitest";
-import { skillFolders } from "#index.ts";
+import { skillFolders } from "#folders.ts";
+import { skillPluginDirectory } from "#location.ts";
 
-const pluginDirectory = dirname(import.meta.dirname);
-const folders = skillFolders(pluginDirectory);
+const folders = skillFolders(skillPluginDirectory);
 
 const frontmatterName = (skill: string): string | undefined => {
 	const text = readFileSync(join(folders, skill, "SKILL.md"), "utf8");
@@ -12,7 +12,7 @@ const frontmatterName = (skill: string): string | undefined => {
 };
 
 it("is a plugin directory holding one folder per skill, each with a SKILL.md that names itself", () => {
-	expect(JSON.parse(readFileSync(join(pluginDirectory, ".claude-plugin", "plugin.json"), "utf8"))).toMatchObject({ name: "antumbra" });
+	expect(JSON.parse(readFileSync(join(skillPluginDirectory, ".claude-plugin", "plugin.json"), "utf8"))).toMatchObject({ name: "antumbra" });
 	const shipped = readdirSync(folders, { withFileTypes: true }).filter((entry) => entry.isDirectory());
 	expect(shipped.length).toBeGreaterThan(0);
 	for (const entry of shipped) {

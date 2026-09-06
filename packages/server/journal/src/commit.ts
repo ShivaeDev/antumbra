@@ -1,13 +1,8 @@
-import {
-	AlreadyDone,
-	type CommandDefinition,
-	type CommandInput,
-	type FactShape,
-	type Fields,
-	type RejectedBy,
-	type RejectionSpecs,
-	type RowShape,
-} from "@antumbra/feature";
+import type { CommandDefinition, CommandInput } from "@antumbra/feature/command.ts";
+import type { FactShape } from "@antumbra/feature/fact.ts";
+import type { Fields } from "@antumbra/feature/fields.ts";
+import { AlreadyDone, type RejectedBy, type RejectionSpecs } from "@antumbra/feature/rejection.ts";
+import type { RowShape } from "@antumbra/feature/row.ts";
 import { Clock, Context, Effect, Schema } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";

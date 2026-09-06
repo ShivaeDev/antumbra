@@ -1,8 +1,8 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric, type SessionTurnMark } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, Ref } from "effect";
 import { originOf } from "#tree/attribution.ts";
 

@@ -1,4 +1,4 @@
-import { decodeStoredRulingAuthority, StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingAuthority, StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling.ts";
 import { Effect } from "effect";
 import type { RulingRequester } from "#model.ts";
 import type { StoredRuling } from "#stored-rows.ts";

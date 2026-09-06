@@ -1,5 +1,5 @@
 import { SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
+import type { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { admiralInput } from "#input.ts";
 

@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import { Effect } from "effect";
 import { SessionTreeLifecycle } from "#tree/lifecycle/service.ts";

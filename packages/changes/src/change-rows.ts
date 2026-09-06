@@ -1,5 +1,5 @@
-import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
-import { type PieceChangePurpose, PieceChangePurpose as PieceChangePurposeSchema } from "@antumbra/vocabulary/change";
+import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change.ts";
+import { type PieceChangePurpose, PieceChangePurpose as PieceChangePurposeSchema } from "@antumbra/vocabulary/change.ts";
 import { Effect, Schema } from "effect";
 import { StoredPieceChangeInvalid } from "#errors.ts";
 

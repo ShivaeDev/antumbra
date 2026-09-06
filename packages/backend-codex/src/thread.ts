@@ -1,5 +1,5 @@
 import type { BackendFailure, OpenSessionOptions, SessionHandle } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, PubSub, Schema, type Scope, Stream } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
 import { agentSettings } from "#agent-settings.ts";

@@ -1,6 +1,6 @@
 import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option } from "effect";
 import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { endingUnreportedGap, observed, processGoneGap } from "#tree/gaps.ts";

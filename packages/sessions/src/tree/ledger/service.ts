@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { awaitingAudit } from "#tree/ledger/awaiting-audit.ts";
 import { gapKinds } from "#tree/ledger/gap-kinds.ts";

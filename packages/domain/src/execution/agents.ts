@@ -1,6 +1,6 @@
 import { Database, type StoredAgent } from "@antumbra/persistence";
 import { rootSessions } from "@antumbra/sessions";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 import { decodeRootSession } from "#execution/decode-session.ts";
 

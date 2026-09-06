@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { type Context, Crypto, Effect, FileSystem, Path } from "effect";
 import { landArtifact } from "#land.ts";
 import { deleteSupersession } from "#lineage/remove.ts";

@@ -1,6 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";

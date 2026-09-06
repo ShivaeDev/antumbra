@@ -1,7 +1,7 @@
 import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { RoleSettings } from "@antumbra/settings";
-import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
+import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage.ts";
 import { captainRoleOf } from "@antumbra/voyages/captain-role";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";

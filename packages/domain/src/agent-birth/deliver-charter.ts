@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import type { SessionHandle } from "@antumbra/plugin-api";
-import { type BerthedCharter, berthedCharter } from "@antumbra/prompts";
+import { type BerthedCharter, berthedCharter } from "@antumbra/prompts/charter-berths.ts";
 import { Repos } from "@antumbra/repos";
 import { promptInput } from "@antumbra/sessions";
 import { isVoyageCaptainIdentity } from "@antumbra/voyages/authority/captain";

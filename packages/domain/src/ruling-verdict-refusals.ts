@@ -2,7 +2,7 @@ import type { ruleOnSpec } from "@antumbra/agent-tools";
 import { answersAt, type Ruling, reachesRung } from "@antumbra/rulings";
 import { ruledByWords } from "@antumbra/rulings/answer/ruled-by-words";
 import { bindsWords } from "@antumbra/rulings/radius/words";
-import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority } from "@antumbra/vocabulary/ruling.ts";
 import { Option } from "effect";
 
 type Asked = (typeof ruleOnSpec)["input"]["Type"];

@@ -1,4 +1,4 @@
-import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority } from "@antumbra/vocabulary/ruling.ts";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Effect } from "effect";
 import type { SessionIdentity } from "#tool-identity.ts";

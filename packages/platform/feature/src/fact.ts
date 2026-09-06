@@ -1,4 +1,4 @@
-import { Request } from "@antumbra/vocabulary/id";
+import { Request } from "@antumbra/vocabulary/id.ts";
 import { Schema } from "effect";
 import type { Fields } from "#fields.ts";
 

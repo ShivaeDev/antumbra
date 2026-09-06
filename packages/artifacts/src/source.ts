@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, FileSystem, Option, Path } from "effect";
 import { decodeMarkdown, isRelativeArtifactPath, MAX_ARTIFACT_MARKDOWN_BYTES, readOpened } from "#content.ts";
 import { ArtifactContentInvalid, ArtifactPublicationFailed, ArtifactSourceNotOwned, artifactPublicationFailed } from "#errors.ts";

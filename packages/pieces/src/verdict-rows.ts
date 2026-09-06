@@ -1,5 +1,5 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
-import { type PieceVerdict, PieceVerdict as PieceVerdictSchema } from "@antumbra/vocabulary/verdict";
+import { type PieceVerdict, PieceVerdict as PieceVerdictSchema } from "@antumbra/vocabulary/verdict.ts";
 import { type Context, Effect, Schema } from "effect";
 import { StoredPieceVerdictInvalid } from "#errors.ts";
 

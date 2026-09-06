@@ -1,5 +1,5 @@
 import type { AntumbraPlugin, PluginContext, ToolDefinition } from "@antumbra/plugin-api";
-import { skillFolders } from "@antumbra/skills";
+import { skillFolders } from "@antumbra/skills/folders.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Option, RcRef } from "effect";
 import { serveOpencode } from "#adapters/serve.ts";

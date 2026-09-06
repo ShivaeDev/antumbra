@@ -1,6 +1,6 @@
 import { getSubagentMessages } from "@anthropic-ai/claude-agent-sdk";
 import type { NodeAuditRequest, SessionAudit, SessionCensusRequest } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect } from "effect";
 import { unrecordedSubagents } from "#adapters/unrecorded-subagents.ts";
 import { censusFindings, censusUnreadable, transcriptFindings } from "#subsession-audit.ts";

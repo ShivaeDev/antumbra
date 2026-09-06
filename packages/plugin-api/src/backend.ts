@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Data, type Effect, type Option, type Scope, type Stream } from "effect";
 import type { BackendCapacitySource } from "#backend-capacity.ts";
 import type { SessionAudit } from "#session-audit.ts";

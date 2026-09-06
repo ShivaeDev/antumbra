@@ -1,6 +1,6 @@
 import { Database, type StoredAgentSession } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, Option, Result } from "effect";
 import { announce } from "#current/announce.ts";
 import { type CurrentSessionReconcilePlan, planCurrentSessionReconciliation } from "#current/reconcile-plan.ts";

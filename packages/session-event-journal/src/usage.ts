@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { UsageEvent } from "@antumbra/vocabulary/session-events";
+import { UsageEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, Schema } from "effect";
 
 export interface SessionUsage {

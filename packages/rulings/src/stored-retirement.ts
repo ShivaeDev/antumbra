@@ -1,4 +1,4 @@
-import { decodeStoredRulingAuthority } from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingAuthority } from "@antumbra/vocabulary/ruling.ts";
 import { Effect, Option } from "effect";
 import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 import { invalidRulingValue } from "#stored.ts";

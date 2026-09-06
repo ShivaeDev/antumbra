@@ -1,6 +1,6 @@
 import { Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { deliverAscent } from "#delivery/deliver-ascent.ts";
 import { deliverPending } from "#delivery/deliver-pending.ts";

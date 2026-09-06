@@ -2,12 +2,12 @@ import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/ker
 import { Database } from "@antumbra/persistence";
 import { type BerthSite, type Runner, RunnerFailure } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
-import { expect, it } from "@effect/vitest";
+import { endsTurn, it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Deferred, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
 
 const untilTerminal = <E, R>(changes: Stream.Stream<IntentStatus, E, R>) =>
 	changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow));
@@ -33,38 +33,37 @@ const reclaimedOnce = (calls: Ref.Ref<ReadonlyArray<BerthSite>>, reclaimed: Defe
 		expect(yield* Ref.get(calls)).toHaveLength(1);
 	});
 
-it.live("retirement rings the reconciler without waiting for cadence", () =>
+it.effectApp.withProviders(
+	"retirement rings the reconciler without waiting for cadence",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
 		const calls = yield* Ref.make<ReadonlyArray<BerthSite>>([]);
 		const reclaimed = yield* Deferred.make<BerthSite>();
 		const runner = reclaimedRunner(recorded.runner, calls, reclaimed);
-		yield* Effect.gen(function* () {
-			const domain = yield* AgentDomain;
-			const repos = yield* Repos;
-			const kernel = yield* Kernel;
-			yield* repos.register({
-				defaultRef: "main",
-				source: "/somewhere/retire-trigger",
-			});
-			const spawn = yield* kernel.submit(domain.spawn, payload("retire-trigger"));
-			expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
-			yield* endTurn(backend, "agent-retire-trigger");
-			const retire = yield* kernel.submit(domain.retire, {
-				agentId: "agent-retire-trigger",
-			});
-			expect(yield* untilTerminal(retire.changes)).toBe("succeeded");
-			yield* reclaimedOnce(calls, reclaimed);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: { calls, reclaimed } };
 	}),
+	function* ({ scripted }, { calls, reclaimed }) {
+		const domain = yield* AgentDomain;
+		const repos = yield* Repos;
+		const kernel = yield* Kernel;
+		yield* repos.register({
+			defaultRef: "main",
+			source: "/somewhere/retire-trigger",
+		});
+		const spawn = yield* kernel.submit(domain.spawn, payload("retire-trigger"));
+		expect(yield* untilTerminal(spawn.changes)).toBe("succeeded");
+		yield* endsTurn(scripted, "session-retire-trigger");
+		const retire = yield* kernel.submit(domain.retire, {
+			agentId: "agent-retire-trigger",
+		});
+		expect(yield* untilTerminal(retire.changes)).toBe("succeeded");
+		yield* reclaimedOnce(calls, reclaimed);
+	},
 );
 
-it.live("failed setup rings the same reconciler", () =>
+it.effectApp.withProviders(
+	"failed setup rings the same reconciler",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
 		const recorded = yield* makeScriptedRunner;
 		const calls = yield* Ref.make<ReadonlyArray<BerthSite>>([]);
 		const reclaimed = yield* Deferred.make<BerthSite>();
@@ -72,21 +71,22 @@ it.live("failed setup rings the same reconciler", () =>
 			...reclaimedRunner(recorded.runner, calls, reclaimed),
 			provision: () => new RunnerFailure({ detail: "setup abandoned", tag: "local" }),
 		};
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const domain = yield* AgentDomain;
-			const repos = yield* Repos;
-			const kernel = yield* Kernel;
-			yield* repos.register({
-				defaultRef: "main",
-				source: "/somewhere/failed-trigger",
-			});
-			const spawn = yield* kernel.submit(domain.spawn, payload("failed-trigger"));
-			expect(yield* untilTerminal(spawn.changes)).toBe("failed");
-			const intent = yield* db.Intent.where({ id: spawn.id }).first();
-			expect(Option.getOrThrow(intent).detail).toContain("RunnerFailure");
-			expect(Option.getOrThrow(intent).detail).toContain("setup abandoned");
-			yield* reclaimedOnce(calls, reclaimed);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: { calls, reclaimed } };
 	}),
+	function* (_, { calls, reclaimed }) {
+		const db = yield* Database;
+		const domain = yield* AgentDomain;
+		const repos = yield* Repos;
+		const kernel = yield* Kernel;
+		yield* repos.register({
+			defaultRef: "main",
+			source: "/somewhere/failed-trigger",
+		});
+		const spawn = yield* kernel.submit(domain.spawn, payload("failed-trigger"));
+		expect(yield* untilTerminal(spawn.changes)).toBe("failed");
+		const intent = yield* db.Intent.where({ id: spawn.id }).first();
+		expect(Option.getOrThrow(intent).detail).toContain("RunnerFailure");
+		expect(Option.getOrThrow(intent).detail).toContain("setup abandoned");
+		yield* reclaimedOnce(calls, reclaimed);
+	},
 );

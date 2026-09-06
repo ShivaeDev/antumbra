@@ -1,10 +1,10 @@
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
+import { makeTestApp } from "@antumbra/testing";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
+import { acquireTemporaryPersistence, passiveRunner } from "#test/harness.ts";
 
 interface ResourceSeed {
 	readonly agentId: string;
@@ -72,12 +72,12 @@ const storedResource = (agentId: string) =>
 it.live("automatic selection is only retired Agents and failed setup", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
 		const reclaimed = yield* Ref.make<ReadonlyArray<string>>([]);
 		const runner: Runner = {
 			...passiveRunner,
 			reclaim: (site) => Ref.update(reclaimed, (all) => [...all, site.path]).pipe(Effect.as({ _tag: "reclaimed" as const })),
 		};
+		const app = yield* makeTestApp(temporary, { runners: new Map([[runner.tag, runner]]) });
 		yield* Effect.gen(function* () {
 			const reconciler = yield* ResourceReconciler;
 			yield* seedResource({
@@ -103,7 +103,7 @@ it.live("automatic selection is only retired Agents and failed setup", () =>
 				sessionStatus: "open",
 			});
 			yield* reconciler.reconcile();
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
+		}).pipe(Effect.provide(app.layer), Effect.provide(temporary.layer));
 		expect(yield* Ref.get(reclaimed)).toEqual(["/tmp/moorage/agent-retired/berth-0", "/tmp/moorage/agent-failed-setup/berth-0"]);
 		const siesta = yield* storedResource("agent-siesta").pipe(Effect.provide(temporary.layer));
 		expect(siesta.berth.status).toBe("ready");

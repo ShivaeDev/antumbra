@@ -1,13 +1,13 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
+import { makeTestApp } from "@antumbra/testing";
 import { expect, it } from "@effect/vitest";
 import { Clock, Effect, Ref } from "effect";
 import { TestClock } from "effect/testing";
 import { changeOf, REEF_SOURCE } from "#test/change-fixtures.ts";
 import { observed } from "#test/change-transition-fixtures.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { acquireTemporaryPersistence, makeScriptedRunner } from "#test/harness.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
@@ -143,12 +143,12 @@ const expectReclaimed = (released: ReadonlyMap<string, string>) =>
 it.effect("a landed change observation wakes reclaim without waiting for cadence", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		const reclaims = yield* Ref.make(0);
 		const scraps = yield* Ref.make(0);
 		const now = yield* Clock.currentTimeMillis;
 		const runner = countingRunner(recorder.runner, reclaims, scraps);
+		const app = yield* makeTestApp(temporary, { runners: new Map([[runner.tag, runner]]) });
 		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(Effect.provide(temporary.layer));
 
 		yield* Effect.gen(function* () {
@@ -183,20 +183,20 @@ it.effect("a landed change observation wakes reclaim without waiting for cadence
 			yield* TestClock.adjust(25);
 			expect(yield* Ref.get(reclaims)).toBe(4);
 			expect(yield* Ref.get(scraps)).toBe(0);
-		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, runner, new Map(), { cadenceMillis: 60_000 })));
+		}).pipe(Effect.provide(app.layer), Effect.provide(temporary.layer));
 	}),
 );
 
 it.live("a landed replacement releases its withdrawn branch", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		const now = yield* Clock.currentTimeMillis;
 		yield* moored(new Date(now - EIGHT_DAYS_MILLIS)).pipe(Effect.provide(temporary.layer));
 		yield* replaceWithdrawnChange(now).pipe(Effect.provide(temporary.layer));
 
-		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, recorder.runner, new Map(), { cadenceMillis: 60_000 }));
+		const app = yield* makeTestApp(temporary, { runners: new Map([[recorder.runner.tag, recorder.runner]]) });
+		yield* Effect.void.pipe(Effect.provide(app.layer), Effect.provide(temporary.layer));
 
 		yield* berthStatuses.pipe(Effect.tap(expectReclaimed)).pipe(Effect.provide(temporary.layer));
 	}),

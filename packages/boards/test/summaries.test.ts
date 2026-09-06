@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@effect/vitest";
+import { Option } from "effect";
 import type { BoardEntryRow } from "#model.ts";
-import { digestOf, entriesUnder, uncoveredDays } from "#summaries.ts";
+import { digestOf, entriesUnder, uncoveredDays, uncoveredSpan } from "#summaries.ts";
 
 const at = (day: number, hour: number) => new Date(2026, 8, day, hour, 0, 0);
 
@@ -51,6 +52,17 @@ describe("uncovered days", () => {
 
 	it("never offers what the admiral wrote to a smoother", () => {
 		expect(uncoveredDays([admiralNote(1)])).toEqual([]);
+	});
+});
+
+describe("uncovered span", () => {
+	it("gathers every uncovered rough entry into one span, however many days it took", () => {
+		const entries = [rough(1, 1, 9), rough(2, 2, 17), summary(3, 1, 1), rough(4, 3, 8)];
+		expect(Option.getOrThrow(uncoveredSpan(entries))).toMatchObject({ coversFrom: 2, coversTo: 4, entries: [{ id: "rough-2" }, { id: "rough-4" }] });
+	});
+
+	it("offers no span when nothing stands uncovered", () => {
+		expect(uncoveredSpan([rough(1, 1, 9), summary(2, 1, 1)])).toEqual(Option.none());
 	});
 });
 

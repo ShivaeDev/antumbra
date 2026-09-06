@@ -35,6 +35,7 @@ export const BoardEntryView = Schema.Struct({
 	body: Schema.String,
 	createdAt: Schema.String,
 	id: Schema.String,
+	pieceId: Schema.NullOr(Schema.String),
 	register: BoardRegisterSchema,
 });
 export type BoardEntryView = typeof BoardEntryView.Type;

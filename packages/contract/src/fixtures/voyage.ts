@@ -30,6 +30,7 @@ export const soundings: PieceView = {
 			body: "## Latest sounding\n\nThe northern edge is **shallow**.",
 			createdAt: "2026-08-15T09:12:00.000Z",
 			id: "entry-piece-1",
+			pieceId: null,
 			register: "smooth",
 		},
 	],
@@ -93,6 +94,7 @@ export const reefView: VoyageView = {
 			body: "the reef shifts after a storm",
 			createdAt: "2026-08-15T09:10:00.000Z",
 			id: "entry-1",
+			pieceId: null,
 			register: "smooth",
 		},
 		{
@@ -100,13 +102,22 @@ export const reefView: VoyageView = {
 			body: "sounded the eastern shoal at low water",
 			createdAt: "2026-08-15T11:40:00.000Z",
 			id: "entry-2",
+			pieceId: null,
+			register: "rough",
+		},
+		{
+			authorAgentId: "agent-3",
+			body: "The northern shoals were sounded and the depths recorded; the chart of the eastern channel is still open.",
+			createdAt: "2026-08-15T12:20:00.000Z",
+			id: "entry-3",
+			pieceId: "piece-1",
 			register: "rough",
 		},
 	],
 	context: "the reef is uncharted",
 	crew: [{ agentId: "agent-1", role: "captain", status: "alive" }],
 	pieces: [soundings, chart],
-	smoothing: { state: "idle", uncovered: 1 },
+	smoothing: { state: "idle", uncovered: 2 },
 };
 
 export const quayView: QuayView = {

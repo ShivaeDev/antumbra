@@ -11,7 +11,7 @@ import { UnknownBackendTag } from "#errors.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
 import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
-import { makeSpawnTeardown } from "#spawn-teardown.ts";
+import { SpawnTeardown } from "#spawn-teardown/service.ts";
 import { underSpawnedAgent } from "#spawn-trace.ts";
 import { AgentToolCompiler } from "#tool-compiler/service.ts";
 
@@ -28,7 +28,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const capacities = yield* BackendCapacities;
 		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
-		const teardown = yield* makeSpawnTeardown;
+		const teardown = yield* SpawnTeardown;
 		const tools = yield* AgentToolCompiler;
 		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
@@ -41,7 +41,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 				const reconcile = runner.provision(plan).pipe(
 					Effect.catchTags({
 						RunnerAuthRequired: (failure) => execution.wait(failure.message),
-						RunnerFailure: (failure) => teardown.failAfterSettlement(payload, failure),
+						RunnerFailure: (failure) => teardown.afterFailure(payload).pipe(Effect.andThen(Effect.fail(failure))),
 						RunnerProvisionConflict: (failure) => execution.wait(failure.message),
 					}),
 				);
@@ -62,8 +62,9 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					return yield* new UnknownRunnerError({ tag: payload.runner });
 				}
 				yield* birth.register(payload);
-				const plan = yield* birth.prepareMoorage(payload, runner).pipe(Effect.onError(teardown.settleUnlessTeardown(payload)));
-				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.settleCancellation(payload)));
+				const { intentId } = yield* IntentExecution;
+				const plan = yield* birth.prepareMoorage(payload, runner).pipe(Effect.onError((cause) => teardown.unlessTeardown(payload, intentId, cause)));
+				yield* reconcileMoorage(payload, runner, plan).pipe(Effect.onInterrupt(() => teardown.cancellation(payload, intentId)));
 				yield* startSession(
 					payload,
 					backend,
@@ -71,7 +72,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					yield* tools.compile(payload.role, spawnSessionIdentity(payload)),
 					runtime.sinkFor(payload.sessionId, backend.audit),
 					(attachment) => admitSpawnSession(payload, attachment),
-					teardown.settleUnlessTeardown(payload),
+					(cause) => teardown.unlessTeardown(payload, intentId, cause),
 				);
 			}).pipe(underSpawnedAgent(payload));
 

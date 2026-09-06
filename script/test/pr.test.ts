@@ -195,23 +195,48 @@ describe("comments", () => {
 });
 
 describe("failed gh calls", () => {
-	const failed: Reading = { ...quiet, pull: { kind: "failed", message: "gh: HTTP 404" } };
+	const failed: Reading = { ...quiet, pull: { kind: "failed", message: "gh: HTTP 502" } };
+	const started = walk("end", [opened]);
+
+	it("says nothing about a single failed poll", () => {
+		const once = step(started.watch, "end", 30_000, failed);
+		expect(once.lines).toEqual([]);
+		expect(once.exit).toBeUndefined();
+	});
+
+	it("complains once when the polls have failed for ten minutes", () => {
+		const first = step(started.watch, "end", 30_000, failed);
+		const waiting = step(first.watch, "end", 300_000, failed);
+		const due = step(waiting.watch, "end", 630_000, failed);
+		expect(waiting.lines).toEqual([]);
+		expect(due.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 502", minutes: 10 }]);
+		expect(due.exit).toBeUndefined();
+		expect(step(due.watch, "end", 660_000, failed).lines).toEqual([]);
+	});
+
+	it("complains again after a poll succeeds and the failures return", () => {
+		const first = step(started.watch, "end", 30_000, failed);
+		const due = step(first.watch, "end", 630_000, failed);
+		const recovered = step(due.watch, "end", 660_000, quiet);
+		expect(recovered.lines).toEqual([]);
+		const again = step(recovered.watch, "end", 690_000, failed);
+		expect(again.lines).toEqual([]);
+		expect(step(again.watch, "end", 1_290_000, failed).lines).toEqual([{ state: "gh-error", message: "gh: HTTP 502", minutes: 10 }]);
+	});
+
+	it("counts an answer it cannot decode as a failed poll", () => {
+		const broken: Reading = { ...quiet, pull: { kind: "body", body: "{" } };
+		const first = step(started.watch, "end", 30_000, broken);
+		expect(first.lines).toEqual([]);
+		const due = step(first.watch, "end", 630_000, broken);
+		expect(due.lines).toHaveLength(1);
+		expect(due.lines[0]).toMatchObject({ state: "gh-error", minutes: 10 });
+	});
 
 	it("cannot start when the first poll does not reach the pull request", () => {
 		const first = walk("end", [failed]);
-		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 404" }]);
+		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 502", minutes: 0 }]);
 		expect(first.exit).toBe(2);
-	});
-
-	it("keeps polling after a later failure, and reports a repeat once", () => {
-		const started = walk("end", [opened]);
-		const first = step(started.watch, "end", 30_000, failed);
-		const second = step(first.watch, "end", 60_000, failed);
-		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 404" }]);
-		expect(first.exit).toBeUndefined();
-		expect(second.lines).toEqual([]);
-		const good = step(second.watch, "end", 90_000, quiet);
-		expect(step(good.watch, "end", 120_000, failed).lines).toHaveLength(1);
 	});
 });
 

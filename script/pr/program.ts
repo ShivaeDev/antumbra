@@ -4,21 +4,24 @@ import { absorb, nothing, type Observation, observationFrom, type Pieces, type R
 import type { Lifecycle } from "#pr/pull.ts";
 
 export const emptyLimit = 300_000;
+export const errorLimit = 600_000;
 
 export type Line =
 	| { readonly state: "changes-requested" | "ci-green" | "closed" | "conflict" | "merged" | "no-checks" | "superseded"; readonly head: string }
 	| { readonly state: "ci-failed"; readonly head: string; readonly checks: readonly string[] }
-	| { readonly state: "gh-error"; readonly message: string }
+	| { readonly state: "gh-error"; readonly message: string; readonly minutes: number }
 	| Note;
 
 export const render = (line: Line): string => JSON.stringify(line);
+
+export type Failing = { readonly message: string; readonly reported: boolean; readonly since: number };
 
 export type Watch = {
 	readonly armed: string | undefined;
 	readonly changesRequested: boolean;
 	readonly conflict: boolean;
 	readonly emptySince: number | undefined;
-	readonly error: string | undefined;
+	readonly failing: Failing | undefined;
 	readonly failureReported: string | undefined;
 	readonly head: string | undefined;
 	readonly lifecycle: Lifecycle;
@@ -33,7 +36,7 @@ export const initial: Watch = {
 	changesRequested: false,
 	conflict: false,
 	emptySince: undefined,
-	error: undefined,
+	failing: undefined,
 	failureReported: undefined,
 	head: undefined,
 	lifecycle: "open",
@@ -51,6 +54,17 @@ const exitFor = (until: Until, end: End): number => {
 };
 
 const key = (note: Note): string => `${note.state}:${note.id}`;
+
+const failingFrom = (previous: Failing | undefined, message: string | undefined, now: number): Failing | undefined => {
+	if (message === undefined) return undefined;
+	return previous === undefined ? { message, reported: false, since: now } : { ...previous, message };
+};
+
+const complaint = (failing: Failing, now: number): Line => ({
+	state: "gh-error",
+	message: failing.message,
+	minutes: Math.floor((now - failing.since) / 60_000),
+});
 
 const emptySinceFor = (watch: Watch, now: number, observation: Observation): number | undefined => {
 	if (observation.ci !== "none") return undefined;
@@ -76,10 +90,10 @@ const verdict = (until: Until, end: End | undefined, observation: Observation): 
 	return [{ state: end, head: observation.head }];
 };
 
-const advance = (watch: Watch, until: Until, now: number, observation: Observation, pieces: Pieces, error: string | undefined): Step => {
+const advance = (watch: Watch, until: Until, now: number, observation: Observation, pieces: Pieces, failing: Failing | undefined): Step => {
 	const armed = watch.armed ?? observation.head;
 	const conflict = observation.conflict ?? watch.conflict;
-	const failing = observation.ci === "failed" && watch.failureReported !== observation.head;
+	const red = observation.ci === "failed" && watch.failureReported !== observation.head;
 	const emptySince = emptySinceFor(watch, now, observation);
 	const end = endFor(until, observation, armed, emptySince !== undefined && now - emptySince >= emptyLimit);
 	const fresh = observation.notes.filter((note) => !watch.seen.has(key(note)));
@@ -87,7 +101,7 @@ const advance = (watch: Watch, until: Until, now: number, observation: Observati
 		exit: end === undefined ? undefined : exitFor(until, end),
 		lines: [
 			...fresh,
-			...(failing ? [{ state: "ci-failed" as const, head: observation.head, checks: observation.failed }] : []),
+			...(red ? [{ state: "ci-failed" as const, head: observation.head, checks: observation.failed }] : []),
 			...(conflict && !watch.conflict ? [{ state: "conflict" as const, head: observation.head }] : []),
 			...(observation.changesRequested && !watch.changesRequested ? [{ state: "changes-requested" as const, head: observation.head }] : []),
 			...ended(watch, observation),
@@ -98,8 +112,8 @@ const advance = (watch: Watch, until: Until, now: number, observation: Observati
 			changesRequested: observation.changesRequested,
 			conflict,
 			emptySince,
-			error,
-			failureReported: failing ? observation.head : watch.failureReported,
+			failing,
+			failureReported: red ? observation.head : watch.failureReported,
 			head: observation.head,
 			lifecycle: observation.lifecycle,
 			pieces,
@@ -110,10 +124,15 @@ const advance = (watch: Watch, until: Until, now: number, observation: Observati
 
 export const step = (watch: Watch, until: Until, now: number, reading: Reading): Step => {
 	const absorbed = absorb(watch.pieces, reading);
-	const error = absorbed.error;
-	const noticed: readonly Line[] = error !== undefined && error !== watch.error ? [{ state: "gh-error", message: error }] : [];
+	const failing = failingFrom(watch.failing, absorbed.error, now);
+	const due = failing !== undefined && !failing.reported && now - failing.since >= errorLimit;
 	const observation = observationFrom(absorbed.pieces);
-	if (observation === undefined) return { exit: 2, lines: noticed, watch: { ...watch, error, pieces: absorbed.pieces } };
-	const progress = advance(watch, until, now, observation, absorbed.pieces, error);
+	if (observation === undefined) {
+		const lines = failing === undefined ? [] : [complaint(failing, now)];
+		return { exit: 2, lines, watch: { ...watch, failing, pieces: absorbed.pieces } };
+	}
+	const carried = due && failing !== undefined ? { ...failing, reported: true } : failing;
+	const progress = advance(watch, until, now, observation, absorbed.pieces, carried);
+	const noticed = due && failing !== undefined ? [complaint(failing, now)] : [];
 	return { ...progress, lines: [...noticed, ...progress.lines] };
 };

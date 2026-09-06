@@ -1,10 +1,10 @@
 import { SETTINGS, type SettingChange, type SettingKey, SettingsReading, type SettingValue } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Schema } from "effect";
-import { act, useState } from "react";
-import { createRoot } from "react-dom/client";
+import { useState } from "react";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { SettingRow } from "#views/setting-row.tsx";
 
 const { changeSetting } = vi.hoisted(() => ({ changeSetting: vi.fn() }));
@@ -14,30 +14,15 @@ const reading = Schema.decodeUnknownSync(SettingsReading)({
 	overridden: [],
 	settings: Object.fromEntries(Object.entries(SETTINGS).map(([key, declaration]) => [key, declaration.fallback])),
 });
-const settle = (action: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			action();
-			return Promise.resolve();
-		}),
-	);
 const CurrentSetting = ({ settingKey }: { readonly settingKey: SettingKey }) => {
 	const [saved, setSaved] = useState(reading);
 	return (
 		<SettingRow settingKey={settingKey} value={saved.settings[settingKey]} overridden={saved.overridden.includes(settingKey)} onSettings={setSaved} />
 	);
 };
-const mount = (settingKey: SettingKey) =>
+const shown = (settingKey: SettingKey) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<CurrentSetting settingKey={settingKey} />));
 	});
 const input = (): HTMLInputElement => {
@@ -45,21 +30,17 @@ const input = (): HTMLInputElement => {
 	if (field === null) return Effect.runSync(Effect.die("Missing setting field"));
 	return field;
 };
-const write = (value: string) => {
-	Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input(), value);
-	input().dispatchEvent(new Event("input", { bubbles: true }));
-};
 const saved = (key: SettingKey, value: SettingValue): SettingsReading => ({ overridden: [key], settings: { ...reading.settings, [key]: value } });
 
 it.effect.each(["", "0", "1.5", "65"])("rejects count draft '%s' and accepts the declaration boundary", (raw) =>
 	Effect.gen(function* () {
 		changeSetting.mockReturnValue(Effect.succeed(saved("maxParallelSessions", 64)));
-		yield* mount("maxParallelSessions");
-		yield* settle(() => write(raw));
+		yield* shown("maxParallelSessions");
+		yield* settle(() => write(input(), raw));
 		expect(document.querySelector("button")?.disabled).toBe(true);
 		yield* settle(() => document.querySelector("form")?.requestSubmit());
 		expect(changeSetting).not.toHaveBeenCalled();
-		yield* settle(() => write("64"));
+		yield* settle(() => write(input(), "64"));
 		yield* settle(() => document.querySelector("form")?.requestSubmit());
 		expect(changeSetting).toHaveBeenCalledWith({ key: "maxParallelSessions", value: 64 });
 		expect(input().value).toBe("64");
@@ -81,12 +62,12 @@ it.effect.each([
 			const retried = yield* Deferred.make<void>();
 			changeSetting.mockImplementationOnce((change: SettingChange) => Deferred.succeed(started, change).pipe(Effect.andThen(Deferred.await(first))));
 			changeSetting.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-			yield* mount(key);
+			yield* shown(key);
 			const flag = typeof next === "boolean";
 			yield* settle(() => {
 				if (flag) input().click();
 				else {
-					write(raw);
+					write(input(), raw);
 					document.querySelector("form")?.requestSubmit();
 				}
 			});

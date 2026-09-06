@@ -1,8 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
+import { mount, settle, write } from "#test/dom.ts";
 import { ModeNav } from "#views/mode-nav.tsx";
 import { SettingRow } from "#views/setting-row.tsx";
 import { SettingsPanel } from "#views/settings.tsx";
@@ -44,30 +43,14 @@ it("offers no save for a count still showing the value it was given", () => {
 it.effect(
 	"keeps a count draft until its persisted value changes",
 	Effect.fnUntraced(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		const settle = (change: () => void) =>
-			Effect.promise(() =>
-				act(() => {
-					change();
-					return Promise.resolve();
-				}),
-			);
+		const { container, root } = yield* mount();
 		const render = (value: number) =>
 			settle(() => root.render(<SettingRow onSettings={() => undefined} overridden={true} settingKey="maxParallelSessions" value={value} />));
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
 		yield* render(4);
 		const input = container.querySelector("input");
 		expect(input?.value).toBe("4");
 		yield* settle(() => {
-			Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, "6");
-			input?.dispatchEvent(new Event("input", { bubbles: true }));
+			if (input !== null) write(input, "6");
 		});
 		yield* render(4);
 		expect(container.querySelector("input")?.value).toBe("6");

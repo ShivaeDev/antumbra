@@ -15,7 +15,7 @@ import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/
 import { Effect, Schema } from "effect";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { makeCaptainToolCompiler } from "#captain-tools.ts";
-import { makeReportingCharter, withNotice } from "#charter-notice.ts";
+import { withNotice } from "#charter-notice.ts";
 import { renderFleet, rolePart } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
@@ -76,7 +76,6 @@ const registered = (known: boolean, repo: RegisteredRepo): string =>
 
 export const makeFleetToolCompiler = Effect.gen(function* () {
 	const compileCaptainTools = yield* makeCaptainToolCompiler;
-	const charter = yield* makeReportingCharter();
 	const repos = yield* Repos;
 	const rulings = yield* Rulings;
 	const procedures = yield* VoyageProcedureService;
@@ -113,7 +112,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 			answered(
 				identity,
 				charterVoyagePieceSpec.name,
-				charter({
+				procedures.charterWithNotice({
 					charter: input.charter,
 					dependsOn: [],
 					expectation: input.expectation,

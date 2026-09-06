@@ -1,10 +1,9 @@
 import type { RepoRegistration, SpawnRequest } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { ReposList } from "#views/repos.tsx";
 import { SpawnDialog } from "#views/spawn-dialog.tsx";
 
@@ -15,26 +14,6 @@ beforeEach(() => {
 	spawnAgent.mockReset();
 });
 
-const settle = (action: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			action();
-			return Promise.resolve();
-		}),
-	);
-const mount = () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
-		return root;
-	});
 const input = (label: string): HTMLInputElement | HTMLTextAreaElement => {
 	const id = [...document.querySelectorAll("label")].find((element) => element.textContent === label)?.htmlFor;
 	const element = id === undefined ? null : document.getElementById(id);
@@ -42,10 +21,7 @@ const input = (label: string): HTMLInputElement | HTMLTextAreaElement => {
 	return element;
 };
 const change = (label: string, value: string) => {
-	const element = input(label);
-	const prototype = element instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLTextAreaElement.prototype;
-	Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(element, value);
-	element.dispatchEvent(new Event("input", { bubbles: true }));
+	write(input(label), value);
 };
 const button = (label: string): HTMLButtonElement => {
 	const element = [...document.querySelectorAll("button")].find((entry) => entry.textContent === label);
@@ -72,7 +48,7 @@ it.effect("keeps the spawn draft through cancel and failure, then clears only ro
 		const second = yield* Deferred.make<void>();
 		spawnAgent.mockImplementationOnce((value: SpawnRequest) => Deferred.succeed(started, value).pipe(Effect.andThen(Deferred.await(first))));
 		spawnAgent.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		const root = yield* mount();
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<SpawnDialog backends={["codex", "pi"]} />));
 		yield* settle(() => button("Spawn agent").click());
 		yield* settle(() => document.querySelector("form")?.requestSubmit());
@@ -113,7 +89,7 @@ it.effect("keeps the spawn draft through cancel and failure, then clears only ro
 it.effect("uses the visible fallback without forgetting the selected backend when availability changes", () =>
 	Effect.gen(function* () {
 		spawnAgent.mockReturnValue(Effect.fail(new RendererRequestError({ message: "Try again" })));
-		const root = yield* mount();
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<SpawnDialog backends={[]} />));
 		yield* settle(() => button("Spawn agent").click());
 		yield* settle(() => {
@@ -145,7 +121,7 @@ it.effect("retains a failed repository registration and keeps its default ref af
 		const second = yield* Deferred.make<void>();
 		registerRepo.mockImplementationOnce((value: RepoRegistration) => Deferred.succeed(started, value).pipe(Effect.andThen(Deferred.await(first))));
 		registerRepo.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		const root = yield* mount();
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<ReposList repos={[]} onError={() => undefined} />));
 		expect(input("Default ref").value).toBe("main");
 		yield* settle(() => document.querySelector("form")?.requestSubmit());

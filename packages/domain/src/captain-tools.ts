@@ -6,7 +6,7 @@ import { CaptainMembership } from "#captain-membership.ts";
 import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
 import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
 import { makeCaptainVerdictToolCompiler } from "#captain-verdicts.ts";
-import { makeReportingCharter, withNotice } from "#charter-notice.ts";
+import { withNotice } from "#charter-notice.ts";
 import { makeReportToolCompiler } from "#report-tools.ts";
 import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
 import { makeRulingToolCompiler } from "#ruling-tools.ts";
@@ -14,9 +14,11 @@ import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
 
+import { VoyageProcedureService } from "#voyages/service.ts";
+
 export const makeCaptainToolCompiler = Effect.gen(function* () {
 	const membership = yield* CaptainMembership;
-	const charter = yield* makeReportingCharter();
+	const procedures = yield* VoyageProcedureService;
 	const pieceVerbTools = yield* makePieceVerbToolCompiler;
 	const compileBoardTools = yield* makeBoardToolCompiler;
 	const compileReportTools = yield* makeReportToolCompiler;
@@ -31,7 +33,7 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				answered(
 					identity,
 					charterPieceSpec.name,
-					charter({
+					procedures.charterWithNotice({
 						charter: input.charter,
 						dependsOn: input.dependsOn,
 						expectation: input.expectation,

@@ -1,13 +1,13 @@
 import { HoldSource } from "@antumbra/contract";
 import { Effect, Layer } from "effect";
-import { makeHoldWaits } from "#hold-waits.ts";
+import { HoldWaits } from "#hold-waits/service.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeVoyageRefreshes } from "#voyage-feed.ts";
 
 export const HoldSourceLive = Layer.effect(HoldSource)(
 	Effect.gen(function* () {
 		const refreshes = yield* makeVoyageRefreshes;
-		const waits = yield* makeHoldWaits;
-		return { holdsFeed: refreshes(waits().pipe(Effect.mapError(toFailure))) };
+		const waits = yield* HoldWaits;
+		return { holdsFeed: refreshes(waits.read().pipe(Effect.mapError(toFailure))) };
 	}),
 );

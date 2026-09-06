@@ -1,10 +1,9 @@
 import { soundings } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle } from "#test/dom.ts";
 import { PieceActs } from "#views/piece-acts.tsx";
 
 const harbor = { ...soundings, id: "harbor", title: "Harbor" };
@@ -12,25 +11,10 @@ const chart = { ...soundings, id: "chart", title: "Chart", dependsOn: [soundings
 
 const { rewirePiece } = vi.hoisted(() => ({ rewirePiece: vi.fn() }));
 vi.mock("#adapters/trpc-voyages.ts", () => ({ rewirePiece }));
-const settle = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
 const button = (text: string) => [...document.querySelectorAll("button")].find((entry) => entry.textContent === text);
-const mount = () =>
+const shown = () =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<PieceActs piece={chart} pieces={[soundings, chart, harbor]} onError={() => undefined} />));
 		return root;
 	});
@@ -43,7 +27,7 @@ it.effect("retains the dependency draft while saving and after failure, then clo
 		const retried = yield* Deferred.make<void>();
 		rewirePiece.mockReturnValueOnce(Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(first))));
 		rewirePiece.mockReturnValueOnce(Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		yield* mount();
+		yield* shown();
 		yield* settle(() => button("Rewire")?.click());
 		const select = document.querySelector("select");
 		expect([...(select?.options ?? [])].map((option) => option.value)).toEqual([soundings.id, harbor.id]);
@@ -72,7 +56,7 @@ it.effect("retains the dependency draft while saving and after failure, then clo
 
 it.effect("opens from the current saved dependencies after an edit is dismissed", () =>
 	Effect.gen(function* () {
-		const root = yield* mount();
+		const root = yield* shown();
 		yield* settle(() => button("Rewire")?.click());
 		const select = document.querySelector("select");
 		expect(select?.labels?.item(0)?.textContent).toBe("Depends on");

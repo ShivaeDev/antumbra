@@ -1,10 +1,9 @@
 import type { ModelChoice, RoleSettings } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
 import { beforeEach, vi } from "vitest";
 import { RendererRequestError } from "#adapters/request-error.ts";
+import { mount, settle, write } from "#test/dom.ts";
 import { OpenVoyageForm } from "#views/open-voyage-form.tsx";
 
 const { backendModels, openVoyage } = vi.hoisted(() => ({ backendModels: vi.fn(), openVoyage: vi.fn() }));
@@ -28,27 +27,17 @@ beforeEach(() => {
 	});
 });
 
-const settle = (change: () => void) =>
-	Effect.promise(() =>
-		act(() => {
-			change();
-			return Promise.resolve();
-		}),
-	);
-
-const nativeValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
-
-const named = (name: string): HTMLInputElement | null => document.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
-
-const labelled = (label: string): HTMLInputElement | null => {
-	const forId = [...document.querySelectorAll("label")].find((node) => node.textContent === label)?.getAttribute("for");
-	return document.querySelector<HTMLInputElement>(`input[id="${forId}"]`);
+const named = (name: string): HTMLInputElement => {
+	const input = document.querySelector<HTMLInputElement>(`input[aria-label="${name}"]`);
+	if (input === null) return Effect.runSync(Effect.die(`Missing field ${name}`));
+	return input;
 };
 
-const write = (element: HTMLInputElement | null, value: string) => {
-	if (element === null) return;
-	nativeValue?.call(element, value);
-	element.dispatchEvent(new Event("input", { bubbles: true }));
+const labelled = (label: string): HTMLInputElement => {
+	const forId = [...document.querySelectorAll("label")].find((node) => node.textContent === label)?.getAttribute("for");
+	const input = document.querySelector<HTMLInputElement>(`input[id="${forId}"]`);
+	if (input === null) return Effect.runSync(Effect.die(`Missing field ${label}`));
+	return input;
 };
 
 const suggested = (name: string): ReadonlyArray<string> => {
@@ -78,15 +67,7 @@ const choose = (name: string, backend: string) =>
 
 const shown = (backends: ReadonlyArray<string>, defaults: ReadonlyArray<RoleSettings> = [], onOpened: (id: string) => void = () => undefined) =>
 	Effect.gen(function* () {
-		const container = document.createElement("div");
-		document.body.append(container);
-		const root = createRoot(container);
-		yield* Effect.addFinalizer(() =>
-			settle(() => {
-				root.unmount();
-				container.remove();
-			}),
-		);
+		const { root } = yield* mount();
 		yield* settle(() => root.render(<OpenVoyageForm backends={backends} defaults={defaults} onOpened={onOpened} />));
 		yield* settle(() => buttonSaying("Open voyage")?.click());
 		yield* settle(() => {

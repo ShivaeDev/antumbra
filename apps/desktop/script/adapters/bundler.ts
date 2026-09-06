@@ -1,8 +1,8 @@
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Effect } from "effect";
 import { build, watch } from "rolldown";
 import { MAIN_EXTERNALS } from "#script/adapters/externals.ts";
-import { packageRoot } from "#script/adapters/workspace.ts";
 
 type BundleWatcher = ReturnType<typeof watch>;
 
@@ -24,7 +24,7 @@ const configs = (root: string) => [
 		platform: "node" as const,
 	},
 	{
-		input: join(packageRoot("@antumbra/server"), "src", "main.ts"),
+		input: fileURLToPath(import.meta.resolve("@antumbra/server/main.ts")),
 		output: {
 			codeSplitting: false,
 			file: join(root, "out", "server.js"),

@@ -7,7 +7,7 @@ import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { callTool } from "#test/harness.ts";
-import { chain, stateOf } from "#test/voyage-fixtures.ts";
+import { chain, stateOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const acquireMoorage = Effect.acquireRelease(
 	Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-moorage-"))),
@@ -41,6 +41,10 @@ it.effectApp.withProviders(
 		const artifacts = yield* Artifacts;
 		const { alpha, voyage } = yield* chain;
 		const queued = yield* scripted.queued;
+		const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
+		expect(births).toHaveLength(1);
+		const birth = Option.getOrThrow(Option.fromUndefinedOr(births[0]));
+		expect(yield* terminalIntent(birth.id)).toBe("succeeded");
 		const row = Option.getOrThrow(yield* db.AgentSession.where({ id: queued.sessionId }).first());
 		expect(yield* db.PieceAgent.where({ pieceId: alpha.id, agentId: row.agentId }).all()).toHaveLength(1);
 		const session = Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(queued.sessionId)));

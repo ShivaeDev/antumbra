@@ -2,13 +2,14 @@ import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
-import { expect, it } from "@effect/vitest";
+import { ResourceReconciler } from "@antumbra/resource-reclamation";
+import { endsTurn, it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Clock, Effect, Option, Ref, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
 import type { SpawnFields } from "#index.ts";
 import { REEF_SOURCE } from "#test/change-fixtures.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, makeScriptedRunner } from "#test/harness.ts";
+import { makeScriptedRunner } from "#test/harness.ts";
 
 const EIGHT_DAYS_MILLIS = 8 * 24 * 60 * 60 * 1000;
 
@@ -38,60 +39,40 @@ const berthRow = Effect.gen(function* () {
 	return Option.getOrThrow(yield* db.Berth.where({ id: "agent-sweep:berth-0" }).first());
 });
 
-const detachSweepAgent = Effect.gen(function* () {
-	const db = yield* Database;
-	yield* db.Agent.where({ id: sweepPayload.agentId })
-		.update({ status: "dormant" })
-		.pipe(
-			Effect.andThen(
-				db.AgentSession.where({ id: sweepPayload.sessionId }).update({
-					status: "closed",
-				}),
-			),
-		);
-});
-
-const dirtyRunner = (base: Runner): Runner => ({
-	...base,
-	reclaim: () => Effect.succeed({ _tag: "dirty" as const }),
-});
-
-const scrapCounting = (base: Runner, scraps: Ref.Ref<number>): Runner => ({
-	...base,
-	scrap: () => Ref.update(scraps, (count) => count + 1),
-});
-
-it.live("an old dirty berth stays stranded without destructive cleanup", () =>
+it.effectApp.withProviders(
+	"an old dirty berth stays stranded without destructive cleanup",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const scripted = yield* makeScriptedBackend;
 		const recorder = yield* makeScriptedRunner;
 		const scraps = yield* Ref.make(0);
-
-		const outcome = yield* submitSpawn.pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend, {}, recorder.runner)));
-		expect(outcome).toBe("succeeded");
-		const ready = yield* berthRow.pipe(Effect.provide(temporary.layer));
+		const runner: Runner = {
+			...recorder.runner,
+			reclaim: () => Effect.succeed({ _tag: "dirty" as const }),
+			scrap: () => Ref.update(scraps, (count) => count + 1),
+		};
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: scraps };
+	}),
+	function* ({ scripted, db }, scraps) {
+		const kernel = yield* Kernel;
+		const domain = yield* AgentDomain;
+		const reconciler = yield* ResourceReconciler;
+		expect(yield* submitSpawn).toBe("succeeded");
+		const ready = yield* berthRow;
 		expect(ready.status).toBe("ready");
-		yield* detachSweepAgent.pipe(Effect.provide(temporary.layer));
-
-		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, dirtyRunner(recorder.runner)));
-		const stranded = yield* berthRow.pipe(Effect.provide(temporary.layer));
+		yield* endsTurn(scripted, sweepPayload.sessionId);
+		const retirement = yield* kernel.submit(domain.retire, { agentId: sweepPayload.agentId });
+		expect(yield* retirement.changes.pipe(Stream.takeUntil(isTerminalIntentStatus), Stream.runLast, Effect.map(Option.getOrThrow))).toBe("succeeded");
+		yield* reconciler.reconcile();
+		const stranded = yield* berthRow;
 		expect(stranded.status).toBe("stranded");
 		expect(stranded.strandedAt).not.toBeNull();
 
 		const now = yield* Clock.currentTimeMillis;
 		const oldStrandedAt = new Date(now - EIGHT_DAYS_MILLIS);
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			yield* db.Berth.where({ id: "agent-sweep:berth-0" }).update({
-				strandedAt: oldStrandedAt,
-			});
-		}).pipe(Effect.provide(temporary.layer));
-
-		yield* Effect.provide(Effect.void, domainKernelLayer(temporary, scripted.backend, {}, scrapCounting(dirtyRunner(recorder.runner), scraps)));
-		const preserved = yield* berthRow.pipe(Effect.provide(temporary.layer));
+		yield* db.Berth.where({ id: "agent-sweep:berth-0" }).update({ strandedAt: oldStrandedAt });
+		yield* reconciler.reconcile();
+		const preserved = yield* berthRow;
 		expect(preserved.status).toBe("stranded");
 		expect(preserved.strandedAt?.getTime()).toBe(oldStrandedAt.getTime());
 		expect(yield* Ref.get(scraps)).toBe(0);
-	}),
+	},
 );

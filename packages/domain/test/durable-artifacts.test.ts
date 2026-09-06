@@ -1,13 +1,13 @@
 import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative } from "node:path";
-import { Database } from "@antumbra/persistence";
+import { join } from "node:path";
+import { Artifacts } from "@antumbra/artifacts";
 import type { Runner } from "@antumbra/plugin-api";
-import { expect, it } from "@effect/vitest";
+import { endsTurn, it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { dispatchingLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, callTool, endTurn, makeScriptedBackend, sessionFor } from "#test/harness.ts";
-import { chain, eventually, PATIENCE, stateOf } from "#test/voyage-fixtures.ts";
+import { callTool } from "#test/harness.ts";
+import { chain, stateOf, terminalIntent } from "#test/voyage-fixtures.ts";
 
 const acquireMoorage = Effect.acquireRelease(
 	Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-moorage-"))),
@@ -30,40 +30,38 @@ const runnerAt = (root: string): Runner => ({
 	tag: "local",
 });
 
-it.live("a landed local artifact survives removal of its moorage", () =>
+it.effectApp.withProviders(
+	"a landed local artifact survives removal of its moorage",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
 		const root = yield* acquireMoorage;
-		const scripted = yield* makeScriptedBackend;
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const { alpha, voyage } = yield* chain;
-			const assignment = yield* eventually(db.PieceAgent.where({ pieceId: alpha.id }).first().pipe(Effect.filterOrFail(Option.isSome)));
-			const session = yield* eventually(sessionFor(scripted, assignment.value.agentId));
-			const source = join(root, "reef.md");
-			writeFileSync(source, "# Reef\n");
-
-			expect(
-				yield* callTool(session, "land_artifact", {
-					path: "reef.md",
-					title: "reef chart",
-				}),
-			).toEqual({
-				ok: true,
-				text: "artifact landed; other current artifacts: none; call supersede if this is a new version",
-			});
-			yield* endTurn(scripted, assignment.value.agentId);
-			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
-
-			const artifact = (yield* db.Artifact.all())[0];
-			const published = join(dirname(temporary.database), "artifacts", artifact?.digest ?? "", artifact?.basename ?? "");
-			expect(relative(root, published).startsWith("..")).toBe(true);
-
-			rmSync(root, { force: true, recursive: true });
-			expect(existsSync(source)).toBe(false);
-			expect(existsSync(published)).toBe(true);
-			expect((yield* db.Artifact.all())[0]?.id).toBe(artifact?.id);
-			expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
-		}).pipe(Effect.provide(dispatchingLayer(temporary, scripted.backend, PATIENCE, {}, runnerAt(root))));
+		const runner = runnerAt(root);
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: root };
 	}),
+	function* ({ db, scripted }, root) {
+		const artifacts = yield* Artifacts;
+		const { alpha, voyage } = yield* chain;
+		const queued = yield* scripted.queued;
+		const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
+		expect(births).toHaveLength(1);
+		const birth = Option.getOrThrow(Option.fromUndefinedOr(births[0]));
+		expect(yield* terminalIntent(birth.id)).toBe("succeeded");
+		const row = Option.getOrThrow(yield* db.AgentSession.where({ id: queued.sessionId }).first());
+		expect(yield* db.PieceAgent.where({ pieceId: alpha.id, agentId: row.agentId }).all()).toHaveLength(1);
+		const session = Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(queued.sessionId)));
+		const source = join(root, "reef.md");
+		writeFileSync(source, "# Reef\n");
+		expect(yield* callTool(session, "land_artifact", { path: "reef.md", title: "reef chart" })).toEqual({
+			ok: true,
+			text: "artifact landed; other current artifacts: none; call supersede if this is a new version",
+		});
+		yield* endsTurn(scripted, queued.sessionId);
+		expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
+
+		const artifact = Option.getOrThrow(yield* db.Artifact.first());
+		rmSync(root, { force: true, recursive: true });
+		expect(existsSync(source)).toBe(false);
+		expect(yield* artifacts.readMarkdown(artifact.id)).toMatchObject({ artifactId: artifact.id, markdown: "# Reef\n" });
+		expect(Option.getOrThrow(yield* db.Artifact.first()).id).toBe(artifact.id);
+		expect(yield* stateOf(voyage.id, alpha.id)).toBe("done");
+	},
 );

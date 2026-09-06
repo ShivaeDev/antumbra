@@ -1,10 +1,10 @@
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
+import { passiveRunner } from "#test/harness.ts";
 
 interface ResourceSeed {
 	readonly agentId: string;
@@ -69,44 +69,44 @@ const storedResource = (agentId: string) =>
 		};
 	});
 
-it.live("automatic selection is only retired Agents and failed setup", () =>
+it.effectApp.withProviders(
+	"automatic selection is only retired Agents and failed setup",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
 		const reclaimed = yield* Ref.make<ReadonlyArray<string>>([]);
 		const runner: Runner = {
 			...passiveRunner,
 			reclaim: (site) => Ref.update(reclaimed, (all) => [...all, site.path]).pipe(Effect.as({ _tag: "reclaimed" as const })),
 		};
-		yield* Effect.gen(function* () {
-			const reconciler = yield* ResourceReconciler;
-			yield* seedResource({
-				agentId: "agent-retired",
-				agentStatus: "retired",
-				moorageStatus: "ready",
-			});
-			yield* seedResource({
-				agentId: "agent-failed-setup",
-				agentStatus: "dormant",
-				moorageStatus: "provisioning",
-			});
-			yield* seedResource({
-				agentId: "agent-siesta",
-				agentStatus: "dormant",
-				moorageStatus: "ready",
-				sessionStatus: "open",
-			});
-			yield* seedResource({
-				agentId: "agent-alive",
-				agentStatus: "alive",
-				moorageStatus: "ready",
-				sessionStatus: "open",
-			});
-			yield* reconciler.reconcile();
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner)));
+		return { providers: { runners: new Map([[runner.tag, runner]]) }, state: reclaimed };
+	}),
+	function* (_, reclaimed) {
+		const reconciler = yield* ResourceReconciler;
+		yield* seedResource({
+			agentId: "agent-retired",
+			agentStatus: "retired",
+			moorageStatus: "ready",
+		});
+		yield* seedResource({
+			agentId: "agent-failed-setup",
+			agentStatus: "dormant",
+			moorageStatus: "provisioning",
+		});
+		yield* seedResource({
+			agentId: "agent-siesta",
+			agentStatus: "dormant",
+			moorageStatus: "ready",
+			sessionStatus: "open",
+		});
+		yield* seedResource({
+			agentId: "agent-alive",
+			agentStatus: "alive",
+			moorageStatus: "ready",
+			sessionStatus: "open",
+		});
+		yield* reconciler.reconcile();
 		expect(yield* Ref.get(reclaimed)).toEqual(["/tmp/moorage/agent-retired/berth-0", "/tmp/moorage/agent-failed-setup/berth-0"]);
-		const siesta = yield* storedResource("agent-siesta").pipe(Effect.provide(temporary.layer));
+		const siesta = yield* storedResource("agent-siesta");
 		expect(siesta.berth.status).toBe("ready");
 		expect(siesta.berth.reclaimState).toBeNull();
-	}),
+	},
 );

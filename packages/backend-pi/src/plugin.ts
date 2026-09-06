@@ -1,5 +1,5 @@
 import type { AntumbraPlugin } from "@antumbra/plugin-api";
-import { skillFolders } from "@antumbra/skills";
+import { skillFolders } from "@antumbra/skills/folders.ts";
 import { piRuntime } from "#adapters/runtime.ts";
 import { piBackend } from "#backend.ts";
 

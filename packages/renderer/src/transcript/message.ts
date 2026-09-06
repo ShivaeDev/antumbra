@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import type { TranscriptMessage } from "#transcript/model.ts";
 
 type MessageEvent = Extract<AgentEvent, { type: "message" }>;

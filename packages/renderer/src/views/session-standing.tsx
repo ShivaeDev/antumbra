@@ -1,5 +1,5 @@
 import type { SessionTreeNode } from "@antumbra/contract";
-import type { BackgroundTask, SessionState } from "@antumbra/vocabulary/session-events";
+import type { BackgroundTask, SessionState } from "@antumbra/vocabulary/session-events.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import type { Activity } from "#transcript/activity.ts";
 import { stateWords } from "#transcript/labels.ts";

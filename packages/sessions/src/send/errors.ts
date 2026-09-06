@@ -6,7 +6,7 @@ import type {
 	InvalidSessionExecutionStatus,
 	InvalidSessionExecutionTransition,
 	StoredAgentSessionStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime";
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Data } from "effect";
 import type { SubsessionAttachRefused } from "#attach-roots.ts";
 import type { SessionEnded, SessionNotFound } from "#errors.ts";

@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { ingest } from "#ingest.ts";
 import { mark } from "#mark.ts";

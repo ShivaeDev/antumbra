@@ -1,4 +1,5 @@
-import type { FeatureShape, RowShape } from "@antumbra/feature";
+import type { FeatureShape } from "@antumbra/feature/feature.ts";
+import type { RowShape } from "@antumbra/feature/row.ts";
 import type { Effect } from "effect";
 import { codecFor, type RowCodec } from "#codec.ts";
 

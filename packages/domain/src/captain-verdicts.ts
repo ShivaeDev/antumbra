@@ -1,7 +1,7 @@
 import { bind, ruleOnSpec } from "@antumbra/agent-tools";
 import { type Ruling, Rulings, type RulingVerdict } from "@antumbra/rulings";
 import { bindsWords } from "@antumbra/rulings/radius/words";
-import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority } from "@antumbra/vocabulary/ruling.ts";
 import { Effect, Option } from "effect";
 import { makeRulingSpeaker } from "#ruling-speaker.ts";
 import { pickOf, verdictRefusal } from "#ruling-verdict-refusals.ts";

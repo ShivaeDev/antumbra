@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import type { Context } from "effect";
 import { makeHealth } from "#health.ts";
 import { initializeIntentDemand } from "#initialize.ts";

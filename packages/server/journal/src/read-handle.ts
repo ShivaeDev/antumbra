@@ -1,4 +1,4 @@
-import { RowNotFound } from "@antumbra/feature";
+import { RowNotFound } from "@antumbra/feature/rejection.ts";
 import { Effect, Option } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import type { Row } from "effect/unstable/sql/SqlConnection";

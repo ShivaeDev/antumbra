@@ -1,4 +1,4 @@
-import type { AgentEvent, RawPayload, SessionState } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload, SessionState } from "@antumbra/vocabulary/session-events.ts";
 import { Option, Schema } from "effect";
 import { rawEvent } from "#mapping.ts";
 import { SessionErrorProperties, SessionStatusProperties } from "#protocol.ts";

@@ -1,5 +1,5 @@
 import type { SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events.ts";
 import { blockEvent, contentBlocks } from "#blocks.ts";
 import { claudeRaw } from "#raw-payload.ts";
 

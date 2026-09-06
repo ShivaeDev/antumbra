@@ -1,4 +1,4 @@
-import { DevTraceLive } from "@antumbra/trace-sink";
+import { DevTraceLive } from "@antumbra/trace-sink/layer.ts";
 import { Layer } from "effect";
 import { app } from "electron";
 import { configureDataDirectory } from "#adapters/shell.ts";

@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { makeBegan } from "#live-delegations/began.ts";
 import { makeDelegating } from "#live-delegations/delegating.ts";
 import { makeEnded } from "#live-delegations/ended.ts";

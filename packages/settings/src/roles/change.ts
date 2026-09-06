@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role";
+import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { Clock, Effect } from "effect";
 import { type AgentSettingsChoice, FLEET_SCOPE } from "#roles/choice.ts";
 

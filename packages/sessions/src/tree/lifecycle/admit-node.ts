@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, type Ref } from "effect";
 import { originOf, type SessionTree } from "#tree/attribution.ts";
 import { mintAdmitted } from "#tree/lifecycle/mint-admitted.ts";

@@ -1,4 +1,6 @@
-import type { Fields, QueryDefinition, RowShape, Values } from "@antumbra/feature";
+import type { Fields, Values } from "@antumbra/feature/fields.ts";
+import type { QueryDefinition } from "@antumbra/feature/query.ts";
+import type { RowShape } from "@antumbra/feature/row.ts";
 import { Context, Effect, type Schema, type Stream } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";

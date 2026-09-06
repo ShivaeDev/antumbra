@@ -1,5 +1,5 @@
 import { Kernel } from "@antumbra/kernel";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionDrain } from "@antumbra/sessions/drain/service";
 import { Effect } from "effect";

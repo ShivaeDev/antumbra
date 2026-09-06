@@ -1,5 +1,6 @@
 import type { SessionInput } from "@antumbra/plugin-api";
-import { type AgentPrompt, admiralWords } from "@antumbra/prompts";
+import { admiralWords } from "@antumbra/prompts/admiral.ts";
+import type { AgentPrompt } from "@antumbra/prompts/mint.ts";
 
 export const promptInput = (prompt: AgentPrompt): SessionInput => ({
 	parts: [{ text: prompt, type: "text" }],

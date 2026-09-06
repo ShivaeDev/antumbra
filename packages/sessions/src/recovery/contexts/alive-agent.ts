@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, Option, Result } from "effect";
 import { recoveryHeld } from "#recovery/error.ts";
 import type { SessionUnresumable } from "#unresumable.ts";

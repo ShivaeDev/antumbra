@@ -11,7 +11,7 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import { type RegisteredRepo, Repos } from "@antumbra/repos";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { type ResolvedAgentSettings, RoleSettings } from "@antumbra/settings";
-import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
+import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
 import { Effect, Schema } from "effect";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { compileCaptainTools } from "#captain-tools.ts";

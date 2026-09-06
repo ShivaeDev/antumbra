@@ -1,6 +1,6 @@
 import { BoardScope, Boards, EntryInput, type SmoothingDay } from "@antumbra/boards";
-import type { AgentPrompt } from "@antumbra/prompts";
-import { pieceSmootherWords, smootherWords } from "@antumbra/prompts";
+import type { AgentPrompt } from "@antumbra/prompts/mint.ts";
+import { pieceSmootherWords, smootherWords } from "@antumbra/prompts/smoother.ts";
 import type { SinkFor } from "@antumbra/sessions";
 import { Effect, Option } from "effect";
 import { SmoothingPassFailed } from "#errors.ts";

@@ -4,7 +4,7 @@ import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionTurnRests } from "@antumbra/sessions/turn-rest/service";
 import { it } from "@antumbra/testing";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { rawOf } from "#test/harness.ts";

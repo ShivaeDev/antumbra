@@ -3,7 +3,7 @@ export type {
 	ChangeMergeable,
 	ChangeReview,
 	ChangeStage,
-} from "@antumbra/vocabulary/change";
+} from "@antumbra/vocabulary/change.ts";
 export {
 	type AgentBackend,
 	BackendFailure,

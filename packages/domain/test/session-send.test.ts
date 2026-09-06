@@ -4,7 +4,7 @@ import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { SessionInputDelivery } from "@antumbra/sessions/input-delivery/service";
 import { it } from "@antumbra/testing";
-import { SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { endTurn, makeScriptedBackend, type ScriptedBackend } from "#test/harness.ts";

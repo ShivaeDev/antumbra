@@ -1,4 +1,4 @@
-import { decodeStoredRulingSubjectKind } from "@antumbra/vocabulary/ruling";
+import { decodeStoredRulingSubjectKind } from "@antumbra/vocabulary/ruling.ts";
 import { Effect } from "effect";
 import type { RulingReferenceKind, RulingSubject } from "#model.ts";
 import { invalidRulingValue } from "#stored.ts";

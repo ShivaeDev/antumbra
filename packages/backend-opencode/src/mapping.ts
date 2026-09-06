@@ -1,4 +1,4 @@
-import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events.ts";
 
 export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 	kind,

@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { rawEvent, rawOf } from "#mapping.ts";
 import { openMessageAuthors } from "#message-authors.ts";
 import { partEvents } from "#parts.ts";

@@ -1,5 +1,5 @@
 import type { BackendFailure, OpenSessionOptions, SessionHandle, SessionInput } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, PubSub, type Scope, Stream } from "effect";
 import { sessionToolCall } from "#adapters/tool-call.ts";
 import { piTools } from "#adapters/tools.ts";

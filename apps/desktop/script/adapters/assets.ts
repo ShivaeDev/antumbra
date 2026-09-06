@@ -1,5 +1,6 @@
 import { cpSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { skillPluginDirectory } from "@antumbra/skills/location.ts";
 import { Effect } from "effect";
 import { packageRoot } from "#script/adapters/workspace.ts";
 
@@ -7,7 +8,7 @@ const SKILL_PLUGIN_ENTRIES = [".claude-plugin", "skills"];
 
 export const copySkillAssets = (desktopRoot: string) =>
 	Effect.sync(() => {
-		const source = packageRoot("@antumbra/skills");
+		const source = skillPluginDirectory;
 		const target = join(desktopRoot, "out", "skills");
 		rmSync(target, { force: true, recursive: true });
 		mkdirSync(target, { recursive: true });

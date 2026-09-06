@@ -4,12 +4,11 @@ import { Schema } from "effect";
 import type { BoundaryPolicyInventory, WorkspacePackageLocation } from "#boundaries/model.ts";
 import { failPolicy } from "#boundaries/validation.ts";
 
-const VocabularyManifest = Schema.Struct({
-	exports: Schema.Record(Schema.String, Schema.String),
-});
 const PackageManifest = Schema.Struct({
 	name: Schema.String,
 });
+
+const SOURCE_FILE = /\.ts$/;
 
 const packageRoots = (directory: string): readonly string[] =>
 	existsSync(join(directory, "package.json"))
@@ -29,12 +28,11 @@ const locations = (root: string, area: "apps" | "packages"): readonly WorkspaceP
 export const collectBoundaryPolicyInventory = (root: string): BoundaryPolicyInventory => {
 	const packages = locations(root, "packages");
 	const vocabulary = packages.find(({ name }) => name === "vocabulary")?.path ?? failPolicy("Boundary policy inventory found no vocabulary package");
-	const manifest = Schema.decodeUnknownSync(VocabularyManifest)(JSON.parse(readFileSync(join(root, vocabulary, "package.json"), "utf8")));
 	return {
 		applications: locations(root, "apps").map(({ name }) => name),
 		packages,
-		vocabularySubjects: Object.keys(manifest.exports)
-			.filter((specifier) => specifier.startsWith("./"))
-			.map((specifier) => specifier.slice(2)),
+		vocabularySubjects: readdirSync(join(root, vocabulary, "src"), { withFileTypes: true })
+			.filter((entry) => entry.isFile() && SOURCE_FILE.test(entry.name))
+			.map((entry) => entry.name.replace(SOURCE_FILE, "")),
 	};
 };

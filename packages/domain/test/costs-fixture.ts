@@ -2,7 +2,7 @@ import { CostSource } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService, NewAgentSession } from "@antumbra/persistence";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
-import type { UsageEvent } from "@antumbra/vocabulary/session-events";
+import type { UsageEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Layer, Option, Stream } from "effect";
 import { CostSourceLive } from "#cost-source.ts";
 

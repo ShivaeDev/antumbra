@@ -1,5 +1,5 @@
 import type { SessionEvent, SessionSummary, SessionTreeNode } from "@antumbra/contract";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { sessionActivity } from "#transcript/activity.ts";

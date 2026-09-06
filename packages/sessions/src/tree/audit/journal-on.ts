@@ -1,5 +1,5 @@
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect } from "effect";
 
 export const journalOn = Effect.fn("SessionTreeAudits.journalOn")(function* (sessionId: string, findings: ReadonlyArray<AgentEvent>) {

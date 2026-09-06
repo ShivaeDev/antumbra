@@ -1,4 +1,4 @@
-import { row } from "@antumbra/feature";
+import { row } from "@antumbra/feature/row.ts";
 import { Schema } from "effect";
 import { PieceId, VoyageId } from "#example/ids.ts";
 

@@ -1,6 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { mailWords } from "@antumbra/prompts";
+import { mailWords } from "@antumbra/prompts/mail.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { endsTurn, it } from "@antumbra/testing";
 import { expect, it as vitest } from "@effect/vitest";

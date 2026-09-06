@@ -1,6 +1,6 @@
 import type { AgentBackend, OpenSessionOptions, SessionHandle } from "@antumbra/plugin-api";
 import { BackendFailure } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Exit, Scope, Stream } from "effect";
 import type { SessionAttachmentFailure } from "#errors.ts";
 import { makeOpeningConfirmation } from "#session-opening.ts";

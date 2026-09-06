@@ -1,4 +1,4 @@
-import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role";
+import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
 import { Schema } from "effect";
 
 export const AgentSettingsChoice = Schema.Struct({

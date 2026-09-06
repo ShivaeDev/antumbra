@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { RawPayload } from "@antumbra/vocabulary/session-events";
+import type { RawPayload } from "@antumbra/vocabulary/session-events.ts";
 
 export const claudeRaw = (kind: string, payload: unknown): RawPayload => ({
 	kind,

@@ -1,4 +1,5 @@
-import { defineService, genericMethod } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
+import { genericMethod } from "@antumbra/service-definition/generic-method.ts";
 import { Context, Effect } from "effect";
 
 class Declared extends Context.Service<Declared, { readonly value: string }>()("invalid/Declared") {}

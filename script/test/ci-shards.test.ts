@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
@@ -17,14 +17,14 @@ const TestScripts = Schema.Struct({
 
 const decodeRootManifest = Schema.decodeUnknownSync(Schema.fromJsonString(RootManifest));
 
-const packageNames = (directory: string, name: string): readonly string[] =>
+const packageNames = (directory: string): readonly string[] =>
 	existsSync(join(directory, "package.json"))
-		? [name]
+		? [basename(directory)]
 		: readdirSync(directory, { withFileTypes: true })
 				.filter((entry) => entry.isDirectory())
-				.flatMap((entry) => packageNames(join(directory, entry.name), name === "" ? entry.name : `${name}/${entry.name}`));
+				.flatMap((entry) => packageNames(join(directory, entry.name)));
 
-const packageDirectories = (): readonly string[] => packageNames(join(repoRoot, "packages"), "").toSorted();
+const packageDirectories = (): readonly string[] => packageNames(join(repoRoot, "packages")).toSorted();
 
 describe("CI test shards", () => {
 	it("shards package suites and keeps Electron and git-worktree suites separate", () => {
@@ -38,7 +38,7 @@ describe("CI test shards", () => {
 		expect(scripts["test:desktop"]).toContain("@antumbra/desktop");
 		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
 		expect(workspacePackageNames).toContain("renderer");
-		expect(workspacePackageNames).toContain("platform/vocabulary");
+		expect(workspacePackageNames).toContain("vocabulary");
 		expect(workspacePackageNames).toContain("git");
 		expect(workspacePackageNames).not.toContain("platform");
 		expect(workspacePackageNames).not.toContain("runner");

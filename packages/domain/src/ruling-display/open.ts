@@ -1,6 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { Effect, Option } from "effect";
+import { gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { namedIds } from "#ruling-names.ts";
 import { rulingSeen } from "#ruling-projection.ts";
 import { byId } from "#voyage-row-projection.ts";
@@ -10,7 +11,8 @@ export const open = Effect.fn("RulingDisplay.open")(function* () {
 	const rulings = yield* Rulings;
 	const requested = yield* rulings.open();
 	const named = namedIds(requested);
-	const pieceIds = [...requested.flatMap((ruling) => ruling.gatedPieceIds), ...named.pieces];
+	const gatedPieceIds = requested.flatMap((ruling) => ruling.gatedPieceIds);
+	const pieceIds = [...gatedPieceIds, ...named.pieces];
 	const requesterIds = requested.flatMap((ruling) =>
 		Option.contains(ruling.rung, "captain") && ruling.requester.kind === "agent" ? [ruling.requester.agentId] : [],
 	);
@@ -26,5 +28,11 @@ export const open = Effect.fn("RulingDisplay.open")(function* () {
 		.orderBy((voyage) => voyage.createdAt.asc())
 		.all();
 	const names = { agents: byId(agents), pieces: byId(pieces), repos: byId(repos), voyages: byId(voyages) };
-	return { rulings: requested.map((ruling) => rulingSeen(ruling, { crews, memberships, names, pieces, voyages })) };
+	const gated = new Set(gatedPieceIds);
+	const gatedPieces = gatedPiecesSeen(
+		pieces.filter((piece) => gated.has(piece.id)),
+		memberships,
+		names.voyages,
+	);
+	return { rulings: requested.map((ruling) => rulingSeen(ruling, { crews, gatedPieces, names, voyages })) };
 });

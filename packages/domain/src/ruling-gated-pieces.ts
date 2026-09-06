@@ -1,22 +1,18 @@
 import type { RulingGatedPieceView } from "@antumbra/contract";
 import type { StoredVoyage } from "@antumbra/persistence";
-import type { PieceRow, VoyageSummaryRows } from "#voyage-rows.ts";
+import type { MembershipRow, PieceRow } from "#voyage-rows.ts";
 
-export type GatedPieceRows = Pick<VoyageSummaryRows, "memberships" | "pieces"> & {
-	readonly voyages: ReadonlyArray<StoredVoyage>;
+export const gatedPiecesSeen = (
+	pieces: ReadonlyArray<PieceRow>,
+	memberships: ReadonlyArray<MembershipRow>,
+	voyages: ReadonlyMap<string, StoredVoyage>,
+): ReadonlyArray<RulingGatedPieceView> => {
+	if (pieces.length === 0) return [];
+	const byPiece = Map.groupBy(memberships, (membership) => membership.pieceId);
+	return pieces.flatMap((piece) =>
+		(byPiece.get(piece.id) ?? []).flatMap((membership): ReadonlyArray<RulingGatedPieceView> => {
+			const voyage = voyages.get(membership.voyageId);
+			return voyage === undefined ? [] : [{ pieceId: piece.id, title: piece.title, voyageId: voyage.id, voyageName: voyage.name }];
+		}),
+	);
 };
-
-const berthedIn = (world: GatedPieceRows, piece: PieceRow): ReadonlyArray<RulingGatedPieceView> =>
-	world.memberships
-		.filter((membership) => membership.pieceId === piece.id)
-		.map((membership) => world.voyages.find((row) => row.id === membership.voyageId))
-		.filter((voyage) => voyage !== undefined)
-		.map((voyage) => ({
-			pieceId: piece.id,
-			title: piece.title,
-			voyageId: voyage.id,
-			voyageName: voyage.name,
-		}));
-
-export const gatedPiecesSeen = (world: GatedPieceRows, pieceIds: ReadonlyArray<string>): ReadonlyArray<RulingGatedPieceView> =>
-	world.pieces.filter((piece) => pieceIds.includes(piece.id)).flatMap((piece) => berthedIn(world, piece));

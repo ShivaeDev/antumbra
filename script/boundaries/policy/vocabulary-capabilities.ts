@@ -1,79 +1,62 @@
-import { files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.ts";
+import { packages } from "#boundaries/dsl.ts";
 import type { BoundaryRule } from "#boundaries/model.ts";
+import { row } from "#boundaries/policy/vocabulary-row.ts";
 
 export const vocabularyCapabilityPolicy = [
-	vocabularyAccess("artifacts-uses-agent-runtime-vocabulary")
-		.because("Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.")
-		.for(packages.named("artifacts"))
-		.allowsOnly("agent-runtime")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("artifacts", "src/artifact.ts")).to(files.inPackage("platform/vocabulary", "src/agent-runtime/stored.ts")),
-		}),
-	vocabularyAccess("boards-uses-board-vocabulary")
-		.because("Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.")
-		.for(packages.named("boards"))
-		.allowsOnly("board")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("boards", "src/board.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
-			legal: importFrom(files.inPackage("boards", "src/board.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-		}),
-	vocabularyAccess("rulings-uses-ruling-vocabulary")
-		.because(
-			"Rulings owns the Ruling record and names only the Ruling subject: the two declared axes, the subject kinds, and the authorities that may answer.",
-		)
-		.for(packages.named("rulings"))
-		.allowsOnly("ruling")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("rulings", "src/rulings.ts")).to(files.inPackage("platform/vocabulary", "src/ruling.ts")),
-		}),
-	vocabularyAccess("session-event-journal-uses-session-event-vocabulary")
-		.because("The Session event journal persists neutral Session events and does not consume unrelated vocabulary subjects.")
-		.for(packages.named("session-event-journal"))
-		.allowsOnly("session-events")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(
-				files.inPackage("platform/vocabulary", "src/agent-runtime/statuses.ts"),
-			),
-			legal: importFrom(files.inPackage("session-event-journal", "src/journal.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
-			),
-		}),
-	vocabularyAccess("session-fabric-uses-session-event-vocabulary")
-		.because("The Session fabric pumps neutral Session events out of a live attachment and names no durable Agent, Board, or Change language.")
-		.for(packages.named("session-fabric"))
-		.allowsOnly("session-events")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
-			legal: importFrom(files.inPackage("session-fabric", "src/session-attachment.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
-			),
-		}),
-	vocabularyAccess("sessions-uses-session-vocabulary")
-		.because(
-			"Sessions owns the durable Session tree: node lifecycle, the gap ledger, completeness, boot reconciliation, and the tree read model. It names Agent-runtime, Session-event, and Session-input language, not Board, Change, or Ruling subjects.",
-		)
-		.for(packages.named("sessions"))
-		.allowsOnly("agent-runtime", "session-events", "session-input")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
-			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(
-				files.inPackage("platform/vocabulary", "src/agent-runtime/statuses.ts"),
-			),
-		}),
-	vocabularyAccess("session-inputs-uses-session-input-vocabulary")
-		.because(
-			"Session inputs take custody of what the admiral is about to say and name only the Session-input subject; runtime, Board, Change, and Session-event language belong to the seams that carry the words onward.",
-		)
-		.for(packages.named("session-inputs"))
-		.allowsOnly("session-input")
-		.demonstratedBy({
-			illegal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
-			),
-			legal: importFrom(files.inPackage("session-inputs", "src/session-inputs.ts")).to(
-				files.inPackage("platform/vocabulary", "src/session-input.ts"),
-			),
-		}),
+	row(
+		"artifacts-uses-agent-runtime-vocabulary",
+		"Artifacts decode Moorage ownership and do not own Board, Change, or Session-event language.",
+		packages.named("artifacts"),
+		"artifacts",
+		"src/service.ts",
+		["agent-runtime"],
+	),
+	row(
+		"boards-uses-board-vocabulary",
+		"Boards owns Board storage invariants and names only the Board subject from the shared vocabulary leaf.",
+		packages.named("boards"),
+		"boards",
+		"src/boards.ts",
+		["board"],
+	),
+	row(
+		"rulings-uses-ruling-vocabulary",
+		"Rulings owns the Ruling record and names only the Ruling subject: the two declared axes, the subject kinds, and the authorities that may answer.",
+		packages.named("rulings"),
+		"rulings",
+		"src/rulings.ts",
+		["ruling"],
+	),
+	row(
+		"session-event-journal-uses-session-event-vocabulary",
+		"The Session event journal persists neutral Session events and does not consume unrelated vocabulary subjects.",
+		packages.named("session-event-journal"),
+		"session-event-journal",
+		"src/session-event-journal.ts",
+		["session-events"],
+	),
+	row(
+		"session-fabric-uses-session-event-vocabulary",
+		"The Session fabric pumps neutral Session events out of a live attachment and names no durable Agent, Board, or Change language.",
+		packages.named("session-fabric"),
+		"session-fabric",
+		"src/session-attachment.ts",
+		["session-events"],
+	),
+	row(
+		"sessions-uses-session-vocabulary",
+		"Sessions owns the durable Session tree: node lifecycle, the gap ledger, completeness, boot reconciliation, and the tree read model. It names Agent-runtime, Session-event, and Session-input language, not Board, Change, or Ruling subjects.",
+		packages.named("sessions"),
+		"sessions",
+		"src/input.ts",
+		["agent-runtime", "session-events", "session-input"],
+	),
+	row(
+		"session-inputs-uses-session-input-vocabulary",
+		"Session inputs take custody of what the admiral is about to say and name only the Session-input subject; runtime, Board, Change, and Session-event language belong to the seams that carry the words onward.",
+		packages.named("session-inputs"),
+		"session-inputs",
+		"src/ingest.ts",
+		["session-input"],
+	),
 ] as const satisfies readonly BoundaryRule[];

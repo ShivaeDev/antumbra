@@ -24,6 +24,7 @@
 		"test:server": "pnpm --filter @antumbra/server test",
 		"typecheck": "pnpm --recursive --no-sort --if-present typecheck",
 		"typecheck:compat": "pnpm --recursive --no-sort --if-present typecheck:compat",
+		"typecheck:compat:workspace": "tsc6 --noEmit -p tsconfig.workspace.json",
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
 		"pr": "node script/pr.ts",

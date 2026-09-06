@@ -39,6 +39,18 @@ it.effect("a rejected command writes no fact, no row and no applied entry", () =
 	}).pipe(Effect.provide(layer), Effect.orDie),
 );
 
+it.effect("a command that rejects an id nobody wrote writes nothing", () =>
+	Effect.gen(function* () {
+		const parts = yield* kit(pieceApp);
+		const database = yield* Database;
+		const rejection = yield* Effect.flip(parts.commit.pieces.park({ pieceId: pieceId(9), reason: "gone" }));
+		expect(rejection).toBeInstanceOf(park.Rejection.PieceNotFound);
+		expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toHaveLength(0);
+		expect(yield* Effect.orDie(database.write`SELECT * FROM "applied"`)).toHaveLength(0);
+		expect(yield* parts.rows.piece.count({})).toBe(0);
+	}).pipe(Effect.provide(layer), Effect.orDie),
+);
+
 it.effect("a repeated request id is refused with the sequence number it already produced", () =>
 	Effect.gen(function* () {
 		const parts = yield* kit(pieceApp);

@@ -1,5 +1,5 @@
 import { RowNotFound } from "@antumbra/journal";
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import type { Row } from "effect/unstable/sql/SqlConnection";
 import type { Fragment } from "effect/unstable/sql/Statement";
@@ -8,6 +8,7 @@ import type { RowCodec } from "#codec.ts";
 export interface RuntimeRead {
 	readonly count: (match: Record<string, unknown>) => Effect.Effect<number>;
 	readonly exists: (key: unknown) => Effect.Effect<boolean>;
+	readonly find: (key: unknown) => Effect.Effect<Option.Option<unknown>>;
 	readonly get: (key: unknown) => Effect.Effect<unknown>;
 	readonly where: (match: Record<string, unknown>) => Effect.Effect<readonly unknown[]>;
 }
@@ -45,6 +46,10 @@ const counted = (sql: SqlClient, codec: RowCodec, match: Record<string, unknown>
 export const readHandle = (sql: SqlClient, codec: RowCodec): RuntimeRead => ({
 	count: (match) => counted(sql, codec, match),
 	exists: (key) => Effect.map(byKey(sql, codec, key), (found) => found !== undefined),
+	find: (key) =>
+		Effect.flatMap(byKey(sql, codec, key), (found) =>
+			found === undefined ? Effect.succeed(Option.none()) : Effect.map(codec.decodeRow(found), Option.some),
+		),
 	get: (key) =>
 		Effect.flatMap(byKey(sql, codec, key), (found) =>
 			found === undefined ? Effect.die(new RowNotFound({ key: String(key), row: codec.row.name })) : codec.decodeRow(found),

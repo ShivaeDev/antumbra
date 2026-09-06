@@ -1,5 +1,5 @@
 import { RowNotFound } from "@antumbra/journal";
-import { Cause, Effect } from "effect";
+import { Cause, Effect, Option } from "effect";
 import { expect } from "vitest";
 import { park } from "#example/commands/park.ts";
 import { it, launched, pieceId } from "#test/kit.ts";
@@ -26,8 +26,20 @@ it.app("a rejected command leaves the projection row alone", function* (app) {
 	expect((yield* app.rows.piece.get(pieceId(1))).status).toBe("chartered");
 });
 
-it.app("a guard that reads a row nobody wrote is a defect, not a rejection", function* (app) {
-	const cause = yield* Effect.flip(Effect.sandbox(app.commit.pieces.park({ pieceId: pieceId(9), reason: "gone" })));
+it.app("an id the glass carried too long is the rejection the command declared", function* (app) {
+	const rejection = yield* Effect.flip(app.commit.pieces.park({ pieceId: pieceId(9), reason: "gone" }));
+	expect(rejection).toBeInstanceOf(park.Rejection.PieceNotFound);
+	expect(rejection).toMatchObject({ _tag: "PieceNotFound", pieceId: pieceId(9) });
+});
+
+it.app("a row that is not there is an empty option, not a defect", function* (app) {
+	yield* app.seed.piece(launched(1));
+	expect(Option.isSome(yield* app.rows.piece.find(pieceId(1)))).toBe(true);
+	expect(Option.isNone(yield* app.rows.piece.find(pieceId(9)))).toBe(true);
+});
+
+it.app("a row the caller swore was there and is not is a defect, not a rejection", function* (app) {
+	const cause = yield* Effect.flip(Effect.sandbox(app.rows.piece.get(pieceId(9))));
 	expect(Cause.hasDies(cause)).toBe(true);
 	expect(Cause.squash(cause)).toBeInstanceOf(RowNotFound);
 });

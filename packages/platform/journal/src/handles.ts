@@ -1,7 +1,8 @@
-import type { Effect } from "effect";
+import type { Effect, Option } from "effect";
 import type { RowKey, RowShape, RowValue } from "#row.ts";
 
 export interface ReadRows<Value, Key> {
+	readonly find: (key: Key) => Effect.Effect<Option.Option<Value>>;
 	readonly get: (key: Key) => Effect.Effect<Value>;
 	readonly where: (match: Partial<Value>) => Effect.Effect<readonly Value[]>;
 	readonly count: (match: Partial<Value>) => Effect.Effect<number>;

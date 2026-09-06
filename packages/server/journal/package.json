@@ -1,22 +1,14 @@
 {
-	"name": "@antumbra/vocabulary",
+	"name": "@antumbra/journal",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		"./agent-backend": "./src/agent-backend.ts",
-		"./agent-role": "./src/agent-role.ts",
-		"./agent-runtime": "./src/agent-runtime.ts",
-		"./board": "./src/board.ts",
-		"./change": "./src/change.ts",
-		"./id": "./src/id.ts",
-		"./ruling": "./src/ruling.ts",
-		"./session-events": "./src/session-events.ts",
-		"./session-input": "./src/session-input.ts",
-		"./verdict": "./src/verdict.ts",
-		"./voyage": "./src/voyage.ts"
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
 	},
 	"imports": {
+		"#example/*": "./test/example/*",
 		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
@@ -26,6 +18,7 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -33,6 +26,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/feature": "workspace:*",
+		"@antumbra/vocabulary": "workspace:*",
+		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:"
 	}
 }

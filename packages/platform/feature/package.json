@@ -1,20 +1,11 @@
 {
-	"name": "@antumbra/vocabulary",
+	"name": "@antumbra/feature",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		"./agent-backend": "./src/agent-backend.ts",
-		"./agent-role": "./src/agent-role.ts",
-		"./agent-runtime": "./src/agent-runtime.ts",
-		"./board": "./src/board.ts",
-		"./change": "./src/change.ts",
-		"./id": "./src/id.ts",
-		"./ruling": "./src/ruling.ts",
-		"./session-events": "./src/session-events.ts",
-		"./session-input": "./src/session-input.ts",
-		"./verdict": "./src/verdict.ts",
-		"./voyage": "./src/voyage.ts"
+		".": "./src/index.ts",
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",
@@ -33,6 +24,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

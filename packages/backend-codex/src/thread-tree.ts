@@ -1,4 +1,6 @@
-import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 import type { RpcNotification } from "#adapters/rpc.ts";
 import { rawOf, toAgentEvents } from "#mapping.ts";

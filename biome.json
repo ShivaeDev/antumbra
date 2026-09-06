@@ -54,5 +54,18 @@
 				"noNestedTernary": "error"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["packages/platform/**", "packages/server/**", "packages/runner/**", "packages/glass/**"],
+			"linter": {
+				"rules": {
+					"performance": {
+						"noBarrelFile": "error",
+						"noReExportAll": "error"
+					}
+				}
+			}
+		}
+	]
 }

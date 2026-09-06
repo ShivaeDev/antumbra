@@ -3,7 +3,9 @@ import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionRetirement } from "@antumbra/sessions/retirement/service";
-import { type AgentStatus, agentTransition, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
+import { agentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
+import type { AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Effect, Option, Schema } from "effect";
 import { AgentNotFound } from "#errors.ts";
 

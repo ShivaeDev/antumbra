@@ -1,5 +1,7 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, RawPayload, SubsessionOutcome } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
+import type { SubsessionOutcome } from "@antumbra/vocabulary/session-events/subsessions.ts";
 import { isRecord, textOf } from "#blocks.ts";
 
 type SystemMessage = Extract<SDKMessage, { type: "system" }>;

@@ -1,5 +1,6 @@
 import type { SDKMessage, SessionKey, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
 import { openSessionMapping } from "#mapping.ts";
 import { subagentRef, workflowAgentRef } from "#mirror-keys.ts";
 import { adoptedEvents, censusGap, type Repair } from "#workflow-adoption.ts";

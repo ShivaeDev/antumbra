@@ -1,4 +1,5 @@
-import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import type { TreeNode } from "#tree/attribution.ts";
 
 export const observed = (kind: string, seen: unknown): RawPayload => ({

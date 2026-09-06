@@ -1,4 +1,4 @@
-import type { RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { makeBackendCapacityController } from "#backend-capacity.ts";

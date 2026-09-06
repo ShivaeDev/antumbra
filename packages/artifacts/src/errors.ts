@@ -1,6 +1,6 @@
 import type { PrismaError } from "@antumbra/persistence";
 import type { PieceNotFound } from "@antumbra/pieces";
-import type { StoredMoorageStatusInvalid } from "@antumbra/vocabulary/agent-runtime.ts";
+import type { StoredMoorageStatusInvalid } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Data } from "effect";
 import type { ArtifactContentInvalidReason } from "#content.ts";
 

@@ -31,6 +31,11 @@ describe("boundary policy inventory", () => {
 		);
 	});
 
+	it("takes a subject from a file stem or a directory name under src", () => {
+		expect(boundaryPolicyInventory.vocabularySubjects).toContain("board");
+		expect(boundaryPolicyInventory.vocabularySubjects).toContain("session-events");
+	});
+
 	it("rejects unknown vocabulary subjects", () => {
 		expect(() => compileBoundaryPolicy([{ ...vocabularyRule, allowedSubjects: ["not-a-subject"] }], boundaryPolicyInventory)).toThrow(
 			"names unknown vocabulary subject not-a-subject",

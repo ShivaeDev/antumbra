@@ -1,10 +1,7 @@
-import type {
-	InvalidAgentTransition,
-	InvalidSessionExecutionStatus,
-	InvalidSessionExecutionTransition,
-	StoredAgentSessionStatusInvalid,
-	StoredAgentStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime.ts";
+import type { InvalidAgentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
+import type { InvalidSessionExecutionStatus, InvalidSessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
+import type { StoredAgentStatusInvalid } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import type { StoredAgentSessionStatusInvalid } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Result } from "effect";
 import { type AgentReconcilePlan, planAgent } from "#current/agent-plan.ts";
 import type { CurrentSessionInvalid } from "#current/errors.ts";

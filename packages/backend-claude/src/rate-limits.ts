@@ -1,5 +1,7 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, RateLimitEvent, RateLimitWindow, RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { RateLimitEvent, RateLimitWindow } from "@antumbra/vocabulary/session-events/rate-limit.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 
 type RateLimitMessage = Extract<SDKMessage, { type: "rate_limit_event" }>;
 type Info = RateLimitMessage["rate_limit_info"];

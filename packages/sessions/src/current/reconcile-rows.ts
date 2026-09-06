@@ -1,14 +1,12 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
 import {
-	type AgentSessionStatus,
-	type AgentStatus,
 	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
 	type InvalidSessionExecutionStatus,
 	type SessionExecutionStatus,
-	type StoredAgentSessionStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime.ts";
+} from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
+import type { AgentSessionStatus, AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentSessionStatus, type StoredAgentSessionStatusInvalid } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Result } from "effect";
 
 export interface StoredAgent {

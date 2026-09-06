@@ -1,5 +1,5 @@
 import type { UsageTotal } from "@antumbra/contract";
-import type { UsageEvent } from "@antumbra/vocabulary/session-events.ts";
+import type { UsageEvent } from "@antumbra/vocabulary/session-events/usage.ts";
 
 type Usage = typeof UsageEvent.Type;
 

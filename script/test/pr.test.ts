@@ -3,199 +3,215 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Result } from "effect";
 import { describe, expect, it } from "vitest";
-import { type Observation, observationFrom } from "#pr/observation.ts";
-import { advance, initial, type Line, parseCommand, render, step, type Until, usage } from "#pr/program.ts";
-import views from "#test/fixtures/pr-views.json" with { type: "json" };
+import { checksPath, issueCommentsPath, parseCommand, pullPath, reviewCommentsPath, reviewsPath, usage } from "#pr/command.ts";
+import type { Outcome, Reading } from "#pr/observation.ts";
+import { emptyLimit, initial, type Line, render, step, type Watch } from "#pr/program.ts";
+import fixture from "#test/fixtures/pr-rest.json" with { type: "json" };
 
 const entry = join(dirname(dirname(fileURLToPath(import.meta.url))), "pr.ts");
 const runPr = (...args: readonly string[]) => spawnSync("node", [entry, ...args], { encoding: "utf8" });
 
-const head = "71f98f2c6865e2cc44a96ef0256256f03e383d65";
-const pushedHead = "5fd27789cb4c574007a1b17243403ffc15471530";
+const head = fixture.pull.head.sha;
+const pushed = "9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f9f";
 
-const recorded = (name: keyof typeof views): string => JSON.stringify(views[name]);
-const seen = (name: keyof typeof views): Observation => Result.getOrThrow(observationFrom(recorded(name)));
+const body = (value: unknown): Outcome => ({ kind: "body", body: JSON.stringify(value) });
+const same: Outcome = { kind: "same" };
+const quiet: Reading = { checks: undefined, comments: same, inline: same, pull: same, reviews: same };
 
-const walk = (until: Until, observations: readonly Observation[]): readonly Line[] => {
-	let watch = initial;
+const pullOf = (edits: object = {}): Outcome => body({ ...fixture.pull, merged: false, mergeable_state: "clean", state: "open", ...edits });
+const checksOf = (runs: readonly unknown[], at: string = head) => ({ head: at, outcome: body({ check_runs: runs, total_count: runs.length }) });
+
+const runs = fixture.checks.check_runs;
+const green = runs.filter((run) => run.conclusion === "success");
+const running = runs.map((run) => ({ ...run, conclusion: null, status: "queued" }));
+
+const opened: Reading = { ...quiet, comments: body([]), inline: body([]), pull: pullOf(), reviews: body([]) };
+
+const walk = (until: "ci" | "end", readings: readonly Reading[], clock: readonly number[] = []) => {
+	let watch: Watch = initial;
 	const lines: Line[] = [];
-	for (const observation of observations) {
-		const progress = advance(watch, until, observation);
+	let exit: number | undefined;
+	readings.forEach((reading, index) => {
+		const progress = step(watch, until, clock[index] ?? index * 30_000, reading);
 		lines.push(...progress.lines);
 		watch = progress.watch;
-	}
-	return lines;
+		exit = progress.exit;
+	});
+	return { exit, lines, watch };
 };
 
 describe("pr watch arguments", () => {
-	it("defaults to watching until the pull request ends", () => {
-		expect(parseCommand(["watch", "912"])).toEqual(Result.succeed({ spec: "912", until: "end" }));
-	});
-
-	it("takes an explicit until", () => {
-		expect(parseCommand(["watch", "https://github.com/o/r/pull/1", "--until", "ci"])).toEqual(
-			Result.succeed({ spec: "https://github.com/o/r/pull/1", until: "ci" }),
+	it("takes a number or a link, and an explicit until", () => {
+		expect(parseCommand(["watch", "912"])).toEqual(Result.succeed({ target: { number: 912, repo: "{owner}/{repo}" }, until: "end" }));
+		expect(parseCommand(["watch", "https://github.com/o/r/pull/7", "--until", "ci"])).toEqual(
+			Result.succeed({ target: { number: 7, repo: "o/r" }, until: "ci" }),
 		);
-	});
-
-	it("states how it is called", () => {
-		expect(usage).toBe("usage: pnpm pr watch <pull request url or number> [--until end|ci]");
 	});
 
 	it("rejects anything but watch with one pull request", () => {
 		expect(parseCommand([])).toEqual(Result.fail(usage));
 		expect(parseCommand(["watch"])).toEqual(Result.fail(usage));
 		expect(parseCommand(["settle", "912"])).toEqual(Result.fail(usage));
-		expect(parseCommand(["watch", "--until", "ci"])).toEqual(Result.fail(usage));
 		expect(parseCommand(["watch", "912", "--until", "later"])).toEqual(Result.fail(usage));
-		expect(parseCommand(["watch", "912", "913"])).toEqual(Result.fail(usage));
-	});
-});
-
-describe("reading a recorded gh pr view", () => {
-	it("rates a pull request whose checks all passed", () => {
-		expect(seen("open-green")).toEqual({ changesRequested: false, ci: "green", conflict: false, failed: [], head, lifecycle: "open" });
+		expect(Result.isFailure(parseCommand(["watch", "https://example.com/pull/1"]))).toBe(true);
 	});
 
-	it("names the checks that failed", () => {
-		expect(seen("open-failed").ci).toBe("failed");
-		expect(seen("open-failed").failed).toEqual(["package"]);
-	});
-
-	it("rates a build that is still running as pending", () => {
-		expect(seen("open-running").ci).toBe("pending");
-		expect(seen("open-running").failed).toEqual([]);
-	});
-
-	it("reads a failure alongside a running check as pending", () => {
-		expect(seen("open-pending").ci).toBe("pending");
-		expect(seen("open-pending").failed).toEqual(["validate"]);
-	});
-
-	it("reads a failing legacy commit status", () => {
-		expect(seen("legacy-status-failure").ci).toBe("failed");
-		expect(seen("legacy-status-failure").failed).toEqual(["CLA Signing"]);
-	});
-
-	it("rates a head with no checks as none", () => {
-		expect(seen("open-unchecked").ci).toBe("none");
-	});
-
-	it("reads conflicts and requested changes", () => {
-		expect(seen("open-conflict").conflict).toBe(true);
-		expect(seen("open-conflict").changesRequested).toBe(true);
-	});
-
-	it("leaves mergeability unknown rather than guessing", () => {
-		expect(seen("merged").conflict).toBeUndefined();
-		expect(seen("merged").lifecycle).toBe("merged");
-		expect(seen("closed").lifecycle).toBe("closed");
-	});
-
-	it("reports output it cannot read", () => {
-		expect(Result.isFailure(observationFrom("not json"))).toBe(true);
-		expect(Result.isFailure(observationFrom('{"state":"OPEN"}'))).toBe(true);
+	it("asks GitHub for one page of each endpoint", () => {
+		const target = { number: 912, repo: "o/r" };
+		expect(pullPath(target)).toBe("repos/o/r/pulls/912");
+		expect(checksPath(target, "abc")).toBe("repos/o/r/commits/abc/check-runs?per_page=100");
+		expect(reviewsPath(target)).toBe("repos/o/r/pulls/912/reviews?per_page=100");
+		expect(reviewCommentsPath(target)).toBe("repos/o/r/pulls/912/comments?per_page=100");
+		expect(issueCommentsPath(target)).toBe("repos/o/r/issues/912/comments?per_page=100");
 	});
 });
 
 describe("watching to the end", () => {
-	it("says nothing while a pull request is green and open", () => {
-		expect(walk("end", [seen("open-green"), seen("open-green")])).toEqual([]);
+	it("says nothing about a quiet pull request", () => {
+		expect(walk("end", [opened, { ...opened, checks: checksOf(green) }, quiet]).lines).toEqual([]);
 	});
 
-	it("says nothing while checks are still running", () => {
-		expect(walk("end", [seen("open-pending")])).toEqual([]);
+	it("changes nothing when every endpoint answers 304", () => {
+		const first = walk("end", [{ ...opened, checks: checksOf(runs) }]);
+		const later = step(first.watch, "end", 60_000, quiet);
+		expect(later.lines).toEqual([]);
+		expect(later.exit).toBeUndefined();
+		expect(later.watch.pieces).toEqual(first.watch.pieces);
 	});
 
 	it("holds a failure back until every check on the head has settled", () => {
-		expect(walk("end", [seen("open-pending"), seen("open-failed")])).toEqual([{ state: "ci-failed", head, checks: ["package"] }]);
+		const pending = walk("end", [{ ...opened, checks: checksOf(running) }]);
+		expect(pending.lines).toEqual([]);
+		expect(step(pending.watch, "end", 30_000, { ...quiet, checks: checksOf(runs) }).lines).toEqual([
+			{ state: "ci-failed", head, checks: ["govulncheck"] },
+		]);
 	});
 
-	it("prints a failure once per head", () => {
-		expect(walk("end", [seen("open-failed"), seen("open-failed"), seen("open-failed")])).toHaveLength(1);
+	it("prints a failure once per head, and judges a new head on its own", () => {
+		const red = { ...opened, checks: checksOf(runs) };
+		const once = walk("end", [red, red, red]);
+		expect(once.lines).toHaveLength(1);
+		const later = step(once.watch, "end", 90_000, {
+			checks: checksOf(runs, pushed),
+			comments: same,
+			inline: same,
+			pull: pullOf({ head: { ...fixture.pull.head, sha: pushed } }),
+			reviews: same,
+		});
+		expect(later.lines).toEqual([{ state: "ci-failed", head: pushed, checks: ["govulncheck"] }]);
 	});
 
 	it("never prints the failure of a superseded head", () => {
-		const running = seen("open-pending");
-		const settled = { ...seen("open-failed"), head: pushedHead };
-		expect(walk("end", [running, { ...running, head: pushedHead }, settled])).toEqual([
-			{ state: "ci-failed", head: pushedHead, checks: ["package"] },
+		const armed = walk("end", [{ ...opened, checks: checksOf(running) }]);
+		const moved = step(armed.watch, "end", 30_000, {
+			...quiet,
+			checks: checksOf(runs),
+			pull: pullOf({ head: { ...fixture.pull.head, sha: pushed } }),
+		});
+		expect(moved.lines).toEqual([]);
+	});
+
+	it("prints a conflict once and keeps it when mergeability goes unknown", () => {
+		const seen = walk("end", [
+			{ ...opened, pull: pullOf({ mergeable_state: "dirty" }) },
+			{ ...quiet, pull: pullOf({ mergeable_state: "unknown" }) },
 		]);
+		expect(seen.lines).toEqual([{ state: "conflict", head }]);
 	});
 
-	it("judges a new head on its own", () => {
-		expect(walk("end", [seen("open-failed"), { ...seen("open-failed"), head: pushedHead }])).toHaveLength(2);
-	});
-
-	it("prints a conflict and requested changes once", () => {
-		expect(walk("end", [seen("open-conflict"), seen("open-conflict")])).toEqual([
-			{ state: "conflict", head },
-			{ state: "changes-requested", head },
-		]);
-	});
-
-	it("keeps a known conflict when mergeability goes unknown", () => {
-		expect(walk("end", [seen("open-conflict"), { ...seen("open-conflict"), conflict: undefined }])).toHaveLength(2);
-	});
-
-	it("ends on a merge", () => {
-		const progress = advance(initial, "end", seen("merged"));
-		expect(progress.lines).toEqual([{ state: "merged", head }]);
-		expect(progress.exit).toBe(0);
-	});
-
-	it("ends on a close", () => {
-		const progress = advance(initial, "end", seen("closed"));
-		expect(progress.lines).toEqual([{ state: "closed", head }]);
-		expect(progress.exit).toBe(0);
-	});
-
-	it("keeps watching while checks fail", () => {
-		expect(advance(initial, "end", seen("open-failed")).exit).toBeUndefined();
+	it("ends on a merge and on a close", () => {
+		const merged = walk("end", [{ ...opened, pull: pullOf({ merged: true, state: "closed" }) }]);
+		expect(merged.lines).toEqual([{ state: "merged", head }]);
+		expect(merged.exit).toBe(0);
+		const closed = walk("end", [{ ...opened, pull: pullOf({ state: "closed" }) }]);
+		expect(closed.lines).toEqual([{ state: "closed", head }]);
+		expect(closed.exit).toBe(0);
 	});
 });
 
 describe("watching until the checks settle", () => {
-	it("waits while checks are still running", () => {
-		const progress = advance(initial, "ci", seen("open-pending"));
-		expect(progress.lines).toEqual([]);
-		expect(progress.exit).toBeUndefined();
-	});
-
-	it("leaves a line saying the checks passed", () => {
-		const progress = advance(initial, "ci", seen("open-green"));
-		expect(progress.lines).toEqual([{ state: "ci-green", head }]);
-		expect(progress.exit).toBe(0);
-	});
-
-	it("leaves a line naming the failed checks", () => {
-		const progress = advance(initial, "ci", seen("open-failed"));
-		expect(progress.lines).toEqual([{ state: "ci-failed", head, checks: ["package"] }]);
-		expect(progress.exit).toBe(1);
+	it("leaves a line saying the checks passed or failed", () => {
+		expect(walk("ci", [{ ...opened, checks: checksOf(green) }])).toMatchObject({ exit: 0, lines: [{ state: "ci-green", head }] });
+		expect(walk("ci", [{ ...opened, checks: checksOf(runs) }])).toMatchObject({
+			exit: 1,
+			lines: [{ state: "ci-failed", head, checks: ["govulncheck"] }],
+		});
 	});
 
 	it("gives up when a push supersedes the head it armed on", () => {
-		const armed = advance(initial, "ci", seen("open-pending"));
-		const pushed = advance(armed.watch, "ci", { ...seen("open-pending"), head: pushedHead });
-		expect(pushed.lines).toEqual([{ state: "superseded", head: pushedHead }]);
-		expect(pushed.exit).toBe(4);
+		const armed = walk("ci", [{ ...opened, checks: checksOf(running) }]);
+		const moved = step(armed.watch, "ci", 30_000, { ...quiet, pull: pullOf({ head: { ...fixture.pull.head, sha: pushed } }) });
+		expect(moved.lines).toEqual([{ state: "superseded", head: pushed }]);
+		expect(moved.exit).toBe(4);
+	});
+
+	it("stops when the pull request ends under it", () => {
+		const armed = walk("ci", [{ ...opened, checks: checksOf(running) }]);
+		const gone = step(armed.watch, "ci", 30_000, { ...quiet, pull: pullOf({ merged: true, state: "closed" }) });
+		expect(gone.lines).toEqual([{ state: "merged", head }]);
+		expect(gone.exit).toBe(3);
+	});
+
+	it("gives a head that never grows a check five minutes", () => {
+		const armed = walk("ci", [opened]);
+		expect(step(armed.watch, "ci", emptyLimit - 1, quiet).exit).toBeUndefined();
+		const expired = step(armed.watch, "ci", emptyLimit, quiet);
+		expect(expired.lines).toEqual([{ state: "no-checks", head }]);
+		expect(expired.exit).toBe(0);
+	});
+});
+
+describe("comments", () => {
+	const talking: Reading = {
+		...opened,
+		comments: body(fixture["issue-comments"]),
+		inline: body(fixture["review-comments"]),
+		reviews: body(fixture.reviews),
+	};
+	const drafted = fixture.reviews.map((review) => (review.state === "CHANGES_REQUESTED" ? { ...review, state: "PENDING" } : review));
+
+	it("prints each comment once, however often it polls", () => {
+		const first = walk("end", [talking]);
+		expect(first.lines.map((line) => line.state)).toEqual([
+			"review",
+			"review",
+			"review",
+			"review",
+			"review-comment",
+			"review-comment",
+			"review-comment",
+			"comment",
+			"comment",
+			"changes-requested",
+		]);
+		expect(step(first.watch, "end", 30_000, talking).lines).toEqual([]);
+		expect(step(first.watch, "end", 60_000, quiet).lines).toEqual([]);
+	});
+
+	it("says nothing about a review that is still a draft, or about the comments it holds", () => {
+		const seen = walk("end", [{ ...talking, reviews: body(drafted) }]);
+		expect(seen.lines.map((line) => line.state)).toEqual(["review", "review", "review", "review-comment", "review-comment", "comment", "comment"]);
 	});
 });
 
 describe("failed gh calls", () => {
-	it("reports a failure once until the call succeeds again", () => {
-		const first = step(initial, "end", Result.fail("gh: could not reach github.com"));
-		const second = step(first.watch, "end", Result.fail("gh: could not reach github.com"));
-		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: could not reach github.com" }]);
-		expect(second.lines).toEqual([]);
-		expect(second.exit).toBeUndefined();
+	const failed: Reading = { ...quiet, pull: { kind: "failed", message: "gh: HTTP 404" } };
+
+	it("cannot start when the first poll does not reach the pull request", () => {
+		const first = walk("end", [failed]);
+		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 404" }]);
+		expect(first.exit).toBe(2);
 	});
 
-	it("reports the same failure again after a good round", () => {
-		const first = step(initial, "end", Result.fail("gh: bad gateway"));
-		const good = step(first.watch, "end", Result.succeed(recorded("open-green")));
-		const again = step(good.watch, "end", Result.fail("gh: bad gateway"));
-		expect(again.lines).toEqual([{ state: "gh-error", message: "gh: bad gateway" }]);
+	it("keeps polling after a later failure, and reports a repeat once", () => {
+		const started = walk("end", [opened]);
+		const first = step(started.watch, "end", 30_000, failed);
+		const second = step(first.watch, "end", 60_000, failed);
+		expect(first.lines).toEqual([{ state: "gh-error", message: "gh: HTTP 404" }]);
+		expect(first.exit).toBeUndefined();
+		expect(second.lines).toEqual([]);
+		const good = step(second.watch, "end", 90_000, quiet);
+		expect(step(good.watch, "end", 120_000, failed).lines).toHaveLength(1);
 	});
 });
 
@@ -213,9 +229,9 @@ describe("pr entry point", () => {
 		expect(result.stderr).toContain(usage);
 	});
 
-	it("exits 2 with usage for an unknown until", () => {
-		const result = runPr("watch", "912", "--until", "later");
+	it("exits 2 when the argument is not a pull request", () => {
+		const result = runPr("watch", "https://example.com/nope");
 		expect(result.status).toBe(2);
-		expect(result.stderr).toContain("usage");
+		expect(result.stderr).toContain("not a pull request");
 	});
 });

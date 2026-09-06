@@ -1,29 +1,27 @@
-import { Result, Schema } from "effect";
+import { Result } from "effect";
+import { commentsFrom, type Inline, inlineFrom, type Note, type Reviews, reviewsFrom } from "#pr/notes.ts";
+import { type Checks, type Ci, checksFrom, type Lifecycle, type Pull, pullFrom } from "#pr/pull.ts";
 
-const CheckRun = Schema.Struct({ __typename: Schema.Literal("CheckRun"), conclusion: Schema.String, name: Schema.String, status: Schema.String });
-const StatusContext = Schema.Struct({ __typename: Schema.Literal("StatusContext"), context: Schema.String, state: Schema.String });
-const Check = Schema.Union([CheckRun, StatusContext]);
+export type Outcome =
+	| { readonly kind: "body"; readonly body: string }
+	| { readonly kind: "failed"; readonly message: string }
+	| { readonly kind: "same" };
 
-const View = Schema.Struct({
-	headRefOid: Schema.String,
-	mergeable: Schema.Literals(["CONFLICTING", "MERGEABLE", "UNKNOWN"]),
-	reviewDecision: Schema.String,
-	state: Schema.Literals(["CLOSED", "MERGED", "OPEN"]),
-	statusCheckRollup: Schema.Array(Check),
-});
+export type Reading = {
+	readonly checks: { readonly head: string; readonly outcome: Outcome } | undefined;
+	readonly comments: Outcome;
+	readonly inline: Outcome;
+	readonly pull: Outcome;
+	readonly reviews: Outcome;
+};
 
-type Check = typeof Check.Type;
-
-const failedConclusions = new Set(["ACTION_REQUIRED", "CANCELLED", "FAILURE", "STALE", "STARTUP_FAILURE", "TIMED_OUT"]);
-const lifecycles = { CLOSED: "closed", MERGED: "merged", OPEN: "open" } as const;
-
-const named = (check: Check): string => (check.__typename === "CheckRun" ? check.name : check.context);
-const running = (check: Check): boolean => (check.__typename === "CheckRun" ? check.status !== "COMPLETED" : check.state === "PENDING");
-const broke = (check: Check): boolean =>
-	check.__typename === "CheckRun" ? failedConclusions.has(check.conclusion) : check.state === "ERROR" || check.state === "FAILURE";
-
-export type Lifecycle = (typeof lifecycles)[keyof typeof lifecycles];
-export type Ci = "failed" | "green" | "none" | "pending";
+export type Pieces = {
+	readonly checks: (Checks & { readonly head: string }) | undefined;
+	readonly comments: readonly Note[];
+	readonly inline: readonly Inline[];
+	readonly pull: Pull | undefined;
+	readonly reviews: Reviews | undefined;
+};
 
 export type Observation = {
 	readonly changesRequested: boolean;
@@ -32,28 +30,51 @@ export type Observation = {
 	readonly failed: readonly string[];
 	readonly head: string;
 	readonly lifecycle: Lifecycle;
+	readonly notes: readonly Note[];
 };
 
-const rate = (checks: readonly Check[]): Ci => {
-	if (checks.length === 0) return "none";
-	if (checks.some(running)) return "pending";
-	if (checks.some(broke)) return "failed";
-	return "green";
+export const nothing: Pieces = { checks: undefined, comments: [], inline: [], pull: undefined, reviews: undefined };
+
+type Update<A> = { readonly error: string | undefined; readonly value: A };
+
+const update = <A>(previous: A, outcome: Outcome | undefined, decode: (body: string) => Result.Result<A, string>): Update<A> => {
+	if (outcome === undefined || outcome.kind === "same") return { error: undefined, value: previous };
+	if (outcome.kind === "failed") return { error: outcome.message, value: previous };
+	return Result.match(decode(outcome.body), {
+		onFailure: (message) => ({ error: message, value: previous }),
+		onSuccess: (value) => ({ error: undefined, value }),
+	});
 };
 
-const conflicting = (mergeable: typeof View.Type.mergeable): boolean | undefined =>
-	mergeable === "UNKNOWN" ? undefined : mergeable === "CONFLICTING";
+export const absorb = (pieces: Pieces, reading: Reading): { readonly error: string | undefined; readonly pieces: Pieces } => {
+	const pull = update<Pull | undefined>(pieces.pull, reading.pull, pullFrom);
+	const seen = reading.checks;
+	const checks = update(pieces.checks, seen?.outcome, (body) => Result.map(checksFrom(body), (facts) => ({ ...facts, head: seen?.head ?? "" })));
+	const reviews = update<Reviews | undefined>(pieces.reviews, reading.reviews, reviewsFrom);
+	const inline = update<readonly Inline[]>(pieces.inline, reading.inline, inlineFrom);
+	const comments = update<readonly Note[]>(pieces.comments, reading.comments, commentsFrom);
+	return {
+		error: pull.error ?? checks.error ?? reviews.error ?? inline.error ?? comments.error,
+		pieces: { checks: checks.value, comments: comments.value, inline: inline.value, pull: pull.value, reviews: reviews.value },
+	};
+};
 
-const observe = (view: typeof View.Type): Observation => ({
-	changesRequested: view.reviewDecision === "CHANGES_REQUESTED",
-	ci: rate(view.statusCheckRollup),
-	conflict: conflicting(view.mergeable),
-	failed: view.statusCheckRollup.filter(broke).map(named),
-	head: view.headRefOid,
-	lifecycle: lifecycles[view.state],
-});
-
-const decodeView = Schema.decodeUnknownResult(Schema.fromJsonString(View));
-
-export const observationFrom = (stdout: string): Result.Result<Observation, string> =>
-	Result.mapBoth(decodeView(stdout), { onFailure: (error) => error.message, onSuccess: observe });
+export const observationFrom = (pieces: Pieces): Observation | undefined => {
+	const pull = pieces.pull;
+	if (pull === undefined) return undefined;
+	const pending = new Set(pieces.reviews?.pending ?? []);
+	const checks = pieces.checks?.head === pull.head ? pieces.checks : undefined;
+	return {
+		changesRequested: pieces.reviews?.changesRequested ?? false,
+		ci: checks?.ci ?? "none",
+		conflict: pull.conflict,
+		failed: checks?.failed ?? [],
+		head: pull.head,
+		lifecycle: pull.lifecycle,
+		notes: [
+			...(pieces.reviews?.notes ?? []),
+			...pieces.inline.filter((entry) => entry.review === null || !pending.has(entry.review)).map((entry) => entry.note),
+			...pieces.comments,
+		],
+	};
+};

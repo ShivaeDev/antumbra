@@ -1,0 +1,309 @@
+{
+	"checks": {
+		"check_runs": [
+			{
+				"completed_at": "2025-08-08T17:31:09Z",
+				"conclusion": "success",
+				"details_url": "https://github.com/cli/cli/actions/runs/16836626611/job/47698103697",
+				"external_id": "c0d18953-973a-5b25-8297-5a3224eb5bd8",
+				"head_sha": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+				"html_url": "https://github.com/cli/cli/actions/runs/16836626611/job/47698103697",
+				"id": 47698103697,
+				"name": "lint",
+				"node_id": "CR_kwDODKw3uc8AAAALGwdNkQ",
+				"started_at": "2025-08-08T17:29:12Z",
+				"status": "completed",
+				"url": "https://api.github.com/repos/cli/cli/check-runs/47698103697"
+			},
+			{
+				"completed_at": "2025-08-08T17:38:32Z",
+				"conclusion": "failure",
+				"details_url": "https://github.com/cli/cli/actions/runs/16836626611/job/47698103631",
+				"external_id": "f6b09dc0-3900-5c20-ab7b-be3b3fa4f2e2",
+				"head_sha": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+				"html_url": "https://github.com/cli/cli/actions/runs/16836626611/job/47698103631",
+				"id": 47698103631,
+				"name": "govulncheck",
+				"node_id": "CR_kwDODKw3uc8AAAALGwdNTw",
+				"started_at": "2025-08-08T17:37:45Z",
+				"status": "completed",
+				"url": "https://api.github.com/repos/cli/cli/check-runs/47698103631"
+			},
+			{
+				"completed_at": "2025-08-08T17:29:24Z",
+				"conclusion": "skipped",
+				"details_url": "https://github.com/cli/cli/actions/runs/16836631656/job/47697579340",
+				"external_id": "41e227ee-673d-5292-93a6-352303e1b375",
+				"head_sha": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+				"html_url": "https://github.com/cli/cli/actions/runs/16836631656/job/47697579340",
+				"id": 47697579340,
+				"name": "issue",
+				"node_id": "CR_kwDODKw3uc8AAAALGv9NTA",
+				"started_at": "2025-08-08T17:29:25Z",
+				"status": "completed",
+				"url": "https://api.github.com/repos/cli/cli/check-runs/47697579340"
+			}
+		],
+		"total_count": 14
+	},
+	"issue-comments": [
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "Hi! Thanks for the pull request. Please ensure that this change is linked to an issue by mentioning an issue number in the description of the pull request. If this pull request would close the issue, please put the word 'Fixes' before the issue number somewhere in the pull request body. If this is a tiny change like fixing a typo, feel free to ignore this message.",
+			"created_at": "2025-08-08T17:29:23Z",
+			"html_url": "https://github.com/cli/cli/pull/11451#issuecomment-3168805734",
+			"id": 3168805734,
+			"issue_url": "https://api.github.com/repos/cli/cli/issues/11451",
+			"minimized": null,
+			"node_id": "IC_kwDODKw3uc684CNm",
+			"performed_via_github_app": null,
+			"updated_at": "2025-08-08T17:29:23Z",
+			"url": "https://api.github.com/repos/cli/cli/issues/comments/3168805734",
+			"user": {
+				"id": 80420260,
+				"login": "cliAutomation",
+				"type": "User"
+			}
+		},
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "the lint error can ignore. not related to the change",
+			"created_at": "2025-08-08T17:40:47Z",
+			"html_url": "https://github.com/cli/cli/pull/11451#issuecomment-3168830997",
+			"id": 3168830997,
+			"issue_url": "https://api.github.com/repos/cli/cli/issues/11451",
+			"minimized": null,
+			"node_id": "IC_kwDODKw3uc684IYV",
+			"performed_via_github_app": null,
+			"updated_at": "2025-08-08T17:40:47Z",
+			"url": "https://api.github.com/repos/cli/cli/issues/comments/3168830997",
+			"user": {
+				"id": 108841108,
+				"login": "ejahnGithub",
+				"type": "User"
+			}
+		}
+	],
+	"pull": {
+		"active_lock_reason": null,
+		"additions": 2,
+		"author_association": "CONTRIBUTOR",
+		"auto_merge": null,
+		"body": "This pull request improves error handling in the FetchRefSHA function to provide a clearer message when a release is not found.\r\n\r\nPreviously, if the CLI attempted to fetch `gh release verify tag` and the tag\u2019s semver did not exactly match, it would return a low-level JSON parsing error:\r\n\r\n```\r\njson: cannot unmarshal array into Go value of type struct { Object struct { SHA string \"json:\\\"sha\\\"\" } \"json:\\\"object\\\"\" }\r\n\r\n```\r\n\r\nWith this fix, the CLI now returns:\r\n```\r\nno release found\r\n```",
+		"changed_files": 1,
+		"closed_at": "2025-08-08T18:52:09Z",
+		"comments": 2,
+		"comments_url": "https://api.github.com/repos/cli/cli/issues/11451/comments",
+		"commits": 2,
+		"commits_url": "https://api.github.com/repos/cli/cli/pulls/11451/commits",
+		"created_at": "2025-08-05T00:58:56Z",
+		"deletions": 1,
+		"diff_url": "https://github.com/cli/cli/pull/11451.diff",
+		"draft": false,
+		"head": {
+			"label": "cli:eugene/fetch-ref-handle-ReleaseNotFound",
+			"ref": "eugene/fetch-ref-handle-ReleaseNotFound",
+			"sha": "82eb05bb2488bf3a99a147ecf157cde41074143d"
+		},
+		"html_url": "https://github.com/cli/cli/pull/11451",
+		"id": 2719533602,
+		"issue_url": "https://api.github.com/repos/cli/cli/issues/11451",
+		"locked": false,
+		"maintainer_can_modify": false,
+		"merge_commit_sha": "dd26fba80cdef69a0d0ee274ea9e73deca3c1cde",
+		"mergeable": null,
+		"mergeable_state": "unknown",
+		"merged": true,
+		"merged_at": "2025-08-08T18:52:09Z",
+		"merged_by": {
+			"avatar_url": "https://avatars.githubusercontent.com/u/108841108?v=4",
+			"events_url": "https://api.github.com/users/ejahnGithub/events{/privacy}",
+			"followers_url": "https://api.github.com/users/ejahnGithub/followers",
+			"following_url": "https://api.github.com/users/ejahnGithub/following{/other_user}",
+			"gists_url": "https://api.github.com/users/ejahnGithub/gists{/gist_id}",
+			"gravatar_id": "",
+			"html_url": "https://github.com/ejahnGithub",
+			"id": 108841108,
+			"login": "ejahnGithub",
+			"node_id": "U_kgDOBnzIlA",
+			"organizations_url": "https://api.github.com/users/ejahnGithub/orgs",
+			"received_events_url": "https://api.github.com/users/ejahnGithub/received_events",
+			"repos_url": "https://api.github.com/users/ejahnGithub/repos",
+			"site_admin": true,
+			"starred_url": "https://api.github.com/users/ejahnGithub/starred{/owner}{/repo}",
+			"subscriptions_url": "https://api.github.com/users/ejahnGithub/subscriptions",
+			"type": "User",
+			"url": "https://api.github.com/users/ejahnGithub",
+			"user_view_type": "public"
+		},
+		"milestone": null,
+		"node_id": "PR_kwDODKw3uc6iGMoi",
+		"number": 11451,
+		"patch_url": "https://github.com/cli/cli/pull/11451.patch",
+		"rebaseable": null,
+		"review_comment_url": "https://api.github.com/repos/cli/cli/pulls/comments{/number}",
+		"review_comments": 3,
+		"review_comments_url": "https://api.github.com/repos/cli/cli/pulls/11451/comments",
+		"state": "closed",
+		"statuses_url": "https://api.github.com/repos/cli/cli/statuses/82eb05bb2488bf3a99a147ecf157cde41074143d",
+		"title": "fix error for ErrReleaseNotFound when fetching ref",
+		"updated_at": "2025-08-08T19:51:33Z",
+		"url": "https://api.github.com/repos/cli/cli/pulls/11451"
+	},
+	"review-comments": [
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "This change masks all JSON decoding errors as 'release not found' errors. JSON decoding can fail for reasons other than a missing release (malformed JSON, network issues, etc.). Consider checking the HTTP status code or response content to determine if it's actually a 'not found' case before returning `ErrReleaseNotFound`.\n```suggestion\n\t\treturn \"\", fmt.Errorf(\"failed to decode ref response: %w\", err)\n```",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"created_at": "2025-08-08T17:29:32Z",
+			"html_url": "https://github.com/cli/cli/pull/11451#discussion_r2263641111",
+			"id": 2263641111,
+			"line": 168,
+			"node_id": "PRRC_kwDODKw3uc6G7GwX",
+			"original_commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"original_line": 168,
+			"original_position": 6,
+			"original_start_line": null,
+			"path": "pkg/cmd/release/shared/fetch.go",
+			"position": 6,
+			"pull_request_review_id": 3101687405,
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"side": "RIGHT",
+			"start_line": null,
+			"start_side": null,
+			"subject_type": "line",
+			"updated_at": "2025-08-08T17:29:33Z",
+			"url": "https://api.github.com/repos/cli/cli/pulls/comments/2263641111",
+			"user": {
+				"id": 175728472,
+				"login": "Copilot",
+				"type": "Bot"
+			}
+		},
+		{
+			"author_association": "MEMBER",
+			"body": "This change also affects other `release` subcmds. I agree with CCR in that this error can have other reasons. ",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"created_at": "2025-08-08T18:51:38Z",
+			"html_url": "https://github.com/cli/cli/pull/11451#discussion_r2263783218",
+			"id": 2263783218,
+			"line": 168,
+			"node_id": "PRRC_kwDODKw3uc6G7pcy",
+			"original_commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"original_line": 168,
+			"original_position": 6,
+			"original_start_line": null,
+			"path": "pkg/cmd/release/shared/fetch.go",
+			"position": 6,
+			"pull_request_review_id": 3101876729,
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"side": "RIGHT",
+			"start_line": null,
+			"start_side": null,
+			"subject_type": "line",
+			"updated_at": "2025-08-08T18:54:11Z",
+			"url": "https://api.github.com/repos/cli/cli/pulls/comments/2263783218",
+			"user": {
+				"id": 36728931,
+				"login": "babakks",
+				"type": "User"
+			}
+		},
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "When fetching the ref SHA of a tag, a partial semver match returns a 200 response with an empty body, which causes the JSON decode to fail.\r\nFor example, if the tag is v1.0.0, only refs/tags/v1.0.0 will work \u2014 v1 or v1.0 will return 200 with empty body.\r\n\r\nThis behavior aligns with other gh release commands, which also require the exact tag name, otherwise would return release not found. Partial semver versions won\u2019t work \u2014 only the full, exact tag is accepted.",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"created_at": "2025-08-08T19:51:33Z",
+			"html_url": "https://github.com/cli/cli/pull/11451#discussion_r2263876004",
+			"id": 2263876004,
+			"in_reply_to_id": 2263783218,
+			"line": 168,
+			"node_id": "PRRC_kwDODKw3uc6G8AGk",
+			"original_commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"original_line": 168,
+			"original_position": 6,
+			"original_start_line": null,
+			"path": "pkg/cmd/release/shared/fetch.go",
+			"position": 6,
+			"pull_request_review_id": 3102005526,
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"side": "RIGHT",
+			"start_line": null,
+			"start_side": null,
+			"subject_type": "line",
+			"updated_at": "2025-08-08T19:51:33Z",
+			"url": "https://api.github.com/repos/cli/cli/pulls/comments/2263876004",
+			"user": {
+				"id": 108841108,
+				"login": "ejahnGithub",
+				"type": "User"
+			}
+		}
+	],
+	"reviews": [
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "## Pull Request Overview\n\nThis PR fixes an error handling issue in the `FetchRefSHA` function where JSON decoding errors were not being properly mapped to the expected `ErrReleaseNotFound` error type.\n\n- Replaces generic JSON decoding error with specific `ErrReleaseNotFound` error\n- Adds clarifying comment about release not being found\n\n\n\n",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"html_url": "https://github.com/cli/cli/pull/11451#pullrequestreview-3101687405",
+			"id": 3101687405,
+			"node_id": "PRR_kwDODKw3uc643_5t",
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"state": "COMMENTED",
+			"submitted_at": "2025-08-08T17:29:33Z",
+			"user": {
+				"id": 175728472,
+				"login": "copilot-pull-request-reviewer[bot]",
+				"type": "Bot"
+			}
+		},
+		{
+			"author_association": "NONE",
+			"body": "",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"html_url": "https://github.com/cli/cli/pull/11451#pullrequestreview-3101715657",
+			"id": 3101715657,
+			"node_id": "PRR_kwDODKw3uc644GzJ",
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"state": "APPROVED",
+			"submitted_at": "2025-08-08T17:42:24Z",
+			"user": {
+				"id": 17136661,
+				"login": "tingx2wang",
+				"type": "User"
+			}
+		},
+		{
+			"author_association": "MEMBER",
+			"body": "Thanks for the PR, @ejahnGithub! \ud83d\ude4f \n\nBut I believe the change may have unwanted side effects for other `release` commands.",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"html_url": "https://github.com/cli/cli/pull/11451#pullrequestreview-3101876729",
+			"id": 3101876729,
+			"node_id": "PRR_kwDODKw3uc644uH5",
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"state": "CHANGES_REQUESTED",
+			"submitted_at": "2025-08-08T18:54:11Z",
+			"user": {
+				"id": 36728931,
+				"login": "babakks",
+				"type": "User"
+			}
+		},
+		{
+			"author_association": "CONTRIBUTOR",
+			"body": "",
+			"commit_id": "82eb05bb2488bf3a99a147ecf157cde41074143d",
+			"html_url": "https://github.com/cli/cli/pull/11451#pullrequestreview-3102005526",
+			"id": 3102005526,
+			"node_id": "PRR_kwDODKw3uc645NkW",
+			"pull_request_url": "https://api.github.com/repos/cli/cli/pulls/11451",
+			"state": "COMMENTED",
+			"submitted_at": "2025-08-08T19:51:33Z",
+			"user": {
+				"id": 108841108,
+				"login": "ejahnGithub",
+				"type": "User"
+			}
+		}
+	]
+}

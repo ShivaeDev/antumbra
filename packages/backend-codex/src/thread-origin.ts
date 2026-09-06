@@ -1,4 +1,5 @@
-import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
 
 export const attributed = (event: AgentEvent, origin: Origin): AgentEvent => {
 	switch (event.type) {

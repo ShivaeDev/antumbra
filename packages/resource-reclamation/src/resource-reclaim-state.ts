@@ -1,11 +1,11 @@
 import { Database } from "@antumbra/persistence";
 import {
-	decodeStoredAgentSessionStatus,
 	decodeStoredAgentStatus,
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 	decodeStoredResourceReclaimState,
-} from "@antumbra/vocabulary/agent-runtime.ts";
+} from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 

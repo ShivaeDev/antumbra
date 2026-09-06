@@ -1,4 +1,4 @@
-import type { RateLimitEvent, RateLimitWindow } from "@antumbra/vocabulary/session-events.ts";
+import type { RateLimitEvent, RateLimitWindow } from "@antumbra/vocabulary/session-events/rate-limit.ts";
 
 type Limit = typeof RateLimitEvent.Type;
 type Window = typeof RateLimitWindow.Type;

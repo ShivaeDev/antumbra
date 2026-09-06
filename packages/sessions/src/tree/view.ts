@@ -1,5 +1,5 @@
 import { type SessionTree, type SessionTreeNode, subsessionDisplayName } from "@antumbra/contract";
-import type { AgentSessionCompleteness, AgentSessionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
+import type { AgentSessionCompleteness, AgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
 
 export interface SessionTreeRow {
 	readonly completeness: AgentSessionCompleteness;

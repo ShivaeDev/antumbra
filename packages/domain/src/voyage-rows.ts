@@ -4,7 +4,8 @@ import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
 import type { RulingGate } from "@antumbra/rulings";
 import type { VoyageAgentSettings } from "@antumbra/settings";
-import type { AgentSessionStatus, AgentStatus, SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
+import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
+import type { AgentSessionStatus, AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
 import type { VoyageKind } from "@antumbra/vocabulary/voyage.ts";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";

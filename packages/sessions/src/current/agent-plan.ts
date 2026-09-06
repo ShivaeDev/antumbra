@@ -1,4 +1,5 @@
-import { type AgentStatus, agentTransition, type InvalidAgentTransition } from "@antumbra/vocabulary/agent-runtime.ts";
+import { agentTransition, type InvalidAgentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
+import type { AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
 import { Result } from "effect";
 import { CurrentSessionInvalid } from "#current/errors.ts";
 import { newestSession } from "#current/order.ts";

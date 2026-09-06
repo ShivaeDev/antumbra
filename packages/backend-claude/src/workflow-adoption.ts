@@ -1,5 +1,6 @@
 import type { SessionMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
 import { agentFileRef } from "#mirror-keys.ts";
 import { claudeRaw } from "#raw-payload.ts";
 import { transcriptEvents } from "#workflow-transcript.ts";

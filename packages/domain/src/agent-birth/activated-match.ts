@@ -1,16 +1,9 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
 import { isRootSession } from "@antumbra/sessions";
-import {
-	type AgentSessionStatus,
-	type AgentStatus,
-	type BerthStatus,
-	decodeSessionExecutionStatus,
-	decodeStoredAgentSessionStatus,
-	decodeStoredAgentStatus,
-	decodeStoredBerthStatus,
-	decodeStoredMoorageStatus,
-	type MoorageStatus,
-} from "@antumbra/vocabulary/agent-runtime.ts";
+import { decodeSessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
+import type { AgentSessionStatus, AgentStatus, BerthStatus, MoorageStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect, Result } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 

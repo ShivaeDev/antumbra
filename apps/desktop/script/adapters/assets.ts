@@ -1,12 +1,13 @@
 import { cpSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { Effect } from "effect";
+import { packageRoot } from "#script/adapters/workspace.ts";
 
 const SKILL_PLUGIN_ENTRIES = [".claude-plugin", "skills"];
 
-export const copySkillAssets = (desktopRoot: string, workspaceRoot: string) =>
+export const copySkillAssets = (desktopRoot: string) =>
 	Effect.sync(() => {
-		const source = join(workspaceRoot, "packages", "skills");
+		const source = packageRoot("@antumbra/skills");
 		const target = join(desktopRoot, "out", "skills");
 		rmSync(target, { force: true, recursive: true });
 		mkdirSync(target, { recursive: true });
@@ -15,9 +16,9 @@ export const copySkillAssets = (desktopRoot: string, workspaceRoot: string) =>
 		}
 	});
 
-export const copyOpencodePluginAssets = (desktopRoot: string, workspaceRoot: string) =>
+export const copyOpencodePluginAssets = (desktopRoot: string) =>
 	Effect.sync(() => {
-		const source = join(workspaceRoot, "packages", "backend-opencode", "plugin");
+		const source = join(packageRoot("@antumbra/backend-opencode"), "plugin");
 		const target = join(desktopRoot, "out", "opencode");
 		rmSync(target, { force: true, recursive: true });
 		mkdirSync(target, { recursive: true });
@@ -25,9 +26,9 @@ export const copyOpencodePluginAssets = (desktopRoot: string, workspaceRoot: str
 	});
 
 // Runtime migration replay consumes the generated JSON artifacts; migration.ts remains authoring-time source.
-export const copyPersistenceAssets = (desktopRoot: string, workspaceRoot: string) =>
+export const copyPersistenceAssets = (desktopRoot: string) =>
 	Effect.sync(() => {
-		const source = join(workspaceRoot, "packages", "persistence", "migrations");
+		const source = join(packageRoot("@antumbra/persistence"), "migrations");
 		const target = join(desktopRoot, "out", "persistence", "migrations");
 		rmSync(target, { force: true, recursive: true });
 		mkdirSync(target, { recursive: true });

@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const packageDirectory = fileURLToPath(new URL("..", import.meta.url));
-const workspaceDirectory = fileURLToPath(new URL("../../..", import.meta.url));
+const workspaceDirectory = fileURLToPath(new URL("../../../..", import.meta.url));
 
 const compile = (compiler: "tsc" | "tsc6", arguments_: ReadonlyArray<string>) =>
 	spawnSync(join(workspaceDirectory, "node_modules", ".bin", compiler), arguments_, {

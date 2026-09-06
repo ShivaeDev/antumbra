@@ -11,7 +11,7 @@ export const surfacePolicy = [
 		.to(anyOf(domainAndCapabilities, packages.named("plugin-api", "agent-tools", "kernel", "persistence", "git", "renderer"), adapters))
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("contract", "src/contract.ts")).to(files.inPackage("plugin-api", "src/backend.ts")),
-			legal: importFrom(files.inPackage("contract", "src/contract.ts")).to(files.inPackage("vocabulary", "src/change.ts")),
+			legal: importFrom(files.inPackage("contract", "src/contract.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
 		}),
 	fence("agent-tools-imports-no-runtime-or-implementation")
 		.because(
@@ -37,8 +37,8 @@ export const surfacePolicy = [
 			),
 		)
 		.demonstratedBy({
-			illegal: importFrom(files.inPackage("prompts", "src/situations.ts")).to(files.inPackage("changes", "src/change-read.ts")),
-			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("prompts", "src/index.ts")),
+			illegal: importFrom(files.inPackage("platform/prompts", "src/situations.ts")).to(files.inPackage("changes", "src/change-read.ts")),
+			legal: importFrom(files.inPackage("sessions", "src/session-send.ts")).to(files.inPackage("platform/prompts", "src/index.ts")),
 		}),
 	fence("skills-imports-no-caller")
 		.because(
@@ -54,7 +54,7 @@ export const surfacePolicy = [
 			),
 		)
 		.demonstratedBy({
-			illegal: importFrom(files.inPackage("skills", "src/index.ts")).to(files.inPackage("plugin-api", "src/backend.ts")),
-			legal: importFrom(files.inPackage("backend-codex", "src/plugin.ts")).to(files.inPackage("skills", "src/index.ts")),
+			illegal: importFrom(files.inPackage("platform/skills", "src/index.ts")).to(files.inPackage("plugin-api", "src/backend.ts")),
+			legal: importFrom(files.inPackage("backend-codex", "src/plugin.ts")).to(files.inPackage("platform/skills", "src/index.ts")),
 		}),
 ] as const satisfies readonly BoundaryRule[];

@@ -68,14 +68,14 @@ export const workspaceExcept = (...excludedPackages: readonly string[]) => ({
 	sanctioning: (...exceptions: readonly SanctionedException[]): ImportSource => workspaceSource(excludedPackages, exceptions),
 });
 
-const workspaceFile = (root: WorkspaceRoot, name: string, path: string): WorkspaceFixtureEndpoint => ({
+const workspaceFile = (root: WorkspaceRoot, location: string, path: string): WorkspaceFixtureEndpoint => ({
 	kind: "workspace-file",
-	path: `${root}/${name}/${path}`,
+	path: `${root}/${location}/${path}`,
 });
 
 export const files = {
-	inApplication: (name: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("apps", name, path),
-	inPackage: (name: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("packages", name, path),
+	inApplication: (location: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("apps", location, path),
+	inPackage: (location: string, path: string): WorkspaceFixtureEndpoint => workspaceFile("packages", location, path),
 	module: (name: string): FixtureEndpoint => ({
 		kind: "external-module",
 		name,

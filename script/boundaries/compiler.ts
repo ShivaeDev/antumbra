@@ -1,28 +1,31 @@
 import { describeException, sanctionedOf } from "#boundaries/exceptions.ts";
 import { compileSelector, escapeExpression } from "#boundaries/expressions.ts";
-import type { BoundaryFixture, BoundaryPolicyInventory, BoundaryRule, CompiledBoundaryRule } from "#boundaries/model.ts";
-import { validatePolicyInventory } from "#boundaries/policy-inventory.ts";
+import type { BoundaryFixture, BoundaryPolicyInventory, BoundaryRule, CompiledBoundaryRule, LocatePackage } from "#boundaries/model.ts";
+import { locatePackage, validatePolicyInventory } from "#boundaries/policy-inventory.ts";
 import { validatePolicy } from "#boundaries/validation.ts";
 
-const compileRule = (rule: BoundaryRule): CompiledBoundaryRule => ({
-	comment: `${rule.rationale}${sanctionedOf(rule).map(describeException).join("")}`,
+const compileRule = (rule: BoundaryRule, locate: LocatePackage): CompiledBoundaryRule => ({
+	comment: `${rule.rationale}${sanctionedOf(rule)
+		.map((exception) => describeException(exception, locate))
+		.join("")}`,
 	from: {
-		path: compileSelector(rule.kind === "negative-fence" ? rule.from : rule.consumers),
+		path: compileSelector(rule.kind === "negative-fence" ? rule.from : rule.consumers, locate),
 	},
 	name: rule.name,
 	severity: "error",
 	to: {
 		path:
 			rule.kind === "negative-fence"
-				? compileSelector(rule.to)
-				: `^packages/vocabulary/src/(?!${rule.allowedSubjects.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`).join("|")})`,
+				? compileSelector(rule.to, locate)
+				: `^${locate("vocabulary")}/src/(?!${rule.allowedSubjects.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`).join("|")})`,
 	},
 });
 
 export const compileBoundaryPolicy = (policy: readonly BoundaryRule[], inventory: BoundaryPolicyInventory) => {
 	validatePolicyInventory(policy, inventory);
-	const forbidden = policy.map(compileRule);
-	validatePolicy(policy, forbidden);
+	const locate = locatePackage(inventory);
+	const forbidden = policy.map((rule) => compileRule(rule, locate));
+	validatePolicy(policy, forbidden, locate);
 	return {
 		configuration: {
 			forbidden,

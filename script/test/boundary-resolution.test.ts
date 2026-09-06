@@ -13,7 +13,7 @@ const seedBareImport = (importedSubject: string, exportedSubjects: readonly stri
 	const root = realpathSync(mkdtempSync(join(tmpdir(), "antumbra-boundary-")));
 	roots.push(root);
 	const renderer = join(root, "packages/renderer/src/view.ts");
-	const vocabulary = join(root, "packages/vocabulary");
+	const vocabulary = join(root, "packages/platform/vocabulary");
 	mkdirSync(dirname(renderer), { recursive: true });
 	mkdirSync(join(vocabulary, "src"), { recursive: true });
 	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}";\nexport {};\n`);
@@ -24,7 +24,7 @@ const seedBareImport = (importedSubject: string, exportedSubjects: readonly stri
 	}
 	const modules = join(root, "packages/renderer/node_modules/@antumbra");
 	mkdirSync(modules, { recursive: true });
-	symlinkSync("../../../vocabulary", join(modules, "vocabulary"), "dir");
+	symlinkSync("../../../platform/vocabulary", join(modules, "vocabulary"), "dir");
 	return root;
 };
 
@@ -41,7 +41,7 @@ describe("workspace package resolution", () => {
 		const result = run(seedBareImport("agent-runtime", ["agent-runtime"]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
-			"renderer-uses-session-event-vocabulary: packages/renderer/src/view.ts → packages/vocabulary/src/agent-runtime.ts",
+			"renderer-uses-session-event-vocabulary: packages/renderer/src/view.ts → packages/platform/vocabulary/src/agent-runtime.ts",
 		);
 	});
 

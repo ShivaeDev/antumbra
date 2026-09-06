@@ -11,7 +11,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../script/test.ts",
+		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},

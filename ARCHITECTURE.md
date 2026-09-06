@@ -41,14 +41,14 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | ------------------------- | --------------------------------------------------------------- |
 | `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
 | `packages/contract`       | Public typed IDL between renderer and main                      |
-| `packages/vocabulary`     | Neutral Agent runtime, Board, Change, Ruling, and Session-event language through explicit subject subpaths (a leaf) |
+| `packages/platform/vocabulary` | Neutral Agent runtime, Board, Change, Ruling, and Session-event language through explicit subject subpaths (a leaf) |
 | `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
 | `packages/session-inputs` | Ordered durable Session inputs, validated image custody, delivery readings, and transcript thumbnails |
-| `packages/prompts`        | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
-| `packages/skills`         | The skills Antumbra hands every harness: a Claude Code plugin directory holding one folder per skill, each with its SKILL.md (a leaf) |
+| `packages/platform/prompts` | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
+| `packages/platform/skills` | The skills Antumbra hands every harness: a Claude Code plugin directory holding one folder per skill, each with its SKILL.md (a leaf) |
 | `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
 | `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
-| `packages/service-definition` | One constructor for inferred process-lifetime Effect services |
+| `packages/platform/service-definition` | One constructor for inferred process-lifetime Effect services |
 | `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
 | `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
 | `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
@@ -73,7 +73,7 @@ back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
 | `packages/backend-pi`     | The Pi backend: the pi coding agent run in-process through its SDK, given Antumbra's tools and skills |
 | `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
 | `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
-| `packages/trace-sink`     | Dev-only sink: finished spans and log entries into their own trace file |
+| `packages/platform/trace-sink` | Dev-only sink: finished spans and log entries into their own trace file |
 | `packages/renderer`       | The web UI                                                      |
 | `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
 | `packages/testing-runtime` | Test doubles for the driven ports — a scripted backend, scripted and passive runners — and the `effectApp` test runner over temporary persistence |

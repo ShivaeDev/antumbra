@@ -4,8 +4,9 @@ import { serviceAssemblyImports } from "#lint/rules/service-definition-assembly-
 import { serviceDefinitionProblems } from "#lint/rules/service-definition-assembly-shape.ts";
 import { directServiceDefinitions, implementationBodies } from "#lint/rules/service-definition-assembly-syntax.ts";
 import type { Violation } from "#lint/violation.ts";
+import { workspacePackages } from "#lint/workspace.ts";
 
-const PRODUCTION_SOURCE = /^(apps|packages)\/[^/]+\/src\/.*\.tsx?$/;
+const SOURCE_FILE = /\.tsx?$/;
 const RULE = "effect/service-definition-assembly";
 
 const lineOf = (source: ts.SourceFile, node: ts.Node): number => source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
@@ -17,8 +18,8 @@ const violation = (file: string, source: ts.SourceFile, node: ts.Node, message: 
 	rule: RULE,
 });
 
-const fileViolations = (file: SourceFile): readonly Violation[] => {
-	if (!PRODUCTION_SOURCE.test(file.path)) return [];
+const fileViolations = (file: SourceFile, sourceRoots: readonly string[]): readonly Violation[] => {
+	if (!SOURCE_FILE.test(file.path) || !sourceRoots.some((root) => file.path.startsWith(root))) return [];
 	const source = ts.createSourceFile(
 		file.path,
 		file.lines.join("\n"),
@@ -45,4 +46,7 @@ const fileViolations = (file: SourceFile): readonly Violation[] => {
 	return found;
 };
 
-export const serviceDefinitionAssemblyViolations = (inventory: Inventory): readonly Violation[] => inventory.sources.flatMap(fileViolations);
+export const serviceDefinitionAssemblyViolations = (inventory: Inventory): readonly Violation[] => {
+	const sourceRoots = workspacePackages(inventory).map(({ root }) => `${root}/src/`);
+	return inventory.sources.flatMap((file) => fileViolations(file, sourceRoots));
+};

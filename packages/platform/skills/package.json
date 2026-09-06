@@ -1,17 +1,18 @@
 {
-	"name": "@antumbra/trace-sink",
+	"name": "@antumbra/skills",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts"
+		".": "./src/index.ts",
+		"./package.json": "./package.json"
 	},
 	"imports": {
 		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../script/test.ts",
+		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -21,8 +22,5 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"effect": "catalog:"
 	}
 }

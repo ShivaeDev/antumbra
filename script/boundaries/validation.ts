@@ -1,6 +1,6 @@
 import { Data, Effect } from "effect";
 import { exceptionFailure, sanctionedOf } from "#boundaries/exceptions.ts";
-import type { BoundaryRule, CompiledBoundaryRule, FixtureEdge } from "#boundaries/model.ts";
+import type { BoundaryRule, CompiledBoundaryRule, FixtureEdge, LocatePackage } from "#boundaries/model.ts";
 
 class BoundaryPolicyInvalid extends Data.TaggedError("BoundaryPolicyInvalid")<{
 	readonly message: string;
@@ -15,10 +15,10 @@ const matches = (rule: CompiledBoundaryRule, edge: FixtureEdge) =>
 
 const describeEdge = (edge: FixtureEdge) => `${edge.from.path} → ${endpointPath(edge.to)}`;
 
-const validateExceptions = (rule: BoundaryRule, compiled: readonly CompiledBoundaryRule[]) => {
+const validateExceptions = (rule: BoundaryRule, compiled: readonly CompiledBoundaryRule[], locate: LocatePackage) => {
 	const compiledRule = compiled.find(({ name }) => name === rule.name);
 	for (const exception of sanctionedOf(rule)) {
-		const failure = exceptionFailure(rule, compiledRule, exception);
+		const failure = exceptionFailure(rule, compiledRule, exception, locate);
 		if (failure !== undefined) {
 			failPolicy(failure);
 		}
@@ -48,13 +48,13 @@ const validateExamples = (rule: BoundaryRule, compiled: readonly CompiledBoundar
 	}
 };
 
-export const validatePolicy = (policy: readonly BoundaryRule[], compiled: readonly CompiledBoundaryRule[]) => {
+export const validatePolicy = (policy: readonly BoundaryRule[], compiled: readonly CompiledBoundaryRule[], locate: LocatePackage) => {
 	validateNames(policy);
 	for (const rule of policy) {
 		if (rule.rationale.trim().length === 0) {
 			failPolicy(`Boundary rule has no rationale: ${rule.name}`);
 		}
-		validateExceptions(rule, compiled);
+		validateExceptions(rule, compiled, locate);
 		validateExamples(rule, compiled);
 	}
 };

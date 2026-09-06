@@ -62,6 +62,11 @@ describe("reading a recorded gh pr view", () => {
 		expect(seen("open-failed").failed).toEqual(["package"]);
 	});
 
+	it("rates a build that is still running as pending", () => {
+		expect(seen("open-running").ci).toBe("pending");
+		expect(seen("open-running").failed).toEqual([]);
+	});
+
 	it("reads a failure alongside a running check as pending", () => {
 		expect(seen("open-pending").ci).toBe("pending");
 		expect(seen("open-pending").failed).toEqual(["validate"]);

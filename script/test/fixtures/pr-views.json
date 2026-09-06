@@ -182,6 +182,184 @@
 			}
 		]
 	},
+	"open-running": {
+		"headRefOid": "41b1395587cf5e7be75b5250cf037f2a70fd765f",
+		"mergeable": "MERGEABLE",
+		"reviewDecision": "",
+		"state": "OPEN",
+		"statusCheckRollup": [
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500814",
+				"name": "lint",
+				"startedAt": "2026-09-06T17:44:15Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500835",
+				"name": "typecheck",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500843",
+				"name": "typecheck-compat (heavy)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500849",
+				"name": "typecheck-compat (medium)",
+				"startedAt": "2026-09-06T17:44:15Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500905",
+				"name": "typecheck-compat (remaining)",
+				"startedAt": "2026-09-06T17:44:15Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500939",
+				"name": "test (1/8)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500882",
+				"name": "test (2/8)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500931",
+				"name": "test (3/8)",
+				"startedAt": "2026-09-06T17:44:17Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500860",
+				"name": "test (4/8)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500966",
+				"name": "test (5/8)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500888",
+				"name": "test (6/8)",
+				"startedAt": "2026-09-06T17:44:15Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500943",
+				"name": "test (7/8)",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500945",
+				"name": "test (8/8)",
+				"startedAt": "2026-09-06T17:44:15Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500922",
+				"name": "isolated",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500722",
+				"name": "guards",
+				"startedAt": "2026-09-06T17:44:16Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500854",
+				"name": "build",
+				"startedAt": "2026-09-06T17:44:17Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			},
+			{
+				"__typename": "CheckRun",
+				"completedAt": "0001-01-01T00:00:00Z",
+				"conclusion": "",
+				"detailsUrl": "https://github.com/ShivaeDev/antumbra/actions/runs/34049528568/job/101530500942",
+				"name": "package",
+				"startedAt": "2026-09-06T17:44:20Z",
+				"status": "IN_PROGRESS",
+				"workflowName": "CI"
+			}
+		]
+	},
 	"open-unchecked": {
 		"headRefOid": "71f98f2c6865e2cc44a96ef0256256f03e383d65",
 		"mergeable": "MERGEABLE",

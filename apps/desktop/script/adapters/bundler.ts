@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { Effect } from "effect";
 import { build, watch } from "rolldown";
 import { MAIN_EXTERNALS } from "#script/adapters/externals.ts";
+import { packageRoot } from "#script/adapters/workspace.ts";
 
 type BundleWatcher = ReturnType<typeof watch>;
 
@@ -20,6 +21,15 @@ const configs = (root: string) => [
 		external: ["electron"],
 		input: join(root, "src", "preload.ts"),
 		output: { file: join(root, "out", "preload.cjs"), format: "cjs" as const },
+		platform: "node" as const,
+	},
+	{
+		input: join(packageRoot("@antumbra/server"), "src", "main.ts"),
+		output: {
+			codeSplitting: false,
+			file: join(root, "out", "server.js"),
+			format: "esm" as const,
+		},
 		platform: "node" as const,
 	},
 ];

@@ -9,4 +9,6 @@ export const artifactsInDataDirectory = (dataDirectory: string): string => join(
 
 export const sessionInputsInDataDirectory = (dataDirectory: string): string => join(dataDirectory, "session-inputs");
 
+export const serverDataInDataDirectory = (dataDirectory: string): string => join(dataDirectory, "server");
+
 export const windowLayoutInDataDirectory = (dataDirectory: string): string => join(dataDirectory, "windows.json");

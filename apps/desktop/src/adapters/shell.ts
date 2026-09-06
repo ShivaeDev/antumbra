@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { Config, Effect, type Ref } from "effect";
 import { app } from "electron";
+import { serverDataInDataDirectory } from "#adapters/data-paths.ts";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import type { OwnedWindow } from "#adapters/windows/registry.ts";
 import { RESTART_EXIT_CODE } from "#restart-exit-code.ts";
@@ -49,6 +50,14 @@ export {
 	sessionInputsInDataDirectory,
 	windowLayoutInDataDirectory,
 } from "#adapters/data-paths.ts";
+
+export const serverDataDirectory = (): string => {
+	const directory = serverDataInDataDirectory(configureDataDirectory());
+	mkdirSync(directory, { recursive: true });
+	return directory;
+};
+
+export const serverBundle = (): string => (app.isPackaged ? join(process.resourcesPath, "server.js") : join(import.meta.dirname, "server.js"));
 
 export const persistenceMigrationsDirectory = (): string =>
 	app.isPackaged ? join(process.resourcesPath, "persistence", "migrations") : join(import.meta.dirname, "persistence", "migrations");

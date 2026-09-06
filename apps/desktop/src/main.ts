@@ -9,6 +9,7 @@ import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts"
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
+import { ServerProcessLive } from "#adapters/server-process.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -16,6 +17,8 @@ import {
 	drainBeforeQuit,
 	focusOrOpenConsole,
 	quitWhenAllWindowsClosed,
+	serverBundle,
+	serverDataDirectory,
 	whenReady,
 	windowLayoutInDataDirectory,
 } from "#adapters/shell.ts";
@@ -43,6 +46,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 				AppInfoSourceLive,
 				WindowSourceLive(shell),
 				devTracing(),
+				Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer),
 				AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(applicationLayers()))),
 			),
 		);

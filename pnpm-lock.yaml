@@ -1525,6 +1525,9 @@ importers:
       '@antumbra/feature':
         specifier: workspace:*
         version: link:../../platform/feature
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../platform/rpc
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../../platform/vocabulary

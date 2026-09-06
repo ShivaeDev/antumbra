@@ -26,6 +26,7 @@
 	},
 	"dependencies": {
 		"@antumbra/feature": "workspace:*",
+		"@antumbra/rpc": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:"

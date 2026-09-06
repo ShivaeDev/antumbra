@@ -1,5 +1,6 @@
-import type { CommandShape, FeatureShape } from "@antumbra/feature";
-import * as Id from "@antumbra/vocabulary/id";
+import type { CommandShape } from "@antumbra/feature/command.ts";
+import type { FeatureShape } from "@antumbra/feature/feature.ts";
+import * as Id from "@antumbra/vocabulary/id.ts";
 import type { Effect } from "effect";
 import type { AppDefinition } from "#app.ts";
 import type { CommitService } from "#commit.ts";

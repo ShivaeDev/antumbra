@@ -2,7 +2,7 @@ import { Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { type Context, Effect } from "effect";

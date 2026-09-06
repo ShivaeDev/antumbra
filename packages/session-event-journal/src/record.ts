@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect } from "effect";
 import { recordTogether } from "#record-together.ts";
 

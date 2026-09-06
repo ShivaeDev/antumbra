@@ -1,6 +1,6 @@
 import type { StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option } from "effect";
 
 export interface JournalAppend {

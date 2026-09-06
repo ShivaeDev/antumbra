@@ -1,7 +1,7 @@
 import type { SessionAudit } from "@antumbra/plugin-api";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
 import type { EventSink } from "@antumbra/session-fabric";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Clock, Effect, Ref } from "effect";
 import { emptySessionTree, nodeOf, openNodes, withCaller } from "#tree/attribution.ts";
 import { streamDetachedGap } from "#tree/gaps.ts";

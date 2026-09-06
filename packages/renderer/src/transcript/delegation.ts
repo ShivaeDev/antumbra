@@ -1,5 +1,5 @@
 import { type SessionTreeNode, subsessionDisplayName } from "@antumbra/contract";
-import type { SubsessionEnded, SubsessionOpened } from "@antumbra/vocabulary/session-events";
+import type { SubsessionEnded, SubsessionOpened } from "@antumbra/vocabulary/session-events.ts";
 import type { TranscriptDelegation } from "#transcript/model.ts";
 
 export type NodesByRef = ReadonlyMap<string, SessionTreeNode>;

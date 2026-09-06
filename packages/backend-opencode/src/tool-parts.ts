@@ -1,4 +1,4 @@
-import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events.ts";
 import type { KnownPart } from "#protocol-parts.ts";
 
 type ToolPart = Extract<KnownPart, { type: "tool" }>;

@@ -1,4 +1,4 @@
-import type { RulingAuthority, RulingRadius } from "@antumbra/vocabulary/ruling";
+import type { RulingAuthority, RulingRadius } from "@antumbra/vocabulary/ruling.ts";
 import { Data } from "effect";
 import type { RulingSubject } from "#model.ts";
 

@@ -2,7 +2,7 @@ import { Boards, dueMail, type MailBatch } from "@antumbra/boards";
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { openSessions, rootSessions } from "@antumbra/sessions";
-import { decodeSessionExecutionStatus, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Clock, Effect, Result } from "effect";
 
 const MILLIS_PER_MINUTE = 60_000;

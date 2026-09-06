@@ -9,17 +9,16 @@ const scriptDirectory = dirname(dirname(fileURLToPath(import.meta.url)));
 const entry = join(scriptDirectory, "boundaries.ts");
 const roots: string[] = [];
 
-const seedBareImport = (importedSubject: string, exportedSubjects: readonly string[]) => {
+const seedBareImport = (importedSubject: string, subjectsOnDisk: readonly string[]) => {
 	const root = realpathSync(mkdtempSync(join(tmpdir(), "antumbra-boundary-")));
 	roots.push(root);
 	const renderer = join(root, "packages/renderer/src/view.ts");
 	const vocabulary = join(root, "packages/platform/vocabulary");
 	mkdirSync(dirname(renderer), { recursive: true });
 	mkdirSync(join(vocabulary, "src"), { recursive: true });
-	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}";\nexport {};\n`);
-	const exports = Object.fromEntries(exportedSubjects.map((subject) => [`./${subject}`, `./src/${subject}.ts`]));
-	writeFileSync(join(vocabulary, "package.json"), JSON.stringify({ exports, name: "@antumbra/vocabulary", type: "module" }));
-	for (const subject of exportedSubjects) {
+	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}.ts";\nexport {};\n`);
+	writeFileSync(join(vocabulary, "package.json"), JSON.stringify({ exports: { "./*": "./src/*" }, name: "@antumbra/vocabulary", type: "module" }));
+	for (const subject of subjectsOnDisk) {
 		writeFileSync(join(vocabulary, `src/${subject}.ts`), "export {};\n");
 	}
 	const modules = join(root, "packages/renderer/node_modules/@antumbra");
@@ -55,7 +54,7 @@ describe("workspace package resolution", () => {
 		const result = run(seedBareImport("agent-runtime", ["session-events"]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
-			"dependency-cruiser could not resolve workspace specifier @antumbra/vocabulary/agent-runtime from packages/renderer/src/view.ts",
+			"dependency-cruiser could not resolve workspace specifier @antumbra/vocabulary/agent-runtime.ts from packages/renderer/src/view.ts",
 		);
 	});
 });

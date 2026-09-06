@@ -1,4 +1,7 @@
-import type { FeatureShape, Fields, QueryDefinition, RowShape, Values } from "@antumbra/feature";
+import type { FeatureShape } from "@antumbra/feature/feature.ts";
+import type { Fields, Values } from "@antumbra/feature/fields.ts";
+import type { QueryDefinition } from "@antumbra/feature/query.ts";
+import type { RowShape } from "@antumbra/feature/row.ts";
 import { Duration, Effect, type Schema, Scope, Stream } from "effect";
 import * as TestClock from "effect/testing/TestClock";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";

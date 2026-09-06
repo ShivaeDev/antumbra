@@ -1,4 +1,5 @@
-import { defineService, type ServiceRequirements } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
+import type { ServiceRequirements } from "@antumbra/service-definition/service-requirements.ts";
 import { describe, expect, it } from "@effect/vitest";
 import { Context, Effect, Layer, Ref, type Scope } from "effect";
 

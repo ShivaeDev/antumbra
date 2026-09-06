@@ -1,4 +1,4 @@
-import { decodeSessionExecutionStatus, sessionExecutionTransition, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, sessionExecutionTransition, sessionPresence } from "@antumbra/vocabulary/agent-runtime.ts";
 import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 

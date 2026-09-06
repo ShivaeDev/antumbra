@@ -1,5 +1,5 @@
 import { type AgentBackend, noSessionAudit, type OpenSessionOptions, type SessionHandle, type SessionInput } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, Queue, Ref, Stream } from "effect";
 
 export interface ScriptedSession {

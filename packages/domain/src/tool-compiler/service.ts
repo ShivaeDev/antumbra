@@ -6,7 +6,7 @@ import { Reports } from "@antumbra/reports";
 import { Repos } from "@antumbra/repos";
 import { Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { RoleSettings } from "@antumbra/settings";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { BackendCatalog } from "#backend-catalog/service.ts";

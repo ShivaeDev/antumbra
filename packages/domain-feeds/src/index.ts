@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { makePublishChangeRefresh } from "#publish-change-refresh.ts";
 import { makePublishFleetRefresh } from "#publish-fleet-refresh.ts";
 import { makePublishResourceReclaim } from "#publish-resource-reclaim.ts";

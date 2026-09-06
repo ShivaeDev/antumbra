@@ -1,6 +1,6 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
 import type { SessionInput, SessionInputImagePart, SessionInputTextPart } from "@antumbra/plugin-api";
-import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { type Context, Effect, Option, Schema } from "effect";
 import { imagePath, readImage } from "#adapters/custody.ts";
 import { type SessionInputCustodyFailed, StoredSessionInputInvalid } from "#errors.ts";

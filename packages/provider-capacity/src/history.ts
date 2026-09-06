@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend, BackendCapacityObservation } from "@antumbra/plugin-api";
-import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events";
+import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option } from "effect";
 import { ignoreCapacityObservation } from "#observation-values.ts";
 import { CapacitySources } from "#sources.ts";

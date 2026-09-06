@@ -9,7 +9,7 @@ describe("service definition assembly rule", () => {
 	it("allows a definition assembled from focused operation exports", () => {
 		expect(
 			violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { initializeExample } from "#initialize.ts";
 import { readExample } from "#read.ts";
@@ -33,7 +33,7 @@ export const Empty = defineService({
 
 	it("flags inline initializer and operation bodies", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 
 export const Example = defineService({
@@ -51,7 +51,7 @@ export const Example = defineService({
 
 	it("rejects non-generator inline bodies and Effect constructors", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 
 export const Example = defineService({
@@ -66,7 +66,7 @@ export const Example = defineService({
 
 	it("rejects a function expression in place of the canonical methods arrow", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { read } from "#read.ts";
 export const Example = defineService({
@@ -86,7 +86,7 @@ export const Example = defineService({
 
 	it("rejects hoisting a body or aliasing the constructor", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect as Fx } from "effect";
 
 const read = Fx.fn("example.read")(function* () { return 1; });
@@ -105,7 +105,7 @@ export const Example = define({
 	it("supports renamed imports and rejects namespace imports", () => {
 		expect(
 			violationsIn(`
-import { defineService as define } from "@antumbra/service-definition";
+import { defineService as define } from "@antumbra/service-definition/define-service.ts";
 import { Effect as Fx } from "effect";
 export const Example = define({
 	id: "@antumbra/example/Example",
@@ -117,7 +117,7 @@ export const Example = define({
 		).toEqual([]);
 		expect(
 			violationsIn(`
-import * as Services from "@antumbra/service-definition";
+import * as Services from "@antumbra/service-definition/define-service.ts";
 export const Example = Services.defineService({});
 `),
 		).toHaveLength(1);
@@ -125,7 +125,7 @@ export const Example = Services.defineService({});
 
 	it("rejects an aliased definition that embeds another body", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 export const Direct = defineService({
 	id: "@antumbra/example/Direct",
@@ -146,7 +146,7 @@ export const Hidden = define({
 
 	it("rejects computed configuration members and spreads", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { initialize, methods, read, shared } from "#operations.ts";
 export const Computed = defineService({
@@ -169,7 +169,7 @@ export const Spread = defineService({
 
 	it("does not mistake a shadowed name for the imported constructor", () => {
 		const violations = violationsIn(`
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 const inspect = (defineService: (value: unknown) => unknown) => defineService({});
 export const Example = defineService({

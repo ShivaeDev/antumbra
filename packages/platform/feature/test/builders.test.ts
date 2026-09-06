@@ -1,4 +1,9 @@
-import { command, fact, feature, materializer, query, row } from "@antumbra/feature";
+import { command } from "@antumbra/feature/command.ts";
+import { fact } from "@antumbra/feature/fact.ts";
+import { feature } from "@antumbra/feature/feature.ts";
+import { materializer } from "@antumbra/feature/materializer.ts";
+import { query } from "@antumbra/feature/query.ts";
+import { row } from "@antumbra/feature/row.ts";
 import { Effect, Schema } from "effect";
 import { describe, expect, it } from "vitest";
 

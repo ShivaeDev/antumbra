@@ -1,4 +1,4 @@
-import type { VoyageKind } from "@antumbra/vocabulary/voyage";
+import type { VoyageKind } from "@antumbra/vocabulary/voyage.ts";
 import type { VoyageRow } from "#voyage-rows.ts";
 
 export const voyageRow = (row: Omit<VoyageRow, "kind">, kind: VoyageKind): VoyageRow => ({

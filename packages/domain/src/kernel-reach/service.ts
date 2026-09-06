@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { initializeKernelReach } from "#kernel-reach/initialize.ts";
 import { makeInstall } from "#kernel-reach/install.ts";
 import { makeQueueSiesta } from "#kernel-reach/queue-siesta.ts";

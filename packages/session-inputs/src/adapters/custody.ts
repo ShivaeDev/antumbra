@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { SessionImageMediaType } from "@antumbra/vocabulary/session-input";
+import type { SessionImageMediaType } from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { SessionInputCustodyFailed } from "#errors.ts";
 

@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
-import { AGENT_ROLES, type AgentRole } from "@antumbra/vocabulary/agent-role";
+import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
+import { AGENT_ROLES, type AgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { Effect } from "effect";
 import { type AgentSettingsChoice, FLEET_SCOPE, type ResolvedAgentSettings, UNCHOSEN } from "#roles/choice.ts";
 

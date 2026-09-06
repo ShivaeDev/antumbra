@@ -1,4 +1,4 @@
-import type { RawPayload } from "@antumbra/vocabulary/session-events";
+import type { RawPayload } from "@antumbra/vocabulary/session-events.ts";
 import { Clock, Effect, MutableRef, Option, PubSub, Schema, type Scope, Stream } from "effect";
 
 const AvailableCapacity = Schema.Struct({

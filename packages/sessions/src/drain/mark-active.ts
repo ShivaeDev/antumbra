@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 import { rootSessions } from "#roots.ts";
 

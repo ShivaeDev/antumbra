@@ -1,5 +1,5 @@
 import type { PrismaError } from "@antumbra/persistence";
-import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling";
+import type { StoredRulingValueInvalid } from "@antumbra/vocabulary/ruling.ts";
 import type {
 	RulingAlreadyParked,
 	RulingAlreadyRuled,

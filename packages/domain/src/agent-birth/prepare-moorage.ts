@@ -3,7 +3,7 @@ import { Database } from "@antumbra/persistence";
 import type { MooragePlan, Runner } from "@antumbra/plugin-api";
 import { Repos, repoSlug } from "@antumbra/repos";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
-import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, Option } from "effect";
 import { MooragePlanConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";

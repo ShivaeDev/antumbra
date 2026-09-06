@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { TOOL_SERVER_NAME } from "#adapters/tool-server.ts";
 
 type Started = Extract<AgentEvent, { type: "tool.started" }>;

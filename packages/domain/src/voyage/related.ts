@@ -2,7 +2,7 @@ import { Database, or } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
 import { rootSessions } from "@antumbra/sessions";
 import { RoleSettings } from "@antumbra/settings";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 import { decodeRootSession } from "#execution/decode-session.ts";
 import { readOutcomes } from "#execution/outcomes.ts";

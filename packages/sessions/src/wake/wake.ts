@@ -1,5 +1,5 @@
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
-import { wakeWords } from "@antumbra/prompts";
+import { wakeWords } from "@antumbra/prompts/wake.ts";
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";

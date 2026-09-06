@@ -1,5 +1,5 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 
 export const decodeRootSession = (session: StoredAgentSession) =>

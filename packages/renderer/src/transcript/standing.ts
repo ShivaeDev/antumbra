@@ -1,5 +1,5 @@
 import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
-import type { AgentEvent, BackgroundTask, SessionState, UsageEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, BackgroundTask, SessionState, UsageEvent } from "@antumbra/vocabulary/session-events.ts";
 
 export interface OpenTool {
 	readonly name: string;

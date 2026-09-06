@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
 import { backgroundLabel, openedLabel, rawLabel, stateLabel, turnLabel } from "#transcript/labels.ts";

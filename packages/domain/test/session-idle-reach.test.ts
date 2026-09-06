@@ -2,7 +2,7 @@ import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import { endsTurn, it } from "@antumbra/testing";
-import { SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { it as effectIt, expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { AgentDomain } from "#domain.ts";

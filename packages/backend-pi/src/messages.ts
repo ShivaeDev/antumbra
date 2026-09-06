@@ -1,4 +1,4 @@
-import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events.ts";
 import type { PiEvent } from "#runtime.ts";
 
 export type PiMessage = Extract<PiEvent, { type: "message_end" }>["message"];

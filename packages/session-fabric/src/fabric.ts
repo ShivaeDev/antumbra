@@ -1,4 +1,5 @@
-import { defineService, genericMethod } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
+import { genericMethod } from "@antumbra/service-definition/generic-method.ts";
 import { makeAttached } from "#operations/attached.ts";
 import { makeCloseStarts } from "#operations/close-starts.ts";
 import { makeHolds } from "#operations/holds.ts";

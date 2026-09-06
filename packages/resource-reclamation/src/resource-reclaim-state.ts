@@ -5,7 +5,7 @@ import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 	decodeStoredResourceReclaimState,
-} from "@antumbra/vocabulary/agent-runtime";
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 import { HeldResourceRead } from "#held-resource-read.ts";
 

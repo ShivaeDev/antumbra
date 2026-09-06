@@ -1,4 +1,4 @@
-import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/vocabulary/session-input";
+import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { normalizeImage } from "#adapters/normalize.ts";
 import { digestRequest } from "#digest.ts";

@@ -1,4 +1,4 @@
-import { materializer } from "@antumbra/feature";
+import { materializer } from "@antumbra/feature/materializer.ts";
 import { Effect } from "effect";
 import { pieceParked } from "#example/facts/piece-parked.ts";
 import { piece } from "#example/rows/piece.ts";

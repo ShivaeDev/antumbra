@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionImageMediaType, type SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { Effect, Option, Schema } from "effect";
 import { readImage } from "#adapters/custody.ts";
 import { transcriptThumbnail } from "#adapters/thumbnail.ts";

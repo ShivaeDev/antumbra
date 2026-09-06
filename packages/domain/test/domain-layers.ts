@@ -9,7 +9,7 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { RoleSettings, SettingsSourceLive } from "@antumbra/settings";
-import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role";
+import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";

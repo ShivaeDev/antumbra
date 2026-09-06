@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { RoleSettings } from "@antumbra/settings";
-import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
+import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage.ts";
 import { Effect, Option } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";

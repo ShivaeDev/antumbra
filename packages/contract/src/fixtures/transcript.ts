@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import type { SessionEvent } from "#sight.ts";
 
 export const raw = (kind: string, payload: string) => ({

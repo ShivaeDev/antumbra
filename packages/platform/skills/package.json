@@ -4,8 +4,7 @@
 	"private": true,
 	"type": "module",
 	"exports": {
-		".": "./src/index.ts",
-		"./package.json": "./package.json"
+		"./*": "./src/*"
 	},
 	"imports": {
 		"#test/*": "./test/*",

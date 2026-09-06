@@ -1,4 +1,4 @@
-import type { RowShape } from "@antumbra/feature";
+import type { RowShape } from "@antumbra/feature/row.ts";
 import { Hash } from "effect";
 import { type Column, columnsOf } from "#column.ts";
 

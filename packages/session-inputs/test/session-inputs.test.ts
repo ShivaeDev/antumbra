@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { NewAgentSession } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { SessionInputs, sessionInputsLayer } from "@antumbra/session-inputs";
-import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/vocabulary/session-input";
+import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { expect, it as plainIt } from "@effect/vitest";
 import { Effect } from "effect";
 import { SessionInputInvalid } from "#errors.ts";

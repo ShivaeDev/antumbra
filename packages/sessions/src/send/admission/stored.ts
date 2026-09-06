@@ -1,6 +1,6 @@
 import type { SessionInput } from "@antumbra/plugin-api";
 import { SessionInputs } from "@antumbra/session-inputs";
-import type { SessionInputId } from "@antumbra/vocabulary/session-input";
+import type { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { admissible } from "#send/admission/admissible.ts";
 import { SessionInputBackendTextOnly } from "#send/errors.ts";

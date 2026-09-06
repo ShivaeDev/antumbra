@@ -4,7 +4,7 @@ import type {
 	InvalidSessionExecutionTransition,
 	StoredAgentSessionStatusInvalid,
 	StoredAgentStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime";
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Result } from "effect";
 import { type AgentReconcilePlan, planAgent } from "#current/agent-plan.ts";
 import type { CurrentSessionInvalid } from "#current/errors.ts";

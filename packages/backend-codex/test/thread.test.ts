@@ -1,5 +1,5 @@
 import type { SessionHandle } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Option, Queue, Scope, Stream } from "effect";
 import { makeCodexServer } from "#server.ts";

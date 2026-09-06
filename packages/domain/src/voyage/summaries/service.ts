@@ -2,7 +2,7 @@ import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { RoleSettings } from "@antumbra/settings";
 import { Effect } from "effect";
 import { read } from "#voyage/summaries/read.ts";

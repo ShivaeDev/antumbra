@@ -1,4 +1,4 @@
-import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
+import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change.ts";
 import { Schema } from "effect";
 
 export const ChangeView = Schema.Struct({

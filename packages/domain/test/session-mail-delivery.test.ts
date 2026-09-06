@@ -1,6 +1,6 @@
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { mailWords } from "@antumbra/prompts";
+import { mailWords } from "@antumbra/prompts/mail.ts";
 import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Ref } from "effect";

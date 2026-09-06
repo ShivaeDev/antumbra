@@ -1,4 +1,4 @@
-import * as Id from "@antumbra/vocabulary/id";
+import * as Id from "@antumbra/vocabulary/id.ts";
 
 export const PieceId = Id.brand("PieceId");
 export type PieceId = typeof PieceId.Type;

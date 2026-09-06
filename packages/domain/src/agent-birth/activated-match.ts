@@ -10,7 +10,7 @@ import {
 	decodeStoredBerthStatus,
 	decodeStoredMoorageStatus,
 	type MoorageStatus,
-} from "@antumbra/vocabulary/agent-runtime";
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, Result } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 

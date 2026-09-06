@@ -14,7 +14,7 @@ import type {
 } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
-import { admiralWords } from "@antumbra/prompts";
+import { admiralWords } from "@antumbra/prompts/admiral.ts";
 import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";

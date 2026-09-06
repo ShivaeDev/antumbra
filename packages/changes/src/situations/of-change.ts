@@ -1,4 +1,4 @@
-import type { ChangeSituation } from "@antumbra/vocabulary/change";
+import type { ChangeSituation } from "@antumbra/vocabulary/change.ts";
 import type { ChangeRow } from "#change-rows.ts";
 
 export interface AddressableChange {

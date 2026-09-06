@@ -1,5 +1,5 @@
 import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
-import { crewCharter } from "@antumbra/prompts";
+import { crewCharter } from "@antumbra/prompts/charter-crew.ts";
 import { Effect, Option } from "effect";
 import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import type { PieceRow, VoyageRow } from "#voyage-rows.ts";

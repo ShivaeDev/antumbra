@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { expect, it } from "vitest";
 import { projectHistoricalAgentEvent } from "#session-events/historical.ts";
 

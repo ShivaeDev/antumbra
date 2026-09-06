@@ -1,4 +1,4 @@
-import { feature } from "@antumbra/feature";
+import { feature } from "@antumbra/feature/feature.ts";
 import { park } from "#example/commands/park.ts";
 import { pieceParked } from "#example/facts/piece-parked.ts";
 import { pieceParkedMaterializer } from "#example/materializers/piece-parked.ts";

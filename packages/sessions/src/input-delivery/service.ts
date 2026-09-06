@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { Effect } from "effect";
 import { carried } from "#input-delivery/carried.ts";

@@ -1,6 +1,6 @@
 import type { ChangeRow } from "@antumbra/changes";
 import type { ChangeStage } from "@antumbra/plugin-api";
-import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime";
+import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { pieceStates } from "#piece-state.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import type { AgentSessionRow, PieceRow } from "#voyage-rows.ts";

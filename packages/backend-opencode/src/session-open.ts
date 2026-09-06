@@ -1,5 +1,5 @@
 import type { BackendFailure, OpenSessionOptions } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, Schema } from "effect";
 import { CONSTRAINED_AGENT, wireName } from "#adapters/tool-server.ts";
 import { opencodeFailure } from "#failure.ts";

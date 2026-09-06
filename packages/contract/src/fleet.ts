@@ -1,4 +1,4 @@
-import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime";
+import { ResourceReclaimStateSchema, SessionPresenceSchema } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Schema } from "effect";
 import { RoleSettings } from "#agent-settings.ts";
 import { SessionSituation } from "#session-situations.ts";

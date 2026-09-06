@@ -1,6 +1,6 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Option, Ref } from "effect";
 import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { type Censused, settleCensusedWork } from "#tree/census.ts";

@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events.ts";
 import { blockEvent, contentBlocks } from "#blocks.ts";
 import { rateLimitEvent } from "#rate-limits.ts";
 import { rawOf } from "#raw-payload.ts";

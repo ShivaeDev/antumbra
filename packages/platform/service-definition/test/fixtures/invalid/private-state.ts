@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 
 const PrivateState = defineService({

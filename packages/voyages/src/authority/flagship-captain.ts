@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage";
+import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage.ts";
 import { Effect, Option } from "effect";
 import { isVoyageCaptainIdentity } from "#authority/captain.ts";
 import type { AuthorityIdentity } from "#authority/identity.ts";

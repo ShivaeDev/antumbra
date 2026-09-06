@@ -1,5 +1,5 @@
 import type { BackendFailure } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Deferred, Effect } from "effect";
 import { SessionAttachmentFailure } from "#errors.ts";
 

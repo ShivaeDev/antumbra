@@ -1,5 +1,5 @@
-import { BoardRegisterSchema, SummaryLevelSchema } from "@antumbra/vocabulary/board";
-import { VoyageKindSchema } from "@antumbra/vocabulary/voyage";
+import { BoardRegisterSchema, SummaryLevelSchema } from "@antumbra/vocabulary/board.ts";
+import { VoyageKindSchema } from "@antumbra/vocabulary/voyage.ts";
 import { Schema } from "effect";
 import { AgentSettingsChoice } from "#agent-settings.ts";
 import { ArtifactHistoryView, ArtifactView } from "#artifact-views.ts";

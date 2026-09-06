@@ -4,7 +4,7 @@ import {
 	MAX_SESSION_IMAGE_SOURCE_BYTES,
 	MAX_SESSION_IMAGE_STORED_BYTES,
 	type SessionImageMediaType,
-} from "@antumbra/vocabulary/session-input";
+} from "@antumbra/vocabulary/session-input.ts";
 import { Effect } from "effect";
 import sharp, { type Sharp } from "sharp";
 import { digestBytes } from "#digest.ts";

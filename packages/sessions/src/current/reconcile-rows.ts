@@ -8,7 +8,7 @@ import {
 	type InvalidSessionExecutionStatus,
 	type SessionExecutionStatus,
 	type StoredAgentSessionStatusInvalid,
-} from "@antumbra/vocabulary/agent-runtime";
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Result } from "effect";
 
 export interface StoredAgent {

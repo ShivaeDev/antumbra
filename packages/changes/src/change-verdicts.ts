@@ -1,5 +1,5 @@
 import { Database, type PrismaError } from "@antumbra/persistence";
-import { type ChangeVerdict, ChangeVerdict as ChangeVerdictSchema } from "@antumbra/vocabulary/verdict";
+import { type ChangeVerdict, ChangeVerdict as ChangeVerdictSchema } from "@antumbra/vocabulary/verdict.ts";
 import { type Context, Effect, Schema } from "effect";
 import { StoredChangeVerdictInvalid } from "#errors.ts";
 

@@ -1,4 +1,4 @@
-import type { UsageEvent } from "@antumbra/vocabulary/session-events";
+import type { UsageEvent } from "@antumbra/vocabulary/session-events.ts";
 import { money } from "#costs/format.ts";
 
 type Usage = typeof UsageEvent.Type;

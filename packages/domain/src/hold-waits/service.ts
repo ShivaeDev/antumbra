@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { ExecutionSource } from "#execution/service.ts";
 import { read } from "#hold-waits/read.ts";

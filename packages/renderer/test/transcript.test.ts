@@ -1,5 +1,5 @@
 import type { SessionEvent, SessionTreeNode } from "@antumbra/contract";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { describe, expect, it } from "vitest";
 import { deriveTranscript } from "#transcript/derive.ts";
 

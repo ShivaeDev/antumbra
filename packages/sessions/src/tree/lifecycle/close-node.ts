@@ -1,5 +1,5 @@
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { Effect, Ref } from "effect";
 import { type SessionTree, withClosed } from "#tree/attribution.ts";
 import { settle } from "#tree/lifecycle/settle.ts";

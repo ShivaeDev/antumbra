@@ -4,7 +4,7 @@ import {
 	decodeStoredRulingUrgency,
 	type RulingAuthority,
 	StoredRulingValueInvalid,
-} from "@antumbra/vocabulary/ruling";
+} from "@antumbra/vocabulary/ruling.ts";
 import { Effect, Option, type Result } from "effect";
 import type { RulingAnswer, RulingReclassification, RulingRecommendation } from "#model.ts";
 import type { StoredRuling, StoredRulingReclassification } from "#stored-rows.ts";

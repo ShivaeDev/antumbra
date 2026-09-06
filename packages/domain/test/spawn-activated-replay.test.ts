@@ -1,7 +1,7 @@
 import { type Gate, type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
 import type { AgentBackend, MooragePlan } from "@antumbra/plugin-api";
-import { wakeWords } from "@antumbra/prompts";
+import { wakeWords } from "@antumbra/prompts/wake.ts";
 import { Repos } from "@antumbra/repos";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref, Stream } from "effect";

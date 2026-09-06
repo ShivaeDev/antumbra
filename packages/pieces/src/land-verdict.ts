@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import type { PieceVerdict } from "@antumbra/vocabulary/verdict";
+import type { PieceVerdict } from "@antumbra/vocabulary/verdict.ts";
 import { Effect, Option } from "effect";
 import { verifyPieceExists } from "#rows.ts";
 

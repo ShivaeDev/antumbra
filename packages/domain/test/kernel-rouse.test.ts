@@ -1,6 +1,6 @@
 import { defineIntent, IntentExecution, type IntentStatus, Kernel, KernelLive } from "@antumbra/kernel";
 import { WakePayload } from "@antumbra/sessions";
-import { SessionInputId } from "@antumbra/vocabulary/session-input";
+import { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Ref, Stream } from "effect";
 import { makeRouseSession } from "#kernel-rouse.ts";

@@ -1,5 +1,5 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { makeAddContextAndHold } from "#holds/add-context-and-hold.ts";
 import { initializeRulingHolds } from "#holds/initialize.ts";
 import { makeIsHeld } from "#holds/is-held.ts";

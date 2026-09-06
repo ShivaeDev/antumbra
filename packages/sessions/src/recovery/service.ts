@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { Effect } from "effect";
 import { RecoveryOptions } from "#recovery/options.ts";

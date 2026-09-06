@@ -1,7 +1,7 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { RoleSettings } from "@antumbra/settings";
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend";
+import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 

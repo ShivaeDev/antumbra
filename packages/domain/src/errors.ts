@@ -32,7 +32,7 @@ export {
 	SessionStillDelegating,
 } from "@antumbra/sessions";
 export { AgentStillWorking } from "@antumbra/sessions/retirement/errors";
-export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime";
+export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime.ts";
 export {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,

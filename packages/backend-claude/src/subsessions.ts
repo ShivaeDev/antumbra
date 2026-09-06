@@ -1,5 +1,5 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, RawPayload } from "@antumbra/vocabulary/session-events.ts";
 import { type Ending, endedEvent, notifiedEnding, reportedEnding, updatedEnding } from "#subsession-endings.ts";
 
 const LOCAL_AGENT = "local_agent";

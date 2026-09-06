@@ -1,5 +1,5 @@
 import type { AgentBackend } from "@antumbra/plugin-api";
-import type { AgentPrompt } from "@antumbra/prompts";
+import type { AgentPrompt } from "@antumbra/prompts/mint.ts";
 import { type EventSink, SessionFabric } from "@antumbra/session-fabric";
 import { promptInput, type SinkFor } from "@antumbra/sessions";
 import type { ResolvedAgentSettings } from "@antumbra/settings";

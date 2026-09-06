@@ -1,4 +1,4 @@
-import { ChangeSituation } from "@antumbra/vocabulary/change";
+import { ChangeSituation } from "@antumbra/vocabulary/change.ts";
 import { Schema } from "effect";
 
 export { ChangeSituation };

@@ -4,7 +4,7 @@ import { Database } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { RoleSettings } from "@antumbra/settings";
 import { makeEffectApp, makeScriptedBackend, passiveRunner } from "@antumbra/testing-runtime";
-import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role";
+import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 

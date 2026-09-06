@@ -1,5 +1,5 @@
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent, Origin } from "@antumbra/vocabulary/session-events.ts";
 import { Clock, Effect, Option, Ref } from "effect";
 import { type SessionTree, spawnerOf, type TreeNode, withNode } from "#tree/attribution.ts";
 import { observed } from "#tree/gaps.ts";

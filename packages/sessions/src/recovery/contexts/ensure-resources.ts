@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime";
+import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect, Option } from "effect";
 import { recoveryHeld } from "#recovery/error.ts";
 

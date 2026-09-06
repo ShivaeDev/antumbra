@@ -1,4 +1,8 @@
-import { type InvalidSessionExecutionTransition, type SessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime";
+import {
+	type InvalidSessionExecutionTransition,
+	type SessionExecutionStatus,
+	sessionExecutionTransition,
+} from "@antumbra/vocabulary/agent-runtime.ts";
 import { Result } from "effect";
 import type { DecodedSession } from "#current/reconcile-rows.ts";
 

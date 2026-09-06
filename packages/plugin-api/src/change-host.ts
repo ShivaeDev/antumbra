@@ -1,4 +1,4 @@
-import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change";
+import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change.ts";
 import { Data, type Effect } from "effect";
 
 export interface ChangeHostRepo {

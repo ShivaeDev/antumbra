@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Context, Effect } from "effect";
 
 class Declared extends Context.Service<Declared, object>()("invalid/Declared") {}

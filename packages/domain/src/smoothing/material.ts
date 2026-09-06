@@ -1,6 +1,6 @@
 import { type BoardEntryRow, localDay, type SmoothingDay, type SmoothingSpan } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
-import { entriesToSmooth, pieceToSmooth } from "@antumbra/prompts";
+import { entriesToSmooth, pieceToSmooth } from "@antumbra/prompts/smoother.ts";
 import { Effect } from "effect";
 
 const pad = (value: number): string => String(value).padStart(2, "0");

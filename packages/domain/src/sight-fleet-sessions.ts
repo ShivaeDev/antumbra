@@ -1,7 +1,7 @@
 import type { SessionSituation } from "@antumbra/contract";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime";
+import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Effect } from "effect";
 import type { IntentAttribution } from "#sight-diagnostics.ts";
 

@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition";
+import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { type Context, Effect } from "effect";
 import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
 import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";

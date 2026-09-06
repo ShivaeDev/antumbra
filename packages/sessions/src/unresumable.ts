@@ -1,5 +1,5 @@
 import { IntentExecution } from "@antumbra/kernel";
-import { type AgentStatus, agentTransition } from "@antumbra/vocabulary/agent-runtime";
+import { type AgentStatus, agentTransition } from "@antumbra/vocabulary/agent-runtime.ts";
 import { Data, Effect, Result } from "effect";
 
 export type SessionUnresumable =

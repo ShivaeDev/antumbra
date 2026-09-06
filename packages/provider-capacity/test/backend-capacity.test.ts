@@ -2,7 +2,7 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { type AgentBackend, makeBackendCapacityController } from "@antumbra/plugin-api";
 import { makeScriptedBackend } from "@antumbra/testing-runtime";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
 import { expect } from "@effect/vitest";
 import { Clock, Context, Effect, Layer, Option } from "effect";
 import { BackendCapacities, BackendCapacitiesLive } from "#index.ts";

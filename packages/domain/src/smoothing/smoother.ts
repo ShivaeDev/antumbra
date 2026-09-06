@@ -4,8 +4,8 @@ import type { ResolvedAgentSettings } from "@antumbra/settings";
 import { RoleSettings } from "@antumbra/settings";
 import { Effect } from "effect";
 import { UnknownBackendTag } from "#errors.ts";
-import { makeSmootherAgent } from "#smoothing/agent.ts";
 import { SMOOTHER_ROLE } from "#smoothing/fields.ts";
+import { SmootherLifecycle } from "#smoothing/lifecycle/service.ts";
 import { smootherRoot } from "#smoothing/root.ts";
 
 const RUNNER_TAG = "local";
@@ -27,7 +27,7 @@ export interface SmootherAtHand {
 export const makeSmootherAtHand = (runtime: SmoothRuntime) =>
 	Effect.gen(function* () {
 		const roles = yield* RoleSettings;
-		const smootherOf = yield* makeSmootherAgent;
+		const lifecycle = yield* SmootherLifecycle;
 		return Effect.fnUntraced(function* (voyageId: string) {
 			const settings = yield* roles.resolve(voyageId, SMOOTHER_ROLE);
 			const backend = runtime.backends.get(settings.backend);
@@ -38,7 +38,7 @@ export const makeSmootherAtHand = (runtime: SmoothRuntime) =>
 			if (runner === undefined) {
 				return yield* new UnknownRunnerError({ tag: RUNNER_TAG });
 			}
-			const agentId = yield* smootherOf(voyageId);
+			const agentId = yield* lifecycle.ensureAgent(voyageId);
 			return { agentId, backend, cwd: yield* smootherRoot(runner, agentId), settings, voyageId } satisfies SmootherAtHand;
 		});
 	});

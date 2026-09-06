@@ -1,11 +1,10 @@
-import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import type { AgentPrompt } from "@antumbra/prompts";
 import { type EventSink, SessionFabric } from "@antumbra/session-fabric";
 import { promptInput, type SinkFor } from "@antumbra/sessions";
-import { SessionRegistration } from "@antumbra/sessions/registration/service";
 import type { ResolvedAgentSettings } from "@antumbra/settings";
 import { Deferred, Effect, Option } from "effect";
+import { SmootherLifecycle } from "#smoothing/lifecycle/service.ts";
 import { boundSummaryTool, endingSink, type SummaryWritten } from "#smoothing/summary-tool.ts";
 
 const PATIENCE_MILLIS = 600_000;
@@ -23,15 +22,8 @@ export interface SmootherSession {
 
 export const makeSmootherSession = (sinkFor: SinkFor) =>
 	Effect.gen(function* () {
-		const db = yield* Database;
 		const fabric = yield* SessionFabric;
-		const registration = yield* SessionRegistration;
-		const closeSession = (agentId: string, sessionId: string) =>
-			Effect.gen(function* () {
-				yield* fabric.stop(sessionId);
-				yield* db.AgentSession.where({ id: sessionId, status: "open" }).update({ status: "closed" });
-				yield* db.Agent.where({ currentSessionId: sessionId, id: agentId }).update({ currentSessionId: null });
-			});
+		const lifecycle = yield* SmootherLifecycle;
 		const attach = (session: SmootherSession, sessionId: string, written: Deferred.Deferred<SummaryWritten>, sink: EventSink) =>
 			fabric.withStartAdmission((permit) =>
 				fabric.start(
@@ -54,12 +46,11 @@ export const makeSmootherSession = (sinkFor: SinkFor) =>
 		return Effect.fn("Smoothing.pass")(function* (session: SmootherSession) {
 			const sessionId = crypto.randomUUID();
 			const written = yield* Deferred.make<SummaryWritten>();
-			yield* db.Agent.where({ id: session.agentId }).update({ currentSessionId: sessionId });
-			yield* registration.ensureRoot({ agentId: session.agentId, backend: session.backend.tag, sessionId }, session.cwd);
+			yield* lifecycle.registerSession({ agentId: session.agentId, backend: session.backend.tag, cwd: session.cwd, sessionId });
 			const sink = endingSink(yield* sinkFor(sessionId, session.backend.audit), written);
 			return yield* attach(session, sessionId, written, sink).pipe(
 				Effect.andThen(Deferred.await(written).pipe(Effect.timeoutOrElse({ duration: PATIENCE_MILLIS, orElse: () => Effect.succeed(TIMED_OUT) }))),
-				Effect.onExit(() => closeSession(session.agentId, sessionId)),
+				Effect.onExit(() => lifecycle.closeSession(session.agentId, sessionId)),
 			);
 		});
 	});

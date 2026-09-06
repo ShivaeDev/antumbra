@@ -30,6 +30,7 @@ import { CaptainMembershipLive } from "#captain-membership.ts";
 import { ExecutionSource } from "#execution/service.ts";
 import { sessionReachLayer } from "#kernel-reach/session.ts";
 import { Quay } from "#quay/service.ts";
+import { SmootherLifecycle } from "#smoothing/lifecycle/service.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -64,5 +65,7 @@ export const domainCapabilities = (
 	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(RoleSettings.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));
-	return Layer.mergeAll(AgentBirth.layer, RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(Layer.provideMerge(world));
+	return Layer.mergeAll(SmootherLifecycle.layer, AgentBirth.layer, RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(
+		Layer.provideMerge(world),
+	);
 };

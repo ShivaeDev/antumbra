@@ -16,8 +16,8 @@ catalogs:
       specifier: 0.84.4
       version: 0.84.4
     '@effect/atom-react':
-      specifier: 4.0.0-beta.102
-      version: 4.0.0-beta.102
+      specifier: 4.0.0-rc.112
+      version: 4.0.0-rc.112
     '@effect/platform-node':
       specifier: 4.0.0-rc.112
       version: 4.0.0-rc.112
@@ -1251,7 +1251,7 @@ importers:
         version: link:../platform/vocabulary
       '@effect/atom-react':
         specifier: 'catalog:'
-        version: 4.0.0-beta.102(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
       '@fontsource-variable/inter':
         specifier: 'catalog:'
         version: 5.3.0
@@ -2190,12 +2190,12 @@ packages:
     resolution: {integrity: sha512-nPUnwDkLtupPXnZQYrCwPFcuTydCDqTY6ZbFqhsL4S4kVq0AT418kPa/6uXwtaCD+MjBNBltb7ScTYX65yeE1w==}
     engines: {node: '>=22.19.0'}
 
-  '@effect/atom-react@4.0.0-beta.102':
-    resolution: {integrity: sha512-6SX11h7OFwje4YhxYUml9qGjBU8hvnEMrLWe3TKI3lEH/W6tkU/BzajC263eXkxM68h+BJNzE81Ipi5DTfEgug==}
+  '@effect/atom-react@4.0.0-rc.112':
+    resolution: {integrity: sha512-Ksf90KQa6D4UDnMj4M84arlVKNIuwxxF2GvgXBzuaYi2LsgririsUhKQ5SYaK1euf8oIYeamEuthoZSbUQmIhw==}
     peerDependencies:
-      effect: ^4.0.0-beta.102
-      react: ^19.2.4
-      scheduler: '*'
+      effect: ^4.0.0-rc.112
+      react: '>=19.0.0 <20.0.0'
+      scheduler: '>=0.25.0 <0.28.0'
 
   '@effect/platform-node-shared@4.0.0-rc.112':
     resolution: {integrity: sha512-ttjz0xKamFN7vL8pNDYVwddJLjZvqKePc05djlz2VcdaKbLsnYbtMnL1rbOfHgEnIUSHGh7FkjaN4DM1Ov81sQ==}
@@ -7311,7 +7311,7 @@ snapshots:
       get-east-asian-width: 1.6.0
       marked: 18.0.5
 
-  '@effect/atom-react@4.0.0-beta.102(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)':
+  '@effect/atom-react@4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)':
     dependencies:
       effect: 4.0.0-rc.112
       react: 19.2.8

@@ -5,7 +5,7 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./testing": "./src/testing.ts"
+		"./*": "./src/*.ts"
 	},
 	"imports": {
 		"#example/*": "./test/example/*",

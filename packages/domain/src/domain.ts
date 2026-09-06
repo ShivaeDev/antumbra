@@ -20,6 +20,7 @@ import { domainCapabilities } from "#domain-capabilities.ts";
 import { HoldWaits } from "#hold-waits/service.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { MailDelivery } from "#mail-delivery/service.ts";
+import { SpawnTeardown } from "#spawn-teardown/service.ts";
 import { AgentToolCompiler } from "#tool-compiler/service.ts";
 
 export { AgentDomain } from "#agent-domain-service.ts";
@@ -35,6 +36,7 @@ export const AgentDomainLive = (
 	const capabilities = domainCapabilities(changeHosts, runners, artifactsDirectory);
 	return Layer.effect(AgentDomain)(makeAgentDomain(backends, runners)).pipe(
 		Layer.provideMerge(AgentToolCompiler.layer),
+		Layer.provideMerge(SpawnTeardown.layer),
 		Layer.provideMerge(SessionTreeSinks.layer),
 		Layer.provideMerge(sessionSendLayer(imageInputBackendsOf(backends))),
 		Layer.provideMerge(SessionInputDelivery.layer),

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Effect } from "effect";
 import { build, watch } from "rolldown";
 import { MAIN_EXTERNALS } from "#script/adapters/externals.ts";
@@ -20,6 +21,15 @@ const configs = (root: string) => [
 		external: ["electron"],
 		input: join(root, "src", "preload.ts"),
 		output: { file: join(root, "out", "preload.cjs"), format: "cjs" as const },
+		platform: "node" as const,
+	},
+	{
+		input: fileURLToPath(import.meta.resolve("@antumbra/server/main.ts")),
+		output: {
+			codeSplitting: false,
+			file: join(root, "out", "server.js"),
+			format: "esm" as const,
+		},
 		platform: "node" as const,
 	},
 ];

@@ -65,13 +65,16 @@ Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: n
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out
 lives under `src` and is named the same way. A flat package keeps the map it has and takes this rule when it moves. A second lint rule holds it.
 
+A package outside `apps/` cannot reach the machine: no process, file, network or socket module and no Node platform layer, the two named SQLite owners
+excepted; a third lint rule holds it.
+
 ## The order
 
 | step | what                                                                                                                                                                                                                                                                                                                                                                    | status      |
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | 1    | Spikes: Effect SQL on `node:sqlite`, DDL from Schema classes, `atom-form`. Their findings are in the North Star.                                                                                                                                                                                                                                                        | landed      |
 | 2    | Platform packages, standalone, with tests: the journal kit's core (commit, materializers, live query, DDL from Schema classes) and the RPC client's core (contract kit, client with a live atom). Reconcilers, rebuild on shape hash, fact migrations, reconnect, the token, and `atom-form` arrive with the first feature that needs each. Nothing in the app changes. | in progress |
-| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | not started |
+| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | in progress |
 | 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                        | not started |
 | 5    | Delete Prisma, tRPC, and the wrappers.                                                                                                                                                                                                                                                                                                                                  | not started |
 
@@ -100,7 +103,7 @@ Where each package goes. A package "stays" when its job is unchanged by the move
 
 | today                                                                                            | becomes                                                                                                  | status      |
 | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ----------- |
-| `apps/desktop`                                                                                   | the shell: spawns server and runner, supervises, restarts; its windows are glass                         | not started |
+| `apps/desktop`                                                                                   | the shell: spawns server and runner, supervises, restarts; its windows are glass                         | in progress |
 | `contract`                                                                                       | deleted; each feature's `contract` entry carries its wire shape; the settings catalog stays a closed set | not started |
 | `vocabulary`                                                                                     | stays: the neutral vocabulary of the runner's log, at `packages/platform/vocabulary`                     | landed      |
 | `session-event-journal`                                                                          | the runner's log, owned by the runner                                                                    | not started |

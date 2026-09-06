@@ -13,6 +13,7 @@ const RootManifest = Schema.Struct({
 const TestScripts = Schema.Struct({
 	"test:desktop": Schema.String,
 	"test:packages": Schema.String,
+	"test:server": Schema.String,
 });
 
 const decodeRootManifest = Schema.decodeUnknownSync(Schema.fromJsonString(RootManifest));
@@ -32,10 +33,12 @@ describe("CI test shards", () => {
 		const scripts = Schema.decodeUnknownSync(TestScripts)({
 			"test:desktop": manifest.scripts["test:desktop"],
 			"test:packages": manifest.scripts["test:packages"],
+			"test:server": manifest.scripts["test:server"],
 		});
 		const workflow = readFileSync(join(repoRoot, ".github/workflows/ci.yml"), "utf8");
 		expect(scripts["test:packages"]).toContain("script/vitest.workspace.ts");
 		expect(scripts["test:desktop"]).toContain("@antumbra/desktop");
+		expect(scripts["test:server"]).toContain("@antumbra/server");
 		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
 		expect(workspacePackageNames).toContain("renderer");
 		expect(workspacePackageNames).toContain("vocabulary");
@@ -48,6 +51,7 @@ describe("CI test shards", () => {
 		expect(workflow).toContain("matrix.shard");
 		expect(workflow).toContain("pnpm test:desktop");
 		expect(workflow).toContain("pnpm test:runner-local");
+		expect(workflow).toContain("pnpm test:server");
 		expect(workflow).toContain("shard: [1, 2, 3, 4, 5, 6, 7, 8]");
 	});
 });

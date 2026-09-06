@@ -1,11 +1,12 @@
 import { Changes } from "@antumbra/changes";
+import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import type { Runner } from "@antumbra/plugin-api";
-import { expect, it } from "@effect/vitest";
+import { it } from "@antumbra/testing";
+import { expect } from "@effect/vitest";
 import { Effect, Option, Ref, Result } from "effect";
 import { REEF_SOURCE, reefWithPiece } from "#test/change-fixtures.ts";
-import { domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, changeHostsOf, makeScriptedBackend, passiveRunner } from "#test/harness.ts";
+import { passiveRunner } from "#test/harness.ts";
 import { makeScriptedHost } from "#test/scripted-host.ts";
 
 const AGENT_ID = "agent-claimed";
@@ -41,42 +42,44 @@ const seedRetiredBerth = Effect.gen(function* () {
 	});
 });
 
-it.live("a terminal Agent cannot prepare new local work before reclamation claims it", () =>
+it.effectApp.withProviders(
+	"a terminal Agent cannot prepare new local work before reclamation claims it",
 	Effect.gen(function* () {
-		const temporary = yield* acquireTemporaryPersistence;
-		const backend = yield* makeScriptedBackend;
 		const host = yield* makeScriptedHost();
 		const captures = yield* Ref.make(0);
 		const runner: Runner = {
 			...passiveRunner,
 			captureChange: (berth) => Ref.update(captures, (count) => count + 1).pipe(Effect.andThen(passiveRunner.captureChange(berth))),
 		};
-		yield* Effect.gen(function* () {
-			const db = yield* Database;
-			const changes = yield* Changes;
-			const { piece, repo } = yield* reefWithPiece;
-			yield* seedRetiredBerth;
-			const prepared = yield* Effect.result(
-				changes.submit({
-					agentId: AGENT_ID,
-					pieceId: piece.id,
-					repoName: repo.name,
-					sessionId: "session-boundary",
-				}),
-			);
-			expect(Result.isFailure(prepared)).toBe(true);
-			if (Result.isFailure(prepared)) {
-				expect(prepared.failure).toMatchObject({
-					_tag: "ResourceOwnerUnavailable",
-					agentId: AGENT_ID,
-					status: "retired",
-				});
-			}
-			expect(yield* db.Change.all()).toEqual([]);
-			expect(yield* db.PieceChange.all()).toEqual([]);
-			expect(yield* Ref.get(captures)).toBe(0);
-			expect((yield* db.Moorage.where({ agentId: AGENT_ID }).first()).pipe(Option.getOrThrow).reclaimState).toBeNull();
-			expect((yield* db.Berth.where({ id: BERTH_ID }).first()).pipe(Option.getOrThrow).reclaimState).toBeNull();
-		}).pipe(Effect.provide(domainKernelLayer(temporary, backend.backend, {}, runner, changeHostsOf(host.host))));
+		return { providers: { runners: new Map([[runner.tag, runner]]), changeHosts: new Map([[host.host.tag, host.host]]) }, state: captures };
 	}),
+	function* (_, captures) {
+		const settings = yield* SettingsSource;
+		yield* settings.change({ key: "holdPieceDispatch", value: true });
+		const db = yield* Database;
+		const changes = yield* Changes;
+		const { piece, repo } = yield* reefWithPiece;
+		yield* seedRetiredBerth;
+		const prepared = yield* Effect.result(
+			changes.submit({
+				agentId: AGENT_ID,
+				pieceId: piece.id,
+				repoName: repo.name,
+				sessionId: "session-boundary",
+			}),
+		);
+		expect(Result.isFailure(prepared)).toBe(true);
+		if (Result.isFailure(prepared)) {
+			expect(prepared.failure).toMatchObject({
+				_tag: "ResourceOwnerUnavailable",
+				agentId: AGENT_ID,
+				status: "retired",
+			});
+		}
+		expect(yield* db.Change.all()).toEqual([]);
+		expect(yield* db.PieceChange.all()).toEqual([]);
+		expect(yield* Ref.get(captures)).toBe(0);
+		expect((yield* db.Moorage.where({ agentId: AGENT_ID }).first()).pipe(Option.getOrThrow).reclaimState).toBeNull();
+		expect((yield* db.Berth.where({ id: BERTH_ID }).first()).pipe(Option.getOrThrow).reclaimState).toBeNull();
+	},
 );

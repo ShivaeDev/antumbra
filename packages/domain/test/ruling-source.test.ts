@@ -174,28 +174,30 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("an open gate names every berthing of its piece", function* (db) {
+it.effectDB("shared gates keep Piece order and every berthing across open Rulings", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
-		yield* db.Voyage.create({
-			id: "other",
-			name: "Other course",
-			context: "other",
-			northStar: "other",
-		});
+		yield* db.Voyage.create({ id: "other", name: "Other course", context: "other", northStar: "other" });
 		yield* db.VoyagePiece.create({ pieceId, voyageId: "other" });
+		yield* db.Piece.where({ id: pieceId }).update({ createdAt: new Date(1) });
+		yield* db.Piece.create({ id: "second", title: "Second course", charter: "second", expectation: "second", role: "hand", createdAt: new Date(2) });
+		yield* db.VoyagePiece.create({ pieceId: "second", voyageId });
 		const rulings = yield* Rulings;
 		const source = yield* RulingSource;
-		const requested = yield* rulings.request(asked);
-		yield* rulings.gate({ pieceIds: [pieceId], rulingId: requested.id });
+		const first = yield* rulings.request(asked);
+		const second = yield* rulings.request({ ...asked, question: "Which course needs a new survey?" });
+		yield* rulings.gate({ pieceIds: ["second", pieceId], rulingId: first.id });
+		yield* rulings.gate({ pieceIds: [pieceId], rulingId: second.id });
 		const open = yield* source.open;
-		expect(open.rulings[0]?.gatedPieces).toEqual(
-			expect.arrayContaining([
-				{ pieceId, title: "Plot the course", voyageId, voyageName: "Chart the reef" },
-				{ pieceId, title: "Plot the course", voyageId: "other", voyageName: "Other course" },
-			]),
-		);
-		expect(open.rulings[0]?.gatedPieces).toHaveLength(2);
+		const shared = [
+			{ pieceId, title: "Plot the course", voyageId, voyageName: "Chart the reef" },
+			{ pieceId, title: "Plot the course", voyageId: "other", voyageName: "Other course" },
+		];
+		expect(open.rulings.find((ruling) => ruling.id === first.id)?.gatedPieces).toEqual([
+			...shared,
+			{ pieceId: "second", title: "Second course", voyageId, voyageName: "Chart the reef" },
+		]);
+		expect(open.rulings.find((ruling) => ruling.id === second.id)?.gatedPieces).toEqual(shared);
 	}).pipe(Effect.provide(layer));
 });
 

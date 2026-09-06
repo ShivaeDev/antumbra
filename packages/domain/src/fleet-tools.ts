@@ -18,7 +18,6 @@ import { makeCaptainToolCompiler } from "#captain-tools.ts";
 import { makeReportingCharter, withNotice } from "#charter-notice.ts";
 import { renderFleet, rolePart } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
-import { makeOpenVoyage } from "#open-voyage.ts";
 import { tagSubjects } from "#ruling-inputs.ts";
 import { answered, refused } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
@@ -82,7 +81,6 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 	const rulings = yield* Rulings;
 	const procedures = yield* VoyageProcedureService;
 	const roles = yield* RoleSettings;
-	const openVoyage = yield* makeOpenVoyage;
 	const catalog = yield* BackendCatalog;
 	const { backends } = yield* catalog.snapshot();
 	const readFleet = Effect.all({
@@ -100,7 +98,7 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 		Effect.all({ captain: roles.resolve(voyageId, "captain"), crew: roles.resolve(voyageId, "crew") }).pipe(
 			Effect.map((settings) => ({ ...settings, id: voyageId })),
 		);
-	const openAsked = (input: VoyageAsked) => Effect.flatMap(openVoyage(input), (voyage) => sailingAs(voyage.id));
+	const openAsked = (input: VoyageAsked) => Effect.flatMap(procedures.open(input), (voyage) => sailingAs(voyage.id));
 	const openTool = (identity: SessionIdentity, input: VoyageAsked) => {
 		const unknown = unknownBackend(input);
 		return unknown === undefined

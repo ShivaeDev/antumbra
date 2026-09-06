@@ -7,12 +7,13 @@ import { Effect, Result } from "effect";
 import { admitCapacity } from "#admission/admit.ts";
 import { CurrentSessions } from "#current/service.ts";
 import { promptInput } from "#input.ts";
+import { SessionInputDelivery } from "#input-delivery/service.ts";
 import { SessionRecoveryContexts } from "#recovery/contexts/service.ts";
 import { recoveryHeld } from "#recovery/error.ts";
 import { SessionRecoveryRuntime } from "#recovery/service.ts";
 import { unresumable, waitFor } from "#unresumable.ts";
 import { accountedWake } from "#wake/account.ts";
-import { type CarriedInput, makeLoadCarriedInput, type WakeFields, WakePayload } from "#wake/input.ts";
+import { type CarriedInput, type WakeFields, WakePayload } from "#wake/input.ts";
 import { SessionWakePatience } from "#wake/patience.ts";
 
 const attachmentTimedOut = (sessionId: string, patience: number) => recoveryHeld(`${sessionId} did not reach a live attachment within ${patience}ms`);
@@ -24,7 +25,7 @@ export const makeWakeKind = Effect.gen(function* () {
 	const contexts = yield* SessionRecoveryContexts;
 	const fabric = yield* SessionFabric;
 	const inputs = yield* SessionInputs;
-	const loadCarriedInput = yield* makeLoadCarriedInput;
+	const delivery = yield* SessionInputDelivery;
 	const patience = yield* SessionWakePatience;
 	const recovery = yield* CurrentSessions;
 	const runtime = yield* SessionRecoveryRuntime;
@@ -77,7 +78,7 @@ export const makeWakeKind = Effect.gen(function* () {
 			if (Result.isSuccess(context)) {
 				yield* admitCapacity(context.success.backend).pipe(Effect.provideService(BackendCapacities, capacities));
 			}
-			const input = yield* loadCarriedInput(fields);
+			const input = yield* delivery.carried(fields);
 			yield* resumed(fields.sessionId, input);
 		}).pipe(
 			Effect.catchTags({

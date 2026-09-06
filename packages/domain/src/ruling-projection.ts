@@ -1,5 +1,6 @@
 import type {
 	RulingContextView,
+	RulingGatedPieceView,
 	RulingReclassificationView,
 	RulingRequesterView,
 	RulingView,
@@ -8,11 +9,10 @@ import type {
 } from "@antumbra/contract";
 import type { Ruling, RulingAnswer, RulingContext, RulingReclassification } from "@antumbra/rulings";
 import { Option } from "effect";
-import { type GatedPieceRows, gatedPiecesSeen } from "#ruling-gated-pieces.ts";
 import { agentSeen, type RulingNames, speakerSeen, subjectSeen } from "#ruling-names.ts";
 import { type RungRows, rungSeen } from "#ruling-rung-view.ts";
 
-type RulingWorld = GatedPieceRows & RungRows & { readonly names: RulingNames };
+type RulingWorld = RungRows & { readonly names: RulingNames; readonly gatedPieces: ReadonlyArray<RulingGatedPieceView> };
 
 const reclassificationSeen = (world: RulingNames, reclassification: RulingReclassification): RulingReclassificationView => ({
 	at: reclassification.at.toISOString(),
@@ -41,7 +41,7 @@ const contextSeen = (world: RulingNames, context: RulingContext): RulingContextV
 const requesterSeen = (world: RulingNames, requester: Ruling["requester"]): RulingRequesterView =>
 	requester.kind === "agent" ? { agent: agentSeen(world, requester.agentId), kind: "agent" } : requester;
 
-const voyageSeen = (ruling: Ruling, world: Pick<GatedPieceRows, "voyages">): RulingVoyageView | null => {
+const voyageSeen = (ruling: Ruling, world: Pick<RungRows, "voyages">): RulingVoyageView | null => {
 	const named = new Set(ruling.subjects.flatMap((subject) => (subject.kind === "voyage" ? [subject.id] : [])));
 	const voyage = world.voyages.find((row) => named.has(row.id));
 	return voyage === undefined ? null : { id: voyage.id, name: voyage.name };
@@ -56,7 +56,7 @@ export const rulingSeen = (ruling: Ruling, world: RulingWorld): RulingView => ({
 	context: ruling.context,
 	contexts: ruling.contexts.map((context) => contextSeen(world.names, context)),
 	declared: ruling.declared,
-	gatedPieces: gatedPiecesSeen(world, ruling.gatedPieceIds),
+	gatedPieces: world.gatedPieces.filter((piece) => ruling.gatedPieceIds.includes(piece.pieceId)),
 	id: ruling.id,
 	parked: Option.getOrNull(Option.map(ruling.parked, (parked) => ({ at: parked.at.toISOString(), note: parked.note }))),
 	question: ruling.question,

@@ -2,7 +2,6 @@ import { Pieces } from "@antumbra/pieces";
 import { RoleSettings } from "@antumbra/settings";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, Ref } from "effect";
-import { makeOpenVoyage } from "#open-voyage.ts";
 import type { SpawnFields } from "#spawn-fields.ts";
 import { domainCapabilityLayer } from "#test/domain-layers.ts";
 import { acquireTemporaryPersistence } from "#test/harness.ts";
@@ -31,8 +30,7 @@ it.live("a voyage opened with settings per role shows them as its own", () =>
 		const temporary = yield* acquireTemporaryPersistence;
 		yield* Effect.gen(function* () {
 			const voyages = yield* VoyageProcedureService;
-			const openVoyage = yield* makeOpenVoyage;
-			const voyage = yield* openVoyage(opened);
+			const voyage = yield* voyages.open(opened);
 			expect(Option.getOrThrow(yield* voyages.read(voyage.id))).toMatchObject({
 				captainSettings: { backend: "scripted", effort: "high", model: "opus" },
 				crewSettings: { backend: "scripted", effort: "low", model: "haiku" },
@@ -49,8 +47,7 @@ it.live("each spawn carries the settings its role resolves to when it is spawned
 			const pieces = yield* Pieces;
 			const voyages = yield* VoyageProcedureService;
 			const roles = yield* RoleSettings;
-			const openVoyage = yield* makeOpenVoyage;
-			const voyage = yield* openVoyage(opened);
+			const voyage = yield* voyages.open(opened);
 
 			yield* voyages.hail(voyage.id);
 			yield* roles.changeForVoyage(voyage.id, "captain", { backend: "codex", effort: "max", model: "sonnet" });

@@ -22,13 +22,11 @@ export interface VoyageOpening {
 	readonly northStar: string;
 }
 
-export const makeOpenVoyage = Effect.gen(function* () {
+export const open = Effect.fn("VoyageProcedures.open")(function* (request: VoyageOpening) {
 	const roles = yield* RoleSettings;
 	const voyages = yield* Voyages;
-	return Effect.fn("Voyages.openVoyage")(function* (request: VoyageOpening) {
-		const voyage = yield* voyages.open({ context: request.context, name: request.name, northStar: request.northStar });
-		yield* roles.changeForVoyage(voyage.id, "captain", asked(request.captainBackend, request.captainEffort, request.captainModel));
-		yield* roles.changeForVoyage(voyage.id, "crew", asked(request.crewBackend, request.crewEffort, request.crewModel));
-		return voyage;
-	});
+	const voyage = yield* voyages.open({ context: request.context, name: request.name, northStar: request.northStar });
+	yield* roles.changeForVoyage(voyage.id, "captain", asked(request.captainBackend, request.captainEffort, request.captainModel));
+	yield* roles.changeForVoyage(voyage.id, "crew", asked(request.crewBackend, request.crewEffort, request.crewModel));
+	return voyage;
 });

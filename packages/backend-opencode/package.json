@@ -6,8 +6,7 @@
 	"exports": {
 		".": "./src/index.ts",
 		"./plugin/caller-session.js": "./plugin/caller-session.js",
-		"./package.json": "./package.json",
-		"./*": "./src/*.ts"
+		"./package.json": "./package.json"
 	},
 	"imports": {
 		"#test/*": "./test/*",

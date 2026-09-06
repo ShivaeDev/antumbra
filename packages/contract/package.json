@@ -5,7 +5,8 @@
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
-		"./*": "./src/*.ts"
+		"./channels": "./src/channels.ts",
+		"./fixtures": "./src/fixtures.ts"
 	},
 	"imports": {
 		"#test/*": "./test/*",

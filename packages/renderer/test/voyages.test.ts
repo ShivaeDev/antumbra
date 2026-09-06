@@ -29,6 +29,7 @@ const entry = (id: string, register: BoardEntryView["register"]): BoardEntryView
 	body: id,
 	createdAt: "2026-08-15T09:10:00.000Z",
 	id,
+	pieceId: null,
 	register,
 });
 

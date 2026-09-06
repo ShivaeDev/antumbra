@@ -46,4 +46,15 @@ export const awaitingRulingLabel = (ruling: AwaitingRulingView): string => `Awai
 
 export const authorLabel = (authorAgentId: string | null): string => (authorAgentId === null ? "you" : authorAgentId.slice(0, 8));
 
+export interface BoardEntryLabels {
+	readonly author: string;
+	readonly kind: string;
+	readonly named: boolean;
+}
+
+export const boardEntryLabels = (entry: BoardEntryView): BoardEntryLabels =>
+	entry.pieceId === null
+		? { author: authorLabel(entry.authorAgentId), kind: boardRegisterLabel[entry.register], named: entry.authorAgentId !== null }
+		: { author: "Smoother", kind: "Piece summary", named: false };
+
 export const whenLabel = (stamp: string): string => stamp.slice(0, 16).replace("T", " ");

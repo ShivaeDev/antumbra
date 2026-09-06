@@ -9,11 +9,13 @@ import { VoyageHeader } from "#views/voyage-header.tsx";
 export const VoyagePanel = ({
 	fleet,
 	onError,
+	onPiece,
 	piece,
 	voyageId,
 }: {
 	readonly fleet: Fleet | undefined;
 	readonly onError: (message: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly piece: string | undefined;
 	readonly voyageId: string;
 }) => {
@@ -35,7 +37,9 @@ export const VoyagePanel = ({
 					<div className="flex min-w-0 flex-col gap-6">
 						<BoardPanel
 							entries={voyage.board}
+							onPiece={(pieceId) => onPiece(voyage.id, pieceId)}
 							onSmooth={() => smoothBoard(voyage.id, onError)}
+							pieces={voyage.pieces}
 							scope={{ kind: "voyage", voyageId: voyage.id }}
 							smoothing={voyage.smoothing}
 						/>

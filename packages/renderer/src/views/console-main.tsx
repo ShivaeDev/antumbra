@@ -76,7 +76,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 			{props.voyage === undefined ? (
 				<section className="m-auto text-xs text-muted-foreground">select a voyage to see its pieces</section>
 			) : (
-				<VoyagePanel fleet={props.fleet} onError={props.onError} piece={props.piece} voyageId={props.voyage} />
+				<VoyagePanel fleet={props.fleet} onError={props.onError} onPiece={props.onPiece} piece={props.piece} voyageId={props.voyage} />
 			)}
 		</div>
 	);

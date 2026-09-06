@@ -11,6 +11,7 @@ const entries: ReadonlyArray<BoardEntryView> = [
 		body: "# Soundings\n\nMark the **shallow** water.",
 		createdAt: "2026-08-15T09:10:00.000Z",
 		id: "entry-1",
+		pieceId: null,
 		register: "smooth",
 	},
 ];

@@ -8,6 +8,7 @@ export {
 	MailNotAddressed,
 	StoredBoardEntryInvalid,
 } from "@antumbra/boards";
+export { ChangeNotAddressable } from "@antumbra/changes/errors";
 export {
 	EdgeWouldCycle,
 	PieceNotFound,
@@ -30,6 +31,7 @@ export {
 	SessionNotFound,
 	SessionStillDelegating,
 } from "@antumbra/sessions";
+export { AgentStillWorking } from "@antumbra/sessions/retirement/errors";
 export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime";
 export {
 	CaptainAlreadyHailed,
@@ -40,16 +42,6 @@ export {
 	PieceAlreadyCrewed,
 	PieceNotOnVoyage,
 } from "#piece-work-errors.ts";
-
-export class ChangeNotAddressable extends Data.TaggedError("ChangeNotAddressable")<{
-	readonly changeId: string;
-}> {
-	override get message(): string {
-		return `change ${this.changeId} is not open on a host that names it`;
-	}
-}
-
-export { AgentStillWorking } from "@antumbra/sessions/retirement/errors";
 
 export class UnknownBackendTag extends Data.TaggedError("UnknownBackendTag")<{
 	readonly tag: string;

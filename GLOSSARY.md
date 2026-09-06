@@ -102,3 +102,23 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 - [**Retirement**](docs/design/agent-recovery.md#reclamation-boundary) — the explicit irreversible end of an Agent identity.
 - [**Reconciliation**](docs/design/agent-recovery.md#durable-truth-and-disposable-execution) — repeatably compare durable truth with reality until
   they converge.
+
+## Architecture
+
+Owner: [The North Star](docs/architecture/north-star.md)
+
+- [**Journal**](docs/architecture/north-star.md#facts-projections-one-schema) — the append-only record of domain facts; the product surface.
+- [**Projection**](docs/architecture/north-star.md#facts-projections-one-schema) — rows derived from the journal that guards, reconcilers, and the
+  glass read; rebuilt from the journal, never migrated.
+- [**Commit**](docs/architecture/north-star.md#the-commit) — the one path a fact takes into the journal and the rows: guard, append, apply, one
+  transaction, keys marked dirty as it commits.
+- [**Reconciler**](docs/architecture/north-star.md#reconcilers) — a live query and one function that reads rows, writes nothing, and calls commands or
+  the edge.
+- [**Request**](docs/architecture/north-star.md#reconcilers) — a row asking for one operation that reconcilers carry out; it supersedes the kernel's
+  mortal Intent.
+- [**Runner**](docs/architecture/north-star.md#the-runner-and-its-log) — the process that holds the SDK sessions and writes its own log; replaceable
+  without touching an agent.
+- [**Runner log**](docs/architecture/north-star.md#the-runner-and-its-log) — the runner's append-only record of what happened to its sessions; the
+  server's only truth about them.
+- [**Cursor**](docs/architecture/north-star.md#the-runner-and-its-log) — how far the server has read a runner's log; the only watermark in the system.
+- [**Tool set**](docs/architecture/north-star.md#tools) — the versioned set of tools a session receives when it opens and keeps until it closes.

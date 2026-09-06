@@ -3,6 +3,7 @@ import type { Violation } from "#lint/violation.ts";
 
 const GLOSSARY = "GLOSSARY.md";
 const DESIGN_ROOT = "docs/design/";
+const ARCHITECTURE_ROOT = "docs/architecture/";
 const DESIGN_INDEX = `${DESIGN_ROOT}README.md`;
 
 export interface GlossaryTarget {
@@ -19,9 +20,9 @@ const violation = (line: number, message: string): Violation => ({
 
 const ownerLocationViolations = (owner: GlossaryTarget): readonly Violation[] => {
 	const path = linkPath(GLOSSARY, owner.target);
-	return path.startsWith(DESIGN_ROOT) && path !== DESIGN_INDEX && linkAnchor(owner.target) === undefined
+	return (path.startsWith(DESIGN_ROOT) || path.startsWith(ARCHITECTURE_ROOT)) && path !== DESIGN_INDEX && linkAnchor(owner.target) === undefined
 		? []
-		: [violation(owner.line, "a glossary owner must be one topic page under docs/design/.")];
+		: [violation(owner.line, "a glossary owner must be one topic page under docs/design/ or docs/architecture/.")];
 };
 
 const termOwnerViolations = (owner: GlossaryTarget, terms: readonly GlossaryTarget[]): readonly Violation[] => {

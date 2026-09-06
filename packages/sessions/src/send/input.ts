@@ -1,19 +1,19 @@
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { type SessionInputDraft, SessionInputNotFound, SessionInputs } from "@antumbra/session-inputs";
+import { type SessionInputDraft, SessionInputs } from "@antumbra/session-inputs";
 import { Effect, type Scope } from "effect";
 import { CurrentSessions } from "#current/service.ts";
-import { admiralInput } from "#input.ts";
-import { makeSessionInputAdmission } from "#input-admission.ts";
+import { SessionInputDelivery } from "#input-delivery/service.ts";
+import { admitDraft } from "#send/admission/draft.ts";
+import { replayed } from "#send/admission/replayed.ts";
+import { admitStored } from "#send/admission/stored.ts";
 import type { SessionSendReceipt } from "#send/errors.ts";
 import { openSession } from "#send/open.ts";
-import { SessionSendOptions } from "#send/options.ts";
 import { rouseSession } from "#send/rouse.ts";
 
 export const sendInput = (scope: Scope.Scope) =>
 	Effect.fn("SessionSend.sendInput")(function* (draft: SessionInputDraft) {
-		const { imageInputBackends } = yield* SessionSendOptions;
-		const admission = yield* makeSessionInputAdmission(imageInputBackends);
+		const delivery = yield* SessionInputDelivery;
 		const fabric = yield* SessionFabric;
 		const capacities = yield* BackendCapacities;
 		const inputs = yield* SessionInputs;
@@ -21,18 +21,14 @@ export const sendInput = (scope: Scope.Scope) =>
 		const sessionId = draft.sessionId;
 		const inputId = draft.id;
 		const session = yield* openSession(sessionId);
-		yield* admission.admitDraft(session.backend, draft.parts);
+		yield* admitDraft(session.backend, draft.parts);
 		const reading = yield* inputs.ingest(draft);
-		const replay = yield* admission.replayed(reading.status, inputId);
+		const replay = yield* replayed(reading.status, inputId);
 		if (replay !== undefined) {
 			return replay;
 		}
-		const stored = yield* inputs.load(inputId);
-		if (stored.sessionId !== sessionId) {
-			return yield* new SessionInputNotFound({ inputId });
-		}
-		const input = admiralInput(stored.input);
-		yield* admission.admit(session.backend, inputId, input);
+		const input = yield* delivery.load(sessionId, inputId);
+		yield* admitStored(session.backend, inputId, input);
 		const queued = rouseSession(scope)({ inputId, sessionId }).pipe(
 			Effect.andThen(inputs.mark(inputId, "queued_for_wake")),
 			Effect.as<SessionSendReceipt>("queued_for_wake"),

@@ -65,6 +65,9 @@ Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: n
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out
 lives under `src` and is named the same way. A flat package keeps the map it has and takes this rule when it moves. A second lint rule holds it.
 
+A package outside `apps/` cannot reach the machine: no process, file, network or socket module and no Node platform layer, the two named SQLite owners
+excepted; a third lint rule holds it.
+
 ## The order
 
 | step | what                                                                                                                                                                                                                                                                                                                                                                    | status      |

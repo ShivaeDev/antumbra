@@ -30,9 +30,18 @@ const smootherAtWork = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const intent = Option.getOrThrow(yield* db.Intent.where({ tag: "board/smooth" }).first());
 	return {
 		intentId: intent.id,
+		sessionId,
 		material: input.parts.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("\n"),
 		session: Option.getOrThrow(Option.fromUndefinedOr(session)),
 	};
+});
+
+const expectClosedPass = Effect.fnUntraced(function* (sessionId: string) {
+	const db = yield* Database;
+	const session = Option.getOrThrow(yield* db.AgentSession.where({ id: sessionId }).first());
+	expect(session.status).toBe("closed");
+	const agent = Option.getOrThrow(yield* db.Agent.where({ id: session.agentId }).first());
+	expect(agent.currentSessionId).toBeNull();
 });
 
 const smoothingOf = Effect.fnUntraced(function* (voyageId: string) {
@@ -55,6 +64,8 @@ it.effectApp("a pass writes one summary over the day it was given, and the tail 
 	}
 	yield* callTool(pass.session, "write_summary", { text: SUMMARY });
 	expect(yield* terminalIntent(pass.intentId)).toBe("succeeded");
+	yield* expectClosedPass(pass.sessionId);
+	expect(yield* pass.session.closed).toBe(true);
 
 	expect(yield* boards.read(scope)).toMatchObject([
 		{ kind: "note", register: "rough", seq: 1 },
@@ -79,6 +90,8 @@ it.effectApp("the smoother sails on Antumbra's own prompt with write_summary and
 	const pass = yield* smootherAtWork(scripted);
 	yield* callTool(pass.session, "write_summary", { text: SUMMARY });
 	expect(yield* terminalIntent(pass.intentId)).toBe("succeeded");
+	yield* expectClosedPass(pass.sessionId);
+	expect(yield* pass.session.closed).toBe(true);
 
 	const opened = yield* scripted.opened;
 	const constrained = opened.at(-1);
@@ -96,6 +109,8 @@ it.effectApp("a pass that writes no summary leaves the log alone and stands as a
 	const pass = yield* smootherAtWork(scripted);
 	yield* completesTurn(pass.session);
 	expect(yield* terminalIntent(pass.intentId)).toBe("failed");
+	yield* expectClosedPass(pass.sessionId);
+	expect(yield* pass.session.closed).toBe(true);
 
 	expect((yield* boards.read(scope)).map((entry) => entry.kind)).toEqual(["note", "note"]);
 	expect(yield* smoothingOf(voyage.id)).toEqual({ state: "failed", uncovered: 2 });
@@ -122,6 +137,8 @@ it.effectApp("a smoother that never answers fails the pass once its time is up",
 	const pass = yield* smootherAtWork(scripted);
 	yield* TestClock.adjust("10 minutes");
 	expect(yield* terminalIntent(pass.intentId)).toBe("failed");
+	yield* expectClosedPass(pass.sessionId);
+	expect(yield* pass.session.closed).toBe(true);
 
 	const db = yield* Database;
 	expect((yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).map((entry) => entry.kind)).toEqual(["note", "note"]);

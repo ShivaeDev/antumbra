@@ -1,9 +1,13 @@
 import type { CommandInput } from "@antumbra/feature/command.ts";
 import { feature } from "@antumbra/feature/feature.ts";
 import type { ReadHandles } from "@antumbra/feature/handles.ts";
+import { AlreadyDone } from "@antumbra/feature/rejection.ts";
+import type { Api } from "@antumbra/rpc/client.ts";
 import { Effect } from "effect";
-import type { park } from "#example/commands/park.ts";
+import { park } from "#example/commands/park.ts";
 import { pieceParked } from "#example/facts/piece-parked.ts";
+import type { pieces } from "#example/feature.ts";
+import { PieceId } from "#example/ids.ts";
 import { piece } from "#example/rows/piece.ts";
 
 export const writingInsideACommand = Effect.fn("example.writing")(function* (
@@ -22,3 +26,13 @@ export const unmaterialized = feature("unmaterialized", {
 	materializers: [],
 	queries: [],
 });
+
+type Refused = Effect.Error<ReturnType<Api<readonly [typeof pieces]>["pieces"]["park"]>>;
+
+export const declaredRejectionReachesTheCaller: Refused = new park.Rejection.PieceNotLaunched({
+	pieceId: PieceId.make("piece-1"),
+	status: "chartered",
+});
+
+// @ts-expect-error a repeated request resolves to the sequence number it already produced, so AlreadyDone never reaches the caller.
+export const alreadyDoneNeverReachesTheCaller: Refused = new AlreadyDone({ requestId: "request-1", seq: 1 });

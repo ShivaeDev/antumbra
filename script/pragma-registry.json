@@ -17,6 +17,6 @@
 	{
 		"file": "packages/server/journal/test/compile.typecheck.ts",
 		"pragma": "@ts-expect-error",
-		"reason": "Compile-time proof of the two guarantees the journal kit's types carry: a command's rows handle is read-only, and a feature's every fact has exactly one materializer. Both pragmas go unused, and the build fails, if either guarantee is ever relaxed."
+		"reason": "Compile-time proof of the three guarantees the journal kit's types carry: a command's rows handle is read-only, a feature's every fact has exactly one materializer, and AlreadyDone is not in the error type the rpc client hands a caller. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
 	}
 ]

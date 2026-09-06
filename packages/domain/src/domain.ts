@@ -17,6 +17,7 @@ import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendProviders } from "#backend-catalog/providers.ts";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { domainCapabilities } from "#domain-capabilities.ts";
+import { HoldWaits } from "#hold-waits/service.ts";
 import { imageInputBackendsOf } from "#image-input-backends.ts";
 import { MailDelivery } from "#mail-delivery/service.ts";
 
@@ -38,6 +39,7 @@ export const AgentDomainLive = (
 		Layer.provideMerge(SessionRecoveryContexts.layer),
 		Layer.provideMerge(CurrentSessions.layer),
 		Layer.provideMerge(SessionNodeReconciler.layer),
+		Layer.provideMerge(HoldWaits.layer),
 		Layer.provideMerge(MailDelivery.layer),
 		Layer.provideMerge(BackendCatalog.layer.pipe(Layer.provide(Layer.succeed(BackendProviders)(backends)))),
 		Layer.provideMerge(LiveDelegationsLive),

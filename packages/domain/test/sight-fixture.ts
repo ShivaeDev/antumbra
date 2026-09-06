@@ -1,14 +1,10 @@
-import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { Kernel } from "@antumbra/kernel";
+import { Database } from "@antumbra/persistence";
 import type { AgentEvent } from "@antumbra/vocabulary/session-events";
-import { Effect, Layer } from "effect";
-import { domainKernelLayer, sightSourceTestLayer } from "#test/domain-layers.ts";
+import { expect } from "@effect/vitest";
+import { Effect, Option } from "effect";
 import { rawOf, type ScriptedBackend } from "#test/harness.ts";
-import { eventually } from "#test/voyage-fixtures.ts";
-
-export { eventually };
-
-export const sightLayer = (temporary: TemporaryPersistence, scripted: ScriptedBackend) =>
-	sightSourceTestLayer.pipe(Layer.provideMerge(domainKernelLayer(temporary, scripted.backend)));
+import { untilTerminal } from "#test/session-recovery-fixture.ts";
 
 export const spawnRequest = {
 	backend: "scripted",
@@ -24,4 +20,12 @@ export const note = (n: number): AgentEvent => ({
 });
 
 export const liveSession = (scripted: ScriptedBackend, sessionId: string) =>
-	eventually(scripted.session(sessionId).pipe(Effect.flatMap((live) => (live === undefined ? Effect.fail("not live yet") : Effect.succeed(live)))));
+	Effect.gen(function* () {
+		const db = yield* Database;
+		const kernel = yield* Kernel;
+		const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
+		expect(births).toHaveLength(1);
+		const birth = Option.getOrThrow(Option.fromUndefinedOr(births[0]));
+		expect(yield* untilTerminal(kernel.changes(birth.id))).toBe("succeeded");
+		return Option.getOrThrow(Option.fromUndefinedOr(yield* scripted.session(sessionId)));
+	});

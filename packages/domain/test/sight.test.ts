@@ -1,13 +1,12 @@
 import { SightSource } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { it } from "@antumbra/testing";
+import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Effect, Fiber, Stream } from "effect";
-import { endTurn } from "#test/harness.ts";
-import { eventually, liveSession, note, spawnRequest } from "#test/sight-fixture.ts";
+import { Deferred, Effect, Fiber, Option, Stream } from "effect";
+import { liveSession, note, spawnRequest } from "#test/sight-fixture.ts";
 
-it.effectApp("spawn surfaces on the fleet feed once the agent lives", { clock: "live" }, function* () {
+it.effectApp("spawn surfaces on the fleet feed once the agent lives", function* () {
 	const sight = yield* SightSource;
 	const receipt = yield* sight.spawn(spawnRequest);
 	const settled = yield* sight.fleetFeed.pipe(
@@ -22,23 +21,18 @@ it.effectApp("spawn surfaces on the fleet feed once the agent lives", { clock: "
 	expect(settled[0]?.backends).toEqual(["scripted"]);
 });
 
-it.effectApp("the event feed rehydrates from the log then stays live, no dupes", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("the event feed rehydrates from the log then stays live, no dupes", function* ({ scripted }) {
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const sight = yield* SightSource;
 	const receipt = yield* sight.spawn(spawnRequest);
 	const session = yield* liveSession(scripted, receipt.sessionId);
+	const recorded = yield* sight
+		.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId })
+		.pipe(Stream.take(2), Stream.runCollect, Effect.forkChild);
 	yield* session.emit(note(0));
 	yield* session.emit(note(1));
-	yield* eventually(
-		Effect.gen(function* () {
-			const rows = yield* sight.sessionEvents({
-				fromSeq: 0,
-				sessionId: receipt.sessionId,
-			});
-			expect(rows).toHaveLength(2);
-		}),
-	);
+	expect((yield* Fiber.join(recorded)).map((event) => event.seq)).toEqual([0, 1]);
 	const rehydratedUnknown: StoredEvent = {
 		kind: "future.event",
 		payload: "future bytes {",
@@ -46,9 +40,14 @@ it.effectApp("the event feed rehydrates from the log then stays live, no dupes",
 		sessionId: receipt.sessionId,
 	};
 	yield* db.SessionEvent.create(rehydratedUnknown);
-	const collector = yield* sight
-		.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId })
-		.pipe(Stream.take(4), Stream.runCollect, Effect.forkChild);
+	const rehydrated = yield* Deferred.make<void>();
+	const collector = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: receipt.sessionId }).pipe(
+		Stream.tap((event) => (event.seq === 2 ? Deferred.succeed(rehydrated, undefined) : Effect.void)),
+		Stream.take(4),
+		Stream.runCollect,
+		Effect.forkChild,
+	);
+	yield* Deferred.await(rehydrated);
 	const liveMismatch: StoredEvent = {
 		kind: "thinking",
 		payload: JSON.stringify(note(3)),
@@ -74,7 +73,7 @@ it.effectApp("the event feed rehydrates from the log then stays live, no dupes",
 	expect(tail.map((event) => event.seq)).toEqual([2]);
 });
 
-it.effectApp("interrupt reaches the live handle; a dead session fails softly", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("interrupt reaches the live handle; a dead session fails softly", function* ({ scripted }) {
 	const sight = yield* SightSource;
 	const receipt = yield* sight.spawn(spawnRequest);
 	yield* sight.fleetFeed.pipe(
@@ -92,24 +91,19 @@ it.effectApp("interrupt reaches the live handle; a dead session fails softly", {
 	expect(outcome._tag).toBe("SightFailure");
 });
 
-it.effectApp("retire through sight lands on the fleet as retired and closed", { clock: "live" }, function* ({ scripted }) {
+it.effectApp("retire through sight lands on the fleet as retired and closed", function* ({ scripted }) {
 	const sight = yield* SightSource;
 	const receipt = yield* sight.spawn(spawnRequest);
-	yield* eventually(
-		Effect.gen(function* () {
-			const fleet = yield* sight.fleet;
-			const agent = fleet.agents.find((a) => a.id === receipt.agentId);
-			expect(agent?.status).toBe("alive");
-		}),
-	);
-	yield* endTurn(scripted, receipt.agentId);
+	yield* liveSession(scripted, receipt.sessionId);
+	expect((yield* sight.fleet).agents.find((agent) => agent.id === receipt.agentId)?.status).toBe("alive");
+	yield* endsTurn(scripted, receipt.sessionId);
 	yield* sight.retire(receipt.agentId);
-	yield* eventually(
-		Effect.gen(function* () {
-			const fleet = yield* sight.fleet;
-			const agent = fleet.agents.find((a) => a.id === receipt.agentId);
-			expect(agent?.status).toBe("retired");
-			expect(agent?.sessions.every((s) => s.status === "closed")).toBe(true);
-		}),
+	const retired = yield* sight.fleetFeed.pipe(
+		Stream.map((fleet) => fleet.agents.find((agent) => agent.id === receipt.agentId)),
+		Stream.filter((agent) => agent?.status === "retired" && agent.sessions.every((session) => session.status === "closed")),
+		Stream.runHead,
+		Effect.map(Option.getOrThrow),
 	);
+	expect(retired?.status).toBe("retired");
+	expect(retired?.sessions.every((session) => session.status === "closed")).toBe(true);
 });

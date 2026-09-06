@@ -11,12 +11,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
+  # One runner for the short static jobs: lint (20s work), guards (18s) and
+  # build (5s) each paid ~22s of checkout+setup on their own runner.
+  # Merged wall (~68s) stays below the typecheck chain (~76s).
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: pnpm lint
+      - run: pnpm test:guards
+      - run: pnpm build
 
   typecheck:
     runs-on: ubuntu-latest
@@ -55,42 +60,24 @@ jobs:
       - run: pnpm test:desktop
       - run: pnpm test:runner-local
 
-  guards:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm test:guards
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-      - run: pnpm build
-
   # Required-check name stays `validate` so branch protection does not change.
   validate:
     if: always()
     needs:
-      - lint
+      - checks
       - typecheck
       - typecheck-compat
       - test
       - isolated
-      - guards
-      - build
     runs-on: ubuntu-latest
     steps:
       - name: Require every needed job to succeed
         run: |
-          test "${{ needs.lint.result }}" = success
+          test "${{ needs.checks.result }}" = success
           test "${{ needs.typecheck.result }}" = success
           test "${{ needs.typecheck-compat.result }}" = success
           test "${{ needs.test.result }}" = success
           test "${{ needs.isolated.result }}" = success
-          test "${{ needs.guards.result }}" = success
-          test "${{ needs.build.result }}" = success
 
   package:
     runs-on: macos-latest

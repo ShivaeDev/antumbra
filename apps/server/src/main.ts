@@ -52,4 +52,6 @@ const teardown: Runtime.Teardown = (exit, onExit) => {
 	return onExit(Cause.hasFails(exit.cause) ? 2 : 1);
 };
 
-NodeRuntime.runMain(Effect.provide(main, Layer.succeed(Logger.LogToStderr, true)), { teardown });
+const reported = Effect.tapCause(main, (cause) => (Cause.hasInterruptsOnly(cause) ? Effect.void : Effect.logError(cause)));
+
+NodeRuntime.runMain(Effect.provide(reported, Layer.succeed(Logger.LogToStderr, true)), { disableErrorReporting: true, teardown });

@@ -4,9 +4,9 @@ import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
+import { compilePieceVerbTools } from "#captain-pieces.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
-import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
+import { compileVoyageReadingTools } from "#voyage-reading-tools.ts";
 
 const PACE = "this voyage has 0 pieces running and 1 waiting for capacity; the fleet runs at most 4 agents at once";
 
@@ -35,7 +35,7 @@ it.effectApp("the launch reply and the voyage reading say what runs, what waits,
 		sessionId: "session-1",
 		voyageId: Option.some(voyage.id),
 	};
-	const tools = [...(yield* makePieceVerbToolCompiler)(identity), ...(yield* makeVoyageReadingToolCompiler)(identity)];
+	const tools = [...(yield* compilePieceVerbTools(identity)), ...(yield* compileVoyageReadingTools(identity))];
 
 	expect(yield* call(tools, "launch_piece", { pieceId: alpha.id })).toEqual({ ok: true, text: `launched into the pool\n${PACE}` });
 

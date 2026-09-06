@@ -1,5 +1,5 @@
 import { bind, readReportSpec } from "@antumbra/agent-tools";
-import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
+import type { DirectToolOutcome } from "@antumbra/plugin-api";
 import { type ReportReading, Reports } from "@antumbra/reports";
 import { Effect, Option } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";
@@ -12,7 +12,7 @@ const byline = (authorAgentId: string | null): string => (authorAgentId === null
 
 const renderReport = (reading: ReportReading): string => [`# ${reading.title}`, byline(reading.authorAgentId), ``, reading.body].join("\n");
 
-export const makeReportToolCompiler = Effect.gen(function* () {
+export const compileReportTools = Effect.fn("AgentToolCompiler.compileReportTools")(function* (identity: SessionIdentity) {
 	const membership = yield* CaptainMembership;
 	const reports = yield* Reports;
 	const withinReach = (identity: SessionIdentity, reportId: string) => {
@@ -34,5 +34,5 @@ export const makeReportToolCompiler = Effect.gen(function* () {
 				}),
 			}),
 		);
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [bind(readReportSpec, (input) => serve(identity, input.reportId))];
+	return [bind(readReportSpec, (input) => serve(identity, input.reportId))];
 });

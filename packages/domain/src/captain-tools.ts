@@ -1,33 +1,32 @@
 import { bind, charterPieceSpec } from "@antumbra/agent-tools";
-import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
-import { makeBoardToolCompiler } from "#board-tools.ts";
+import { compileBoardTools } from "#board-tools.ts";
 import { CaptainMembership } from "#captain-membership.ts";
-import { makePieceVerbToolCompiler } from "#captain-pieces.ts";
-import { makeCaptainRulingMoveToolCompiler } from "#captain-ruling-moves.ts";
-import { makeCaptainVerdictToolCompiler } from "#captain-verdicts.ts";
+import { compilePieceVerbTools } from "#captain-pieces.ts";
+import { compileCaptainRulingMoveTools } from "#captain-ruling-moves.ts";
+import { compileCaptainVerdictTools } from "#captain-verdicts.ts";
 import { withNotice } from "#charter-notice.ts";
-import { makeReportToolCompiler } from "#report-tools.ts";
-import { makeRulingReadingToolCompiler } from "#ruling-reading-tools.ts";
-import { makeRulingToolCompiler } from "#ruling-tools.ts";
+import { compileReportTools } from "#report-tools.ts";
+import { compileRulingReadingTools } from "#ruling-reading-tools.ts";
+import { compileRulingTools } from "#ruling-tools.ts";
 import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
-import { makeVoyageReadingToolCompiler } from "#voyage-reading-tools.ts";
+import { compileVoyageReadingTools } from "#voyage-reading-tools.ts";
 
 import { VoyageProcedureService } from "#voyages/service.ts";
 
-export const makeCaptainToolCompiler = Effect.gen(function* () {
+export const compileCaptainTools = Effect.fn("AgentToolCompiler.compileCaptainTools")(function* (identity: SessionIdentity) {
 	const membership = yield* CaptainMembership;
 	const procedures = yield* VoyageProcedureService;
-	const pieceVerbTools = yield* makePieceVerbToolCompiler;
-	const compileBoardTools = yield* makeBoardToolCompiler;
-	const compileReportTools = yield* makeReportToolCompiler;
-	const compileRulingTools = yield* makeRulingToolCompiler;
-	const compileRulingReadingTools = yield* makeRulingReadingToolCompiler;
-	const compileVoyageReadingTools = yield* makeVoyageReadingToolCompiler;
-	const compileVerdictTools = yield* makeCaptainVerdictToolCompiler;
-	const compileRulingMoveTools = yield* makeCaptainRulingMoveToolCompiler;
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+	const pieceVerbTools = yield* compilePieceVerbTools(identity);
+	const boardTools = yield* compileBoardTools(identity);
+	const reportTools = yield* compileReportTools(identity);
+	const rulingTools = yield* compileRulingTools(identity);
+	const rulingReadingTools = yield* compileRulingReadingTools(identity);
+	const voyageReadingTools = yield* compileVoyageReadingTools(identity);
+	const verdictTools = yield* compileCaptainVerdictTools(identity);
+	const rulingMoveTools = yield* compileCaptainRulingMoveTools(identity);
+	return [
 		bind(charterPieceSpec, (input) =>
 			membership.onOwnDeps(identity, input.dependsOn, (voyageId) =>
 				answered(
@@ -45,13 +44,13 @@ export const makeCaptainToolCompiler = Effect.gen(function* () {
 				),
 			),
 		),
-		...pieceVerbTools(identity),
-		...compileVoyageReadingTools(identity),
-		...compileReportTools(identity),
-		...compileBoardTools(identity),
-		...compileRulingTools(identity),
-		...compileVerdictTools(identity),
-		...compileRulingMoveTools(identity),
-		...compileRulingReadingTools(identity),
+		...pieceVerbTools,
+		...voyageReadingTools,
+		...reportTools,
+		...boardTools,
+		...rulingTools,
+		...verdictTools,
+		...rulingMoveTools,
+		...rulingReadingTools,
 	];
 });

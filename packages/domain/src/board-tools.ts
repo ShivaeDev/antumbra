@@ -1,6 +1,6 @@
 import { bind, markReadSpec, readBoardSpec, readMailSpec, writeBoardSpec } from "@antumbra/agent-tools";
 import { type BoardEntryRow, type BoardScope, Boards, EntryInput } from "@antumbra/boards";
-import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
+import type { DirectToolOutcome } from "@antumbra/plugin-api";
 import { Effect, Option } from "effect";
 import { type BoardScopeName, resolveBoardScope } from "#board-scope-resolution.ts";
 import { renderMail } from "#mail-render.ts";
@@ -21,9 +21,9 @@ const rendered = (entries: ReadonlyArray<BoardEntryRow>): string => (entries.len
 
 const under = (entries: ReadonlyArray<BoardEntryRow>): string => (entries.length === 0 ? "no notes stand behind that summary" : lines(entries));
 
-export const makeBoardToolCompiler = Effect.gen(function* () {
+export const compileBoardTools = Effect.fn("AgentToolCompiler.compileBoardTools")(function* (identity: SessionIdentity) {
 	const boards = yield* Boards;
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+	return [
 		bind(readMailSpec, () => answered(identity, readMailSpec.name, boards.unread(identity.agentId), renderMail)),
 		bind(markReadSpec, (input) => answered(identity, markReadSpec.name, boards.markRead(identity.agentId, input.entryIds), () => "marked read")),
 		bind(writeBoardSpec, (input) =>

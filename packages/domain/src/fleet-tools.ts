@@ -14,7 +14,7 @@ import { type ResolvedAgentSettings, RoleSettings } from "@antumbra/settings";
 import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend";
 import { Effect, Schema } from "effect";
 import { BackendCatalog } from "#backend-catalog/service.ts";
-import { makeCaptainToolCompiler } from "#captain-tools.ts";
+import { compileCaptainTools } from "#captain-tools.ts";
 import { withNotice } from "#charter-notice.ts";
 import { renderFleet, rolePart } from "#fleet-render.ts";
 import type { HailedCaptain } from "#hail.ts";
@@ -74,14 +74,16 @@ const opened = (voyage: OpenedVoyage): string =>
 const registered = (known: boolean, repo: RegisteredRepo): string =>
 	`${known ? "already registered" : "registered"} repo ${repo.id} ${repo.name} · ${repo.source} · default ref ${repo.defaultRef}`;
 
-export const makeFleetToolCompiler = Effect.gen(function* () {
-	const compileCaptainTools = yield* makeCaptainToolCompiler;
+export const compileFleetTools = Effect.fn("AgentToolCompiler.compileFleetTools")(function* (
+	identity: SessionIdentity,
+	backends: ReadonlyArray<string>,
+) {
+	const captainTools = yield* compileCaptainTools(identity);
 	const repos = yield* Repos;
 	const rulings = yield* Rulings;
 	const procedures = yield* VoyageProcedureService;
 	const roles = yield* RoleSettings;
 	const catalog = yield* BackendCatalog;
-	const { backends } = yield* catalog.snapshot();
 	const readFleet = Effect.all({
 		backends: Effect.forEach(backends, (tag) => Effect.map(catalog.listModels(tag), (models) => ({ models, tag }))),
 		repos: repos.registered(),
@@ -126,5 +128,5 @@ export const makeFleetToolCompiler = Effect.gen(function* () {
 		bind(hailCaptainSpec, (input) => answered(identity, hailCaptainSpec.name, procedures.hail(input.voyageId), hailed(input.voyageId))),
 		bind(proclaimRulingSpec, (input) => answered(identity, proclaimRulingSpec.name, rulings.proclaim(proclamationOf(input)), proclaimed)),
 	];
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [...compileCaptainTools(identity), ...fleetActs(identity)];
+	return [...captainTools, ...fleetActs(identity)];
 });

@@ -5,7 +5,7 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
-import { makeRulingToolCompiler } from "#ruling-tools.ts";
+import { compileRulingTools } from "#ruling-tools.ts";
 import { callTool, type ScriptedBackend, sessionFor } from "#test/harness.ts";
 import { chain, openReefVoyage } from "#test/voyage-fixtures.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
@@ -28,8 +28,7 @@ const adrift = Effect.gen(function* () {
 		role: "hand",
 		status: "alive",
 	});
-	const compile = yield* makeRulingToolCompiler;
-	return compile({
+	return yield* compileRulingTools({
 		agentId: "agent-adrift",
 		pieceId: Option.none(),
 		sessionId: "session-adrift",
@@ -121,8 +120,7 @@ it.effectApp("a ruling asked from a piece the fleet lost is refused, not stored"
 		role: "hand",
 		status: "alive",
 	});
-	const compile = yield* makeRulingToolCompiler;
-	const tools = compile({
+	const tools = yield* compileRulingTools({
 		agentId: "agent-adrift",
 		pieceId: Option.some("piece-adrift"),
 		sessionId: "session-adrift",

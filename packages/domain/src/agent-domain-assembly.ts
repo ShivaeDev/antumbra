@@ -13,7 +13,7 @@ import { makeSessionAgentSettings } from "#session-agent-settings.ts";
 import { compileSmoothingDemands } from "#smoothing/demands.ts";
 import { smoothingKinds } from "#smoothing/kinds.ts";
 import { spawnKind } from "#spawn.ts";
-import { makeAgentToolCompiler } from "#spawn-tools.ts";
+import { AgentToolCompiler } from "#tool-compiler/service.ts";
 
 export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, runners: ReadonlyMap<string, Runner>) =>
 	Effect.gen(function* () {
@@ -33,8 +33,8 @@ export const makeAgentDomain = (backends: ReadonlyMap<string, AgentBackend>, run
 		});
 		const retire = yield* makeRetireKind;
 		const { smooth, smoothPiece } = yield* smoothingKinds({ backends, runners, sinkFor });
-		const compileTools = yield* makeAgentToolCompiler;
-		const toolsFor = (context: SessionRecoveryContext) => compileTools(context.role, context.identity);
+		const tools = yield* AgentToolCompiler;
+		const toolsFor = (context: SessionRecoveryContext) => tools.compile(context.role, context.identity);
 		const recovery = sessionRecoveryLayer({
 			backends,
 			settingsFor: yield* makeSessionAgentSettings,

@@ -9,10 +9,11 @@ import { Effect } from "effect";
 import { AgentBirth } from "#agent-birth/service.ts";
 import { UnknownBackendTag } from "#errors.ts";
 import { type SpawnFields, SpawnPayload } from "#spawn-fields.ts";
+import { spawnSessionIdentity } from "#spawn-identity.ts";
 import { makeSpawnSessionStart } from "#spawn-session-start.ts";
 import { makeSpawnTeardown } from "#spawn-teardown.ts";
-import { makeSpawnTools } from "#spawn-tools.ts";
 import { underSpawnedAgent } from "#spawn-trace.ts";
+import { AgentToolCompiler } from "#tool-compiler/service.ts";
 
 export type { SpawnFields } from "#spawn-fields.ts";
 
@@ -28,7 +29,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 		const birth = yield* AgentBirth;
 		const startSession = yield* makeSpawnSessionStart;
 		const teardown = yield* makeSpawnTeardown;
-		const toolsFor = yield* makeSpawnTools;
+		const tools = yield* AgentToolCompiler;
 		const admitSpawnSession = (payload: SpawnFields, attachment: SessionAttachment) =>
 			Effect.gen(function* () {
 				yield* birth.deliverCharter(payload, attachment.handle);
@@ -67,7 +68,7 @@ export const spawnKind = (runtime: SpawnRuntime) =>
 					payload,
 					backend,
 					plan,
-					yield* toolsFor(payload),
+					yield* tools.compile(payload.role, spawnSessionIdentity(payload)),
 					runtime.sinkFor(payload.sessionId, backend.audit),
 					(attachment) => admitSpawnSession(payload, attachment),
 					teardown.settleUnlessTeardown(payload),

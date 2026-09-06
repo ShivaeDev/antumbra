@@ -13,5 +13,10 @@
 		"file": "packages/domain/test/agent-prompt-seam.typecheck.ts",
 		"pragma": "@ts-expect-error",
 		"reason": "Compile-time proof that the send seam refuses a bare string: only the prompt catalog mints what an Agent may hear, and the pragma goes unused, failing the build, if that guarantee is ever relaxed."
+	},
+	{
+		"file": "packages/server/journal/test/compile.typecheck.ts",
+		"pragma": "@ts-expect-error",
+		"reason": "Compile-time proof of the two guarantees the journal kit's types carry: a command's rows handle is read-only, and a feature's every fact has exactly one materializer. Both pragmas go unused, and the build fails, if either guarantee is ever relaxed."
 	}
 ]

@@ -1,5 +1,4 @@
 import { bind, ruleOnSpec } from "@antumbra/agent-tools";
-import type { DirectTool } from "@antumbra/plugin-api";
 import { type Ruling, Rulings, type RulingVerdict } from "@antumbra/rulings";
 import { bindsWords } from "@antumbra/rulings/radius/words";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
@@ -28,7 +27,7 @@ const verdictOf = (ruling: Ruling, by: RulingAuthority, identity: SessionIdentit
 const ruled = (ruling: Ruling): string =>
 	`ruling ${ruling.id} ruled — it binds ${bindsWords[ruling.radius]} until the admiral supersedes it, and the answer reaches the asker as mail`;
 
-export const makeCaptainVerdictToolCompiler = Effect.gen(function* () {
+export const compileCaptainVerdictTools = Effect.fn("AgentToolCompiler.compileCaptainVerdictTools")(function* (identity: SessionIdentity) {
 	const rulings = yield* Rulings;
 	const speaksAs = yield* makeRulingSpeaker;
 	const settle = (identity: SessionIdentity, asked: Asked) =>
@@ -43,5 +42,5 @@ export const makeCaptainVerdictToolCompiler = Effect.gen(function* () {
 			Effect.catchTag("RulingNotFound", () => Effect.succeed(refused(`there is no ruling ${asked.rulingId} — name it as your mail does`))),
 			Effect.catch((cause) => Effect.succeed(refused(`${ruleOnSpec.name}: ${cause}`))),
 		);
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [bind(ruleOnSpec, (asked) => settle(identity, asked))];
+	return [bind(ruleOnSpec, (asked) => settle(identity, asked))];
 });

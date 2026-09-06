@@ -1,5 +1,5 @@
 import { addContextSpec, bind, requestRulingSpec } from "@antumbra/agent-tools";
-import type { DirectTool, DirectToolOutcome } from "@antumbra/plugin-api";
+import type { DirectToolOutcome } from "@antumbra/plugin-api";
 import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
 import type { RulingAuthority } from "@antumbra/vocabulary/ruling";
@@ -38,7 +38,7 @@ const requestOf = (identity: SessionIdentity, input: Ask, gates: ReadonlyArray<s
 	urgency: input.urgency,
 });
 
-export const makeRulingToolCompiler = Effect.gen(function* () {
+export const compileRulingTools = Effect.fn("AgentToolCompiler.compileRulingTools")(function* (identity: SessionIdentity) {
 	const membership = yield* CaptainMembership;
 	const rulings = yield* Rulings;
 	const hold = yield* RulingHolds;
@@ -62,7 +62,7 @@ export const makeRulingToolCompiler = Effect.gen(function* () {
 				? yield* answered(identity, addContextSpec.name, hold.addContextAndHold(given), heldSaid)
 				: yield* answered(identity, addContextSpec.name, rulings.addContext(given), appended);
 		});
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+	return [
 		bind(addContextSpec, (input: Added) => contextFrom(identity, input)),
 		bind(requestRulingSpec, (input) => {
 			const gates = input.gates ?? [];

@@ -4,7 +4,7 @@ import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
-import { makeBoardToolCompiler } from "#board-tools.ts";
+import { compileBoardTools } from "#board-tools.ts";
 
 const COVERED = ["sounded the eastern shoal at low water", "the channel buoy is adrift"];
 
@@ -30,8 +30,9 @@ const smoothedVoyage = Effect.fnUntraced(function* () {
 });
 
 const boardToolsFor = Effect.fnUntraced(function* (voyageId: string) {
-	const compile = yield* makeBoardToolCompiler;
-	return readBoard(compile({ agentId: "agent-hand", pieceId: Option.none(), sessionId: "session-hand", voyageId: Option.some(voyageId) }));
+	return readBoard(
+		yield* compileBoardTools({ agentId: "agent-hand", pieceId: Option.none(), sessionId: "session-hand", voyageId: Option.some(voyageId) }),
+	);
 });
 
 it.effectApp("reading a board gives the summary in place of what it covers, newest first", function* () {

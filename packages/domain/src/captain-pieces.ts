@@ -1,6 +1,5 @@
 import { bind, launchPieceSpec, parkPieceSpec, rewirePieceSpec, unparkPieceSpec } from "@antumbra/agent-tools";
 import { Pieces } from "@antumbra/pieces";
-import type { DirectTool } from "@antumbra/plugin-api";
 import { Effect } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";
 import { ExecutionSource } from "#execution/service.ts";
@@ -8,11 +7,11 @@ import { answered } from "#tool-answers.ts";
 import type { SessionIdentity } from "#tool-identity.ts";
 import { paceWords } from "#voyage-pace.ts";
 
-export const makePieceVerbToolCompiler = Effect.gen(function* () {
+export const compilePieceVerbTools = Effect.fn("AgentToolCompiler.compilePieceVerbTools")(function* (identity: SessionIdentity) {
 	const membership = yield* CaptainMembership;
 	const pieces = yield* Pieces;
 	const execution = yield* ExecutionSource;
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
+	return [
 		bind(launchPieceSpec, (input) =>
 			membership.onOwnPiece(identity, input.pieceId, (pieceId, voyageId) =>
 				answered(identity, launchPieceSpec.name, pieces.launch(pieceId).pipe(Effect.andThen(execution.voyagePace(voyageId))), (pace) =>

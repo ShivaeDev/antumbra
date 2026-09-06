@@ -1,5 +1,4 @@
 import { bind, passUpSpec, reclassifyRulingSpec } from "@antumbra/agent-tools";
-import type { DirectTool } from "@antumbra/plugin-api";
 import { type Ruling, type RulingClimbingAuthority, type RulingReclassifyInput, Rulings } from "@antumbra/rulings";
 import { Effect } from "effect";
 import { makeRulingSpeaker } from "#ruling-speaker.ts";
@@ -24,7 +23,7 @@ const climbed = (ruling: Ruling): string =>
 const moved = (ruling: Ruling): string =>
 	`ruling ${ruling.id} now reads ${ruling.radius} radius, ${ruling.urgency} — your word is appended beside what the asker declared`;
 
-export const makeCaptainRulingMoveToolCompiler = Effect.gen(function* () {
+export const compileCaptainRulingMoveTools = Effect.fn("AgentToolCompiler.compileCaptainRulingMoveTools")(function* (identity: SessionIdentity) {
 	const rulings = yield* Rulings;
 	const speaksAs = yield* makeRulingSpeaker;
 	const climbing = (identity: SessionIdentity) =>
@@ -51,8 +50,5 @@ export const makeCaptainRulingMoveToolCompiler = Effect.gen(function* () {
 			return yield* answered(identity, reclassifyRulingSpec.name, rulings.reclassify(reclassificationOf(by, identity, input)), moved);
 		});
 
-	return (identity: SessionIdentity): ReadonlyArray<DirectTool> => [
-		bind(passUpSpec, (input: Pushed) => push(identity, input)),
-		bind(reclassifyRulingSpec, (input: Moved) => move(identity, input)),
-	];
+	return [bind(passUpSpec, (input: Pushed) => push(identity, input)), bind(reclassifyRulingSpec, (input: Moved) => move(identity, input))];
 });

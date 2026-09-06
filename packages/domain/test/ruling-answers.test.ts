@@ -7,7 +7,7 @@ import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { makeRulingReplies } from "#ruling-replies.ts";
-import { makeRulingToolCompiler } from "#ruling-tools.ts";
+import { compileRulingTools } from "#ruling-tools.ts";
 import { ASKER, seedAsker } from "#test/ruling-fixtures.ts";
 import { eventually } from "#test/voyage-fixtures.ts";
 
@@ -29,8 +29,7 @@ const toolNamed = (tools: ReadonlyArray<DirectTool>, name: string): DirectTool =
 
 const calling = (agentId: string, name: string, input: Record<string, unknown>) =>
 	Effect.gen(function* () {
-		const compile = yield* makeRulingToolCompiler;
-		const tools = compile({
+		const tools = yield* compileRulingTools({
 			agentId,
 			pieceId: Option.none(),
 			sessionId: `session-${agentId}`,

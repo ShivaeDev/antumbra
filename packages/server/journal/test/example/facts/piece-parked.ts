@@ -1,0 +1,5 @@
+import { fact } from "@antumbra/feature";
+import { Schema } from "effect";
+import { PieceId } from "#example/ids.ts";
+
+export const pieceParked = fact("PieceParked", { pieceId: PieceId, reason: Schema.String });

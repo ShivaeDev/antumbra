@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { Effect, Stream } from "effect";
+import { Clock, Effect, Stream } from "effect";
 import { UnregisteredIntentTag } from "#errors.ts";
 import type { IntentKind } from "#intent.ts";
 import { changesFor } from "#intent-changes.ts";
@@ -14,7 +14,16 @@ export const submitIntent = Effect.fn("Kernel.submit")(function* <Payload>(kind:
 	const encoded = yield* kind.encode(payload);
 	const id = yield* state.nextId;
 	const db = yield* Database;
-	yield* db.Intent.create({ detail: null, id, payload: encoded, status: "queued", tag: kind.tag });
+	const now = yield* Clock.currentTimeMillis;
+	yield* db.Intent.create({
+		createdAt: new Date(now),
+		detail: null,
+		id,
+		payload: encoded,
+		status: "queued",
+		tag: kind.tag,
+		updatedAt: new Date(now),
+	});
 	yield* announce({ id, status: "queued" });
 	return {
 		changes: changesFor(id).pipe(Stream.provideService(Database, db), Stream.provideService(SchedulerState, state)),

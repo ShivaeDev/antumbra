@@ -154,6 +154,8 @@ it.effectApp.withProviders(
 		const now = yield* Clock.currentTimeMillis;
 		yield* moored(new Date(now - EIGHT_DAYS_MILLIS));
 		const changes = yield* Changes;
+		const reconciler = yield* ResourceReconciler;
+		yield* reconciler.reconcile();
 		const swept = yield* berthStatuses;
 		expect(swept.get(HELD)).toBe("stranded");
 		expect(swept.get(AT_WORK)).toBe("ready");

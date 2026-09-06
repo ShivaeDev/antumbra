@@ -1,8 +1,10 @@
+import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel, maxConcurrency } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { makeBackendCapacityController } from "@antumbra/plugin-api";
 import { BackendCapacities } from "@antumbra/provider-capacity";
+import { endsTurn } from "@antumbra/testing";
 import { expect, it } from "@effect/vitest";
 import { Clock, Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -11,9 +13,9 @@ import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
 import { DispatcherLive } from "#dispatcher.ts";
 import { makeSightSessionEvents } from "#sight-session-events.ts";
 import { dispatchingLayer, domainKernelLayer } from "#test/domain-layers.ts";
-import { acquireTemporaryPersistence, endTurn, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
-import { reportsNativeRef, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
-import { assignedPieces, chain, eventually, PATIENCE } from "#test/voyage-fixtures.ts";
+import { acquireTemporaryPersistence, makeScriptedBackend, rawOf, sessionFor } from "#test/harness.ts";
+import { reportsNativeRef, untilTerminal, WAKE_INSTRUCTION } from "#test/session-recovery-fixture.ts";
+import { assignedPieces, chain, PATIENCE } from "#test/voyage-fixtures.ts";
 
 const pieceIdOf = (payload: unknown): string | undefined =>
 	typeof payload === "object" && payload !== null && "pieceId" in payload && typeof payload.pieceId === "string" ? payload.pieceId : undefined;
@@ -134,7 +136,7 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 	}),
 );
 
-it.live("a provider hold stops automatic wakes until the admiral retries it", () =>
+it.effect("a provider hold stops automatic wakes until the admiral retries it", () =>
 	Effect.gen(function* () {
 		const temporary = yield* acquireTemporaryPersistence;
 		const scripted = yield* makeScriptedBackend;
@@ -162,19 +164,16 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 			const backendCapacities = yield* BackendCapacities;
 			const sight = yield* makeSightSessionEvents;
 			const { alpha } = yield* chain;
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* assignedPieces).toEqual([alpha.id]);
-				}),
-			);
-			const assignment = (yield* db.PieceAgent.where({
-				pieceId: alpha.id,
-			}).all())[0];
-			if (assignment === undefined) {
-				return yield* Effect.die("the dispatched Piece has no Agent");
-			}
+			const input = yield* scripted.queued;
+			const kernel = yield* Kernel;
+			const births = yield* db.Intent.where({ tag: "agent/spawn" }).all();
+			expect(births).toHaveLength(1);
+			expect(yield* untilTerminal(kernel.changes(Option.getOrThrow(Option.fromUndefinedOr(births[0])).id))).toBe("succeeded");
+			expect(yield* assignedPieces).toEqual([alpha.id]);
+			const assignment = Option.getOrThrow(yield* db.PieceAgent.where({ pieceId: alpha.id }).first());
+			const session = Option.getOrThrow(yield* db.AgentSession.where({ id: input.sessionId }).first());
+			expect(session.agentId).toBe(assignment.agentId);
 			const live = yield* sessionFor(scripted, assignment.agentId);
-			const session = Option.getOrThrow(Option.fromUndefinedOr((yield* db.AgentSession.where({ agentId: assignment.agentId }).all())[0]));
 			const opened = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(1), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
 				nativeRef: "native-held",
@@ -184,19 +183,31 @@ it.live("a provider hold stops automatic wakes until the admiral retries it", ()
 			yield* Fiber.join(opened);
 			expect(Option.getOrThrow(yield* db.AgentSession.where({ id: session.id }).first()).nativeRef).toBe("native-held");
 
-			capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
-			yield* eventually(expectScriptedProviderBlocked);
-			yield* endTurn(scripted, assignment.agentId);
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const feeds = yield* DomainFeeds;
+					const refreshes = yield* feeds.subscribeFleetRefresh();
+					capacity.observe(rawOf("quota/rejected"), yield* Clock.currentTimeMillis);
+					yield* Stream.fromSubscription(refreshes).pipe(
+						Stream.mapEffect(() => db.BackendCapacity.where({ backend: "scripted" }).first()),
+						Stream.filter((reading) => Option.isSome(reading) && reading.value.status === "blocked"),
+						Stream.take(1),
+						Stream.runDrain,
+					);
+				}),
+			);
+			yield* expectScriptedProviderBlocked;
+			yield* endsTurn(scripted, session.id);
 			yield* Queue.take(blockedReads);
 			expect(yield* live.steered).not.toContain(WAKE_INSTRUCTION);
 
 			yield* backendCapacities.clear("scripted");
 			yield* backendCapacities.announce();
-			yield* eventually(
-				Effect.gen(function* () {
-					expect(yield* live.steered).toContain(WAKE_INSTRUCTION);
-				}),
-			);
+			const resumed = yield* scripted.steered;
+			expect(resumed.sessionId).toBe(session.id);
+			const wakes = yield* db.Intent.where({ tag: "agent/wake" }).all();
+			expect(wakes).toHaveLength(1);
+			expect(yield* untilTerminal(kernel.changes(Option.getOrThrow(Option.fromUndefinedOr(wakes[0])).id))).toBe("succeeded");
 			expect((yield* live.steered).filter((text) => text === WAKE_INSTRUCTION)).toHaveLength(1);
 		}).pipe(
 			Effect.provide(

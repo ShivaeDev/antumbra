@@ -37,7 +37,7 @@ export interface CommitContext {
 }
 
 interface RunnableCommand {
-	readonly emits: { readonly name: string; readonly Payload: Schema.Top };
+	readonly emits: { readonly name: string; readonly Payload: Schema.ConstraintCodec<unknown, unknown> };
 	readonly reads: readonly RowShape[];
 	readonly reject: Record<string, unknown>;
 	readonly rejections: Record<string, unknown>;

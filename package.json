@@ -25,7 +25,8 @@
 		"typecheck:compat": "pnpm --recursive --no-sort --if-present typecheck:compat",
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
-		"ready": "node script/ready.ts"
+		"ready": "node script/ready.ts",
+		"wt": "node script/wt.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",

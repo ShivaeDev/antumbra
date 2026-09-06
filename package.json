@@ -12,7 +12,7 @@
 	},
 	"scripts": {
 		"build": "pnpm --recursive --if-present build",
-		"check": "biome check . && prettier --check \"**/*.md\"",
+		"check": "biome check . --reporter=concise --max-diagnostics=none && prettier --check \"**/*.md\"",
 		"format": "biome check --write . && prettier --write \"**/*.md\"",
 		"lint": "pnpm check && node script/lint.ts && pnpm lint:boundaries",
 		"lint:boundaries": "node script/boundaries.ts",

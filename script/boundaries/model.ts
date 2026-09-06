@@ -91,9 +91,16 @@ export interface BoundaryFixture {
 	readonly rule: string;
 }
 
+export interface WorkspacePackageLocation {
+	readonly name: string;
+	readonly path: string;
+}
+
+export type LocatePackage = (name: string) => string;
+
 export interface BoundaryPolicyInventory {
 	readonly applications: readonly string[];
-	readonly packages: readonly string[];
+	readonly packages: readonly WorkspacePackageLocation[];
 	readonly vocabularySubjects: readonly string[];
 }
 

@@ -5,6 +5,7 @@ import { isForeignCompositionSeam } from "#lint/rules/service-parameter-seams.ts
 import { typeIsServiceBearing, typeNodeIsServiceBearing } from "#lint/rules/service-parameter-types.ts";
 import { expressionMentionsService } from "#lint/rules/service-type-node.ts";
 import { serviceSymbols } from "#lint/rules/service-type-symbols.ts";
+import type { WorkspacePackage } from "#lint/workspace.ts";
 
 export interface ServiceParameterDebt {
 	readonly callable: string;
@@ -81,8 +82,12 @@ const debtsIn = (parsed: CheckedSource, checker: ts.TypeChecker, services: Reado
 	return debts;
 };
 
-export const findServiceParameters = (files: readonly SourceFile[], root: string): readonly ServiceParameterDebt[] => {
-	const program = serviceParameterProgram(files, root);
+export const findServiceParameters = (
+	files: readonly SourceFile[],
+	root: string,
+	packages: readonly WorkspacePackage[],
+): readonly ServiceParameterDebt[] => {
+	const program = serviceParameterProgram(files, root, packages);
 	const services = serviceSymbols(program.checker, program.sources);
 	return program.sources.filter(({ path }) => !exempt(path)).flatMap((source) => debtsIn(source, program.checker, services));
 };

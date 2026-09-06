@@ -27,7 +27,7 @@ const WALKED_ZONES = ["apps", "packages", "script"];
 const DOCUMENT_ROOTS = ["README.md", "DESIGN.md", "ARCHITECTURE.md", "GLOSSARY.md"];
 const DOCUMENT_ZONES = ["docs", "quality-gates"];
 const SOURCE_PATH = /\.tsx?$/;
-const WORKSPACE_MANIFEST = /^(apps|packages)\/[^/]+\/package\.json$/;
+const WORKSPACE_MANIFEST = /^(apps|packages)\/[^/]+(?:\/[^/]+){0,2}\/package\.json$/;
 const INVENTORY_CONCURRENCY = 16;
 
 export const basename = (path: string): string => path.split("/").pop() ?? "";

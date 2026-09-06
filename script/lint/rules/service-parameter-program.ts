@@ -1,6 +1,7 @@
 import { dirname, join, relative, resolve } from "node:path";
 import ts from "typescript";
 import { isDeclaration, type SourceFile } from "#lint/inventory.ts";
+import { packageOf, type WorkspacePackage } from "#lint/workspace.ts";
 
 export interface CheckedSource {
 	readonly path: string;
@@ -31,14 +32,15 @@ const normalized = (path: string): string => resolve(path);
 
 const kindOf = (path: string): ts.ScriptKind => (path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
 
-const hashBase = (specifier: string, containing: string, root: string): string | undefined => {
+const hashBase = (specifier: string, containing: string, root: string, packages: readonly WorkspacePackage[]): string | undefined => {
 	if (!specifier.startsWith("#")) return undefined;
-	const packageParts = relative(root, containing).split("/");
-	if (packageParts[0] === "script") {
+	const location = relative(root, containing);
+	if (location.split("/")[0] === "script") {
 		return join(root, "script", specifier.slice(1));
 	}
-	if (packageParts.length <= 2) return undefined;
-	const packageRoot = join(root, packageParts[0] ?? "", packageParts[1] ?? "");
+	const owner = packageOf(packages, location);
+	if (owner === undefined) return undefined;
+	const packageRoot = join(root, owner.root);
 	if (specifier.startsWith("#test/")) {
 		return join(packageRoot, "test", specifier.slice("#test/".length));
 	}
@@ -48,22 +50,28 @@ const hashBase = (specifier: string, containing: string, root: string): string |
 	return join(packageRoot, "src", specifier.slice(1));
 };
 
-const workspaceBase = (specifier: string, root: string): string | undefined => {
+const workspaceBase = (specifier: string, root: string, packages: readonly WorkspacePackage[]): string | undefined => {
 	if (!specifier.startsWith("@antumbra/")) return undefined;
 	const [name, ...subpath] = specifier.slice("@antumbra/".length).split("/");
-	const base = join(root, "packages", name ?? "", "src", ...subpath);
+	const owner = packages.find((candidate) => candidate.name === `@antumbra/${name}`);
+	if (owner === undefined) return undefined;
+	const base = join(root, owner.root, "src", ...subpath);
 	return subpath.length === 0 ? join(base, "index") : base;
 };
 
-const candidatesFor = (specifier: string, containing: string, root: string): readonly string[] => {
+const candidatesFor = (specifier: string, containing: string, root: string, packages: readonly WorkspacePackage[]): readonly string[] => {
 	const base = specifier.startsWith(".")
 		? resolve(dirname(containing), specifier)
-		: (hashBase(specifier, containing, root) ?? workspaceBase(specifier, root));
+		: (hashBase(specifier, containing, root, packages) ?? workspaceBase(specifier, root, packages));
 	if (base === undefined) return [];
 	return /\.tsx?$/.test(base) ? [base] : [`${base}.ts`, `${base}.tsx`, join(base, "index.ts")];
 };
 
-export const serviceParameterProgram = (files: readonly SourceFile[], root: string): ServiceParameterProgram => {
+export const serviceParameterProgram = (
+	files: readonly SourceFile[],
+	root: string,
+	packages: readonly WorkspacePackage[],
+): ServiceParameterProgram => {
 	const contents = new Map(
 		files.filter((file) => !isDeclaration(file.path)).map((file) => [normalized(resolve(root, file.path)), file.lines.join("\n")]),
 	);
@@ -75,7 +83,7 @@ export const serviceParameterProgram = (files: readonly SourceFile[], root: stri
 	host.fileExists = (path) => contents.has(normalized(path)) || fileExists(path);
 	host.resolveModuleNames = (names, containing) =>
 		names.map((name) => {
-			const path = candidatesFor(name, containing, root).find((candidate) => contents.has(normalized(candidate)));
+			const path = candidatesFor(name, containing, root, packages).find((candidate) => contents.has(normalized(candidate)));
 			return path === undefined ? undefined : { extension: ts.Extension.Ts, resolvedFileName: path };
 		});
 	host.getSourceFile = (path, languageVersion, onError, fresh) => {

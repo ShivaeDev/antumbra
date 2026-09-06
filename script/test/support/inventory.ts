@@ -15,9 +15,17 @@ export interface Seed {
 	readonly workspaceCatalog?: string;
 }
 
+const PACKAGE_ROOT = /^((?:apps|packages)\/.+?)\/(?:script|src|test)\//;
+
+const derivedManifests = (sources: readonly SeedFile[]): readonly TextFile[] =>
+	[...new Set(sources.flatMap((file) => PACKAGE_ROOT.exec(file.path)?.[1] ?? []))].map((root) => ({
+		path: `${root}/package.json`,
+		raw: JSON.stringify({ name: `@antumbra/${root.split("/").at(-1) ?? ""}` }),
+	}));
+
 export const inventoryOf = (seed: Seed): Inventory => ({
 	documents: seed.documents ?? [],
-	manifests: seed.manifests ?? [],
+	manifests: seed.manifests ?? derivedManifests(seed.sources ?? []),
 	pragmaRegistry: seed.pragmaRegistry ?? "[]",
 	root: seed.root ?? "/virtual",
 	sources: (seed.sources ?? []).map((file) => ({

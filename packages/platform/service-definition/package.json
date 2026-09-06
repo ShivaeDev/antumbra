@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/trace-sink",
+	"name": "@antumbra/service-definition",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -11,7 +11,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../script/test.ts",
+		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},

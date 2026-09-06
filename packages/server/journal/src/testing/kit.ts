@@ -12,7 +12,7 @@ import { Database } from "#database.ts";
 import { keysOf, Live, type LiveService } from "#live.ts";
 import { readHandle } from "#read-handle.ts";
 import { commitsOf } from "#testing/commits.ts";
-import type { Emissions, TestApp } from "#testing/surface.ts";
+import type { Emissions, TestKit } from "#testing/surface.ts";
 import { type Watch, watching } from "#testing/watch.ts";
 import { writeHandle } from "#write-handle.ts";
 
@@ -53,7 +53,7 @@ const liveOf =
 
 export function kit<Features extends readonly FeatureShape[]>(
 	definition: AppDefinition<Features>,
-): Effect.Effect<TestApp<Features>, never, Commit | Database | Live | Reactivity | Scope.Scope>;
+): Effect.Effect<TestKit<Features>, never, Commit | Database | Live | Reactivity | Scope.Scope>;
 export function kit(definition: AppDefinition): unknown {
 	return Effect.gen(function* () {
 		const database = yield* Database;

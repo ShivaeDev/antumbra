@@ -41,6 +41,12 @@ Database transactions do not ship by default. This is a local app; do not invent
 choreography to justify one. Use the direct sequence of operations. A coding or review agent cannot add a transaction on its own authority; only an
 explicit product ruling for a named, reproduced integrity failure may permit one.
 
+One ruling exists. The commit is the one named mechanism. Every write to the domain journal and to a projection table goes through the commit: one
+command at a time, the guard reads rows, the fact is appended, the rows are written, all inside one SQLite transaction, and as it commits the
+reactivity keys are marked dirty; the caller receives the sequence number or a typed rejection. The server has concurrent callers (glass clients,
+reconcilers, the tailed runner log), and the commit is the whole answer to that. Do not add a second lock, a retry, a recovery path, or startup
+healing on top of it. A guard reads rows and nothing else. Nothing outside the commit writes a fact or a row.
+
 The same rule rejects speculative locks, retries, rollback systems, crash recovery, defensive conditionals, duplicate-state repair, startup healing,
 race handling, and elaborate migration machinery. Do not grow a one-time migration into a permanent framework. Use the smallest stopgap that performs
 the migration, then remove it when it has served its purpose.

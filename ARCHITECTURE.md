@@ -1,7 +1,9 @@
 # Architecture
 
 Antumbra is a macOS desktop app (Electron) for long-horizon work with AI agents. Early development: this document describes the shape the code has;
-what is designed and not yet built is listed in [`docs/design/intended.md`](docs/design/intended.md).
+what is designed and not yet built is listed in [`docs/design/intended.md`](docs/design/intended.md). The shape the code is moving to is
+[`docs/architecture/north-star.md`](docs/architecture/north-star.md), and [`docs/architecture/migration.md`](docs/architecture/migration.md) says how
+far along it is.
 
 ## Process model
 
@@ -86,9 +88,11 @@ root barrel. `contract` is the public IDL layer and may depend on that lower lea
 
 `apps/desktop` is the only composition root where adapters and use cases meet. Effect environments state runtime dependencies, capability services own
 their durable writes and the post-commit signals that follow them, and Layers select implementations and lifetimes. Writes are single statements in
-their required order: there is no transaction anywhere in the workspace, and one is exceptional — it needs a product ruling for a named, reproduced
-integrity failure, as the [simplicity gate](quality-gates/simplicity.md) says. Foreign callbacks cross adapter boundaries only after their Effect
-requirements are closed. `packages/git` remains process infrastructure beneath `runner-local`.
+their required order: there is no transaction anywhere in the workspace today. The one ruled exception is the commit the
+[North Star](docs/architecture/north-star.md#the-commit) describes, which arrives with the first feature that moves to the journal; a transaction
+anywhere else still needs a product ruling for a named, reproduced integrity failure, as the [simplicity gate](quality-gates/simplicity.md) says.
+Foreign callbacks cross adapter boundaries only after their Effect requirements are closed. `packages/git` remains process infrastructure beneath
+`runner-local`.
 
 `service-definition` is the Effect-only construction leaf for process-lifetime services. One definition initializes private state and constructs the
 public method shape once per Layer instance. The Layer supplies only the definition's declared services; method-owned Scope remains visible to
@@ -165,6 +169,14 @@ domain truth. See the [durable-recovery gate](quality-gates/durable-recovery.md)
 
 Capabilities — agent backends, runners, integrations — register through the plugin API. Built-in capabilities use the same registration path as
 external plugins, so the API stays honest by construction.
+
+## Where this is going
+
+The main process is becoming three: a shell that supervises, a server that owns the journal, the projections, and the commit, and a runner that holds
+the sessions and writes its own log, with every window a client of the server over Effect RPC. Facts enter through one commit, reconcilers replace the
+kernel's Intents and tick, screens are live queries over projections, and tables, wire, and forms are derived from the same Schema classes. Prisma and
+tRPC leave with the last feature that moves. The target is [`docs/architecture/north-star.md`](docs/architecture/north-star.md); the progress is
+[`docs/architecture/migration.md`](docs/architecture/migration.md); this document keeps describing what the code does.
 
 ## Quality
 

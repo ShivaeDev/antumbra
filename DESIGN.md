@@ -15,7 +15,7 @@ behavior. An axiom here is a commitment, not a claim that code exists for it: th
 - **Edges gate; Legs do not.** Dependency edges carry real ordering at Piece granularity. SIGHT, PLOT, SAIL, and DRIFT are the Voyage's sequential
   story; work crosses a Leg boundary whenever its edges allow. Edges exist; Legs are intended, not yet built.
 - **Pieces are places, not processes.** A Piece is durable work with context, links, memory, and zero or more typed Outcomes. Agents act for it
-  through mortal Intents; nothing executes inside the Piece.
+  through requests that reconcilers carry out; nothing executes inside the Piece.
 - **Work topology permits multiplicity.** Pieces depend on Pieces and link to assigned Agents, execution contexts, and Outcomes without one-to-one
   assumptions. Repositories are app-level registrations, not Piece containers.
 - **Plans bend by editing typed links.** Promotion, parking, reordering, dependency edits, splitting, and merging change position without migrating
@@ -42,8 +42,8 @@ The [work and planning guide](docs/design/work-and-planning.md) owns the detaile
   Agent's internal executive layer; exact Session state is not user vocabulary or an ordinary Fleet projection. Where the record's own words must
   reach a reader at all — how a delegated node ended, how whole its record is — the renderer says them in English rather than passing the stored token
   through.
-- **Agents are alive; Intents are events in their lives.** Spawn creates a pre-identified Agent with role and charter. Retire irreversibly ends that
-  identity. A mortal Intent schedules an operation and never stands in for long-lived Piece demand.
+- **Agents are alive; requests are events in their lives.** Spawn creates a pre-identified Agent with role and charter. Retire irreversibly ends that
+  identity. A request asks for one operation and never stands in for long-lived Piece demand.
 - **Activity has no turns in the domain.** Agent activity is an event stream, load is a level, and quiescence is a derived gauge no workflow awaits.
   Provider turn events are telemetry, not a completion ontology. Admission governs Agent births, never message delivery. Mail is durable truth;
   carrying it into execution is a separate effect: mail wakes an Agent that is at rest and the Agent then reads its own mailbox through a tool.
@@ -52,25 +52,32 @@ The [work and planning guide](docs/design/work-and-planning.md) owns the detaile
 - **Recovery resumes before it replaces.** A wake restores the same Agent, Antumbra Session, and provider-native conversation. It is asked for — a
   hail, a send, a Piece assigned to that Session, or mail that has come due for it — and never guessed at by a timer or a boot pass; a Session whose
   process went with work unfinished is shown as stranded until somebody hails it. A successor or fork is explicit, linked, and never invented from a
-  missing process handle.
+  missing process handle. A runner that dies leaves its sessions asleep or stranded, never ended; the current runner resumes them when asked.
 - **Sessions recede.** Humans and Agents hail, address, inspect, and direct the durable Agent and its work. Antumbra manages execution machinery
   beneath that surface.
-- **Agents act through transport-free tools.** Domain acts are defined once as typed schemas and handlers, injected when an execution context opens,
-  then adapted to each provider in process. Identity is bound at spawn and does not travel on a tool wire. A network face may add another consumer; it
-  never replaces the in-process capability.
+- **Tools are defined once and bound at spawn.** Domain acts are defined once as typed schemas and handlers on the server. A session receives its tool
+  set when it opens and keeps it until it closes; the runner adapts that set to each provider and forwards every call with the session it came from.
+  Identity is bound at spawn and never appears in a tool's schema: the model cannot name whom it acts for, and a build never removes a tool from under
+  a live session.
 
 The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session, restart, siesta, handover, and reclamation behavior.
 
 ## Durable truth and presentation
 
 - **Durable truth survives exit.** Domain records, identities, links, transcripts, and external observations live in persistence. Fibers, handles,
-  subscriptions, timers, wakes, semaphores, and attempt history may disappear.
+  subscriptions, timers, wakes, semaphores, and attempt history may disappear. The runner's log is durable truth about sessions; the server asserts
+  nothing about a session it did not read there.
 - **Workflows reconcile; they are never checkpointed.** Every attempt starts from durable intent and domain truth, then idempotently compares it with
-  current runtime and external reality.
-- **The event log is the product surface; views are glass.** Renderers are stateless typed projections. They subscribe first, read the durable log,
-  and deduplicate by sequence so observation has no gap. Views may offer only existing domain acts; killing one cannot affect an Agent or durable
-  work. The glass remembers nothing, so main remembers where it was pointed: a window's role is minted when it opens and never travels in its address,
-  and the arrangement of windows is shell state main writes down, not something a view keeps or a reload can invent.
+  current runtime and external reality. Reconcilers read rows and write nothing; a decision becomes a fact through a command before the next look, and
+  the edge dedupes by the request id it was given.
+- **The journal is the product surface; views are glass.** The glass holds no truth and projects nothing: a screen is a live query over the server's
+  projections, re-pushed when a fact changes what it shows, and a transcript is streamed by sequence. Views may offer only existing commands; killing
+  one cannot affect an Agent or durable work. The glass remembers nothing, so the shell remembers where it was pointed: a window's role is minted when
+  it opens and never travels in its address, and the arrangement of windows is shell state the shell writes down, not something a view keeps or a
+  reload can invent.
+- **One schema, one commit.** Every durable fact enters through the commit: the guard reads rows, the fact is appended, the rows are written, all
+  inside one SQLite transaction, and as it commits the reactivity keys are marked dirty; one command at a time. Nothing else writes a fact or a row.
+  Tables, wire contracts, forms, and columns are derived from the same Schema classes, never declared twice.
 - **One vocabulary serves many backends.** The domain owns neutral Session events and delivery acts; adapters preserve provider payloads and native
   ids without making them authoritative. A second backend must fit the same model before the interface can claim neutrality.
 - **Every backend has both delivery boundaries and one reading surface.** `steer` enters running work; `queue` waits for the next full provider
@@ -104,7 +111,7 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
   that work rather than captains. Superseding, withdrawing, and reclassifying exist as acts; the dedicated agents are intended, not yet built.
 - **Anyone may all stop.** Escalation can hold one asker, one Voyage, or the fleet. The system makes the stop loud and reliable; misuse is handled as
   a conversation afterwards. Intended, not yet built.
-- **Coordination uses settled rails.** Board entries hold shared state, ticks request reconciliation, direct messages remain bounded, and typed
+- **Coordination uses settled rails.** Board entries hold shared state, dirty keys request reconciliation, direct messages remain bounded, and typed
   Artifact handoffs carry results. Software owns deterministic coordination; Agents supply judgment.
 
 The [attention and memory guide](docs/design/attention-and-memory.md) owns Boards, smoothing, mail, heave-to, and precedence. The
@@ -125,13 +132,13 @@ The [changes and delivery guide](docs/design/changes-and-delivery.md) owns Outco
 
 - **Submission never fails for system-state reasons.** Work is durably held with an observable status until admission permits it; hidden refusal is
   not holding.
-- **Admission is a queue, oldest first.** The scheduler admits queued Intents by creation time behind whatever gates the composition root configures,
-  and the desktop configures none; the running-agent budget is one setting the dispatcher reads. Composable policies, priority classes, and
-  "reclaiming outranks finishing outranks starting" are intended, not yet built.
+- **Admission is a queue, oldest first.** The admission reconciler admits requests by creation time behind the running-agent budget, and the guard on
+  admit holds the rule under the commit; the desktop configures no other gate. Composable policies, priority classes, and "reclaiming outranks
+  finishing outranks starting" are intended, not yet built.
 - **All deadlocks are soft.** Capacity retains margin and may overcommit loudly and temporarily to break a proven stall. Intended, not yet built.
-- **A tick is a latency hint, never a liveness dependency.** Startup, relevant events, and bounded patience all tick the scheduler, the demand pass,
-  and the dispatcher into an idempotent pass. A wait uses a published deadline when one exists and a patience floor otherwise, so a lost tick costs at
-  most that bound. A tick is not a wake: a wake puts one Session back on its provider and is only ever asked for.
+- **A push is a latency hint, never a liveness dependency.** Reconcilers wake on dirty keys, and every one of them reconciles once at boot and once
+  after every reconnect, so a lost push costs latency, never liveness. A push is not a wake: a wake puts one Session back on its provider and is only
+  ever asked for.
 - **Repository resources are app-level and capability-honest.** Every registered repository has one app-managed bare mirror, and each spawn gets one
   Berth for each registration. Runners expose only capabilities they can actually provide; repositories and Pieces never smuggle in resource policy.
 - **Reaping waits for settled execution.** A Session with an in-flight tool, descendant Agent tree, or background obligation is never interrupted for
@@ -146,7 +153,7 @@ The [changes and delivery guide](docs/design/changes-and-delivery.md) owns Outco
 ## Standing principles
 
 - **Simulability.** Domain verbs, state machines, admission, and coordination run under test with scripted Agents and zero model tokens.
-- **Reify what must outlive an attention gap.** Intents carry compute gaps, Boards carry coordination gaps, mail carries delivery gaps, and Rulings
+- **Reify what must outlive an attention gap.** Requests carry compute gaps, Boards carry coordination gaps, mail carries delivery gaps, and Rulings
   carry decision gaps.
 - **Make the wrong thing unrepresentable.** Prefer closed transitions, typed state, derived truth, and idempotent convergence over warnings and
   fallback.

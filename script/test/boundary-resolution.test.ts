@@ -16,10 +16,11 @@ const seedBareImport = (importedSubject: string, subjectsOnDisk: readonly string
 	const vocabulary = join(root, "packages/platform/vocabulary");
 	mkdirSync(dirname(renderer), { recursive: true });
 	mkdirSync(join(vocabulary, "src"), { recursive: true });
-	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}.ts";\nexport {};\n`);
+	writeFileSync(renderer, `import "@antumbra/vocabulary/${importedSubject}/leaf.ts";\nexport {};\n`);
 	writeFileSync(join(vocabulary, "package.json"), JSON.stringify({ exports: { "./*": "./src/*" }, name: "@antumbra/vocabulary", type: "module" }));
 	for (const subject of subjectsOnDisk) {
-		writeFileSync(join(vocabulary, `src/${subject}.ts`), "export {};\n");
+		mkdirSync(join(vocabulary, "src", subject), { recursive: true });
+		writeFileSync(join(vocabulary, `src/${subject}/leaf.ts`), "export {};\n");
 	}
 	const modules = join(root, "packages/renderer/node_modules/@antumbra");
 	mkdirSync(modules, { recursive: true });
@@ -40,7 +41,7 @@ describe("workspace package resolution", () => {
 		const result = run(seedBareImport("agent-runtime", ["agent-runtime"]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
-			"renderer-uses-session-event-vocabulary: packages/renderer/src/view.ts → packages/platform/vocabulary/src/agent-runtime.ts",
+			"renderer-uses-session-event-vocabulary: packages/renderer/src/view.ts → packages/platform/vocabulary/src/agent-runtime/leaf.ts",
 		);
 	});
 
@@ -54,7 +55,7 @@ describe("workspace package resolution", () => {
 		const result = run(seedBareImport("agent-runtime", ["session-events"]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
-			"dependency-cruiser could not resolve workspace specifier @antumbra/vocabulary/agent-runtime.ts from packages/renderer/src/view.ts",
+			"dependency-cruiser could not resolve workspace specifier @antumbra/vocabulary/agent-runtime/leaf.ts from packages/renderer/src/view.ts",
 		);
 	});
 });

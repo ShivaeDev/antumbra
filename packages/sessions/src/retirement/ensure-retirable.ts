@@ -1,6 +1,8 @@
 import { Database } from "@antumbra/persistence";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, decodeStoredAgentSessionStatus, sessionPresence } from "@antumbra/vocabulary/agent-runtime.ts";
+import { decodeSessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
+import { sessionPresence } from "@antumbra/vocabulary/agent-runtime/session-presence.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect } from "effect";
 import { sessionRetirable } from "#at-rest.ts";
 import { AgentStillWorking } from "#retirement/errors.ts";

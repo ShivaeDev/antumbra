@@ -6,9 +6,6 @@ import * as Journal from "#journal.ts";
 import { kit } from "#testing/kit.ts";
 import type { TestApp } from "#testing/surface.ts";
 
-export { type AppDefinition, app } from "#app.ts";
-export type { Emissions, TestApp } from "#testing/surface.ts";
-
 export interface TestEntry<Features extends readonly FeatureShape[]> {
 	readonly app: <Yielded extends Effect.Effect<unknown, unknown>, Done>(
 		name: string,

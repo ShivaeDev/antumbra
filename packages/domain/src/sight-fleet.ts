@@ -5,7 +5,7 @@ import type { BackendCapacityReading } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { rootSessions } from "@antumbra/sessions";
 import { RoleSettings } from "@antumbra/settings";
-import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime.ts";
+import { decodeStoredAgentStatus, decodeStoredBerthStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Effect } from "effect";
 import { situationsByAgent } from "#agent-situations.ts";
 import { workByAgent } from "#agent-work.ts";

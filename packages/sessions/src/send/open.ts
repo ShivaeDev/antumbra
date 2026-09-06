@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect, Option } from "effect";
 import { makeRefuseSubsessionAttach } from "#attach-roots.ts";
 import { SessionEnded, SessionNotFound } from "#errors.ts";

@@ -12,12 +12,16 @@ export const vocabularySurfacePolicy = [
 			legal: importFrom(files.inPackage("agent-tools", "src/tool.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
 		}),
 	vocabularyAccess("agent-backends-use-session-event-vocabulary")
-		.because("Agent backends translate provider traffic into neutral Session events and do not consume unrelated domain vocabulary.")
+		.because(
+			"Agent backends translate provider traffic into neutral Session events and name the Session-input identity those events carry, not unrelated domain vocabulary.",
+		)
 		.for(agentBackends)
-		.allowsOnly("session-events")
+		.allowsOnly("session-events", "session-input")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("backend-codex", "src/backend.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
-			legal: importFrom(files.inPackage("backend-codex", "src/backend.ts")).to(files.inPackage("platform/vocabulary", "src/session-events.ts")),
+			legal: importFrom(files.inPackage("backend-codex", "src/backend.ts")).to(
+				files.inPackage("platform/vocabulary", "src/session-events/events.ts"),
+			),
 		}),
 	vocabularyAccess("plugin-api-uses-port-vocabulary")
 		.because("The driven ports name Change and Session-event vocabulary, not application runtime or Board subjects.")
@@ -33,6 +37,6 @@ export const vocabularySurfacePolicy = [
 		.allowsOnly("session-events")
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("renderer", "src/view.ts")).to(files.inPackage("platform/vocabulary", "src/change.ts")),
-			legal: importFrom(files.inPackage("renderer", "src/view.ts")).to(files.inPackage("platform/vocabulary", "src/session-events.ts")),
+			legal: importFrom(files.inPackage("renderer", "src/view.ts")).to(files.inPackage("platform/vocabulary", "src/session-events/events.ts")),
 		}),
 ] as const satisfies readonly BoundaryRule[];

@@ -1,6 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
-import { AgentNotFound, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime.ts";
+import { AgentNotFound } from "@antumbra/vocabulary/agent-runtime/missing.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect, Option } from "effect";
 import { AgentSessionConflict } from "#current/errors.ts";
 

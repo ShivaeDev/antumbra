@@ -1,6 +1,7 @@
+import { app } from "#app.ts";
 import { pieces } from "#example/feature.ts";
 import { PieceId, type PieceId as PieceIdentity, VoyageId, type VoyageId as VoyageIdentity } from "#example/ids.ts";
-import { app, testing } from "#testing.ts";
+import { testing } from "#testing/entry.ts";
 
 export const pieceApp = app([pieces]);
 

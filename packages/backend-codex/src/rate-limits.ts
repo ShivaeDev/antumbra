@@ -1,4 +1,6 @@
-import type { AgentEvent, RateLimitWindow, RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { RateLimitWindow } from "@antumbra/vocabulary/session-events/rate-limit.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 
 export const RATE_LIMITS_METHOD = "account/rateLimits/updated";

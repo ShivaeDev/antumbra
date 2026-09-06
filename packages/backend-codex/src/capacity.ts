@@ -1,5 +1,5 @@
 import type { BackendCapacityClassification } from "@antumbra/plugin-api";
-import type { RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 
 const CapacityError = Schema.Struct({

@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeSessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime.ts";
+import { decodeSessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
 import { Effect, Option } from "effect";
 import { announce } from "#current/announce.ts";
 

@@ -1,4 +1,4 @@
-import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events.ts";
+import { HistoricalAgentEvent } from "@antumbra/vocabulary/session-events/historical.ts";
 import { Context, Data, type Effect, Schema, type Stream } from "effect";
 import type { RoleSettings } from "#agent-settings.ts";
 import type { Fleet, ModelChoice, RepoSummary } from "#fleet.ts";

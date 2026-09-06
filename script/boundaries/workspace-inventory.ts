@@ -19,6 +19,14 @@ const packageRoots = (directory: string): readonly string[] =>
 
 const manifestAt = (absolute: string) => Schema.decodeUnknownSync(PackageManifest)(JSON.parse(readFileSync(join(absolute, "package.json"), "utf8")));
 
+const subjectsUnder = (source: string): readonly string[] =>
+	readdirSync(source, { withFileTypes: true }).flatMap((entry) => {
+		if (entry.isDirectory()) {
+			return [entry.name];
+		}
+		return entry.isFile() && SOURCE_FILE.test(entry.name) ? [entry.name.replace(SOURCE_FILE, "")] : [];
+	});
+
 const locations = (root: string, area: "apps" | "packages"): readonly WorkspacePackageLocation[] =>
 	packageRoots(join(root, area)).map((absolute) => ({
 		name: manifestAt(absolute).name.replace(/^@antumbra\//, ""),
@@ -31,8 +39,6 @@ export const collectBoundaryPolicyInventory = (root: string): BoundaryPolicyInve
 	return {
 		applications: locations(root, "apps").map(({ name }) => name),
 		packages,
-		vocabularySubjects: readdirSync(join(root, vocabulary, "src"), { withFileTypes: true })
-			.filter((entry) => entry.isFile() && SOURCE_FILE.test(entry.name))
-			.map((entry) => entry.name.replace(SOURCE_FILE, "")),
+		vocabularySubjects: subjectsUnder(join(root, vocabulary, "src")),
 	};
 };

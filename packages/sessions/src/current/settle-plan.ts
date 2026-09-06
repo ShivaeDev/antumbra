@@ -2,7 +2,7 @@ import {
 	type InvalidSessionExecutionTransition,
 	type SessionExecutionStatus,
 	sessionExecutionTransition,
-} from "@antumbra/vocabulary/agent-runtime.ts";
+} from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
 import { Result } from "effect";
 import type { DecodedSession } from "#current/reconcile-rows.ts";
 

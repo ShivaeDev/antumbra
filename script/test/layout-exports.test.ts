@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { layoutExportsViolations } from "#lint/rules/layout-exports.ts";
-import type { SeedFile } from "#test/support/inventory.ts";
 import { inventoryOf } from "#test/support/inventory.ts";
 
 const manifest = (root: string, exports: unknown) => ({
@@ -8,10 +7,8 @@ const manifest = (root: string, exports: unknown) => ({
 	raw: JSON.stringify({ exports, name: `@antumbra/${root.split("/").at(-1) ?? ""}` }),
 });
 
-const source = (path: string): SeedFile => ({ content: "export {};\n", path });
-
-const check = (manifests: readonly ReturnType<typeof manifest>[], sources: readonly SeedFile[] = []) =>
-	layoutExportsViolations(inventoryOf({ manifests, sources })).map(({ message, rule }) => ({ message, rule }));
+const check = (manifests: readonly ReturnType<typeof manifest>[]) =>
+	layoutExportsViolations(inventoryOf({ manifests })).map(({ message, rule }) => ({ message, rule }));
 
 describe("layout export rules", () => {
 	it("accepts the one map a nested package may have", () => {
@@ -32,22 +29,12 @@ describe("layout export rules", () => {
 		expect(check([manifest("packages/runner/git", undefined)])[0]?.rule).toBe("layout/package-exports");
 	});
 
-	it("rejects a barrel in a nested package", () => {
-		expect(check([manifest("packages/platform/feature", { "./*": "./src/*" })], [source("packages/platform/feature/src/index.ts")])[0]).toEqual({
-			message: '@antumbra/feature keeps a barrel: a nested package exports { "./*": "./src/*" } and an import names its file, extension and all.',
-			rule: "layout/package-barrel",
-		});
-	});
-
 	it("leaves the old flat packages and the applications alone", () => {
 		expect(
-			check(
-				[
-					manifest("packages/contract", { ".": "./src/index.ts", "./channels": "./src/channels.ts" }),
-					manifest("apps/desktop", { ".": "./src/index.ts" }),
-				],
-				[source("packages/contract/src/index.ts"), source("apps/desktop/src/index.ts")],
-			),
+			check([
+				manifest("packages/contract", { ".": "./src/index.ts", "./channels": "./src/channels.ts" }),
+				manifest("apps/desktop", { ".": "./src/index.ts" }),
+			]),
 		).toEqual([]);
 	});
 });

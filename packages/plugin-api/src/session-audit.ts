@@ -1,4 +1,4 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { Effect } from "effect";
 
 export interface NodeAuditRequest {

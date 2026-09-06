@@ -1,4 +1,6 @@
-import type { AgentEvent, Origin, RawPayload } from "@antumbra/vocabulary/session-events.ts";
+import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
+import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { toolIdentity } from "#tool-names.ts";
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;

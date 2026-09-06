@@ -1,5 +1,5 @@
-import { AgentSessionCompletenessSchema, AgentSessionStatusSchema } from "@antumbra/vocabulary/agent-runtime.ts";
-import { SubsessionOutcome } from "@antumbra/vocabulary/session-events.ts";
+import { AgentSessionCompletenessSchema, AgentSessionStatusSchema } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import { SubsessionOutcome } from "@antumbra/vocabulary/session-events/subsessions.ts";
 import { Schema } from "effect";
 
 export const UNNAMED_SUBSESSION = "Unnamed subsession";

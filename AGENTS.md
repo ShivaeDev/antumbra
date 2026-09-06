@@ -10,3 +10,7 @@ style.
 
 For judgment beyond the mechanical gates, follow only the applicable routes in `quality-gates/README.md`. When publishing, follow
 `docs/contributing/pull-requests.md`.
+
+- `pnpm wt new <lane>/<task>` opens the worktree a change is built in; the name must have exactly that shape.
+- `pnpm pr watch <pull request url or number>` prints one JSON line when the pull request needs someone (merged, closed, conflict, changes requested,
+  a failed check once every check has settled, a review or comment) and nothing otherwise; `--until ci` exits with the checks' verdict instead.

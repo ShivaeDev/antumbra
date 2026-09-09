@@ -1,64 +1,62 @@
 import { expect, it } from "@effect/vitest";
 import { Effect, SubscriptionRef } from "effect";
+import type { ReactNode } from "react";
 import { RoleDefaults } from "#defaults.tsx";
-import type { BackendModels } from "#shape.ts";
 import { type Desk, desk } from "#test/desk.ts";
 import { mount, settle, until, write } from "#test/dom.ts";
 import { VoyageRoleSettings } from "#voyage.tsx";
 
 const VOYAGE = "voyage-1";
 
-const backends: readonly BackendModels[] = [
-	{ failure: null, models: [{ efforts: ["low", "high"], id: "opus", isDefault: true, name: "Opus" }], tag: "claude" },
-	{ failure: null, models: [{ efforts: ["medium"], id: "gpt", isDefault: true, name: "GPT" }], tag: "codex" },
-];
-
-const shown = (board: Desk, screen: React.ReactNode) =>
+const shown = (board: Desk, screen: ReactNode) =>
 	Effect.gen(function* () {
 		const { container, root } = yield* mount();
 		yield* settle(() => root.render(<board.glass.Provider>{screen}</board.glass.Provider>));
+		yield* until(() => container.querySelectorAll("form").length > 0);
 		return container;
 	});
 
 const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
 	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
 
-const saving = (container: HTMLElement) =>
-	settle(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Save")?.click());
+const named = (form: HTMLFormElement): string | null | undefined => document.getElementById(form.getAttribute("aria-labelledby") ?? "")?.textContent;
 
-it.live("names every fleet role and offers each backend", () =>
+const saving = (container: HTMLElement, place: number) =>
+	settle(() => [...container.querySelectorAll("form")][place]?.querySelector("button")?.click());
+
+it.live("gives every fleet role its own form", () =>
 	Effect.gen(function* () {
 		const board = desk();
-		const container = yield* shown(board, <RoleDefaults api={board.glass.api} backends={backends} />);
-		yield* until(() => container.querySelectorAll("select").length === 4);
-		expect([...container.querySelectorAll("span.text-xs")].map((span) => span.textContent)).toEqual(["Flagship", "Captain", "Crew", "Smoother"]);
-		expect([...labelled<HTMLSelectElement>(container, "Crew backend").options].map((option) => option.value)).toEqual(["", "claude", "codex"]);
+		const container = yield* shown(board, <RoleDefaults api={board.glass.api} />);
+		yield* until(() => container.querySelectorAll("form").length === 4);
+		expect([...container.querySelectorAll("form")].map(named)).toEqual(["Flagship", "Captain", "Crew", "Smoother"]);
 	}),
 );
 
 it.live("sends one choose at the fleet's scope for the role that moved", () =>
 	Effect.gen(function* () {
 		const board = desk();
-		const container = yield* shown(board, <RoleDefaults api={board.glass.api} backends={backends} />);
-		yield* until(() => container.querySelectorAll("select").length === 4);
-		yield* settle(() => write(labelled<HTMLInputElement>(container, "Flagship model"), "opus"));
-		yield* saving(container);
+		const container = yield* shown(board, <RoleDefaults api={board.glass.api} />);
+		yield* until(() => container.querySelectorAll("form").length === 4);
+		yield* settle(() => write(labelled<HTMLInputElement>(container, "Flagship Model"), "opus"));
+		yield* saving(container, 0);
 		yield* until(() => board.sent.length === 1);
 		expect(board.sent[0]).toMatchObject({ backend: null, effort: null, model: "opus", role: "flagship", scope: "fleet" });
 	}),
 );
 
-it.live("sends the voyage's scope and shows the fleet's default as the placeholder", () =>
+it.live("sends the voyage's scope and shows the fleet's choice as the placeholder", () =>
 	Effect.gen(function* () {
 		const board = desk();
 		yield* SubscriptionRef.set(board.settings, [
 			{ backend: "codex", effort: null, id: "fleet/captain", model: "gpt", role: "captain", scope: "fleet" },
 		]);
-		const container = yield* shown(board, <VoyageRoleSettings api={board.glass.api} backends={backends} voyageId={VOYAGE} />);
-		yield* until(() => container.querySelectorAll("select").length === 2);
-		expect(labelled<HTMLInputElement>(container, "Captain model").placeholder).toBe("gpt");
-		yield* settle(() => write(labelled<HTMLSelectElement>(container, "Crew backend"), "claude"));
-		yield* saving(container);
+		const container = yield* shown(board, <VoyageRoleSettings api={board.glass.api} voyageId={VOYAGE} />);
+		yield* until(() => container.querySelectorAll("form").length === 2);
+		expect(labelled<HTMLInputElement>(container, "Captain Model").placeholder).toBe("gpt");
+		expect([...labelled<HTMLSelectElement>(container, "Captain Backend").options].map((option) => option.text)).toContain("Fleet default (codex)");
+		yield* settle(() => write(labelled<HTMLSelectElement>(container, "Crew Backend"), "claude"));
+		yield* saving(container, 1);
 		yield* until(() => board.sent.length === 1);
 		expect(board.sent[0]).toMatchObject({ backend: "claude", effort: null, model: null, role: "crew", scope: VOYAGE });
 	}),

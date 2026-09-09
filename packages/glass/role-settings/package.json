@@ -28,8 +28,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/atom-form": "workspace:*",
+		"@antumbra/backends": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
 		"@antumbra/role-settings": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",

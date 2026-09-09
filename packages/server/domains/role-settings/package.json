@@ -25,6 +25,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/backends": "workspace:*",
 		"@antumbra/feature": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"effect": "catalog:"

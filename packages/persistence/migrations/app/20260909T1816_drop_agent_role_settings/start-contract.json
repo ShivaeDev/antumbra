@@ -8,6 +8,10 @@
       "model": "Agent",
       "namespace": "__unbound__"
     },
+    "agentRoleSettings": {
+      "model": "AgentRoleSettings",
+      "namespace": "__unbound__"
+    },
     "agentSession": {
       "model": "AgentSession",
       "namespace": "__unbound__"
@@ -316,6 +320,77 @@
               },
               "namespaceId": "__unbound__",
               "table": "agent"
+            }
+          },
+          "AgentRoleSettings": {
+            "fields": {
+              "backend": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "effort": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "model": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "scope": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "backend": {
+                  "column": "backend"
+                },
+                "effort": {
+                  "column": "effort"
+                },
+                "model": {
+                  "column": "model"
+                },
+                "role": {
+                  "column": "role"
+                },
+                "scope": {
+                  "column": "scope"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "agentRoleSettings"
             }
           },
           "AgentSession": {
@@ -3993,6 +4068,53 @@
                 }
               ]
             },
+            "agentRoleSettings": {
+              "columns": {
+                "backend": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "effort": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "model": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "role": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "scope": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "scope",
+                  "role"
+                ]
+              },
+              "uniques": []
+            },
             "agentSession": {
               "columns": {
                 "agentId": {
@@ -6565,7 +6687,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:5d6146a18f9af3fe740f531ea91953d29545842256aa68e607938b45dd2246b7"
+    "storageHash": "sha256:54379f1480902cc6664dca557e57a0b8515bb0371a7634858021e0914652618e"
   },
   "capabilities": {
     "sql": {

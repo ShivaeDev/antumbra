@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:5d6146a18f9af3fe740f531ea91953d29545842256aa68e607938b45dd2246b7'>;
+  StorageHashBase<'sha256:54379f1480902cc6664dca557e57a0b8515bb0371a7634858021e0914652618e'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -37,6 +37,14 @@ export type FieldOutputTypes = {
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly currentSessionId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly AgentRoleSettings: {
+      readonly scope: CodecTypes['sqlite/text@1']['output'];
+      readonly role: CodecTypes['sqlite/text@1']['output'];
+      readonly backend: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly model: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly effort: CodecTypes['sqlite/text@1']['output'] | null;
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly AgentSession: {
@@ -373,6 +381,14 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
+    readonly AgentRoleSettings: {
+      readonly scope: CodecTypes['sqlite/text@1']['input'];
+      readonly role: CodecTypes['sqlite/text@1']['input'];
+      readonly backend: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly model: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly effort: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
     readonly AgentSession: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
@@ -707,6 +723,14 @@ export type StorageColumnTypes = {
       readonly status: CodecTypes['sqlite/text@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
+    readonly agentRoleSettings: {
+      readonly backend: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly effort: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly model: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly role: CodecTypes['sqlite/text@1']['output'];
+      readonly scope: CodecTypes['sqlite/text@1']['output'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
     readonly agentSession: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
       readonly backend: CodecTypes['sqlite/text@1']['output'];
@@ -1039,6 +1063,14 @@ export type StorageColumnInputTypes = {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly role: CodecTypes['sqlite/text@1']['input'];
       readonly status: CodecTypes['sqlite/text@1']['input'];
+      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly agentRoleSettings: {
+      readonly backend: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly effort: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly model: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly role: CodecTypes['sqlite/text@1']['input'];
+      readonly scope: CodecTypes['sqlite/text@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
     readonly agentSession: {
@@ -1424,6 +1456,45 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [{ readonly columns: readonly ['currentSessionId'] }];
               indexes: readonly [{ readonly columns: readonly ['status'] }];
+              foreignKeys: readonly [];
+            };
+            readonly agentRoleSettings: {
+              columns: {
+                readonly scope: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly role: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly backend: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly model: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly effort: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['scope', 'role'] };
+              uniques: readonly [];
+              indexes: readonly [];
               foreignKeys: readonly [];
             };
             readonly agentSession: {
@@ -3541,6 +3612,10 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'Setting';
     };
+    readonly agentRoleSettings: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'AgentRoleSettings';
+    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -3644,6 +3719,47 @@ type ContractBase = Omit<
                 readonly status: { readonly column: 'status' };
                 readonly currentSessionId: { readonly column: 'currentSessionId' };
                 readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly AgentRoleSettings: {
+            readonly fields: {
+              readonly scope: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly role: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly backend: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly model: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly effort: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'agentRoleSettings';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly scope: { readonly column: 'scope' };
+                readonly role: { readonly column: 'role' };
+                readonly backend: { readonly column: 'backend' };
+                readonly model: { readonly column: 'model' };
+                readonly effort: { readonly column: 'effort' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
             };

@@ -485,14 +485,3 @@ model Setting {
   value     String
   updatedAt DateTime @default(now())
 }
-
-model AgentRoleSettings {
-  scope     String
-  role      String
-  backend   String?
-  model     String?
-  effort    String?
-  updatedAt DateTime @default(now())
-
-  @@id([scope, role])
-}

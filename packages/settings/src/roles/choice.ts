@@ -1,3 +1,5 @@
+import type { AgentRole } from "@antumbra/vocabulary/agent-role.ts";
+
 export const FLEET_SCOPE = "fleet";
 
 export interface AgentSettingsChoice {
@@ -7,6 +9,15 @@ export interface AgentSettingsChoice {
 }
 
 export const UNCHOSEN: AgentSettingsChoice = { backend: null, effort: null, model: null };
+
+export interface RoleDefault extends AgentSettingsChoice {
+	readonly role: AgentRole;
+}
+
+export interface VoyageAgentSettings {
+	readonly captain: AgentSettingsChoice;
+	readonly crew: AgentSettingsChoice;
+}
 
 export interface ResolvedAgentSettings {
 	readonly backend: string;

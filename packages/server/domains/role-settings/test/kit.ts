@@ -1,0 +1,15 @@
+import { app } from "@antumbra/journal/app.ts";
+import { testing } from "@antumbra/journal/testing/entry.ts";
+import { Effect, Option, Stream } from "effect";
+import { roleSettings } from "#feature.ts";
+
+export const roleSettingsApp = app([roleSettings]);
+
+export const it = testing(roleSettingsApp);
+
+export const reef = "voyage-reef";
+
+export const shallows = "voyage-shallows";
+
+export const answered = <Value, Failure>(stream: Stream.Stream<Value, Failure>): Effect.Effect<Value, Failure> =>
+	Effect.map(Stream.runHead(stream), Option.getOrThrow);

@@ -21,7 +21,6 @@ import { SessionTreeRows } from "@antumbra/sessions/tree/rows/service";
 import { SessionTrees } from "@antumbra/sessions/tree/service";
 import { SessionTreeSweeps } from "@antumbra/sessions/tree/sweeps/service";
 import { SessionTurnRests } from "@antumbra/sessions/turn-rest/service";
-import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Layer } from "effect";
@@ -62,7 +61,7 @@ export const domainCapabilities = (
 		SessionRetirement.layer,
 		SessionRestart.layer,
 		sessionReachLayer,
-	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(RoleSettings.layer), Layer.provideMerge(DomainFeedsLive));
+	).pipe(Layer.provideMerge(Voyages.layer), Layer.provideMerge(DomainFeedsLive));
 	const changes = changesLayer(changeHosts, runners).pipe(Layer.provideMerge(foundations));
 	const world = Layer.mergeAll(VoyageSummaries.layer, ExecutionSource.layer, Quay.layer, VoyageDetails.layer).pipe(Layer.provideMerge(changes));
 	return Layer.mergeAll(SmootherLifecycle.layer, AgentBirth.layer, RulingReplies.layer, CaptainMembershipLive, VoyageProcedureService.layer).pipe(

@@ -25,6 +25,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/repos": "workspace:*",
+		"@antumbra/settings": "workspace:*",
 		"@antumbra/vocabulary": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"effect": "catalog:"

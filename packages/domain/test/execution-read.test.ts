@@ -3,7 +3,8 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { RulingsLive } from "@antumbra/rulings";
-import { RoleSettings, SettingsSourceLive } from "@antumbra/settings";
+import { SettingsSourceLive } from "@antumbra/settings";
+import { scriptedRoleSettings } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -21,7 +22,7 @@ const layer = ExecutionSource.layer.pipe(
 	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(Voyages.layer),
 	Layer.provideMerge(RulingsLive),
-	Layer.provideMerge(RoleSettings.layer),
+	Layer.provideMerge(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),
 	Layer.provideMerge(SettingsSourceLive),
 );

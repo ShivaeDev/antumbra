@@ -5,6 +5,7 @@ import type { AgentBackend } from "@antumbra/plugin-api";
 import { BackendCapacities, type BackendCapacityReading, type BackendCapacityService } from "@antumbra/provider-capacity";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
 import { SettingsSourceLive } from "@antumbra/settings";
+import { scriptedRoleSettings } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { type Context, Effect, Layer, Ref, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
@@ -86,7 +87,12 @@ export const templateDomainLayer = (temporary: TemporaryPersistence, backend: Ag
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(SettingsSourceLive), Layer.provideMerge(temporary.layer));
+	).pipe(
+		Layer.provide(NodeServices.layer),
+		Layer.provideMerge(scriptedRoleSettings),
+		Layer.provideMerge(SettingsSourceLive),
+		Layer.provideMerge(temporary.layer),
+	);
 
 export const withReleaseDomain = (
 	temporary: TemporaryPersistence,

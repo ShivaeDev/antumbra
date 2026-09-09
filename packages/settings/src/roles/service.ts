@@ -1,21 +1,13 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
-import { Effect } from "effect";
-import { changeRoleDefault, changeVoyageRole } from "#roles/change.ts";
-import { readRoleDefaults, readVoyageSettings, resolveRoleSettings } from "#roles/read.ts";
+import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
+import { Context, type Effect } from "effect";
+import type { AgentSettingsChoice, ResolvedAgentSettings, RoleDefault, VoyageAgentSettings } from "#roles/choice.ts";
 
-export const RoleSettings = defineService({
-	id: "@antumbra/settings/RoleSettings",
-	initialize: Effect.void,
-	methods: () => ({
-		changeDefault: changeRoleDefault,
-		changeForVoyage: changeVoyageRole,
-		defaults: readRoleDefaults,
-		forVoyages: readVoyageSettings,
-		resolve: resolveRoleSettings,
-	}),
-	requires: [Database, DomainFeeds],
-});
+export interface RoleSettingsService {
+	readonly changeDefault: (role: AgentRole, choice: AgentSettingsChoice) => Effect.Effect<void>;
+	readonly changeForVoyage: (voyageId: string, role: VoyageAgentRole, choice: AgentSettingsChoice) => Effect.Effect<void>;
+	readonly defaults: () => Effect.Effect<ReadonlyArray<RoleDefault>>;
+	readonly forVoyages: (voyageIds: ReadonlyArray<string>) => Effect.Effect<ReadonlyMap<string, VoyageAgentSettings>>;
+	readonly resolve: (voyageId: string | null, role: AgentRole) => Effect.Effect<ResolvedAgentSettings>;
+}
 
-export const RoleSettingsLive = RoleSettings.layer;
+export class RoleSettings extends Context.Service<RoleSettings, RoleSettingsService>()("@antumbra/settings/RoleSettings") {}

@@ -42,7 +42,7 @@ describe("CI test shards", () => {
 		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
 		expect(workspacePackageNames).toContain("renderer");
 		expect(workspacePackageNames).toContain("platform/vocabulary");
-		expect(workspacePackageNames).toContain("runner/git");
+		expect(workspacePackageNames).toContain("git");
 		expect(workspacePackageNames).toContain("glass/role-settings");
 		expect(workspacePackageNames).toContain("server/domains/role-settings");
 		expect(workspacePackageNames).not.toContain("platform");

@@ -1,7 +1,11 @@
 import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { roleSettings } from "@antumbra/role-settings/feature.ts";
+import { client } from "@antumbra/rpc/client.ts";
 import { serialization } from "@antumbra/rpc/serialization.ts";
+import { ClientToken, Unauthorized } from "@antumbra/rpc/token.ts";
+import { transport } from "@antumbra/rpc/transport.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
@@ -54,6 +58,30 @@ it.live("answers the protocol's ping over the websocket it serves on the port it
 		const { port } = yield* listening(dataDirectory());
 		const answered = yield* Effect.provide(pong, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), serialization));
 		expect(answered).toEqual([RpcMessage.constPong]);
+	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+);
+
+const reaching = (port: number, token: string) =>
+	Effect.provide(
+		client([roleSettings]),
+		Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token }))),
+	);
+
+it.live("refuses a live query that presents the wrong token", () =>
+	Effect.gen(function* () {
+		const { port } = yield* listening(dataDirectory());
+		const reach = yield* reaching(port, "not-the-token-it-was-given");
+		const refusal = yield* Effect.flip(Stream.runHead(reach.roleSettings.defaults({})));
+		expect(refusal).toBeInstanceOf(Unauthorized);
+	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+);
+
+it.live("answers the fleet's role settings to a client that presents the token it was given", () =>
+	Effect.gen(function* () {
+		const { port } = yield* listening(dataDirectory());
+		const reach = yield* reaching(port, TOKEN);
+		const answered = yield* Stream.runHead(reach.roleSettings.defaults({}));
+		expect(answered).toEqual(Option.some([]));
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 

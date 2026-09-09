@@ -61,17 +61,19 @@ it.live("answers the protocol's ping over the websocket it serves on the port it
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 
-const reaching = (port: number, token: string) =>
+const dialing = (port: number, token: string) =>
+	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token })));
+
+const fleetDefaults = (port: number, token: string) =>
 	Effect.provide(
-		client([roleSettings]),
-		Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token }))),
+		Effect.flatMap(client([roleSettings]), (reach) => Stream.runHead(reach.roleSettings.defaults({}))),
+		dialing(port, token),
 	);
 
 it.live("refuses a live query that presents the wrong token", () =>
 	Effect.gen(function* () {
 		const { port } = yield* listening(dataDirectory());
-		const reach = yield* reaching(port, "not-the-token-it-was-given");
-		const refusal = yield* Effect.flip(Stream.runHead(reach.roleSettings.defaults({})));
+		const refusal = yield* Effect.flip(fleetDefaults(port, "not-the-token-it-was-given"));
 		expect(refusal).toBeInstanceOf(Unauthorized);
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
@@ -79,9 +81,7 @@ it.live("refuses a live query that presents the wrong token", () =>
 it.live("answers the fleet's role settings to a client that presents the token it was given", () =>
 	Effect.gen(function* () {
 		const { port } = yield* listening(dataDirectory());
-		const reach = yield* reaching(port, TOKEN);
-		const answered = yield* Stream.runHead(reach.roleSettings.defaults({}));
-		expect(answered).toEqual(Option.some([]));
+		expect(yield* fleetDefaults(port, TOKEN)).toEqual(Option.some([]));
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 

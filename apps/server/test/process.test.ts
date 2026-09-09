@@ -81,7 +81,8 @@ it.live("refuses a live query that presents the wrong token", () =>
 it.live("answers the fleet's role settings to a client that presents the token it was given", () =>
 	Effect.gen(function* () {
 		const { port } = yield* listening(dataDirectory());
-		expect(yield* fleetDefaults(port, TOKEN)).toEqual(Option.some([]));
+		const answered = yield* fleetDefaults(port, TOKEN);
+		expect(Option.map(answered, (rows) => rows.map((row) => row.role))).toEqual(Option.some(["flagship", "captain", "crew", "smoother"]));
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 

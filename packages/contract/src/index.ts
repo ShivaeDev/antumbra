@@ -10,8 +10,10 @@ export { ChangeView } from "#change-views.ts";
 export {
 	type AntumbraBridge,
 	type BridgeRequest,
+	type BridgeServing,
 	type BridgeSubscribeRequest,
 	OPEN_EXTERNAL_CHANNEL,
+	SERVER_CHANNEL,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,

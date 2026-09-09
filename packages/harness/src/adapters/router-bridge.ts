@@ -52,6 +52,7 @@ export const makeBrowserBridge = (router: AppRouter): AntumbraBridge => ({
 	openExternal: (url) => {
 		window.open(url, "_blank", "noopener,noreferrer");
 	},
+	server: () => Promise.reject(new Error("the harness runs no antumbra server")),
 	subscribe: (request, onMessage) => {
 		const controller = new AbortController();
 		void openFeed(router, request, onMessage, controller.signal);

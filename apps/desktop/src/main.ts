@@ -11,7 +11,8 @@ import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
 import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
-import { ServerProcessLive } from "#adapters/server-process.ts";
+import { registerServerBridge } from "#adapters/server-bridge.ts";
+import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -65,6 +66,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 			);
 			yield* whenReady;
 			yield* Effect.sync(() => {
+				registerServerBridge(shell.registry, () => runtime.runPromise(ServerProcess.use(({ serving }) => serving)));
 				registerTrpcBridge(router, shell.registry);
 				registerTrpcSubscriptions(router, shell.registry);
 				registerOpenExternal();

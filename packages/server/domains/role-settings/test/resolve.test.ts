@@ -36,10 +36,6 @@ it.app("keeps each voyage's settings to itself and the flagship's to the fleet",
 	expect(yield* answered(roles.resolve({ role: "captain", voyageId: shallows }))).toEqual({ backend: FIRST_BACKEND, effort: null, model: null });
 	expect(yield* answered(roles.forVoyage({ voyageId: reef }))).toEqual([
 		{ backend: "claude", effort: null, id: `${reef}/captain`, model: null, role: "captain", scope: reef },
-		{ backend: null, effort: null, id: `${reef}/crew`, model: null, role: "crew", scope: reef },
 	]);
-	expect(yield* answered(roles.forVoyage({ voyageId: shallows }))).toEqual([
-		{ backend: null, effort: null, id: `${shallows}/captain`, model: null, role: "captain", scope: shallows },
-		{ backend: null, effort: null, id: `${shallows}/crew`, model: null, role: "crew", scope: shallows },
-	]);
+	expect(yield* answered(roles.forVoyage({ voyageId: shallows }))).toEqual([]);
 });

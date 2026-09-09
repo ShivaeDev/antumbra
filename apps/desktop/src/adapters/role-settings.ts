@@ -12,7 +12,7 @@ import {
 	UNCHOSEN_AGENT_SETTINGS,
 	type VoyageAgentSettings,
 } from "@antumbra/settings";
-import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
+import { AGENT_ROLES, type AgentRole, type VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { type Context, Effect, Layer, Option, Stream } from "effect";
 import { ServerProcess, type Serving } from "#adapters/server-process.ts";
@@ -38,10 +38,16 @@ const once = <Value, Failure>(stream: Stream.Stream<Value, Failure>): Effect.Eff
 
 const choiceOf = (stored: Stored): AgentSettingsChoice => ({ backend: stored.backend, effort: stored.effort, model: stored.model });
 
-const settlingOf = (stored: ReadonlyArray<Stored>, role: VoyageAgentRole): AgentSettingsChoice => {
-	const found = stored.find((candidate) => candidate.role === role);
-	return found === undefined ? UNCHOSEN_AGENT_SETTINGS : choiceOf(found);
+const chosenAt = (stored: ReadonlyArray<Stored>, role: AgentRole): AgentSettingsChoice => {
+	for (const candidate of stored) {
+		if (candidate.role === role) {
+			return choiceOf(candidate);
+		}
+	}
+	return UNCHOSEN_AGENT_SETTINGS;
 };
+
+const namingEveryRole = (stored: ReadonlyArray<Stored>) => AGENT_ROLES.map((role) => ({ ...chosenAt(stored, role), role }));
 
 const resolvedOf = (answer: { readonly backend: string; readonly effort: string | null; readonly model: string | null }): ResolvedAgentSettings => ({
 	backend: answer.backend,
@@ -50,8 +56,8 @@ const resolvedOf = (answer: { readonly backend: string; readonly effort: string 
 });
 
 const voyageOf = (stored: ReadonlyArray<Stored>): VoyageAgentSettings => ({
-	captain: settlingOf(stored, "captain"),
-	crew: settlingOf(stored, "crew"),
+	captain: chosenAt(stored, "captain"),
+	crew: chosenAt(stored, "crew"),
 });
 
 export const roleSettingsOver = <Failure>(reach: Reach<Failure>, feeds: Feeds): RoleSettingsService => ({
@@ -59,7 +65,7 @@ export const roleSettingsOver = <Failure>(reach: Reach<Failure>, feeds: Feeds): 
 		Effect.orDie(reach.roleSettings.choose({ ...choice, role, scope: FLEET })).pipe(Effect.andThen(feeds.publishFleetRefresh())),
 	changeForVoyage: (voyageId: string, role: VoyageAgentRole, choice: AgentSettingsChoice) =>
 		Effect.orDie(reach.roleSettings.choose({ ...choice, role, scope: voyageId })).pipe(Effect.andThen(feeds.publishVoyageRefresh())),
-	defaults: () => Effect.map(once(reach.roleSettings.defaults({})), (stored) => stored.map((row) => ({ ...choiceOf(row), role: row.role }))),
+	defaults: () => Effect.map(once(reach.roleSettings.defaults({})), namingEveryRole),
 	forVoyages: (voyageIds: ReadonlyArray<string>) =>
 		Effect.map(
 			Effect.forEach(voyageIds, (voyageId) =>

@@ -7,24 +7,32 @@ import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
 import type { RpcClientError } from "effect/unstable/rpc/RpcClientError";
 import { createElement, type ReactNode } from "react";
 import { dialing, type Reach } from "#serving.ts";
-import { deferred } from "#wire.ts";
+import { deferred, queriesOf } from "#wire.ts";
+import { type Wiring, WiringContext, wiringOf } from "#wiring.ts";
 
 export interface Glass<Features extends readonly FeatureShape[]> {
 	readonly api: Api<Features, RpcClientError>;
 	readonly Provider: (props: { readonly children?: ReactNode }) => ReactNode;
 	readonly registry: AtomRegistry.AtomRegistry;
+	readonly wiring: Wiring;
 }
 
 export type Built<Features extends readonly FeatureShape[]> = Effect.Effect<Api<Features, RpcClientError>, never, Scope.Scope>;
+
+const around = (registry: AtomRegistry.AtomRegistry, wiring: Wiring, children: ReactNode): ReactNode =>
+	createElement(RegistryContext.Provider, { value: registry }, createElement(WiringContext.Provider, { value: wiring }, children));
 
 export function served<const Features extends readonly FeatureShape[]>(features: Features, built: Built<Features>): Glass<Features>;
 export function served(features: readonly FeatureShape[], built: Effect.Effect<unknown, never, Scope.Scope>): unknown {
 	const registry = AtomRegistry.make({ defaultIdleTTL: 400, scheduleTask });
 	const wire = AtomRegistry.getResult(registry, Atom.keepAlive(Atom.make(built)));
+	const api = deferred(features, wire);
+	const wiring = wiringOf(queriesOf(features, api));
 	return {
-		api: deferred(features, wire),
-		Provider: (props: { readonly children?: ReactNode }) => createElement(RegistryContext.Provider, { value: registry }, props.children),
+		api,
+		Provider: (props: { readonly children?: ReactNode }) => around(registry, wiring, props.children),
 		registry,
+		wiring,
 	};
 }
 

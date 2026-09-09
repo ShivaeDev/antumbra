@@ -8,7 +8,7 @@ import { mount, settle, until } from "#test/dom.ts";
 
 type Api = Desk["glass"]["api"];
 
-type Choose = Api["roleSettings"]["choose"];
+type Choose = (input: Parameters<Api["roleSettings"]["choose"]>[0]) => ReturnType<Api["roleSettings"]["choose"]>;
 
 const Defaults = (props: { readonly api: Api }) => {
 	const rows = useLive(props.api.roleSettings.defaults, {});

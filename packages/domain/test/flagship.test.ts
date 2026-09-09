@@ -4,7 +4,7 @@ import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
-import { RoleSettings } from "@antumbra/settings";
+import { scriptedRoleSettings } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
@@ -19,7 +19,7 @@ const summaryLayer = VoyageSummaries.layer.pipe(
 			Layer.provideMerge(Voyages.layer),
 			Layer.provideMerge(ReposLive),
 			Layer.provideMerge(RulingsLive),
-			Layer.provideMerge(RoleSettings.layer),
+			Layer.provideMerge(scriptedRoleSettings),
 			Layer.provideMerge(DomainFeedsLive),
 		),
 	),

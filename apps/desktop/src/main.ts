@@ -1,5 +1,6 @@
 import { makeAppRouter } from "@antumbra/contract";
 import { drainActiveSessions, honorRestartIntent, SessionRestart } from "@antumbra/domain";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
@@ -8,6 +9,7 @@ import { AppLifecycleSourceLive } from "#adapters/app-lifecycle.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
+import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
 import { ServerProcessLive } from "#adapters/server-process.ts";
 import {
@@ -38,18 +40,22 @@ const layoutStore = Effect.provide(
 	NodeServices.layer,
 );
 
+const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
+	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
+	const roleSettings = RoleSettingsOverRpc.pipe(Layer.provide(serverProcess), Layer.provide(DomainFeedsLive));
+	return Layer.mergeAll(
+		AppInfoSourceLive,
+		WindowSourceLive(shell),
+		devTracing(),
+		serverProcess,
+		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provide(applicationLayers(), roleSettings)))),
+	);
+};
+
 const startOwner = (shell: WindowShell, store: LayoutStore) =>
 	Effect.gen(function* () {
 		const restarting = yield* Ref.make(false);
-		const runtime = ManagedRuntime.make(
-			Layer.mergeAll(
-				AppInfoSourceLive,
-				WindowSourceLive(shell),
-				devTracing(),
-				Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer),
-				AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(applicationLayers()))),
-			),
-		);
+		const runtime = ManagedRuntime.make(ownerLayers(shell, restarting));
 		const router = makeAppRouter(runtime);
 		const main = Effect.gen(function* () {
 			yield* drainBeforeQuit(

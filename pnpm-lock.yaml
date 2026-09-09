@@ -248,12 +248,18 @@ importers:
       '@antumbra/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@antumbra/domain-feeds':
+        specifier: workspace:*
+        version: link:../../packages/domain-feeds
       '@antumbra/github':
         specifier: workspace:*
         version: link:../../packages/github
       '@antumbra/intent-demand':
         specifier: workspace:*
         version: link:../../packages/intent-demand
+      '@antumbra/journal':
+        specifier: workspace:*
+        version: link:../../packages/server/journal
       '@antumbra/kernel':
         specifier: workspace:*
         version: link:../../packages/kernel
@@ -266,12 +272,21 @@ importers:
       '@antumbra/renderer':
         specifier: workspace:*
         version: link:../../packages/renderer
+      '@antumbra/role-settings':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/role-settings
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../packages/platform/rpc
       '@antumbra/runner-local':
         specifier: workspace:*
         version: link:../../packages/runner-local
       '@antumbra/server':
         specifier: workspace:*
         version: link:../server
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../../packages/settings
       '@antumbra/skills':
         specifier: workspace:*
         version: link:../../packages/platform/skills
@@ -281,6 +296,9 @@ importers:
       '@antumbra/trace-sink':
         specifier: workspace:*
         version: link:../../packages/platform/trace-sink
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../../packages/platform/vocabulary
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
@@ -332,6 +350,9 @@ importers:
       '@antumbra/journal':
         specifier: workspace:*
         version: link:../../packages/server/journal
+      '@antumbra/role-settings':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/role-settings
       '@antumbra/rpc':
         specifier: workspace:*
         version: link:../../packages/platform/rpc
@@ -1557,6 +1578,40 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/server/domains/role-settings:
+    dependencies:
+      '@antumbra/feature':
+        specifier: workspace:*
+        version: link:../../../platform/feature
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../../../platform/vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
+      '@antumbra/journal':
+        specifier: workspace:*
+        version: link:../../journal
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../../platform/rpc
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/server/journal:
     dependencies:
       '@antumbra/feature':
@@ -1762,15 +1817,9 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
-      '@antumbra/domain-feeds':
-        specifier: workspace:*
-        version: link:../domain-feeds
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
-      '@antumbra/service-definition':
-        specifier: workspace:*
-        version: link:../platform/service-definition
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -1869,6 +1918,9 @@ importers:
       '@antumbra/repos':
         specifier: workspace:*
         version: link:../repos
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../settings
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary

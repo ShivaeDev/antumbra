@@ -1448,6 +1448,9 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
+      '@antumbra/glass-role-settings':
+        specifier: workspace:*
+        version: link:../glass/role-settings
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary

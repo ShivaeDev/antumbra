@@ -1,6 +1,8 @@
 import { type Fleet, SETTING_KEYS, type SettingsReading } from "@antumbra/contract";
+import { RoleDefaults } from "@antumbra/glass-role-settings/defaults.tsx";
+import { glass } from "#adapters/glass.ts";
+import { useBackendCatalogs } from "#hooks/backend-catalogs.ts";
 import { RestartControl } from "#views/restart-control.tsx";
-import { RoleDefaults } from "#views/role-defaults.tsx";
 import { SettingRow } from "#views/setting-row.tsx";
 
 export const SettingsPanel = ({
@@ -14,6 +16,7 @@ export const SettingsPanel = ({
 	readonly onSettings: (settings: SettingsReading) => void;
 	readonly settings: SettingsReading | undefined;
 }) => {
+	const backends = useBackendCatalogs(fleet?.backends ?? []);
 	return (
 		<section className="flex max-w-2xl flex-1 flex-col gap-6 overflow-y-auto p-8">
 			<header>
@@ -22,7 +25,7 @@ export const SettingsPanel = ({
 					Changes take effect on the next pass of the work they govern. Running sessions are not interrupted.
 				</p>
 			</header>
-			<RoleDefaults backends={fleet?.backends ?? []} defaults={fleet?.roleSettings ?? []} />
+			<RoleDefaults api={glass.api} backends={backends} />
 			{settings === undefined ? (
 				<p className="text-xs text-muted-foreground">Reading settings…</p>
 			) : (

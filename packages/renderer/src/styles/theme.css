@@ -11,4 +11,5 @@
 @import "./motion.css";
 
 @source "../";
+@source "../../../glass/role-settings/src";
 @source "../../index.html";

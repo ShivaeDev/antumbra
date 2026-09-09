@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@antumbra/feature": "workspace:*",
 		"@antumbra/journal": "workspace:*",
+		"@antumbra/role-settings": "workspace:*",
 		"@antumbra/rpc": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:"

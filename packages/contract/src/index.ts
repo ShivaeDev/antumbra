@@ -115,7 +115,6 @@ export {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
-	VoyageAgentSettingsRequest,
 } from "#voyage-requests.ts";
 export {
 	BoardEntryView,

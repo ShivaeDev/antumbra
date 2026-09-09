@@ -5,7 +5,6 @@ import type {
 	OpenVoyageRequest,
 	ReportMarkdown,
 	RewireRequest,
-	VoyageAgentSettingsRequest,
 	VoyageSummary,
 	VoyageView,
 } from "@antumbra/contract";
@@ -58,13 +57,6 @@ export const openVoyage = Effect.fn("Renderer.openVoyage")((request: OpenVoyageR
 
 export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
-
-export const setAgentSettings = Effect.fn("Renderer.setAgentSettings")((request: VoyageAgentSettingsRequest) =>
-	Effect.tryPromise({
-		try: () => client.setAgentSettings.mutate(request),
-		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
-	}),
-);
 
 export const hailCaptain = (voyageId: string, onError: OnError): void => fired(client.hailCaptain.mutate({ voyageId }), onError);
 

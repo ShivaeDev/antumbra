@@ -25,6 +25,9 @@ something updates this file in the same change. A status here is one of three wo
   stamps the fact once from the clock. A command re-issued with an id already done is rejected as already done, which is what makes a retry safe.
 - **Nothing new is flat.** New packages land under the layout below; the flat packages under `packages/` are the old code and stay flat until their
   feature moves and deletes them.
+- **A screen names a command; the form derives from the command's schema, which declares every value a field can take.** A field's title, the values
+  it may take, and the query its choices come from are annotations on the command's input, so a screen holds only what only it knows: the row it
+  edits, the fields that identify it, and the placeholder text.
 - **A move states its carry-over.** A feature's pull request says whether the data it already stored carries over and how. The pilot carries nothing
   over: the admiral re-enters the role settings.
 
@@ -45,7 +48,7 @@ packages/
     vocabulary/  feature/  service-definition/  trace-sink/  prompts/  skills/  rpc/  testing/
   server/
     journal/        the kit: commit, materializers, live query, DDL from Schema classes, rebuild, fact migrations
-    domains/        role-settings/  settings/  voyages/  pieces/  boards/  rulings/  repos/  changes/  artifacts/  reports/  sessions/  inputs/  reclamation/  capacity/
+    domains/        role-settings/  backends/  settings/  voyages/  pieces/  boards/  rulings/  repos/  changes/  artifacts/  reports/  sessions/  inputs/  reclamation/  capacity/
     edges/          github/
   runner/
     fabric/         sessions, drain, the runner log
@@ -125,6 +128,7 @@ Where each package goes. A package "stays" when its job is unchanged by the move
 | `domain-feeds`                                                                       | reactivity keys, marked dirty by the commit                                                  | not started |
 | `resource-reclamation`                                                               | a reconciler over rows plus acts on the runner                                               | not started |
 | `settings`                                                                           | domains; role settings are `packages/server/domains/role-settings`                           | in progress |
+| the backends' model catalogue (`domain`, `plugin-api`)                               | a domain the shell reports into: `packages/server/domains/backends`                          | in progress |
 | `changes`, `repos`, `voyages`, `pieces`, `boards`, `rulings`, `artifacts`, `reports` | domains: Schema classes, facts, projections, commands                                        | not started |
 | `session-fabric`                                                                     | the runner                                                                                   | not started |
 | `sessions`                                                                           | a projection over the runner's log                                                           | not started |

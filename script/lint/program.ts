@@ -8,6 +8,7 @@ import { layoutDomainImportViolations } from "#lint/rules/layout-domain-imports.
 import { layoutExportsViolations } from "#lint/rules/layout-exports.ts";
 import { layoutFeatureFolderViolations } from "#lint/rules/layout-feature-folders.ts";
 import { layoutNodeViolations } from "#lint/rules/layout-node.ts";
+import { layoutTestsViolations } from "#lint/rules/layout-tests.ts";
 import { manifestViolations } from "#lint/rules/manifests.ts";
 import { nestingViolations } from "#lint/rules/nesting.ts";
 import { pragmaViolations } from "#lint/rules/pragmas.ts";
@@ -27,6 +28,7 @@ export const lint = (inventory: Inventory): Effect.Effect<readonly Violation[]> 
 				Effect.sync(() => layoutFeatureFolderViolations(inventory)),
 				Effect.sync(() => layoutDomainImportViolations(inventory)),
 				Effect.sync(() => layoutNodeViolations(inventory)),
+				Effect.sync(() => layoutTestsViolations(inventory)),
 				Effect.sync(() => nestingViolations(inventory)),
 				Effect.sync(() => commentViolations(inventory)),
 				Effect.sync(() => pragmaViolations(inventory)),

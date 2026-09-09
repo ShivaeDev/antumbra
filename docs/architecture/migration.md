@@ -70,6 +70,9 @@ lives under `src` and is named the same way. A flat package keeps the map it has
 A package outside `apps/` cannot reach the machine: no process, file, network or socket module and no Node platform layer, the two named SQLite owners
 excepted; a third lint rule holds it.
 
+A test never reaches for a process it does not own: no test file kills or scans processes by pid, and a test outside `apps/` and the flat packages
+never spawns, `service-definition` excepted so its compiler fixtures can run `tsc` on a temp directory; a fourth lint rule holds it.
+
 ## The order
 
 | step | what                                                                                                                                                                                                                                                                                                                                                                    | status      |

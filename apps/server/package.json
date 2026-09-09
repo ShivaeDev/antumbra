@@ -23,6 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/backends": "workspace:*",
 		"@antumbra/feature": "workspace:*",
 		"@antumbra/journal": "workspace:*",
 		"@antumbra/role-settings": "workspace:*",

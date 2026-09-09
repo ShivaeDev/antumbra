@@ -10,7 +10,7 @@ export interface Allowance {
 	readonly group: string;
 }
 
-const CONTRACT_ENTRY = "and another group's contract entry";
+const DOMAIN_FILES = "and a server domain's files";
 
 const PROCESS_ROLES: Readonly<Record<string, readonly string[]>> = {
 	runner: ["backends", "fabric", "git", "ports", "tools"],
@@ -46,7 +46,7 @@ const withinGroup = (from: Placement, to: Placement): boolean => {
 	return !RESTRICTED_ROLES.has(from.role);
 };
 
-export const mayImport = (from: Placement, to: Placement, contractEntry: boolean): boolean => {
+export const mayImport = (from: Placement, to: Placement): boolean => {
 	if (from.group === "app" || to.group === "platform") {
 		return true;
 	}
@@ -59,7 +59,10 @@ export const mayImport = (from: Placement, to: Placement, contractEntry: boolean
 	if (to.group === "old") {
 		return false;
 	}
-	return from.group === to.group ? withinGroup(from, to) : contractEntry;
+	if (from.group === to.group) {
+		return withinGroup(from, to);
+	}
+	return from.group === "glass" && to.group === "server" && to.role === "domains";
 };
 
 const roleLabel = ({ group, role }: Placement): string => `${group} ${role === "edges" ? "edge" : role}`;
@@ -74,11 +77,14 @@ export const allowanceOf = (placement: Placement): Allowance => {
 	if (placement.group === "old") {
 		return { allowed: "old and platform", group: "old" };
 	}
+	if (placement.group === "glass") {
+		return { allowed: `platform, glass, ${DOMAIN_FILES}`, group: "glass" };
+	}
 	if (placement.role === "backends") {
-		return { allowed: `platform, the runner's ports, ${CONTRACT_ENTRY}`, group: "runner backend" };
+		return { allowed: "platform and the runner's ports", group: "runner backend" };
 	}
 	if (RESTRICTED_ROLES.has(placement.role)) {
-		return { allowed: `platform ${CONTRACT_ENTRY}`, group: roleLabel(placement) };
+		return { allowed: "platform", group: roleLabel(placement) };
 	}
-	return { allowed: `platform, ${placement.group}, ${CONTRACT_ENTRY}`, group: placement.group };
+	return { allowed: `platform and ${placement.group}`, group: placement.group };
 };

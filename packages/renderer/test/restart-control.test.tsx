@@ -18,6 +18,7 @@ const buttonNamed = (container: HTMLElement, label: string) =>
 
 const bridgeAnswering = (requests: Array<BridgeRequest>, response: TrpcResponse): AntumbraBridge => ({
 	openExternal: () => undefined,
+	server: () => Promise.resolve({ port: 0, token: "" }),
 	subscribe: () => () => undefined,
 	trpc: (request) => {
 		requests.push(request);

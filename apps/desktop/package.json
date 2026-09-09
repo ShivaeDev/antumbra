@@ -27,6 +27,7 @@
 		"@antumbra/backend-codex": "workspace:*",
 		"@antumbra/backend-opencode": "workspace:*",
 		"@antumbra/backend-pi": "workspace:*",
+		"@antumbra/backends": "workspace:*",
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",

@@ -1,8 +1,10 @@
 import {
 	type AntumbraBridge,
 	type BridgeRequest,
+	type BridgeServing,
 	type BridgeSubscribeRequest,
 	OPEN_EXTERNAL_CHANNEL,
+	SERVER_CHANNEL,
 	type SubscriptionMessage,
 	subscriptionChannel,
 	TRPC_CHANNEL,
@@ -26,5 +28,6 @@ contextBridge.exposeInMainWorld("antumbra", {
 			ipcRenderer.send(TRPC_UNSUBSCRIBE_CHANNEL, { id: request.id });
 		};
 	},
+	server: (): Promise<BridgeServing> => ipcRenderer.invoke(SERVER_CHANNEL),
 	trpc: (request: BridgeRequest): Promise<TrpcResponse> => ipcRenderer.invoke(TRPC_CHANNEL, request),
 } satisfies AntumbraBridge);

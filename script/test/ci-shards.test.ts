@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Schema } from "effect";
 import { describe, expect, it } from "vitest";
@@ -20,7 +20,7 @@ const decodeRootManifest = Schema.decodeUnknownSync(Schema.fromJsonString(RootMa
 
 const packageNames = (directory: string): readonly string[] =>
 	existsSync(join(directory, "package.json"))
-		? [basename(directory)]
+		? [relative(join(repoRoot, "packages"), directory).split(sep).join("/")]
 		: readdirSync(directory, { withFileTypes: true })
 				.filter((entry) => entry.isDirectory())
 				.flatMap((entry) => packageNames(join(directory, entry.name)));
@@ -41,8 +41,10 @@ describe("CI test shards", () => {
 		expect(scripts["test:server"]).toContain("@antumbra/server");
 		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
 		expect(workspacePackageNames).toContain("renderer");
-		expect(workspacePackageNames).toContain("vocabulary");
+		expect(workspacePackageNames).toContain("platform/vocabulary");
 		expect(workspacePackageNames).toContain("git");
+		expect(workspacePackageNames).toContain("glass/role-settings");
+		expect(workspacePackageNames).toContain("server/domains/role-settings");
 		expect(workspacePackageNames).not.toContain("platform");
 		expect(workspacePackageNames).not.toContain("runner");
 		expect(workspacePackageNames).not.toContain("desktop");

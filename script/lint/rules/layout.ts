@@ -7,19 +7,21 @@ import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/works
 const RULE = "layout/dependency-direction";
 const SCOPE = "@antumbra/";
 
-const OLD_IMPORT_EXCEPTIONS: readonly { readonly from: string; readonly to: string }[] = [];
+const OLD_IMPORT_EXCEPTIONS: readonly { readonly from: string; readonly to: string }[] = [
+	{ from: "@antumbra/renderer", to: "@antumbra/glass-role-settings" },
+];
 
 const excepted = (from: WorkspacePackage, to: WorkspacePackage): boolean =>
 	OLD_IMPORT_EXCEPTIONS.some((exception) => exception.from === from.name && exception.to === to.name);
 
 const edgeViolations = (path: string, from: WorkspacePackage, packages: readonly WorkspacePackage[], specifier: Specifier): readonly Violation[] => {
-	const [name, ...subpath] = specifier.text.slice(SCOPE.length).split("/");
+	const [name] = specifier.text.slice(SCOPE.length).split("/");
 	const to = packages.find((candidate) => candidate.name === `${SCOPE}${name}`);
 	if (to === undefined || to.root === from.root) {
 		return [];
 	}
 	const placement = placementOf(from.root);
-	if (mayImport(placement, placementOf(to.root), subpath.length === 1 && subpath[0] === "contract") || excepted(from, to)) {
+	if (mayImport(placement, placementOf(to.root)) || excepted(from, to)) {
 		return [];
 	}
 	const allowance = allowanceOf(placement);

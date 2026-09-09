@@ -4,16 +4,16 @@ import type { Violation } from "#lint/violation.ts";
 import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/workspace.ts";
 
 const RULE = "layout/domain-imports";
-const ALLOWANCE = "a domain imports effect, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows";
+const ALLOWANCE = "a domain imports effect, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows and queries";
 const DOMAIN_SOURCE = /^packages\/server\/domains\/[^/]+\/src\//;
 const DOMAIN_ROOT = "packages/server/domains/";
 const LIBRARIES = ["effect", "@antumbra/feature", "@antumbra/vocabulary"];
-const ROW_ENTRY = /^(@antumbra\/[^/]+)\/rows\/[^/]+\.ts$/;
+const DOMAIN_ENTRY = /^(@antumbra\/[^/]+)\/(?:rows|queries)\/[^/]+\.ts$/;
 
 const names = (specifier: string, module: string): boolean => specifier === module || specifier.startsWith(`${module}/`);
 
-const rowOfDomain = (packages: readonly WorkspacePackage[], specifier: string): boolean => {
-	const named = ROW_ENTRY.exec(specifier)?.[1];
+const entryOfDomain = (packages: readonly WorkspacePackage[], specifier: string): boolean => {
+	const named = DOMAIN_ENTRY.exec(specifier)?.[1];
 	return packages.find((candidate) => candidate.name === named)?.root.startsWith(DOMAIN_ROOT) === true;
 };
 
@@ -21,7 +21,7 @@ const allowed = (packages: readonly WorkspacePackage[], owner: WorkspacePackage,
 	specifier.startsWith("#") ||
 	LIBRARIES.some((module) => names(specifier, module)) ||
 	names(specifier, owner.name) ||
-	rowOfDomain(packages, specifier);
+	entryOfDomain(packages, specifier);
 
 export const layoutDomainImportViolations = (inventory: Inventory): readonly Violation[] => {
 	const packages = workspacePackages(inventory);

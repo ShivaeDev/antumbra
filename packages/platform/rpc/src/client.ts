@@ -12,9 +12,10 @@ import { group, type Rpcs, tagOf } from "#group.ts";
 import { type Watch, watching } from "#query.ts";
 import type { Token, Unauthorized } from "#token.ts";
 
-export type Send<Command extends CommandShape, Failure> = (
-	input: Values<Command["input"]>,
-) => Effect.Effect<number, Failure | RejectedBy<Command["rejections"]> | Unauthorized>;
+export interface Send<Command extends CommandShape, Failure> {
+	(input: Values<Command["input"]>): Effect.Effect<number, Failure | RejectedBy<Command["rejections"]> | Unauthorized>;
+	readonly command: Command;
+}
 
 export type Calls<Feature extends FeatureShape, Failure> = Feature extends FeatureShape
 	? { readonly [Command in Feature["commands"][number] as Command["name"]]: Send<Command, Failure> } & {
@@ -38,13 +39,17 @@ function loose(calls: unknown): unknown {
 
 const landed = (error: unknown): error is AlreadyDone => error instanceof AlreadyDone;
 
-const sending =
-	(calls: Loose, tag: string) =>
-	(input: Record<string, unknown>): Effect.Effect<number, unknown> =>
-		calls.send(tag, { ...input, requestId: Id.Request.make(Id.make()) }).pipe(Effect.catchIf(landed, (done) => Effect.succeed(done.seq)));
+const sending = (calls: Loose, feature: string, command: CommandShape) =>
+	Object.assign(
+		(input: Record<string, unknown>): Effect.Effect<number, unknown> =>
+			calls
+				.send(tagOf(feature, command.name), { ...input, requestId: Id.Request.make(Id.make()) })
+				.pipe(Effect.catchIf(landed, (done) => Effect.succeed(done.seq))),
+		{ command },
+	);
 
 const callsOf = (feature: FeatureShape, calls: Loose): Record<string, unknown> => ({
-	...Object.fromEntries(feature.commands.map((command) => [command.name, sending(calls, tagOf(feature.name, command.name))])),
+	...Object.fromEntries(feature.commands.map((command) => [command.name, sending(calls, feature.name, command)])),
 	...Object.fromEntries(feature.queries.map((query) => [query.name, watchOf(feature.name, query, calls)])),
 });
 

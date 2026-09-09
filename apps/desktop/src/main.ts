@@ -6,12 +6,14 @@ import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { AppLifecycleSourceLive } from "#adapters/app-lifecycle.ts";
+import { reportModels } from "#adapters/backend-catalog.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
 import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
-import { ServerProcessLive } from "#adapters/server-process.ts";
+import { registerServerBridge } from "#adapters/server-bridge.ts";
+import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -48,7 +50,7 @@ const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
 		WindowSourceLive(shell),
 		devTracing(),
 		serverProcess,
-		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provide(applicationLayers(), roleSettings)))),
+		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provideMerge(applicationLayers(), roleSettings)))),
 	);
 };
 
@@ -65,6 +67,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 			);
 			yield* whenReady;
 			yield* Effect.sync(() => {
+				registerServerBridge(shell.registry, () => runtime.runPromise(ServerProcess.use(({ serving }) => serving)));
 				registerTrpcBridge(router, shell.registry);
 				registerTrpcSubscriptions(router, shell.registry);
 				registerOpenExternal();
@@ -81,6 +84,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore) =>
 				shell.registry.onChanged(() => runtime.runFork(writer.note));
 			});
 			yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
+			yield* Effect.sync(() => runtime.runFork(reportModels));
 			yield* Effect.logInfo("bridge: console open");
 		});
 		return yield* Effect.promise(() => runManagedRuntimeStartup(runtime, main));

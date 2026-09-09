@@ -7,10 +7,8 @@ import type {
 	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
-	VoyageAgentSettingsRequest,
 } from "@antumbra/contract";
 import { Pieces } from "@antumbra/pieces";
-import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
 import { Effect, Match, Option } from "effect";
 import { toFailure } from "#sight-failure.ts";
@@ -29,7 +27,6 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 		const pieces = yield* Pieces;
 		const artifacts = yield* Artifacts;
 		const procedures = yield* VoyageProcedureService;
-		const roles = yield* RoleSettings;
 		const voyages = yield* Voyages;
 		return {
 			charterPiece: (request: CharterPieceRequest) =>
@@ -53,10 +50,6 @@ export const makeVoyageActs = (reads: VoyageReads) =>
 			removeArtifactSupersession: (request: ArtifactSupersessionRequest) =>
 				artifacts.removeSupersession({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.mapError(toFailure)),
 			rewire: (request: RewireRequest) => pieces.setDependencies(request.pieceId, request.dependsOn).pipe(Effect.mapError(toFailure)),
-			setAgentSettings: (request: VoyageAgentSettingsRequest) =>
-				voyages
-					.verifyExists(request.voyageId)
-					.pipe(Effect.andThen(roles.changeForVoyage(request.voyageId, request.role, request)), Effect.mapError(toFailure)),
 			setFocus: (voyageId: string, focused: boolean) => voyages.setFocus(voyageId, focused).pipe(Effect.mapError(toFailure)),
 			supersedeArtifact: (request: ArtifactSupersessionRequest) =>
 				artifacts.supersede({ actor: { _tag: "admiral" }, ...request }).pipe(Effect.asVoid, Effect.mapError(toFailure)),

@@ -242,6 +242,9 @@ importers:
       '@antumbra/backend-pi':
         specifier: workspace:*
         version: link:../../packages/backend-pi
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/backends
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../../packages/contract
@@ -344,6 +347,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/backends
       '@antumbra/feature':
         specifier: workspace:*
         version: link:../../packages/platform/feature
@@ -887,6 +893,214 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/glass/atom-form:
+    dependencies:
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+    devDependencies:
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.4(@types/react@19.2.18)
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/glass/client:
+    dependencies:
+      '@antumbra/feature':
+        specifier: workspace:*
+        version: link:../../platform/feature
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../platform/rpc
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+    devDependencies:
+      '@antumbra/role-settings':
+        specifier: workspace:*
+        version: link:../../server/domains/role-settings
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.4(@types/react@19.2.18)
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/glass/components:
+    dependencies:
+      '@antumbra/atom-form':
+        specifier: workspace:*
+        version: link:../atom-form
+      '@antumbra/feature':
+        specifier: workspace:*
+        version: link:../../platform/feature
+      '@antumbra/glass-client':
+        specifier: workspace:*
+        version: link:../client
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../platform/rpc
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+    devDependencies:
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../../server/domains/backends
+      '@antumbra/role-settings':
+        specifier: workspace:*
+        version: link:../../server/domains/role-settings
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.4(@types/react@19.2.18)
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/glass/role-settings:
+    dependencies:
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../../server/domains/backends
+      '@antumbra/glass-client':
+        specifier: workspace:*
+        version: link:../client
+      '@antumbra/glass-components':
+        specifier: workspace:*
+        version: link:../components
+      '@antumbra/role-settings':
+        specifier: workspace:*
+        version: link:../../server/domains/role-settings
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+    devDependencies:
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../platform/rpc
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.4(@types/react@19.2.18)
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.8(react@19.2.8)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/harness:
     dependencies:
       '@antumbra/contract':
@@ -1304,6 +1518,9 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
+      '@antumbra/glass-role-settings':
+        specifier: workspace:*
+        version: link:../glass/role-settings
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -1578,8 +1795,45 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/server/domains/backends:
+    dependencies:
+      '@antumbra/feature':
+        specifier: workspace:*
+        version: link:../../../platform/feature
+      '@antumbra/vocabulary':
+        specifier: workspace:*
+        version: link:../../../platform/vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
+      '@antumbra/journal':
+        specifier: workspace:*
+        version: link:../../journal
+      '@antumbra/rpc':
+        specifier: workspace:*
+        version: link:../../../platform/rpc
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/server/domains/role-settings:
     dependencies:
+      '@antumbra/backends':
+        specifier: workspace:*
+        version: link:../backends
       '@antumbra/feature':
         specifier: workspace:*
         version: link:../../../platform/feature

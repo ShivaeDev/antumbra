@@ -10,7 +10,7 @@ const importing = (path: string, specifier: string): SeedFile => ({ content: `im
 const check = (path: string, specifier: string, ...others: readonly string[]) =>
 	layoutDomainImportViolations(inventoryOf({ sources: [importing(path, specifier), ...others.map(present)] })).map(({ message }) => message);
 
-const ALLOWANCE = "a domain imports effect, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows";
+const ALLOWANCE = "a domain imports effect, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows and queries";
 
 const from = "packages/server/domains/role-settings/src/rows/role-setting.ts";
 
@@ -24,10 +24,11 @@ describe("domain-imports rule", () => {
 		expect(check(from, "@antumbra/role-settings/ids.ts")).toEqual([]);
 	});
 
-	it("lets a domain read another domain's rows and nothing else of it", () => {
+	it("lets a domain read another domain's rows and queries and nothing else of it", () => {
 		expect(check(from, "@antumbra/pieces/rows/piece.ts", "packages/server/domains/pieces")).toEqual([]);
-		expect(check(from, "@antumbra/pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([
-			`@antumbra/role-settings may not import @antumbra/pieces/queries/by-voyage.ts: ${ALLOWANCE}.`,
+		expect(check(from, "@antumbra/pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);
+		expect(check(from, "@antumbra/pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([
+			`@antumbra/role-settings may not import @antumbra/pieces/commands/rename.ts: ${ALLOWANCE}.`,
 		]);
 		expect(check(from, "@antumbra/journal/rows/piece.ts", "packages/server/journal")).toEqual([
 			`@antumbra/role-settings may not import @antumbra/journal/rows/piece.ts: ${ALLOWANCE}.`,

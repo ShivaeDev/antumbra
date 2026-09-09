@@ -1,3 +1,4 @@
+import { backends } from "@antumbra/backends/feature.ts";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { roleSettings } from "@antumbra/role-settings/feature.ts";
 import { FLEET } from "@antumbra/role-settings/ids.ts";
@@ -12,12 +13,15 @@ import {
 	UNCHOSEN_AGENT_SETTINGS,
 	type VoyageAgentSettings,
 } from "@antumbra/settings";
+import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
 import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeSocket } from "@effect/platform-node";
-import { type Context, Effect, Layer, Option, Stream } from "effect";
+import { Context, Effect, Layer, Option, Schema, Stream } from "effect";
 import { ServerProcess, type Serving } from "#adapters/server-process.ts";
 
-const connecting = client([roleSettings]);
+const connecting = client([roleSettings, backends]);
+
+export class ServerReach extends Context.Service<ServerReach, Effect.Success<typeof connecting>>()("@antumbra/desktop/ServerReach") {}
 
 type Reach<Failure> = Api<readonly [typeof roleSettings], Failure>;
 
@@ -36,11 +40,20 @@ const once = <Value, Failure>(stream: Stream.Stream<Value, Failure>): Effect.Eff
 		Effect.orDie,
 	);
 
+const taggedBackend = Schema.decodeUnknownEffect(Schema.NullOr(AgentBackendTagSchema));
+
+const named = (choice: AgentSettingsChoice) =>
+	Effect.map(Effect.orDie(taggedBackend(choice.backend)), (backend) => ({ backend, effort: choice.effort, model: choice.model }));
+
 const choiceOf = (stored: Stored): AgentSettingsChoice => ({ backend: stored.backend, effort: stored.effort, model: stored.model });
 
-const settlingOf = (stored: ReadonlyArray<Stored>, role: VoyageAgentRole): AgentSettingsChoice => {
-	const found = stored.find((candidate) => candidate.role === role);
-	return found === undefined ? UNCHOSEN_AGENT_SETTINGS : choiceOf(found);
+const chosenAt = (stored: ReadonlyArray<Stored>, role: AgentRole): AgentSettingsChoice => {
+	for (const candidate of stored) {
+		if (candidate.role === role) {
+			return choiceOf(candidate);
+		}
+	}
+	return UNCHOSEN_AGENT_SETTINGS;
 };
 
 const resolvedOf = (answer: { readonly backend: string; readonly effort: string | null; readonly model: string | null }): ResolvedAgentSettings => ({
@@ -50,15 +63,19 @@ const resolvedOf = (answer: { readonly backend: string; readonly effort: string 
 });
 
 const voyageOf = (stored: ReadonlyArray<Stored>): VoyageAgentSettings => ({
-	captain: settlingOf(stored, "captain"),
-	crew: settlingOf(stored, "crew"),
+	captain: chosenAt(stored, "captain"),
+	crew: chosenAt(stored, "crew"),
 });
 
 export const roleSettingsOver = <Failure>(reach: Reach<Failure>, feeds: Feeds): RoleSettingsService => ({
 	changeDefault: (role: AgentRole, choice: AgentSettingsChoice) =>
-		Effect.orDie(reach.roleSettings.choose({ ...choice, role, scope: FLEET })).pipe(Effect.andThen(feeds.publishFleetRefresh())),
+		Effect.flatMap(named(choice), (chosen) => Effect.orDie(reach.roleSettings.choose({ ...chosen, role, scope: FLEET }))).pipe(
+			Effect.andThen(feeds.publishFleetRefresh()),
+		),
 	changeForVoyage: (voyageId: string, role: VoyageAgentRole, choice: AgentSettingsChoice) =>
-		Effect.orDie(reach.roleSettings.choose({ ...choice, role, scope: voyageId })).pipe(Effect.andThen(feeds.publishVoyageRefresh())),
+		Effect.flatMap(named(choice), (chosen) => Effect.orDie(reach.roleSettings.choose({ ...chosen, role, scope: voyageId }))).pipe(
+			Effect.andThen(feeds.publishVoyageRefresh()),
+		),
 	defaults: () => Effect.map(once(reach.roleSettings.defaults({})), (stored) => stored.map((row) => ({ ...choiceOf(row), role: row.role }))),
 	forVoyages: (voyageIds: ReadonlyArray<string>) =>
 		Effect.map(
@@ -75,15 +92,19 @@ export const addressOf = (serving: Effect.Effect<Serving>): Effect.Effect<string
 const dialing = (serving: Effect.Effect<Serving>, token: string) =>
 	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(addressOf(serving)), Layer.succeed(ClientToken, { token })));
 
-export const RoleSettingsOverRpc: Layer.Layer<RoleSettings, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> = Layer.unwrap(
-	Effect.gen(function* () {
-		const { serving } = yield* ServerProcess;
-		const { token } = yield* serving;
-		return Layer.effect(RoleSettings)(
-			Effect.gen(function* () {
-				const feeds = yield* DomainFeeds;
-				return roleSettingsOver(yield* connecting, feeds);
-			}),
-		).pipe(Layer.provide(dialing(serving, token)));
-	}),
-);
+const reaching = (serving: Effect.Effect<Serving>, token: string) =>
+	Layer.effect(ServerReach)(connecting).pipe(Layer.provide(dialing(serving, token)));
+
+export const RoleSettingsOverRpc: Layer.Layer<RoleSettings | ServerReach, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> =
+	Layer.unwrap(
+		Effect.gen(function* () {
+			const { serving } = yield* ServerProcess;
+			const { token } = yield* serving;
+			return Layer.effect(RoleSettings)(
+				Effect.gen(function* () {
+					const feeds = yield* DomainFeeds;
+					return roleSettingsOver(yield* ServerReach, feeds);
+				}),
+			).pipe(Layer.provideMerge(reaching(serving, token)));
+		}),
+	);

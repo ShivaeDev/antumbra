@@ -1,8 +1,6 @@
-import { VoyageAgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
 import { BoardRegisterSchema } from "@antumbra/vocabulary/board.ts";
 import { PieceVerdict } from "@antumbra/vocabulary/verdict.ts";
 import { Schema } from "effect";
-import { AgentSettingsChoice } from "#agent-settings.ts";
 
 export const OpenVoyageRequest = Schema.Struct({
 	captainBackend: Schema.optionalKey(Schema.String),
@@ -16,13 +14,6 @@ export const OpenVoyageRequest = Schema.Struct({
 	northStar: Schema.String,
 });
 export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
-
-export const VoyageAgentSettingsRequest = Schema.Struct({
-	...AgentSettingsChoice.fields,
-	role: VoyageAgentRoleSchema,
-	voyageId: Schema.String,
-});
-export type VoyageAgentSettingsRequest = typeof VoyageAgentSettingsRequest.Type;
 
 export const CharterPieceRequest = Schema.Struct({
 	charter: Schema.String,

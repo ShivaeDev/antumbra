@@ -15,7 +15,7 @@ import {
 import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { type Context, Effect, Layer, Option, Stream } from "effect";
-import { ServerProcess } from "#adapters/server-process.ts";
+import { ServerProcess, type Serving } from "#adapters/server-process.ts";
 
 const connecting = client([roleSettings]);
 
@@ -70,15 +70,18 @@ export const roleSettingsOver = <Failure>(reach: Reach<Failure>, feeds: Feeds): 
 	resolve: (voyageId: string | null, role: AgentRole) => Effect.map(once(reach.roleSettings.resolve({ role, voyageId })), resolvedOf),
 });
 
-const dialing = (port: number, token: string) =>
-	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token })));
+export const addressOf = (serving: Effect.Effect<Serving>): Effect.Effect<string> => Effect.map(serving, ({ port }) => `ws://127.0.0.1:${port}/rpc`);
+
+const dialing = (serving: Effect.Effect<Serving>, token: string) =>
+	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(addressOf(serving)), Layer.succeed(ClientToken, { token })));
 
 export const RoleSettingsOverRpc: Layer.Layer<RoleSettings, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> = Layer.effect(
 	RoleSettings,
 )(
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const { port, token } = yield* (yield* ServerProcess).serving;
-		return roleSettingsOver(yield* Effect.provide(connecting, dialing(port, token)), feeds);
+		const { serving } = yield* ServerProcess;
+		const { token } = yield* serving;
+		return roleSettingsOver(yield* Effect.provide(connecting, dialing(serving, token)), feeds);
 	}),
 );

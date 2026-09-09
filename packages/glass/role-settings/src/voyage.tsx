@@ -7,6 +7,7 @@ import { RoleBoard } from "#board.tsx";
 import { changedRoles, draftAt, storedAt, voyagePlaceholder } from "#drafts.ts";
 import { useSettingsForm } from "#form.ts";
 import type { Choose, RoleSettingsApi } from "#glass.ts";
+import { reading } from "#reading.tsx";
 import type { BackendModels, Stored } from "#shape.ts";
 
 const VoyageBoard = (props: {
@@ -39,17 +40,14 @@ export const VoyageRoleSettings = (props: {
 	const stored = useLive(props.api.roleSettings.forVoyage, { voyageId: props.voyageId });
 	const defaults = useLive(props.api.roleSettings.defaults, {});
 	const send = useSend(props.api.roleSettings.choose);
-	return Option.match(AsyncResult.value(stored), {
-		onNone: () => <p className="text-2xs text-muted-foreground">Reading this voyage's role settings…</p>,
-		onSome: (rows) => (
-			<VoyageBoard
-				backends={props.backends}
-				defaults={Option.getOrElse(AsyncResult.value(defaults), (): readonly Stored[] => [])}
-				key={props.voyageId}
-				rows={rows}
-				send={send}
-				voyageId={props.voyageId}
-			/>
-		),
-	});
+	return reading(stored, "Reading this voyage's role settings…", (rows) => (
+		<VoyageBoard
+			backends={props.backends}
+			defaults={Option.getOrElse(AsyncResult.value(defaults), (): readonly Stored[] => [])}
+			key={props.voyageId}
+			rows={rows}
+			send={send}
+			voyageId={props.voyageId}
+		/>
+	));
 };

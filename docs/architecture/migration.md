@@ -16,8 +16,9 @@ something updates this file in the same change. A status here is one of three wo
 - **Prisma, tRPC, and their wrappers leave in the last change**, together, when no feature reads them.
 - **A moved feature's views are projections.** What `domain` composes at read time today, a materializer writes at commit time as rows the screen
   selects. `domain` gets no successor; the server's composition is thin and holds no view.
-- **A feature owns its wire shape.** Its Schema classes, RPC group, and rejections live in a pure `contract` entry (`@antumbra/pieces/contract`) with
-  no runtime dependency. The glass and other features import that entry and nothing else of the feature.
+- **A feature owns its wire shape.** Its Schema classes, RPC group, and rejections are files of the feature with no runtime dependency
+  (`@antumbra/pieces/feature.ts`, `@antumbra/pieces/rows/piece.ts`). The glass and other features import those files directly and nothing else of the
+  feature.
 - **Rejections are Schema errors; everything else is a defect.** A command declares its rejections beside it as Schema classes with structured fields,
   and they cross the wire as they are. A row that does not decode, a missing table, an SDK that throws: defects, never mapped.
 - **The issuer mints the id; the commit stamps the time.** An id is part of the command's input, made by one helper in the vocabulary. The commit
@@ -53,15 +54,17 @@ packages/
     backends/       claude/  codex/  opencode/  pi/
     git/
   glass/
-    renderer/  components/  harness/  atom-form/
+    client/  atom-form/  components/  renderer/  harness/
+    role-settings/    a feature's screens, one glass package per feature
 
   <flat>            the old code, untouched until its feature moves
 ```
 
 A lint rule reads the path and holds the direction: `platform` imports only `platform`; a process group imports `platform` and itself; across process
-groups only a feature's `contract` entry may be imported; inside `server` only a domain may import `journal`, and an edge imports `platform` only; old
-packages import old packages and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that `domain` can
-read a moved feature until it is deleted; the list starts empty and every entry is removed with `domain`.
+groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, and an edge imports `platform`
+only; old packages import old packages and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that
+`domain` can read a moved feature until it is deleted and the old renderer can mount a glass island until the renderer moves (`@antumbra/renderer`
+reaching `@antumbra/glass-role-settings`); every entry is removed with the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out
@@ -79,7 +82,7 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | 1    | Spikes: Effect SQL on `node:sqlite`, DDL from Schema classes, `atom-form`. Their findings are in the North Star.                                                                                                                                                                                                                                                        | landed      |
 | 2    | Platform packages, standalone, with tests: the journal kit's core (commit, materializers, live query, DDL from Schema classes) and the RPC client's core (contract kit, client with a live atom). Reconcilers, rebuild on shape hash, fact migrations, reconnect, the token, and `atom-form` arrive with the first feature that needs each. Nothing in the app changes. | in progress |
-| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | in progress |
+| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | landed      |
 | 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                        | not started |
 | 5    | Delete Prisma, tRPC, and the wrappers.                                                                                                                                                                                                                                                                                                                                  | not started |
 
@@ -87,7 +90,7 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 
 | feature                        | today                                                                | status      |
 | ------------------------------ | -------------------------------------------------------------------- | ----------- |
-| Voyage role settings           | `settings`, `contract` catalog                                       | in progress |
+| Voyage role settings           | `settings`, `contract` catalog                                       | landed      |
 | Settings, the rest             | `settings`                                                           | not started |
 | Voyages                        | `voyages`                                                            | not started |
 | Pieces and dependencies        | `pieces`                                                             | not started |
@@ -106,39 +109,39 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 
 Where each package goes. A package "stays" when its job is unchanged by the move; it may still change packages' dependencies.
 
-| today                                                                                | becomes                                                                                                  | status      |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- | ----------- |
-| `apps/desktop`                                                                       | the shell: spawns server and runner, supervises, restarts; its windows are glass                         | in progress |
-| `contract`                                                                           | deleted; each feature's `contract` entry carries its wire shape; the settings catalog stays a closed set | not started |
-| `vocabulary`                                                                         | stays: the neutral vocabulary of the runner's log, at `packages/platform/vocabulary`                     | landed      |
-| `session-event-journal`                                                              | the runner's log, owned by the runner                                                                    | not started |
-| `session-inputs`                                                                     | a domain: facts, projection, commands                                                                    | not started |
-| `prompts`, `skills`                                                                  | stay, leaves, at `packages/platform/prompts` and `packages/platform/skills`                              | landed      |
-| `plugin-api`                                                                         | the runner's driven ports; the backends live in the runner                                               | not started |
-| `agent-tools`                                                                        | tool schemas and handlers on the server; binding in the runner                                           | not started |
-| `service-definition`                                                                 | stays, at `packages/platform/service-definition`                                                         | landed      |
-| `kernel`                                                                             | commands plus the admission and executor reconcilers; Intents become request rows                        | not started |
-| `intent-demand`                                                                      | reconcilers over rows                                                                                    | not started |
-| `domain-feeds`                                                                       | reactivity keys, marked dirty by the commit                                                              | not started |
-| `resource-reclamation`                                                               | a reconciler over rows plus acts on the runner                                                           | not started |
-| `settings`                                                                           | domains; role settings are `packages/server/domains/role-settings`                                       | in progress |
-| `changes`, `repos`, `voyages`, `pieces`, `boards`, `rulings`, `artifacts`, `reports` | domains: Schema classes, facts, projections, commands                                                    | not started |
-| `session-fabric`                                                                     | the runner                                                                                               | not started |
-| `sessions`                                                                           | a projection over the runner's log                                                                       | not started |
-| `domain`                                                                             | deleted; its read-time composition becomes projections inside the features                               | not started |
-| `git`                                                                                | runner infrastructure, at `packages/runner/git`                                                          | not started |
-| `github`                                                                             | an edge adapter a reconciler calls; its observations come back through the commit                        | not started |
-| `backend-claude`, `backend-codex`, `backend-opencode`, `backend-pi`                  | inside the runner                                                                                        | not started |
-| `runner-local`                                                                       | the runner process                                                                                       | not started |
-| `persistence`                                                                        | the journal kit, Effect SQL, DDL from Schema classes; Prisma leaves                                      | not started |
-| `trace-sink`                                                                         | stays, at `packages/platform/trace-sink`                                                                 | landed      |
-| `renderer`, `harness`                                                                | the glass on atoms; the harness stays                                                                    | not started |
-| `testing-runtime`, `testing`                                                         | the test kit: scripted runner, scripted backend, in-memory journal                                       | not started |
+| today                                                                                | becomes                                                                                      | status      |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------- |
+| `apps/desktop`                                                                       | the shell: spawns server and runner, supervises, restarts; its windows are glass             | in progress |
+| `contract`                                                                           | deleted; a feature's own files carry its wire shape; the settings catalog stays a closed set | not started |
+| `vocabulary`                                                                         | stays: the neutral vocabulary of the runner's log, at `packages/platform/vocabulary`         | landed      |
+| `session-event-journal`                                                              | the runner's log, owned by the runner                                                        | not started |
+| `session-inputs`                                                                     | a domain: facts, projection, commands                                                        | not started |
+| `prompts`, `skills`                                                                  | stay, leaves, at `packages/platform/prompts` and `packages/platform/skills`                  | landed      |
+| `plugin-api`                                                                         | the runner's driven ports; the backends live in the runner                                   | not started |
+| `agent-tools`                                                                        | tool schemas and handlers on the server; binding in the runner                               | not started |
+| `service-definition`                                                                 | stays, at `packages/platform/service-definition`                                             | landed      |
+| `kernel`                                                                             | commands plus the admission and executor reconcilers; Intents become request rows            | not started |
+| `intent-demand`                                                                      | reconcilers over rows                                                                        | not started |
+| `domain-feeds`                                                                       | reactivity keys, marked dirty by the commit                                                  | not started |
+| `resource-reclamation`                                                               | a reconciler over rows plus acts on the runner                                               | not started |
+| `settings`                                                                           | domains; role settings are `packages/server/domains/role-settings`                           | in progress |
+| `changes`, `repos`, `voyages`, `pieces`, `boards`, `rulings`, `artifacts`, `reports` | domains: Schema classes, facts, projections, commands                                        | not started |
+| `session-fabric`                                                                     | the runner                                                                                   | not started |
+| `sessions`                                                                           | a projection over the runner's log                                                           | not started |
+| `domain`                                                                             | deleted; its read-time composition becomes projections inside the features                   | not started |
+| `git`                                                                                | runner infrastructure, at `packages/runner/git`                                              | not started |
+| `github`                                                                             | an edge adapter a reconciler calls; its observations come back through the commit            | not started |
+| `backend-claude`, `backend-codex`, `backend-opencode`, `backend-pi`                  | inside the runner                                                                            | not started |
+| `runner-local`                                                                       | the runner process                                                                           | not started |
+| `persistence`                                                                        | the journal kit, Effect SQL, DDL from Schema classes; Prisma leaves                          | not started |
+| `trace-sink`                                                                         | stays, at `packages/platform/trace-sink`                                                     | landed      |
+| `renderer`, `harness`                                                                | the glass on atoms; the harness stays                                                        | in progress |
+| `testing-runtime`, `testing`                                                         | the test kit: scripted runner, scripted backend, in-memory journal                           | not started |
 
 ## Open before the kit
 
-- The feature DSL: strongly typed, sugared creation of a feature's commands, materializer, reconciler, and `contract` entry. Whether a feature is an
-  Effect service or a set of exported values is decided in the kit.
+- The feature DSL: strongly typed, sugared creation of a feature's commands, materializer, reconciler, and the files that carry its wire shape.
+  Whether a feature is an Effect service or a set of exported values is decided in the kit.
 
 ## Open before the runner split
 

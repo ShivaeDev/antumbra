@@ -18,15 +18,18 @@ const keyOf = (scope: string, role: string): string => `${scope}/${role}`;
 
 const chosen = (stored: Chosen, scope: string, role: AgentRole): AgentSettingsChoice => stored.get(keyOf(scope, role)) ?? UNCHOSEN_AGENT_SETTINGS;
 
+const settled = (choice: AgentSettingsChoice): ResolvedAgentSettings | undefined =>
+	choice.backend === null
+		? undefined
+		: {
+				backend: choice.backend,
+				...(choice.effort === null ? {} : { effort: choice.effort }),
+				...(choice.model === null ? {} : { model: choice.model }),
+			};
+
 const resolved = (stored: Chosen, voyageId: string | null, role: AgentRole): ResolvedAgentSettings => {
-	const standing = chosen(stored, FLEET_SCOPE, role);
-	const override = voyageId === null ? UNCHOSEN_AGENT_SETTINGS : chosen(stored, voyageId, role);
-	const sailsOn = standing.backend ?? FIRST_BACKEND;
-	const backend = override.backend ?? sailsOn;
-	const inherited = backend === sailsOn ? standing : UNCHOSEN_AGENT_SETTINGS;
-	const effort = override.effort ?? inherited.effort;
-	const model = override.model ?? inherited.model;
-	return { backend, ...(effort === null ? {} : { effort }), ...(model === null ? {} : { model }) };
+	const own = voyageId === null ? undefined : settled(chosen(stored, voyageId, role));
+	return own ?? settled(chosen(stored, FLEET_SCOPE, role)) ?? { backend: FIRST_BACKEND };
 };
 
 const written = (stored: Chosen, scope: string, role: AgentRole, choice: AgentSettingsChoice): Chosen =>

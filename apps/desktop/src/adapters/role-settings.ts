@@ -81,13 +81,15 @@ export const addressOf = (serving: Effect.Effect<Serving>): Effect.Effect<string
 const dialing = (serving: Effect.Effect<Serving>, token: string) =>
 	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(addressOf(serving)), Layer.succeed(ClientToken, { token })));
 
-export const RoleSettingsOverRpc: Layer.Layer<RoleSettings, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> = Layer.effect(
-	RoleSettings,
-)(
+export const RoleSettingsOverRpc: Layer.Layer<RoleSettings, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> = Layer.unwrap(
 	Effect.gen(function* () {
-		const feeds = yield* DomainFeeds;
 		const { serving } = yield* ServerProcess;
 		const { token } = yield* serving;
-		return roleSettingsOver(yield* Effect.provide(connecting, dialing(serving, token)), feeds);
+		return Layer.effect(RoleSettings)(
+			Effect.gen(function* () {
+				const feeds = yield* DomainFeeds;
+				return roleSettingsOver(yield* connecting, feeds);
+			}),
+		).pipe(Layer.provide(dialing(serving, token)));
 	}),
 );

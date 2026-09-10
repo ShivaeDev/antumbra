@@ -61,7 +61,7 @@ export function kit(definition: AppDefinition): unknown {
 		const live = yield* Live;
 		const reactivity = yield* Reactivity;
 		const scope = yield* Effect.scope;
-		const registry = registryOf(definition);
+		const registry = yield* registryOf(definition);
 		const watches: Watch[] = [];
 		return {
 			clock: { advance: (millis: number) => TestClock.adjust(Duration.millis(millis)) },

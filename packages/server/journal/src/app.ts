@@ -1,7 +1,8 @@
 import type { FeatureShape } from "@antumbra/feature/feature.ts";
 import type { RowShape } from "@antumbra/feature/row.ts";
-import type { Effect } from "effect";
+import { Effect } from "effect";
 import { codecFor, type RowCodec } from "#codec.ts";
+import { shapeOf } from "#table.ts";
 
 export interface AppDefinition<Features extends readonly FeatureShape[] = readonly FeatureShape[]> {
 	readonly features: Features;
@@ -20,19 +21,44 @@ export interface Registry {
 
 export const app = <const Features extends readonly FeatureShape[]>(features: Features): AppDefinition<Features> => ({ features });
 
-export function registryOf(definition: AppDefinition): Registry;
-export function registryOf(definition: AppDefinition): unknown {
-	const codecs = new Map<string, RowCodec>();
-	const materializers = new Map<string, unknown>();
-	for (const feature of definition.features) {
-		for (const row of feature.rows) {
-			if (!codecs.has(row.name)) codecs.set(row.name, codecFor(row));
-		}
-		for (const materializer of feature.materializers) {
-			materializers.set(materializer.fact.name, materializer);
+const addRows = (codecs: Map<string, RowCodec>, owners: Map<string, string>, feature: FeatureShape): string | undefined => {
+	for (const row of feature.rows) {
+		const known = codecs.get(row.name);
+		if (known === undefined) {
+			codecs.set(row.name, codecFor(row));
+			owners.set(row.name, feature.name);
+		} else if (shapeOf(known.row) !== shapeOf(row)) {
+			return `features "${owners.get(row.name)}" and "${feature.name}" declare the row "${row.name}" with different shapes`;
 		}
 	}
-	return { codecs, materializers, rows: [...codecs.values()].map((codec) => codec.row) };
+	return undefined;
+};
+
+const addMaterializers = (materializers: Map<string, unknown>, owners: Map<string, string>, feature: FeatureShape): string | undefined => {
+	for (const materializer of feature.materializers) {
+		const owner = owners.get(materializer.fact.name);
+		if (owner !== undefined) {
+			return `features "${owner}" and "${feature.name}" both declare the fact "${materializer.fact.name}"`;
+		}
+		owners.set(materializer.fact.name, feature.name);
+		materializers.set(materializer.fact.name, materializer);
+	}
+	return undefined;
+};
+
+export function registryOf(definition: AppDefinition): Effect.Effect<Registry>;
+export function registryOf(definition: AppDefinition): unknown {
+	return Effect.gen(function* () {
+		const codecs = new Map<string, RowCodec>();
+		const materializers = new Map<string, unknown>();
+		const rowOwners = new Map<string, string>();
+		const factOwners = new Map<string, string>();
+		for (const feature of definition.features) {
+			const clash = addRows(codecs, rowOwners, feature) ?? addMaterializers(materializers, factOwners, feature);
+			if (clash !== undefined) return yield* Effect.die(new Error(clash));
+		}
+		return { codecs, materializers, rows: [...codecs.values()].map((codec) => codec.row) };
+	});
 }
 
 export const codecOf = (registry: Registry, row: RowShape): RowCodec => {

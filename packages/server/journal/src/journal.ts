@@ -35,7 +35,7 @@ export const layer = (definition: AppDefinition): Layer.Layer<Commit | Live, Tab
 		Effect.gen(function* () {
 			const database = yield* Database;
 			const reactivity = yield* Reactivity;
-			const registry = registryOf(definition);
+			const registry = yield* registryOf(definition);
 			yield* start(database.write, registry);
 			return Context.make(Commit, commitService({ reactivity, registry, sql: database.write })).pipe(
 				Context.add(Live, liveService({ reactivity, registry, sql: database.read })),

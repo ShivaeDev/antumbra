@@ -1,5 +1,4 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { app } from "@antumbra/journal/app.ts";
 import { testing } from "@antumbra/journal/testing/entry.ts";
 import { roleSettings } from "@antumbra/role-settings/feature.ts";
 import { FLEET, roleSettingId } from "@antumbra/role-settings/ids.ts";
@@ -7,7 +6,7 @@ import { Effect, PubSub } from "effect";
 import { expect } from "vitest";
 import { roleSettingsOver } from "#adapters/role-settings.ts";
 
-const it = testing(app([roleSettings]));
+const it = testing([roleSettings]);
 
 it.app("changeDefault sends choose at fleet scope and publishes the fleet refresh", function* (harness) {
 	yield* Effect.provide(

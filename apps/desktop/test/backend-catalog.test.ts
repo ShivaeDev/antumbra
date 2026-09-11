@@ -1,13 +1,12 @@
 import { backends } from "@antumbra/backends/feature.ts";
 import type { BackendCatalog } from "@antumbra/domain/backend-catalog/service";
-import { app } from "@antumbra/journal/app.ts";
 import { testing } from "@antumbra/journal/testing/entry.ts";
 import { BackendFailure } from "@antumbra/plugin-api";
 import { Effect, Option, Stream } from "effect";
 import { expect } from "vitest";
 import { reportModelsOver } from "#adapters/backend-catalog.ts";
 
-const it = testing(app([backends]));
+const it = testing([backends]);
 
 type Catalog = Effect.Success<typeof BackendCatalog>;
 

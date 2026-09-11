@@ -17,3 +17,5 @@ export const CELL = "flex min-w-0 flex-1 flex-col gap-0.5";
 export const TITLE = "text-2xs leading-4 text-muted-foreground";
 
 export const ALERT = "text-2xs leading-4 text-destructive";
+
+export const NOTE = "text-xs text-muted-foreground";

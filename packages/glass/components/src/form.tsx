@@ -7,7 +7,7 @@ import { useAtomRef } from "@effect/atom-react";
 import { Cause, Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { type ReactNode, useId, useState } from "react";
-import { ALERT, HEAD, NAME, ROW, SAVE, TITLE } from "#classes.ts";
+import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
 import { type Editable, editablesOf, fedByOf, type Held, identityOf, labelOf, signatureOf, valuesOf } from "#fields.ts";
 import { generate, type Sending, sending } from "#generated.ts";
@@ -28,6 +28,7 @@ const Spacer = () => (
 );
 
 const Row = (props: {
+	readonly description: string | undefined;
 	readonly editables: readonly Editable[];
 	readonly identity: Held;
 	readonly label: string;
@@ -84,6 +85,7 @@ const Row = (props: {
 					{submit.submitting ? "Saving…" : "Save"}
 				</button>
 			</span>
+			{props.description === undefined ? null : <p className={`w-full ${NOTE}`}>{props.description}</p>}
 			{settled === null ? null : (
 				<p className={`w-full pl-[5rem] ${ALERT}`} role="alert">
 					{settled}
@@ -95,6 +97,7 @@ const Row = (props: {
 
 export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	readonly command: Send<Command, Failure>;
+	readonly description?: string;
 	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[];
 	readonly label?: string;
 	readonly placeholders?: Readonly<Record<string, string>>;
@@ -107,6 +110,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	const send = sending(useSend(props.command));
 	return (
 		<Row
+			description={props.description}
 			editables={editables}
 			identity={identityOf(command, props.row)}
 			key={signatureOf(editables, props.row)}

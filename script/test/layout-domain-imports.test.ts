@@ -14,7 +14,7 @@ const SOURCES =
 	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const TESTS =
-	"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
+	"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries, ids and feature.ts";
 
 const from = "packages/server/domains/role-settings/src/rows/role-setting.ts";
 
@@ -60,6 +60,16 @@ describe("domain-imports rule", () => {
 		expect(check(kit, "effect")).toEqual([]);
 		expect(check(kit, "#test/kit.ts")).toEqual([]);
 		expect(check(kit, "@antumbra/domain-pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);
+	});
+
+	it("lets a domain's tests compose another domain's feature", () => {
+		expect(check(kit, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([]);
+	});
+
+	it("keeps another domain's commands out of a domain's tests", () => {
+		expect(check(kit, "@antumbra/domain-pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/domain-pieces/commands/rename.ts: ${TESTS}.`,
+		]);
 	});
 
 	it("keeps the machine, the rest of the journal and old packages out of a domain's tests", () => {

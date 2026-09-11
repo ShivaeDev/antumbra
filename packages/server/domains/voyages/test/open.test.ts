@@ -1,18 +1,51 @@
 import { roleSettingId } from "@antumbra/domain-role-settings/ids.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { FLAGSHIP_REQUEST } from "#ids.ts";
-import { it, opening } from "#test/kit.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "#ids.ts";
+import { answered, it, opening } from "#test/kit.ts";
 
-it.app("opening a voyage seats the captain and the crew where the role settings read them", function* (app) {
-	yield* app.api.voyages.open({ ...opening, captainBackend: "claude", captainEffort: "high", captainModel: "opus" });
+const REEF_REQUEST = Id.Request.make("voyage:reef");
 
-	const [opened] = yield* app.rows.voyage.where({});
-	expect(opened).toMatchObject({ context: "the reef is uncharted", kind: "voyage", name: "Chart the reef", northStar: "every shoal is known" });
-	const voyageId = opened?.id ?? "";
-	expect(yield* app.rows.roleSetting.where({ scope: voyageId })).toEqual([
-		{ backend: "claude", effort: "high", id: roleSettingId(voyageId, "captain"), model: "opus", role: "captain", scope: voyageId },
-		{ backend: null, effort: null, id: roleSettingId(voyageId, "crew"), model: null, role: "crew", scope: voyageId },
+const reef = VoyageId.make(REEF_REQUEST);
+
+const seated = (role: "captain" | "crew", backend: string, model: string, effort: string) => ({
+	backend,
+	effort,
+	id: roleSettingId(reef, role),
+	model,
+	role,
+	scope: reef,
+});
+
+it.app("opening a voyage stores it with the captain and the crew seated, and a later choice moves only the role it names", function* (app) {
+	yield* app.api.voyages.open({
+		...opening,
+		captainBackend: "claude",
+		captainEffort: "high",
+		captainModel: "opus",
+		crewBackend: "codex",
+		crewEffort: "medium",
+		crewModel: "gpt-5",
+		requestId: REEF_REQUEST,
+	});
+
+	expect(yield* answered(app.api.voyages.byId({ id: reef }))).toMatchObject({
+		context: "the reef is uncharted",
+		kind: "voyage",
+		name: "Chart the reef",
+		northStar: "every shoal is known",
+	});
+	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }))).toEqual([
+		seated("captain", "claude", "opus", "high"),
+		seated("crew", "codex", "gpt-5", "medium"),
+	]);
+
+	yield* app.api.roleSettings.choose({ backend: "codex", effort: "medium", model: "gpt-5-codex", role: "crew", scope: reef });
+
+	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }))).toEqual([
+		seated("captain", "claude", "opus", "high"),
+		seated("crew", "codex", "gpt-5-codex", "medium"),
 	]);
 });
 

@@ -1,8 +1,9 @@
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
 import { testing } from "@antumbra/server-journal/testing/entry.ts";
 import { Effect, Option, Stream } from "effect";
 import { voyages } from "#feature.ts";
 
-export const it = testing([voyages]);
+export const it = testing([voyages, roleSettings]);
 
 export const opening = {
 	captainBackend: null,

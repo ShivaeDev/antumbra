@@ -96,6 +96,7 @@ const Row = (props: {
 export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	readonly command: Send<Command, Failure>;
 	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[];
+	readonly label?: string;
 	readonly placeholders?: Readonly<Record<string, string>>;
 	readonly row: Held;
 	readonly titles?: boolean;
@@ -109,7 +110,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			editables={editables}
 			identity={identityOf(command, props.row)}
 			key={signatureOf(editables, props.row)}
-			label={labelOf(fixed, props.row)}
+			label={props.label ?? labelOf(fixed, props.row)}
 			placeholders={props.placeholders ?? {}}
 			send={send}
 			titles={props.titles === true}

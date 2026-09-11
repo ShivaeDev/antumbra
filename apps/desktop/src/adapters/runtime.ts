@@ -21,7 +21,7 @@ import {
 	skillsDirectory,
 } from "#adapters/shell.ts";
 
-const persistence = Layer.unwrap(
+export const persistence = Layer.unwrap(
 	Effect.sync(() =>
 		PersistenceLive({
 			database: databaseFileInDataDirectory(configureDataDirectory()),

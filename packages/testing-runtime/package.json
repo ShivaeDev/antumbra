@@ -24,10 +24,11 @@
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/repos": "workspace:*",
 		"@antumbra/settings": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"effect": "catalog:"
 	}

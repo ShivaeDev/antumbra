@@ -1,4 +1,5 @@
 import { Database } from "@antumbra/persistence";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
 import { type BoardOwner, BoardScope } from "#model.ts";
@@ -22,10 +23,11 @@ const ownerOf = (scope: BoardScope): BoardOwner =>
 export const requireBoardOwner = (scope: BoardScope) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
+		const sailing = yield* Voyages;
 		const exists = yield* BoardScope.$match(scope, {
 			Agent: ({ agentId }) => db.Agent.where({ id: agentId }).exists(),
 			Piece: ({ pieceId }) => db.Piece.where({ id: pieceId }).exists(),
-			Voyage: ({ voyageId }) => db.Voyage.where({ id: voyageId }).exists(),
+			Voyage: ({ voyageId }) => Effect.map(sailing.byId(voyageId), Option.isSome),
 		});
 		if (!exists) {
 			return yield* new BoardOwnerNotFound(ownerOf(scope));

@@ -1,10 +1,12 @@
 import { BoardScope, Boards, BoardsLive, EntryInput } from "@antumbra/boards";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
+import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub, Result } from "effect";
 
-const layer = BoardsLive.pipe(Layer.provideMerge(DomainFeedsLive));
+const layer = BoardsLive.pipe(Layer.provide(scriptedVoyages), Layer.provide(scriptedRoleSettings), Layer.provideMerge(DomainFeedsLive));
 
 it.effectDB("writes notes in order and replays source references", function* (db) {
 	yield* Effect.gen(function* () {

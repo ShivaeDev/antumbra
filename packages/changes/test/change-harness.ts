@@ -1,10 +1,11 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { Voyages } from "@antumbra/voyages";
 
 export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 
 import { PiecesLive } from "@antumbra/pieces";
+import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { scriptedVoyages } from "@antumbra/voyages/testing";
 import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { Effect, Layer, Ref } from "effect";
 import { changesLayer as configuredChangesLayer } from "#layer.ts";
@@ -32,7 +33,8 @@ export const passiveRunner: Runner = {
 export const changesLayer = (hosts: ReadonlyArray<ChangeHost>, runner: Runner = passiveRunner) =>
 	configuredChangesLayer(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
 		Layer.provideMerge(PiecesLive),
-		Layer.provideMerge(Voyages.layer),
+		Layer.provide(scriptedVoyages),
+		Layer.provide(scriptedRoleSettings),
 		Layer.provideMerge(DomainFeedsLive),
 	);
 

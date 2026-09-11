@@ -1,6 +1,7 @@
 import { RulingSource } from "@antumbra/contract";
 import { it } from "@antumbra/persistence/testing";
 import { Rulings } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
 import { anyGated, anyOpen, asked, layer, noneOpen, pieceId, requesterId, seedFleet, voyageId, watchUntil } from "#test/ruling-source-harness.ts";
@@ -177,7 +178,7 @@ it.effectDB("a proclamation stands without ever being open", function* () {
 it.effectDB("shared gates keep Piece order and every berthing across open Rulings", function* (db) {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
-		yield* db.Voyage.create({ id: "other", name: "Other course", context: "other", northStar: "other" });
+		yield* Effect.flatMap(Voyages, (sailing) => sailing.open({ context: "other", id: "other", name: "Other course", northStar: "other" }));
 		yield* db.VoyagePiece.create({ pieceId, voyageId: "other" });
 		yield* db.Piece.where({ id: pieceId }).update({ createdAt: new Date(1) });
 		yield* db.Piece.create({ id: "second", title: "Second course", charter: "second", expectation: "second", role: "hand", createdAt: new Date(2) });

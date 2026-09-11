@@ -7,6 +7,8 @@ import { PiecesLive } from "@antumbra/pieces";
 import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
+import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Voyages } from "@antumbra/voyages";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
@@ -15,10 +17,11 @@ export const layer = RulingSourceLive.pipe(
 	Layer.provide(RulingReplies.layer),
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(PiecesLive),
-	Layer.provideMerge(Voyages.layer),
 	Layer.provideMerge(RulingHoldsLive),
 	Layer.provideMerge(BoardsLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(scriptedVoyages),
+	Layer.provide(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),
 );
 
@@ -28,13 +31,14 @@ export const pieceId = "piece-course";
 
 export const seedFleet = Effect.gen(function* () {
 	const db = yield* Database;
+	const sailing = yield* Voyages;
 	yield* db.Agent.create({
 		charter: "sound the eastern shoal",
 		id: requesterId,
 		role: "hand",
 		status: "alive",
 	});
-	yield* db.Voyage.create({
+	yield* sailing.open({
 		context: "the reef is uncharted",
 		id: voyageId,
 		name: "Chart the reef",

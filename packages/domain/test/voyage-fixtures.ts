@@ -47,6 +47,16 @@ export const openReefVoyage = Effect.gen(function* () {
 	});
 });
 
+export const flagshipVoyage = Effect.gen(function* () {
+	const sailing = yield* Voyages;
+	for (const voyage of yield* sailing.list()) {
+		if (voyage.kind === "flagship") {
+			return voyage;
+		}
+	}
+	return yield* Effect.die(new Error("the fleet sails without a flagship"));
+});
+
 export const chain = Effect.gen(function* () {
 	const pieces = yield* Pieces;
 	const voyage = yield* openReefVoyage;

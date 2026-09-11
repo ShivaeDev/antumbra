@@ -1,5 +1,6 @@
 import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 
@@ -19,7 +20,7 @@ const noted = (body: string) =>
 
 it.effectApp("every durable entity carries its own board", function* ({ db }) {
 	const boards = yield* Boards;
-	yield* db.Voyage.create(voyage("boards-entities-voyage"));
+	yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("boards-entities-voyage")));
 	yield* db.Piece.create({
 		charter: "sound the shallows",
 		expectation: "soundings are landed",
@@ -44,10 +45,10 @@ it.effectApp("every durable entity carries its own board", function* ({ db }) {
 	}
 });
 
-it.effectApp("an entity has one board, however often it is asked for", function* ({ db }) {
+it.effectApp("an entity has one board, however often it is asked for", function* () {
 	const boards = yield* Boards;
 	const voyageId = "boards-one-voyage";
-	yield* db.Voyage.create(voyage(voyageId));
+	yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage(voyageId)));
 	const scope = BoardScope.Voyage({ voyageId });
 	const first = yield* boards.ensure(scope);
 	expect(yield* boards.ensure(scope)).toBe(first);
@@ -56,9 +57,9 @@ it.effectApp("an entity has one board, however often it is asked for", function*
 	expect((yield* boards.read(scope)).length).toBe(1);
 });
 
-it.effectApp("an entity nobody has written to reads as an empty board", function* ({ db }) {
+it.effectApp("an entity nobody has written to reads as an empty board", function* () {
 	const boards = yield* Boards;
 	const voyageId = "boards-empty-voyage";
-	yield* db.Voyage.create(voyage(voyageId));
+	yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage(voyageId)));
 	expect(yield* boards.read(BoardScope.Voyage({ voyageId }))).toEqual([]);
 });

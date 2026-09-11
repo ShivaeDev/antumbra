@@ -1,14 +1,15 @@
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
-import { decodeVoyage } from "#voyage/decode.ts";
 import type { DispatchWorld } from "#voyage-rows.ts";
 
 export const dispatch = Effect.fn("ExecutionSource.dispatch")(function* () {
 	const db = yield* Database;
 	const rulings = yield* Rulings;
+	const sailing = yield* Voyages;
 	const launched = yield* db.Piece.where({ parkedAt: null })
 		.where((piece) => piece.launchedAt.isNotNull())
 		.orderBy((piece) => piece.createdAt.asc())
@@ -25,9 +26,8 @@ export const dispatch = Effect.fn("ExecutionSource.dispatch")(function* () {
 	const agents = yield* db.Agent.where((agent) => agent.status.in(["alive", "spawning"]))
 		.orderBy((agent) => agent.createdAt.asc())
 		.all();
-	const voyages = yield* db.Voyage.where((voyage) => voyage.id.in(memberships.map((membership) => membership.voyageId)))
-		.orderBy((voyage) => voyage.createdAt.asc())
-		.all();
+	const berthed = new Set(memberships.map((membership) => membership.voyageId));
+	const voyages = (yield* sailing.list()).filter((voyage) => berthed.has(voyage.id));
 	return {
 		...(yield* readAgentExecution(agents)),
 		...(yield* readOutcomes(pieceIds)),
@@ -36,6 +36,6 @@ export const dispatch = Effect.fn("ExecutionSource.dispatch")(function* () {
 		memberships,
 		pieces,
 		rulingGates: yield* rulings.openGatesForPieces([...candidateIds]),
-		voyages: yield* Effect.forEach(voyages, decodeVoyage),
+		voyages,
 	} satisfies DispatchWorld;
 });

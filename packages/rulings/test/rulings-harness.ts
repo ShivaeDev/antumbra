@@ -1,5 +1,16 @@
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { Effect } from "effect";
+import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { Voyages } from "@antumbra/voyages";
+import { scriptedVoyages } from "@antumbra/voyages/testing";
+import { Effect, Layer } from "effect";
+import { RulingsLive } from "#rulings.ts";
+
+export const layer = RulingsLive.pipe(
+	Layer.provideMerge(scriptedVoyages),
+	Layer.provide(scriptedRoleSettings),
+	Layer.provide(DomainFeedsLive),
+);
 
 export const requesterId = "agent-hand";
 export const voyageId = "voyage-reef";
@@ -8,13 +19,14 @@ export const repoId = "repo-charts";
 
 export const seedFleet = Effect.gen(function* () {
 	const db = yield* Database;
+	const sailing = yield* Voyages;
 	yield* db.Agent.create({
 		charter: "sound the shallows",
 		id: requesterId,
 		role: "hand",
 		status: "alive",
 	});
-	yield* db.Voyage.create({
+	yield* sailing.open({
 		context: "the reef is uncharted",
 		id: voyageId,
 		name: "Chart the reef",

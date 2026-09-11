@@ -5,6 +5,7 @@ import { defineService } from "@antumbra/platform-service-definition/define-serv
 import { Repos } from "@antumbra/repos";
 import { Rulings } from "@antumbra/rulings";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { read } from "#voyage/detail/read.ts";
 
@@ -12,5 +13,5 @@ export const VoyageDetails = defineService({
 	id: "@antumbra/domain/VoyageDetails",
 	initialize: Effect.void,
 	methods: () => ({ read }),
-	requires: [Changes, Database, Pieces, Repos, RoleSettings, Rulings],
+	requires: [Changes, Database, Pieces, Repos, RoleSettings, Rulings, Voyages],
 });

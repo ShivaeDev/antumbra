@@ -48,6 +48,8 @@
 		"@antumbra/testing-runtime": "workspace:*",
 		"@antumbra/platform-trace-sink": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@tailwindcss/vite": "catalog:",

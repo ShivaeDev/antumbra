@@ -6,7 +6,7 @@ import { AgentDomain, AgentDomainLive, BackendCapacityReleases, installKernelRea
 import { KernelLive } from "@antumbra/kernel";
 import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
-import { makeEffectApp, scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
+import { makeEffectApp, scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Deferred, Effect, Layer, Option, Stream } from "effect";
 import {
@@ -93,7 +93,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(scriptedRoleSettings), Layer.provideMerge(scriptedSettings));
+	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(scriptedVoyages), Layer.provideMerge(scriptedRoleSettings), Layer.provideMerge(scriptedSettings));
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	Layer.mergeAll(SightSourceLive, installKernelReach).pipe(

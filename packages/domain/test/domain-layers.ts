@@ -10,7 +10,7 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { RoleSettings } from "@antumbra/settings";
-import { scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
+import { scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -53,6 +53,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 				Layer.provide(NodeServices.layer),
 			),
 		),
+		Layer.provideMerge(scriptedVoyages),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
 		Layer.provideMerge(temporary.layer),
@@ -102,6 +103,7 @@ export const domainKernelServices = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
+		Layer.provideMerge(scriptedVoyages),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
 	);

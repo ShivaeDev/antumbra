@@ -8,6 +8,7 @@ import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { LiveDelegations } from "@antumbra/sessions";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Layer, Stream } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { BackendCatalog } from "#backend-catalog/service.ts";
@@ -32,6 +33,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
 		const db = yield* Database;
+		const sailing = yield* Voyages;
 		const acts = yield* makeSightActs;
 		const events = yield* makeSightSessionEvents;
 		const tree = yield* makeSightSessionTree;
@@ -53,6 +55,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			Effect.provideService(Repos, repos),
 			Effect.provideService(RoleSettings, roles),
 			Effect.provideService(Database, db),
+			Effect.provideService(Voyages, sailing),
 			Effect.mapError(toFailure),
 		);
 

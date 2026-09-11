@@ -4,7 +4,7 @@ import { Database } from "@antumbra/persistence";
 import { AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { RoleSettings } from "@antumbra/settings";
-import { makeEffectApp, makeScriptedBackend, passiveRunner, scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
+import { makeEffectApp, makeScriptedBackend, passiveRunner, scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 
@@ -39,7 +39,7 @@ export const it = {
 						join(directory, "session-inputs"),
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
-				Layer.provideMerge(Layer.mergeAll(scriptedRoleSettings, scriptedSettings)),
+				Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(scriptedRoleSettings, scriptedSettings)))),
 			);
 			return { harness, layer };
 		}),

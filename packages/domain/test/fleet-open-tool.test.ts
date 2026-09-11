@@ -1,13 +1,25 @@
-import { Database } from "@antumbra/persistence";
 import { RoleSettings } from "@antumbra/settings";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
+import { Effect } from "effect";
 import { flagshipCaptain } from "#test/flagship-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 
+const named = (name: string) =>
+	Effect.gen(function* () {
+		const sailing = yield* Voyages;
+		const found = [];
+		for (const voyage of yield* sailing.list()) {
+			if (voyage.name === name) {
+				found.push(voyage);
+			}
+		}
+		return found;
+	});
+
 it.effectApp("the flagship's captain opens a voyage on the fleet's default", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const db = yield* Database;
 
 	const outcome = yield* callTool(captain, "open_voyage", {
 		context: "the shoals are unnamed",
@@ -15,9 +27,7 @@ it.effectApp("the flagship's captain opens a voyage on the fleet's default", fun
 		northStar: "every shoal has a name",
 	});
 
-	const opened = (yield* db.Voyage.where({
-		name: "Name the shoals",
-	}).all())[0];
+	const [opened] = yield* named("Name the shoals");
 	expect(outcome).toEqual({
 		ok: true,
 		text: `opened voyage ${opened?.id} · captain on scripted · crew on scripted`,
@@ -31,7 +41,6 @@ it.effectApp("the flagship's captain opens a voyage on the fleet's default", fun
 
 it.effectApp("a voyage opens on the backend, model and effort the admiral named for each role", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const db = yield* Database;
 
 	const outcome = yield* callTool(captain, "open_voyage", {
 		captainBackend: "claude",
@@ -45,9 +54,7 @@ it.effectApp("a voyage opens on the backend, model and effort the admiral named 
 		northStar: "every shoal has a name",
 	});
 
-	const opened = (yield* db.Voyage.where({
-		name: "Name the shoals",
-	}).all())[0];
+	const [opened] = yield* named("Name the shoals");
 	expect(outcome).toEqual({
 		ok: true,
 		text: `opened voyage ${opened?.id} · captain on claude with opus at high effort · crew on codex with gpt-5 at medium effort`,
@@ -60,7 +67,6 @@ it.effectApp("a voyage opens on the backend, model and effort the admiral named 
 
 it.effectApp("a voyage asked for on a backend the fleet has no name for is refused, not opened", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const db = yield* Database;
 
 	const refusal = yield* callTool(captain, "open_voyage", {
 		captainBackend: "bottled-ship",
@@ -73,12 +79,11 @@ it.effectApp("a voyage asked for on a backend the fleet has no name for is refus
 		ok: false,
 		text: "open_voyage: the fleet has no backend named bottled-ship — it names claude, codex, opencode, pi",
 	});
-	expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual([]);
+	expect(yield* named("Name the shoals")).toEqual([]);
 });
 
 it.effectApp("a voyage asked for without a north star is refused, not opened", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const db = yield* Database;
 
 	const refusal = yield* callTool(captain, "open_voyage", {
 		context: "the shoals are unnamed",
@@ -87,5 +92,5 @@ it.effectApp("a voyage asked for without a north star is refused, not opened", f
 
 	expect(refusal.ok).toBe(false);
 	expect(refusal.text).toContain("open_voyage");
-	expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual([]);
+	expect(yield* named("Name the shoals")).toEqual([]);
 });

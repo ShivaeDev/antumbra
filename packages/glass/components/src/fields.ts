@@ -19,6 +19,22 @@ export interface Editable {
 	readonly name: string;
 }
 
+export type Fixed = readonly string[] | Held;
+
+function listed(fixed: Fixed): readonly string[] | undefined;
+function listed(fixed: unknown): unknown {
+	return Array.isArray(fixed) ? fixed : undefined;
+}
+
+function record(fixed: Fixed): Held;
+function record(fixed: unknown): unknown {
+	return fixed;
+}
+
+export const fixedNames = (fixed: Fixed): readonly string[] => listed(fixed) ?? Object.keys(record(fixed));
+
+export const fixedValues = (fixed: Fixed): Held => (listed(fixed) === undefined ? record(fixed) : {});
+
 const drawn = (shape: Editing): boolean => shape.choice !== undefined || shape.title !== undefined;
 
 export const editablesOf = (command: CommandShape, fixed: readonly string[]): readonly Editable[] => {

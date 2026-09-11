@@ -36,8 +36,16 @@ export const until = (ready: () => boolean): Effect.Effect<void> =>
 		return yield* Effect.die("the glass never settled");
 	});
 
-export const write = (control: HTMLInputElement | HTMLSelectElement, value: string): void => {
-	const prototype = control instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
-	Object.getOwnPropertyDescriptor(prototype, "value")?.set?.call(control, value);
+type Writable = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+const prototypeOf = (control: Writable): object => {
+	if (control instanceof HTMLSelectElement) {
+		return HTMLSelectElement.prototype;
+	}
+	return control instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+};
+
+export const write = (control: Writable, value: string): void => {
+	Object.getOwnPropertyDescriptor(prototypeOf(control), "value")?.set?.call(control, value);
 	control.dispatchEvent(new Event(control instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }));
 };

@@ -9,12 +9,18 @@ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { type ReactNode, useId, useState } from "react";
 import { ALERT, HEAD, NAME, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
-import { type Editable, editablesOf, fedByOf, type Held, identityOf, labelOf, signatureOf, valuesOf } from "#fields.ts";
+import { type Editable, editablesOf, fedByOf, fixedNames, fixedValues, type Held, identityOf, labelOf, signatureOf, valuesOf } from "#fields.ts";
 import { generate, type Sending, sending } from "#generated.ts";
 
 const SAID = "The change could not be saved";
 
 const NOTHING: readonly string[] = [];
+
+const BLANK: Held = {};
+
+const SAVE_WORDS = "Save";
+
+const SENDING_WORDS = "Saving…";
 
 const messageOf = (cause: Cause.Cause<unknown>): string => {
 	const failure = Cause.findErrorOption(cause);
@@ -28,16 +34,19 @@ const Spacer = () => (
 );
 
 const Row = (props: {
+	readonly creating: boolean;
 	readonly editables: readonly Editable[];
 	readonly identity: Held;
 	readonly label: string;
 	readonly placeholders: Readonly<Record<string, string>>;
 	readonly send: Sending;
+	readonly sent: (() => void) | undefined;
+	readonly submit: string;
 	readonly titles: boolean;
 	readonly values: Held;
 }) => {
 	const named = useId();
-	const [form] = useState(() => generate(props.editables, props.identity, props.values, props.send));
+	const [form] = useState(() => generate(props.editables, props.identity, props.values, props.send, props.sent));
 	const values = useAtomRef(form.values);
 	const dirty = useDirty(form);
 	const submit = useSubmit(form);
@@ -51,6 +60,8 @@ const Row = (props: {
 		}
 	};
 	const settled = AsyncResult.isFailure(submit.result) && !submit.result.waiting ? messageOf(submit.result.cause) : null;
+	const offered = props.creating || dirty;
+	const words = props.creating || !submit.submitting ? props.submit : SENDING_WORDS;
 	return (
 		<form
 			aria-labelledby={named}
@@ -80,8 +91,8 @@ const Row = (props: {
 			))}
 			<span className={HEAD}>
 				{props.titles ? <Spacer /> : null}
-				<button className={dirty ? SAVE : `${SAVE} invisible`} disabled={!dirty || submit.submitting} type="submit">
-					{submit.submitting ? "Saving…" : "Save"}
+				<button className={offered ? SAVE : `${SAVE} invisible`} disabled={!offered || submit.submitting} type="submit">
+					{words}
 				</button>
 			</span>
 			{settled === null ? null : (
@@ -95,26 +106,35 @@ const Row = (props: {
 
 export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	readonly command: Send<Command, Failure>;
-	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[];
+	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[] | Readonly<Partial<Values<Command["input"]>>>;
 	readonly label?: string;
 	readonly placeholders?: Readonly<Record<string, string>>;
-	readonly row: Held;
+	readonly row?: Held;
+	readonly submit?: string;
 	readonly titles?: boolean;
 }): ReactNode => {
 	const command = props.command.command;
-	const fixed = props.fixed ?? NOTHING;
-	const editables = editablesOf(command, fixed);
+	const [cleared, setCleared] = useState(0);
 	const send = sending(useSend(props.command));
+	const fixed = props.fixed ?? NOTHING;
+	const names = fixedNames(fixed);
+	const editables = editablesOf(command, names);
+	const creating = props.row === undefined;
+	const row = props.row ?? BLANK;
+	const submit = props.submit ?? SAVE_WORDS;
 	return (
 		<Row
+			creating={creating}
 			editables={editables}
-			identity={identityOf(command, props.row)}
-			key={signatureOf(editables, props.row)}
-			label={props.label ?? labelOf(fixed, props.row)}
+			identity={{ ...identityOf(command, row), ...fixedValues(fixed) }}
+			key={`${signatureOf(editables, row)}/${cleared}`}
+			label={props.label ?? (creating ? submit : labelOf(names, row))}
 			placeholders={props.placeholders ?? {}}
 			send={send}
+			sent={creating ? () => setCleared((count) => count + 1) : undefined}
+			submit={submit}
 			titles={props.titles === true}
-			values={valuesOf(editables, props.row)}
+			values={valuesOf(editables, row)}
 		/>
 	);
 };

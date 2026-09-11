@@ -12,8 +12,10 @@ import { group, type Rpcs, tagOf } from "#group.ts";
 import { type Watch, watching } from "#query.ts";
 import type { Token, Unauthorized } from "#token.ts";
 
+export type Sent<Command extends CommandShape> = Values<Command["input"]> & { readonly requestId?: Id.Request };
+
 export interface Send<Command extends CommandShape, Failure> {
-	(input: Values<Command["input"]>): Effect.Effect<number, Failure | RejectedBy<Command["rejections"]> | Unauthorized>;
+	(input: Sent<Command>): Effect.Effect<number, Failure | RejectedBy<Command["rejections"]> | Unauthorized>;
 	readonly command: Command;
 }
 
@@ -43,7 +45,7 @@ const sending = (calls: Loose, feature: string, command: CommandShape) =>
 	Object.assign(
 		(input: Record<string, unknown>): Effect.Effect<number, unknown> =>
 			calls
-				.send(tagOf(feature, command.name), { ...input, requestId: Id.Request.make(Id.make()) })
+				.send(tagOf(feature, command.name), { requestId: Id.Request.make(Id.make()), ...input })
 				.pipe(Effect.catchIf(landed, (done) => Effect.succeed(done.seq))),
 		{ command },
 	);

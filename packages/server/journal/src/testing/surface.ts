@@ -5,6 +5,7 @@ import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { AlreadyDone, RejectedBy } from "@antumbra/platform-feature/rejection.ts";
 import type { RowKey, RowShape, RowValue } from "@antumbra/platform-feature/row.ts";
 import type { Api } from "@antumbra/platform-rpc/client.ts";
+import type * as Id from "@antumbra/platform-vocabulary/id.ts";
 import type { Effect, Schema } from "effect";
 
 export type Projections<Features extends readonly FeatureShape[]> = Features[number]["rows"][number];
@@ -16,7 +17,7 @@ export interface Emissions<Value> {
 export type Commits<Features extends readonly FeatureShape[]> = {
 	readonly [Feature in Features[number] as Feature["name"]]: {
 		readonly [Command in Feature["commands"][number] as Command["name"]]: (
-			input: Values<Command["input"]>,
+			input: Values<Command["input"]> & { readonly requestId?: Id.Request },
 		) => Effect.Effect<number, AlreadyDone | RejectedBy<Command["rejections"]>>;
 	};
 };

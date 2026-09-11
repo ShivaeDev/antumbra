@@ -43,7 +43,7 @@ it.app("reports a backend whose listing failed, with the failure and no models",
 
 it.app("never lists a registered backend the domain has no tag for", function* (harness) {
 	const asked: Array<string> = [];
-	yield* reportModelsOver(harness.api, catalogOf(["claude", "pi"], asked));
+	yield* reportModelsOver(harness.api, catalogOf(["claude", "pi", "bottled-ship"], asked));
 
-	expect(asked.toSorted()).toEqual(["claude"]);
+	expect(asked.toSorted()).toEqual(["claude", "pi"]);
 });

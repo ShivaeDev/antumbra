@@ -71,7 +71,7 @@ it.effectApp("a voyage asked for on a backend the fleet has no name for is refus
 
 	expect(refusal).toEqual({
 		ok: false,
-		text: "open_voyage: the fleet has no backend named bottled-ship — it names claude, codex, opencode",
+		text: "open_voyage: the fleet has no backend named bottled-ship — it names claude, codex, opencode, pi",
 	});
 	expect(yield* db.Voyage.where({ name: "Name the shoals" }).all()).toEqual([]);
 });

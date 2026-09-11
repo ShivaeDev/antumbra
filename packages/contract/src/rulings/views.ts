@@ -1,4 +1,4 @@
-import { RulingAuthoritySchema, RulingRadiusSchema, RulingSubjectKindSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling.ts";
+import { RulingAuthoritySchema, RulingRadiusSchema, RulingSubjectKindSchema, RulingUrgencySchema } from "@antumbra/platform-vocabulary/ruling.ts";
 import { Schema } from "effect";
 
 export const RulingChoiceView = Schema.Struct({

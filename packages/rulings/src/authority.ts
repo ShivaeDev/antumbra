@@ -1,4 +1,4 @@
-import type { RulingAuthority, RulingRadius } from "@antumbra/vocabulary/ruling.ts";
+import type { RulingAuthority, RulingRadius } from "@antumbra/platform-vocabulary/ruling.ts";
 import type { RulingClimbingAuthority } from "#acts.ts";
 
 const ANSWERS: Readonly<Record<RulingAuthority, ReadonlyArray<RulingRadius>>> = {

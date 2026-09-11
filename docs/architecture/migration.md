@@ -25,6 +25,8 @@ something updates this file in the same change. A status here is one of three wo
   stamps the fact once from the clock. A command re-issued with an id already done is rejected as already done, which is what makes a retry safe.
 - **Nothing new is flat.** New packages land under the layout below; the flat packages under `packages/` are the old code and stay flat until their
   feature moves and deletes them.
+- **A package of the moved world is named `@antumbra/<group>-<folder>`:** the group is the folder it sits in, singular (`platform-feature`,
+  `server-journal`, `domain-settings`, `glass-settings`); an old package keeps its name until it is deleted.
 - **A screen names a command; the form derives from the command's schema, which declares every value a field can take.** A field's title, the values
   it may take, and the query its choices come from are annotations on the command's input, so a screen holds only what only it knows: the row it
   edits, the fields that identify it, and the placeholder text.
@@ -33,9 +35,9 @@ something updates this file in the same change. A status here is one of three wo
 
 ## Layout
 
-Two roots. `apps/` holds every process, `packages/` holds what they are made of, nested by the process a package belongs to and then by its role.
-Package names stay short (`@antumbra/pieces`, `@antumbra/journal`); the path carries the group. A flat package under `packages/` is old code; when the
-last flat package is deleted the move is over.
+Two roots. `apps/` holds every process, `packages/` holds what they are made of, nested by the process a package belongs to and then by its role. A
+package's name repeats the group its path puts it in. A flat package under `packages/` is old code; when the last flat package is deleted the move is
+over.
 
 ```
 apps/
@@ -57,7 +59,7 @@ packages/
     backends/       claude/  codex/  opencode/  pi/
     git/
   glass/
-    client/  atom-form/  components/  renderer/  harness/
+    client/  form/  components/  renderer/  harness/
     role-settings/  settings/    a feature's screens, one glass package per feature
 
   <flat>            the old code, untouched until its feature moves
@@ -71,8 +73,9 @@ until the renderer moves (`@antumbra/renderer` reaching `@antumbra/glass-role-se
 the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
-real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out
-lives under `src` and is named the same way. A flat package keeps the map it has and takes this rule when it moves. A second lint rule holds it.
+real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/platform-vocabulary/board.ts`), and an asset a package
+hands out lives under `src` and is named the same way. A flat package keeps the map it has and takes this rule when it moves. A second lint rule holds
+it.
 
 A package outside `apps/` cannot reach the machine: no process, file, network or socket module and no Node platform layer, the two named SQLite owners
 excepted; a third lint rule holds it.
@@ -82,13 +85,13 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 
 ## The order
 
-| step | what                                                                                                                                                                                                                                                                                                                                                                    | status      |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| 1    | Spikes: Effect SQL on `node:sqlite`, DDL from Schema classes, `atom-form`. Their findings are in the North Star.                                                                                                                                                                                                                                                        | landed      |
-| 2    | Platform packages, standalone, with tests: the journal kit's core (commit, materializers, live query, DDL from Schema classes) and the RPC client's core (contract kit, client with a live atom). Reconcilers, rebuild on shape hash, fact migrations, reconnect, the token, and `atom-form` arrive with the first feature that needs each. Nothing in the app changes. | in progress |
-| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | landed      |
-| 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                        | in progress |
-| 5    | Delete Prisma, tRPC, and the wrappers.                                                                                                                                                                                                                                                                                                                                  | not started |
+| step | what                                                                                                                                                                                                                                                                                                                                                                     | status      |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| 1    | Spikes: Effect SQL on `node:sqlite`, DDL from Schema classes, `glass-form`. Their findings are in the North Star.                                                                                                                                                                                                                                                        | landed      |
+| 2    | Platform packages, standalone, with tests: the journal kit's core (commit, materializers, live query, DDL from Schema classes) and the RPC client's core (contract kit, client with a live atom). Reconcilers, rebuild on shape hash, fact migrations, reconnect, the token, and `glass-form` arrive with the first feature that needs each. Nothing in the app changes. | in progress |
+| 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                       | landed      |
+| 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                         | in progress |
+| 5    | Delete Prisma, tRPC, and the wrappers.                                                                                                                                                                                                                                                                                                                                   | not started |
 
 ## Features
 

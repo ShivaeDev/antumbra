@@ -1,4 +1,4 @@
-import type { RulingAuthority, RulingRadius, RulingSubjectKind, RulingUrgency } from "@antumbra/vocabulary/ruling.ts";
+import type { RulingAuthority, RulingRadius, RulingSubjectKind, RulingUrgency } from "@antumbra/platform-vocabulary/ruling.ts";
 import type { Option } from "effect";
 import type { RulingSupersession, RulingWithdrawal } from "#retirement.ts";
 

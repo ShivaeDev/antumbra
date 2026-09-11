@@ -13,19 +13,20 @@ const RULE = "layout/domain-imports";
 const DOMAIN_SOURCE = /^packages\/server\/domains\/[^/]+\/src\//;
 const DOMAIN_TEST = /^packages\/server\/domains\/[^/]+\/test\//;
 const DOMAIN_ROOT = "packages/server/domains/";
-const LIBRARIES = ["effect", "@antumbra/feature", "@antumbra/vocabulary"];
+const LIBRARIES = ["effect", "@antumbra/platform-feature", "@antumbra/platform-vocabulary"];
 const DOMAIN_ENTRY = /^(@antumbra\/[^/]+)\/(?:rows|queries)\/[^/]+\.ts$/;
 
 const SOURCES: Scope = {
-	allowance: "a domain's sources import effect, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows and queries",
+	allowance:
+		"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows and queries",
 	libraries: LIBRARIES,
 	name: "sources",
 };
 
 const TESTS: Scope = {
 	allowance:
-		"a domain's tests import effect, vitest, the journal's test kit, @antumbra/feature, @antumbra/vocabulary, its own subpaths, and another domain's rows and queries",
-	libraries: [...LIBRARIES, "vitest", "@antumbra/journal/testing"],
+		"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows and queries",
+	libraries: [...LIBRARIES, "vitest", "@antumbra/server-journal/testing"],
 	name: "tests",
 };
 

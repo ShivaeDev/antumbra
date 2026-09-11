@@ -21,25 +21,25 @@ describe("node-only-in-apps rule", () => {
 		expect(check("packages/server/journal/src/journal.ts", "@effect/sql-sqlite-node/SqliteClient")).toEqual([]);
 		expect(check("packages/platform/trace-sink/src/adapters/database.ts", "node:sqlite")).toEqual([]);
 		expect(check("packages/server/journal/src/journal.ts", "node:sqlite")).toEqual([
-			"@antumbra/journal may not import node:sqlite: only a package under apps/ may reach the machine.",
+			"@antumbra/server-journal may not import node:sqlite: only a package under apps/ may reach the machine.",
 		]);
 	});
 
 	it("keeps the Node platform out of a platform package", () => {
 		expect(check("packages/platform/rpc/src/transport.ts", "@effect/platform-node")).toEqual([
-			"@antumbra/rpc may not import @effect/platform-node: only a package under apps/ may reach the machine.",
+			"@antumbra/platform-rpc may not import @effect/platform-node: only a package under apps/ may reach the machine.",
 		]);
 		expect(check("packages/platform/rpc/src/transport.ts", "ws")).toEqual([
-			"@antumbra/rpc may not import ws: only a package under apps/ may reach the machine.",
+			"@antumbra/platform-rpc may not import ws: only a package under apps/ may reach the machine.",
 		]);
 	});
 
 	it("keeps the machine out of a server package, prefixed or not", () => {
 		expect(check("packages/server/domains/pieces/src/run.ts", "node:child_process")).toEqual([
-			"@antumbra/pieces may not import node:child_process: only a package under apps/ may reach the machine.",
+			"@antumbra/domain-pieces may not import node:child_process: only a package under apps/ may reach the machine.",
 		]);
 		expect(check("packages/server/domains/pieces/src/run.ts", "fs")).toEqual([
-			"@antumbra/pieces may not import fs: only a package under apps/ may reach the machine.",
+			"@antumbra/domain-pieces may not import fs: only a package under apps/ may reach the machine.",
 		]);
 	});
 

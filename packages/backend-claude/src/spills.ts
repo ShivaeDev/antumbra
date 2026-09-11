@@ -1,7 +1,7 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
-import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
-import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/platform-vocabulary/session-events/origin.ts";
+import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import { isRecord } from "#blocks.ts";
 
 // Oversized tool results carry only a preview inline and name the stored full output in `persistedOutputPath`.

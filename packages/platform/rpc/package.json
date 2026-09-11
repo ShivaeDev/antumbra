@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/rpc",
+	"name": "@antumbra/platform-rpc",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,8 +23,8 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/feature": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

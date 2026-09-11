@@ -23,12 +23,12 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/backends": "workspace:*",
-		"@antumbra/feature": "workspace:*",
-		"@antumbra/journal": "workspace:*",
-		"@antumbra/role-settings": "workspace:*",
-		"@antumbra/rpc": "workspace:*",
-		"@antumbra/settings-domain": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
+		"@antumbra/domain-role-settings": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:"
 	}

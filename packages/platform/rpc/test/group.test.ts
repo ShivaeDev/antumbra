@@ -1,5 +1,5 @@
-import { group } from "@antumbra/rpc/group.ts";
-import { Token } from "@antumbra/rpc/token.ts";
+import { group } from "@antumbra/platform-rpc/group.ts";
+import { Token } from "@antumbra/platform-rpc/token.ts";
 import { describe, expect, it } from "vitest";
 import { boards, notes } from "#test/example.ts";
 

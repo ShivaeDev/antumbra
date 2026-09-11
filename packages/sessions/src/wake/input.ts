@@ -1,5 +1,5 @@
+import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import type { SessionInput } from "@antumbra/plugin-api";
-import { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 import { Schema } from "effect";
 
 export const WakePayload = Schema.Struct({

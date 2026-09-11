@@ -1,5 +1,5 @@
+import { skillFolders } from "@antumbra/platform-skills/folders.ts";
 import { type AntumbraPlugin, makeBackendCapacityController, type PluginContext } from "@antumbra/plugin-api";
-import { skillFolders } from "@antumbra/skills/folders.ts";
 import { Effect, Option } from "effect";
 import { bundledCodex } from "#adapters/chatgpt-bundle.ts";
 import { type LineProcess, spawnLineProcess } from "#adapters/process.ts";

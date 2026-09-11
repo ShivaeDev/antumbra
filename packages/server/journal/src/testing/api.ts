@@ -1,7 +1,7 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import { type Api, api } from "@antumbra/rpc/client.ts";
-import { group, type Rpcs } from "@antumbra/rpc/group.ts";
-import type { Token } from "@antumbra/rpc/token.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import { type Api, api } from "@antumbra/platform-rpc/client.ts";
+import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
+import type { Token } from "@antumbra/platform-rpc/token.ts";
 import { Effect, type Scope } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import type * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";

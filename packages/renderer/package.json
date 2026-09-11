@@ -31,7 +31,7 @@
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/glass-role-settings": "workspace:*",
 		"@antumbra/glass-settings": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"@fontsource-variable/inter": "catalog:",
 		"@radix-ui/react-dialog": "catalog:",

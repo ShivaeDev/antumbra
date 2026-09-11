@@ -1,6 +1,6 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { Rpcs } from "@antumbra/rpc/group.ts";
-import { ClientToken, layerClient, ServerToken, type Token } from "@antumbra/rpc/token.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { Rpcs } from "@antumbra/platform-rpc/group.ts";
+import { ClientToken, layerClient, ServerToken, type Token } from "@antumbra/platform-rpc/token.ts";
 import { Layer } from "effect";
 import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";

@@ -1,8 +1,8 @@
-import type { CommandInput } from "@antumbra/feature/command.ts";
-import { feature } from "@antumbra/feature/feature.ts";
-import type { ReadHandles } from "@antumbra/feature/handles.ts";
-import { AlreadyDone } from "@antumbra/feature/rejection.ts";
-import type { Api } from "@antumbra/rpc/client.ts";
+import type { CommandInput } from "@antumbra/platform-feature/command.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
+import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
+import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect } from "effect";
 import { park } from "#example/commands/park.ts";
 import { pieceParked } from "#example/facts/piece-parked.ts";

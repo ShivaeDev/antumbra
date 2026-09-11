@@ -1,5 +1,5 @@
-import { admiralWords } from "@antumbra/prompts/admiral.ts";
-import { wakeWords } from "@antumbra/prompts/wake.ts";
+import { admiralWords } from "@antumbra/platform-prompts/admiral.ts";
+import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import type { SessionSend } from "@antumbra/sessions/send/service";
 import type { Effect } from "effect";
 

@@ -1,6 +1,6 @@
 import { it } from "@antumbra/persistence/testing";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { SessionCensus } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { sessionAtRest } from "#at-rest.ts";

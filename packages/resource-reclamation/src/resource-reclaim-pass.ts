@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import type { ResourceReclaimState } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
-import { decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import type { ResourceReclaimState } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
+import { decodeStoredResourceReclaimState } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { Clock, Effect } from "effect";
 import { type ClaimedBerth, claimReclaimableBerths } from "#resource-reclaim-claims.ts";
 import { ResourceReclaimRunners } from "#resource-reclaim-runners.ts";

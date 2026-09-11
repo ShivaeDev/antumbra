@@ -30,12 +30,12 @@
 		"@antumbra/kernel": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/prompts": "workspace:*",
+		"@antumbra/platform-prompts": "workspace:*",
 		"@antumbra/session-event-journal": "workspace:*",
 		"@antumbra/session-fabric": "workspace:*",
 		"@antumbra/session-inputs": "workspace:*",
-		"@antumbra/service-definition": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-service-definition": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
 		"@antumbra/provider-capacity": "workspace:*"
 	}

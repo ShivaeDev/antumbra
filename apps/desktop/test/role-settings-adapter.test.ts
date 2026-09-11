@@ -1,7 +1,7 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { testing } from "@antumbra/journal/testing/entry.ts";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { FLEET, roleSettingId } from "@antumbra/role-settings/ids.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { FLEET, roleSettingId } from "@antumbra/domain-role-settings/ids.ts";
+import { testing } from "@antumbra/server-journal/testing/entry.ts";
 import { Effect, PubSub } from "effect";
 import { expect } from "vitest";
 import { roleSettingsOver } from "#adapters/role-settings.ts";

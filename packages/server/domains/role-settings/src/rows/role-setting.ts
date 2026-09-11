@@ -1,5 +1,5 @@
-import { row } from "@antumbra/feature/row.ts";
-import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
+import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Schema } from "effect";
 import { RoleSettingId } from "#ids.ts";
 

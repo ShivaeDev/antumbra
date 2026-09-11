@@ -1,8 +1,8 @@
-import { command } from "@antumbra/feature/command.ts";
-import { optional, titled } from "@antumbra/feature/edit.ts";
-import { fact } from "@antumbra/feature/fact.ts";
+import { choose } from "@antumbra/domain-role-settings/commands/choose.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { choose } from "@antumbra/role-settings/commands/choose.ts";
+import { command } from "@antumbra/platform-feature/command.ts";
+import { optional, titled } from "@antumbra/platform-feature/edit.ts";
+import { fact } from "@antumbra/platform-feature/fact.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Schema, SubscriptionRef } from "effect";
 import type { ReactNode } from "react";

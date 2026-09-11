@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { AgentBirth } from "#agent-birth/service.ts";
 import { afterFailure } from "#spawn-teardown/after-failure.ts";

@@ -1,6 +1,6 @@
 import { it } from "@antumbra/persistence/testing";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option } from "effect";
 import { journalOf, pointAgent, seedAgent, seedSession, sessionRow, treeLayer } from "#test/tree/fixture.ts";

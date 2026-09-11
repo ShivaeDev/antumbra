@@ -1,11 +1,11 @@
 import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { client } from "@antumbra/rpc/client.ts";
-import { serialization } from "@antumbra/rpc/serialization.ts";
-import { ClientToken, Unauthorized } from "@antumbra/rpc/token.ts";
-import { transport } from "@antumbra/rpc/transport.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { client } from "@antumbra/platform-rpc/client.ts";
+import { serialization } from "@antumbra/platform-rpc/serialization.ts";
+import { ClientToken, Unauthorized } from "@antumbra/platform-rpc/token.ts";
+import { transport } from "@antumbra/platform-rpc/transport.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Option, Schema, Stream } from "effect";

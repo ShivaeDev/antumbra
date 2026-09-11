@@ -1,8 +1,8 @@
-import type { CommandDefinition, CommandInput } from "@antumbra/feature/command.ts";
-import type { FactShape } from "@antumbra/feature/fact.ts";
-import type { Fields } from "@antumbra/feature/fields.ts";
-import { AlreadyDone, type RejectedBy, type RejectionSpecs } from "@antumbra/feature/rejection.ts";
-import type { RowShape } from "@antumbra/feature/row.ts";
+import type { CommandDefinition, CommandInput } from "@antumbra/platform-feature/command.ts";
+import type { FactShape } from "@antumbra/platform-feature/fact.ts";
+import type { Fields } from "@antumbra/platform-feature/fields.ts";
+import { AlreadyDone, type RejectedBy, type RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
+import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Clock, Context, Effect, Schema } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
@@ -23,7 +23,7 @@ export interface CommitService {
 	) => Effect.Effect<number, AlreadyDone | RejectedBy<Specs>>;
 }
 
-export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/journal/Commit") {}
+export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/server-journal/Commit") {}
 
 export interface CommitContext {
 	readonly reactivity: Reactivity["Service"];

@@ -1,4 +1,4 @@
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
+import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { expect } from "vitest";
 import { FLEET } from "#ids.ts";
 import { answered, it, reef, shallows } from "#test/kit.ts";

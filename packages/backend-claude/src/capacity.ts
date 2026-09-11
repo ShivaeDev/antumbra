@@ -1,5 +1,5 @@
+import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import type { BackendCapacityClassification } from "@antumbra/plugin-api";
-import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 
 const RateLimitType = Schema.Literals(["five_hour", "seven_day", "seven_day_opus", "seven_day_sonnet", "seven_day_overage_included", "overage"]);

@@ -1,3 +1,4 @@
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import {
 	type AgentBackend,
 	type BackendCapacityController,
@@ -6,7 +7,6 @@ import {
 	type SessionHandle,
 	type SessionInput,
 } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { Effect, Option, Queue, Ref, Stream } from "effect";
 import { openRawSession, type RawSession } from "#adapters/session.ts";
 import { sessionToolCall } from "#adapters/session-tools.ts";

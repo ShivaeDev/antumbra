@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/feature",
+	"name": "@antumbra/platform-feature",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,7 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

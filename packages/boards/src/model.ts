@@ -1,4 +1,4 @@
-import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/vocabulary/board.ts";
+import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
 import { Data, type Option } from "effect";
 
 export type MailPrecedence = "flash" | "priority" | "routine";

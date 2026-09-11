@@ -1,5 +1,5 @@
 import type { StoredVoyage } from "@antumbra/persistence";
-import { decodeStoredVoyageKind } from "@antumbra/vocabulary/voyage.ts";
+import { decodeStoredVoyageKind } from "@antumbra/platform-vocabulary/voyage.ts";
 import { Effect } from "effect";
 import { voyageRow } from "#voyage-row-projection.ts";
 

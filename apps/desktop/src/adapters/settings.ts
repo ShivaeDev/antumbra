@@ -1,7 +1,7 @@
 import { type SettingChange, Settings, type SettingsReading, SettingsSource } from "@antumbra/contract";
-import type { Api } from "@antumbra/rpc/client.ts";
-import type { settings } from "@antumbra/settings-domain/feature.ts";
-import { CountKey, FlagKey } from "@antumbra/settings-domain/ids.ts";
+import type { settings } from "@antumbra/domain-settings/feature.ts";
+import { CountKey, FlagKey } from "@antumbra/domain-settings/ids.ts";
+import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect, Layer, Option, Schema } from "effect";
 import { once, ServerReach } from "#adapters/server-reach.ts";
 

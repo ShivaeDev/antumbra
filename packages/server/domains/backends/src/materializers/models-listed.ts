@@ -1,4 +1,4 @@
-import { materializer } from "@antumbra/feature/materializer.ts";
+import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect, Option } from "effect";
 import { modelsListed } from "#facts/models-listed.ts";
 import { type BackendModelId, backendModelId } from "#ids.ts";

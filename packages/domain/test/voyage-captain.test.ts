@@ -1,4 +1,4 @@
-import type { AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import type { AgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
 import { expect, it } from "@effect/vitest";
 import { Option } from "effect";
 import { captainOf } from "#voyage-captain.ts";

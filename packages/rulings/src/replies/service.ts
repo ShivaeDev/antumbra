@@ -1,5 +1,5 @@
 import { Boards } from "@antumbra/boards";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Effect } from "effect";
 import { RulingHolds } from "#holds/service.ts";
 import { askMore } from "#replies/ask-more.ts";

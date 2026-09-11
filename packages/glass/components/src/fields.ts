@@ -1,6 +1,6 @@
-import { emptyAsNull } from "@antumbra/atom-form/optional.ts";
-import type { CommandShape } from "@antumbra/feature/command.ts";
-import { type Editing, editing } from "@antumbra/feature/edit.ts";
+import { emptyAsNull } from "@antumbra/glass-form/optional.ts";
+import type { CommandShape } from "@antumbra/platform-feature/command.ts";
+import { type Editing, editing } from "@antumbra/platform-feature/edit.ts";
 import { Schema } from "effect";
 
 export type Held = Readonly<Record<string, unknown>>;

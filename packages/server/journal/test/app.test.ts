@@ -1,7 +1,7 @@
-import { fact } from "@antumbra/feature/fact.ts";
-import { feature } from "@antumbra/feature/feature.ts";
-import { materializer } from "@antumbra/feature/materializer.ts";
-import { row } from "@antumbra/feature/row.ts";
+import { fact } from "@antumbra/platform-feature/fact.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
+import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
 import { it } from "@effect/vitest";
 import { Cause, Effect, Schema } from "effect";
 import { expect } from "vitest";

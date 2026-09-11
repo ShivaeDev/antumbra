@@ -1,4 +1,4 @@
-import { RulingUrgencySchema } from "@antumbra/vocabulary/ruling.ts";
+import { RulingUrgencySchema } from "@antumbra/platform-vocabulary/ruling.ts";
 import { Schema } from "effect";
 import { defineTool } from "#define.ts";
 

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { layoutExportsViolations } from "#lint/rules/layout-exports.ts";
-import { inventoryOf } from "#test/support/inventory.ts";
+import { inventoryOf, seededPackageName } from "#test/support/inventory.ts";
 
 const manifest = (root: string, exports: unknown) => ({
 	path: `${root}/package.json`,
-	raw: JSON.stringify({ exports, name: `@antumbra/${root.split("/").at(-1) ?? ""}` }),
+	raw: JSON.stringify({ exports, name: seededPackageName(root) }),
 });
 
 const check = (manifests: readonly ReturnType<typeof manifest>[]) =>
@@ -18,7 +18,7 @@ describe("layout export rules", () => {
 	it("rejects a hand-kept subpath, an entry beside the wildcard, and a compiled target", () => {
 		expect(check([manifest("packages/platform/vocabulary", { "./board": "./src/board.ts" })])[0]).toEqual({
 			message:
-				'@antumbra/vocabulary exports {"./board":"./src/board.ts"}: a nested package exports { "./*": "./src/*" } and an import names its file, extension and all.',
+				'@antumbra/platform-vocabulary exports {"./board":"./src/board.ts"}: a nested package exports { "./*": "./src/*" } and an import names its file, extension and all.',
 			rule: "layout/package-exports",
 		});
 		expect(check([manifest("packages/server/journal", { "./*": "./src/*", "./package.json": "./package.json" })])).toHaveLength(1);

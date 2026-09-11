@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/settings-domain",
+	"name": "@antumbra/domain-settings",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -16,14 +16,14 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/journal": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/feature": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
 		"effect": "catalog:"
 	}
 }

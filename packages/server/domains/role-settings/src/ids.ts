@@ -1,5 +1,5 @@
-import type { AgentRole } from "@antumbra/vocabulary/agent-role.ts";
-import * as Id from "@antumbra/vocabulary/id.ts";
+import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 
 export const FLEET = "fleet";
 

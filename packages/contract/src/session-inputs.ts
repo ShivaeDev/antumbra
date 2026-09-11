@@ -1,4 +1,4 @@
-import { SessionImageMediaType, SessionInputId, SessionInputPosition } from "@antumbra/vocabulary/session-input.ts";
+import { SessionImageMediaType, SessionInputId, SessionInputPosition } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Schema } from "effect";
 
 const SessionInputDraftPart = Schema.Union([

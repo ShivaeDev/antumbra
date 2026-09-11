@@ -1,4 +1,4 @@
-import type { RulingRadius } from "@antumbra/vocabulary/ruling.ts";
+import type { RulingRadius } from "@antumbra/platform-vocabulary/ruling.ts";
 
 export const bindsWords: Readonly<Record<RulingRadius, string>> = {
 	fleet: "the whole fleet",

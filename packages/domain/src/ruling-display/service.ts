@@ -1,8 +1,8 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Rulings } from "@antumbra/rulings";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { open } from "#ruling-display/open.ts";
 import { standing } from "#ruling-display/standing.ts";

@@ -1,4 +1,4 @@
-import * as Form from "@antumbra/atom-form/form.ts";
+import * as Form from "@antumbra/glass-form/form.ts";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import { type Editable, type Held, schemaOf } from "#fields.ts";

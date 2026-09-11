@@ -26,15 +26,15 @@ describe("feature-folders rule", () => {
 	});
 
 	it("refuses another file directly under src", () => {
-		expect(check("packages/server/domains/pieces/src/shared.ts")).toEqual([`@antumbra/pieces may not hold src/shared.ts: ${SHAPE}.`]);
+		expect(check("packages/server/domains/pieces/src/shared.ts")).toEqual([`@antumbra/domain-pieces may not hold src/shared.ts: ${SHAPE}.`]);
 	});
 
 	it("refuses another folder and a folder nested inside one of the five", () => {
 		expect(check("packages/server/domains/pieces/src/reconcilers/admission.ts")).toEqual([
-			`@antumbra/pieces may not hold src/reconcilers/admission.ts: ${SHAPE}.`,
+			`@antumbra/domain-pieces may not hold src/reconcilers/admission.ts: ${SHAPE}.`,
 		]);
 		expect(check("packages/server/domains/pieces/src/rows/nested/piece.ts")).toEqual([
-			`@antumbra/pieces may not hold src/rows/nested/piece.ts: ${SHAPE}.`,
+			`@antumbra/domain-pieces may not hold src/rows/nested/piece.ts: ${SHAPE}.`,
 		]);
 	});
 

@@ -1,6 +1,6 @@
-import type { Token } from "@antumbra/rpc/token.ts";
-import { ClientToken } from "@antumbra/rpc/token.ts";
-import { transport } from "@antumbra/rpc/transport.ts";
+import type { Token } from "@antumbra/platform-rpc/token.ts";
+import { ClientToken } from "@antumbra/platform-rpc/token.ts";
+import { transport } from "@antumbra/platform-rpc/transport.ts";
 import { Effect, Layer } from "effect";
 import type * as RpcClient from "effect/unstable/rpc/RpcClient";
 import type * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";

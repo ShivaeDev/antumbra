@@ -1,9 +1,9 @@
 import type { SessionSituation } from "@antumbra/contract";
 import type { StoredAgentSession } from "@antumbra/persistence";
+import { decodeSessionExecutionStatus } from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
+import { sessionPresence } from "@antumbra/platform-vocabulary/agent-runtime/session-presence.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import { sessionAtRest, sessionRetirable } from "@antumbra/sessions";
-import { decodeSessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
-import { sessionPresence } from "@antumbra/vocabulary/agent-runtime/session-presence.ts";
-import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect } from "effect";
 import type { IntentAttribution } from "#sight-diagnostics.ts";
 

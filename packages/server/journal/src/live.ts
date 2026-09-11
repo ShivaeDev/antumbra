@@ -1,6 +1,6 @@
-import type { Fields, Values } from "@antumbra/feature/fields.ts";
-import type { QueryDefinition } from "@antumbra/feature/query.ts";
-import type { RowShape } from "@antumbra/feature/row.ts";
+import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
+import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
+import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Context, Effect, type Schema, type Stream } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
@@ -15,7 +15,7 @@ export interface LiveService {
 	) => Stream.Stream<Output["Type"]>;
 }
 
-export class Live extends Context.Service<Live, LiveService>()("@antumbra/journal/Live") {}
+export class Live extends Context.Service<Live, LiveService>()("@antumbra/server-journal/Live") {}
 
 export interface LiveContext {
 	readonly reactivity: Reactivity["Service"];

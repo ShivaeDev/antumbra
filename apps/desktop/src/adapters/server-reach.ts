@@ -1,9 +1,9 @@
-import { backends } from "@antumbra/backends/feature.ts";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { client } from "@antumbra/rpc/client.ts";
-import { ClientToken } from "@antumbra/rpc/token.ts";
-import { transport } from "@antumbra/rpc/transport.ts";
-import { settings } from "@antumbra/settings-domain/feature.ts";
+import { backends } from "@antumbra/domain-backends/feature.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { settings } from "@antumbra/domain-settings/feature.ts";
+import { client } from "@antumbra/platform-rpc/client.ts";
+import { ClientToken } from "@antumbra/platform-rpc/token.ts";
+import { transport } from "@antumbra/platform-rpc/transport.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Layer, Option, Stream } from "effect";
 import { ServerProcess, type Serving } from "#adapters/server-process.ts";

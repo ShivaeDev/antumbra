@@ -1,4 +1,4 @@
-import type { RulingAuthority } from "@antumbra/vocabulary/ruling.ts";
+import type { RulingAuthority } from "@antumbra/platform-vocabulary/ruling.ts";
 
 export interface RulingSupersedeInput {
 	readonly by: RulingAuthority;

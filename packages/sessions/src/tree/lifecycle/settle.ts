@@ -1,5 +1,5 @@
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { Effect } from "effect";
 import type { TreeNode } from "#tree/attribution.ts";
 import { appendFailedGap } from "#tree/gaps.ts";

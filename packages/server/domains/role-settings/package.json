@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/role-settings",
+	"name": "@antumbra/domain-role-settings",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -16,8 +16,8 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/journal": "workspace:*",
-		"@antumbra/rpc": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -25,9 +25,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/backends": "workspace:*",
-		"@antumbra/feature": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

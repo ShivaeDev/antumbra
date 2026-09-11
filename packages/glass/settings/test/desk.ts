@@ -1,10 +1,10 @@
+import { setCount } from "@antumbra/domain-settings/commands/set-count.ts";
+import { settings } from "@antumbra/domain-settings/feature.ts";
+import { COUNT_KEYS, COUNTS, type CountKey, FLAG_KEYS, FLAGS } from "@antumbra/domain-settings/ids.ts";
 import { type Glass, served } from "@antumbra/glass-client/connect.ts";
-import { api } from "@antumbra/rpc/client.ts";
-import { group, type Rpcs } from "@antumbra/rpc/group.ts";
-import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/rpc/token.ts";
-import { setCount } from "@antumbra/settings-domain/commands/set-count.ts";
-import { settings } from "@antumbra/settings-domain/feature.ts";
-import { COUNT_KEYS, COUNTS, type CountKey, FLAG_KEYS, FLAGS } from "@antumbra/settings-domain/ids.ts";
+import { api } from "@antumbra/platform-rpc/client.ts";
+import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
+import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/platform-rpc/token.ts";
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";

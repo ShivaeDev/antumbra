@@ -1,4 +1,4 @@
-import { query } from "@antumbra/feature/query.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { COUNT_KEYS, COUNTS, CountKey, FLEET } from "#ids.ts";
 import { count } from "#rows/count.ts";

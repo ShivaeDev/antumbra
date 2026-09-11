@@ -1,5 +1,5 @@
+import type { SessionImageMediaType, SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import type { SessionInput } from "@antumbra/plugin-api";
-import type { SessionImageMediaType, SessionInputId } from "@antumbra/vocabulary/session-input.ts";
 
 export type SessionInputDeliveryStatus = "accepted" | "ambiguous" | "pending" | "queued_for_wake" | "refused";
 

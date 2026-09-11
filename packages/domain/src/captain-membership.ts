@@ -1,5 +1,5 @@
 import { Pieces } from "@antumbra/pieces";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Effect } from "effect";
 import { onOwnDeps } from "#captain-membership/on-own-deps.ts";
 import { onOwnPiece } from "#captain-membership/on-own-piece.ts";

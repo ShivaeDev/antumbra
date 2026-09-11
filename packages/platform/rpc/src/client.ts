@@ -1,9 +1,9 @@
-import type { CommandShape } from "@antumbra/feature/command.ts";
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { Values } from "@antumbra/feature/fields.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import { AlreadyDone, type RejectedBy } from "@antumbra/feature/rejection.ts";
-import * as Id from "@antumbra/vocabulary/id.ts";
+import type { CommandShape } from "@antumbra/platform-feature/command.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { Values } from "@antumbra/platform-feature/fields.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import { AlreadyDone, type RejectedBy } from "@antumbra/platform-feature/rejection.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, type Scope, type Stream } from "effect";
 import * as RpcClient from "effect/unstable/rpc/RpcClient";
 import type { RpcClientError } from "effect/unstable/rpc/RpcClientError";

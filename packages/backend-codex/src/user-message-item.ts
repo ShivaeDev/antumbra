@@ -1,6 +1,6 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
-import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
-import { SessionInputId } from "@antumbra/vocabulary/session-input.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
+import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Option, Schema } from "effect";
 import type { KnownItem } from "#protocol-items.ts";
 

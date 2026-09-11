@@ -1,4 +1,4 @@
-import type { SessionPresence } from "@antumbra/vocabulary/agent-runtime/session-presence.ts";
+import type { SessionPresence } from "@antumbra/platform-vocabulary/agent-runtime/session-presence.ts";
 
 // Live delegation comes from the acquisition; durable child rows may remain open indefinitely.
 export const sessionAtRest = (input: { readonly delegating: boolean; readonly presence: SessionPresence }): boolean =>

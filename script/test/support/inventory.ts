@@ -17,10 +17,23 @@ export interface Seed {
 
 const PACKAGE_ROOT = /^((?:apps|packages)\/.+?)\/(?:script|src|test)\//;
 
+const SINGULAR: Readonly<Record<string, string>> = { backends: "backend", domains: "domain", edges: "edge" };
+
+export const seededPackageName = (root: string): string => {
+	const segments = root.split("/");
+	const folder = segments.at(-1) ?? "";
+	if (segments.length < 3) {
+		return `@antumbra/${folder}`;
+	}
+	const holder = segments.at(-2) ?? "";
+	const group = SINGULAR[holder] ?? holder;
+	return `@antumbra/${group}-${folder}`;
+};
+
 const derivedManifests = (sources: readonly SeedFile[]): readonly TextFile[] =>
 	[...new Set(sources.flatMap((file) => PACKAGE_ROOT.exec(file.path)?.[1] ?? []))].map((root) => ({
 		path: `${root}/package.json`,
-		raw: JSON.stringify({ name: `@antumbra/${root.split("/").at(-1) ?? ""}` }),
+		raw: JSON.stringify({ name: seededPackageName(root) }),
 	}));
 
 export const inventoryOf = (seed: Seed): Inventory => ({

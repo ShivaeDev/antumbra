@@ -26,8 +26,8 @@
 	},
 	"dependencies": {
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/skills": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-skills": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@modelcontextprotocol/sdk": "catalog:",
 		"effect": "catalog:"

@@ -1,10 +1,10 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { Fields, Values } from "@antumbra/feature/fields.ts";
-import type { ReadRows } from "@antumbra/feature/handles.ts";
-import type { QueryDefinition } from "@antumbra/feature/query.ts";
-import type { AlreadyDone, RejectedBy } from "@antumbra/feature/rejection.ts";
-import type { RowKey, RowShape, RowValue } from "@antumbra/feature/row.ts";
-import type { Api } from "@antumbra/rpc/client.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
+import type { ReadRows } from "@antumbra/platform-feature/handles.ts";
+import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
+import type { AlreadyDone, RejectedBy } from "@antumbra/platform-feature/rejection.ts";
+import type { RowKey, RowShape, RowValue } from "@antumbra/platform-feature/row.ts";
+import type { Api } from "@antumbra/platform-rpc/client.ts";
 import type { Effect, Schema } from "effect";
 
 export type Projections<Features extends readonly FeatureShape[]> = Features[number]["rows"][number];

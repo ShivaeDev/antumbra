@@ -2,11 +2,11 @@ import type { ArtifactRow } from "@antumbra/artifacts";
 import type { ChangeRow, PieceChangeRow } from "@antumbra/changes";
 import type { StoredAgentSession } from "@antumbra/persistence";
 import type { EdgeRow, PieceRow, PieceVerdict } from "@antumbra/pieces";
+import type { SessionExecutionStatus } from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
+import type { AgentSessionStatus, AgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
+import type { VoyageKind } from "@antumbra/platform-vocabulary/voyage.ts";
 import type { RulingGate } from "@antumbra/rulings";
 import type { VoyageAgentSettings } from "@antumbra/settings";
-import type { SessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
-import type { AgentSessionStatus, AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
-import type { VoyageKind } from "@antumbra/vocabulary/voyage.ts";
 
 export type { EdgeRow, PieceRow } from "@antumbra/pieces";
 

@@ -1,4 +1,4 @@
-import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
+import type { AgentRole, VoyageAgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Context, type Effect } from "effect";
 import type { AgentSettingsChoice, ResolvedAgentSettings, RoleDefault, VoyageAgentSettings } from "#roles/choice.ts";
 

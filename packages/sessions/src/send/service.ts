@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { BackendCapacities } from "@antumbra/provider-capacity/service";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionInputs } from "@antumbra/session-inputs";
 import { CurrentSessions } from "#current/service.ts";

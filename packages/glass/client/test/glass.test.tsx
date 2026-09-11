@@ -1,4 +1,4 @@
-import { Unauthorized } from "@antumbra/rpc/token.ts";
+import { Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option, SubscriptionRef } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";

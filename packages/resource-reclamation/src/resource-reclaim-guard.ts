@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { decodeStoredAgentStatus, decodeStoredResourceReclaimState } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentStatus, decodeStoredResourceReclaimState } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { Effect, Option } from "effect";
 import { ResourceOwnerUnavailable, ResourceReclaimClaimed } from "#resource-reclaim-errors.ts";
 

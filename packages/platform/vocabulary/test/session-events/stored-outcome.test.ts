@@ -1,4 +1,4 @@
-import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events/stored-outcome.ts";
+import { decodeStoredSubsessionOutcome } from "@antumbra/platform-vocabulary/session-events/stored-outcome.ts";
 import { expect, it } from "@effect/vitest";
 import { Result } from "effect";
 

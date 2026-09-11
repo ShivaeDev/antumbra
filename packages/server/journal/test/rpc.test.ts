@@ -1,7 +1,7 @@
-import { AlreadyDone } from "@antumbra/feature/rejection.ts";
-import { group } from "@antumbra/rpc/group.ts";
-import { ClientToken, Unauthorized } from "@antumbra/rpc/token.ts";
-import * as Id from "@antumbra/vocabulary/id.ts";
+import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
+import { group } from "@antumbra/platform-rpc/group.ts";
+import { ClientToken, Unauthorized } from "@antumbra/platform-rpc/token.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Option, Queue, Stream } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";

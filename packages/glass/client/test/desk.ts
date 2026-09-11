@@ -1,8 +1,8 @@
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { FLEET } from "@antumbra/role-settings/ids.ts";
-import { api } from "@antumbra/rpc/client.ts";
-import { group, type Rpcs } from "@antumbra/rpc/group.ts";
-import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/rpc/token.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { FLEET } from "@antumbra/domain-role-settings/ids.ts";
+import { api } from "@antumbra/platform-rpc/client.ts";
+import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
+import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/platform-rpc/token.ts";
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";

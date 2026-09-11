@@ -1,6 +1,6 @@
-import type { Values } from "@antumbra/feature/fields.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import type { Watch } from "@antumbra/rpc/query.ts";
+import type { Values } from "@antumbra/platform-feature/fields.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import type { Watch } from "@antumbra/platform-rpc/query.ts";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import type { ReactNode } from "react";
 import { useLive } from "#hooks.ts";

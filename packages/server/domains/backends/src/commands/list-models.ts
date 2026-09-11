@@ -1,4 +1,4 @@
-import { command } from "@antumbra/feature/command.ts";
+import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect } from "effect";
 import { modelsListed } from "#facts/models-listed.ts";
 

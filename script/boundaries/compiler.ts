@@ -17,7 +17,7 @@ const compileRule = (rule: BoundaryRule, locate: LocatePackage): CompiledBoundar
 		path:
 			rule.kind === "negative-fence"
 				? compileSelector(rule.to, locate)
-				: `^${locate("vocabulary")}/src/(?!${rule.allowedSubjects.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`).join("|")})`,
+				: `^${locate("platform-vocabulary")}/src/(?!${rule.allowedSubjects.map((subject) => `${escapeExpression(subject)}(?:\\.ts|/)`).join("|")})`,
 	},
 });
 

@@ -1,4 +1,4 @@
-import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change.ts";
+import { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/platform-vocabulary/change.ts";
 import { Effect, Schema } from "effect";
 import type { ChangeRow } from "#change-rows.ts";
 import { StoredChangeInvalid } from "#errors.ts";

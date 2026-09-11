@@ -1,7 +1,7 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { ensureAgentCanOwnLocalWork } from "@antumbra/resource-reclamation";
-import { decodeStoredBerthStatus, decodeStoredMoorageStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Effect, Option } from "effect";
 import type { SpawnFields } from "#spawn-fields.ts";
 

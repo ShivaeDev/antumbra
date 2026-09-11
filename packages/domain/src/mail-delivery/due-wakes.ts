@@ -1,9 +1,9 @@
 import { Boards, dueMail, type MailBatch } from "@antumbra/boards";
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import { decodeSessionExecutionStatus } from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
+import { decodeStoredAgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { openSessions, rootSessions } from "@antumbra/sessions";
-import { decodeSessionExecutionStatus } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Clock, Effect, Result } from "effect";
 
 const MILLIS_PER_MINUTE = 60_000;

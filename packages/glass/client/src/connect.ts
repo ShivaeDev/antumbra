@@ -1,5 +1,5 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import { type Api, client } from "@antumbra/rpc/client.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import { type Api, client } from "@antumbra/platform-rpc/client.ts";
 import { RegistryContext, scheduleTask } from "@effect/atom-react";
 import { Effect, type Scope } from "effect";
 import * as Atom from "effect/unstable/reactivity/Atom";

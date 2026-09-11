@@ -1,6 +1,6 @@
-import { useField } from "@antumbra/atom-form/react.ts";
-import type { Choice } from "@antumbra/feature/edit.ts";
 import { useChoices } from "@antumbra/glass-client/wiring.ts";
+import { useField } from "@antumbra/glass-form/react.ts";
+import type { Choice } from "@antumbra/platform-feature/edit.ts";
 import { type ReactNode, useId } from "react";
 import { inputOf, type Offer, offersOf } from "#choices.ts";
 import { ALERT, CELL, TITLE } from "#classes.ts";

@@ -1,5 +1,5 @@
-import { AlreadyDone } from "@antumbra/feature/rejection.ts";
-import * as Id from "@antumbra/vocabulary/id.ts";
+import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { expect } from "vitest";

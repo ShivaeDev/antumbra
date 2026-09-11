@@ -19,7 +19,7 @@
 		"typescript": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

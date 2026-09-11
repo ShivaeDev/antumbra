@@ -1,11 +1,11 @@
-import { backends } from "@antumbra/backends/feature.ts";
+import { backends } from "@antumbra/domain-backends/feature.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { FLEET } from "@antumbra/domain-role-settings/ids.ts";
 import { type Glass, served } from "@antumbra/glass-client/connect.ts";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { FLEET } from "@antumbra/role-settings/ids.ts";
-import { api } from "@antumbra/rpc/client.ts";
-import { group, type Rpcs } from "@antumbra/rpc/group.ts";
-import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/rpc/token.ts";
-import { AGENT_ROLES, VOYAGE_AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
+import { api } from "@antumbra/platform-rpc/client.ts";
+import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
+import { ClientToken, layerClient, layerServer, ServerToken } from "@antumbra/platform-rpc/token.ts";
+import { AGENT_ROLES, VOYAGE_AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";

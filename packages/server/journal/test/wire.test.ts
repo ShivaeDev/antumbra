@@ -1,5 +1,5 @@
-import { AlreadyDone } from "@antumbra/feature/rejection.ts";
-import { group } from "@antumbra/rpc/group.ts";
+import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
+import { group } from "@antumbra/platform-rpc/group.ts";
 import { it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { expect } from "vitest";

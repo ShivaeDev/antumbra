@@ -1,6 +1,6 @@
 import { cpSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { skillPluginDirectory } from "@antumbra/skills/location.ts";
+import { skillPluginDirectory } from "@antumbra/platform-skills/location.ts";
 import { Effect } from "effect";
 import { packageRoot } from "#script/adapters/workspace.ts";
 

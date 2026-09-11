@@ -1,4 +1,4 @@
-import { row } from "@antumbra/feature/row.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
 import { Schema } from "effect";
 import { CountKey } from "#ids.ts";
 

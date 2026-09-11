@@ -1,4 +1,4 @@
-import { RowNotFound } from "@antumbra/feature/rejection.ts";
+import { RowNotFound } from "@antumbra/platform-feature/rejection.ts";
 import { Cause, Effect, Option } from "effect";
 import { expect } from "vitest";
 import { park } from "#example/commands/park.ts";

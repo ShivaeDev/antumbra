@@ -1,4 +1,4 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import { it } from "@effect/vitest";
 import { Effect, type Scope } from "effect";
 import { app } from "#app.ts";

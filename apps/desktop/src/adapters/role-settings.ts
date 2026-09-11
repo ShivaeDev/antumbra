@@ -1,7 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import type { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { FLEET } from "@antumbra/role-settings/ids.ts";
-import type { Api } from "@antumbra/rpc/client.ts";
+import type { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { FLEET } from "@antumbra/domain-role-settings/ids.ts";
+import type { Api } from "@antumbra/platform-rpc/client.ts";
+import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import type { AgentRole, VoyageAgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import {
 	type AgentSettingsChoice,
 	type ResolvedAgentSettings,
@@ -10,8 +12,6 @@ import {
 	UNCHOSEN_AGENT_SETTINGS,
 	type VoyageAgentSettings,
 } from "@antumbra/settings";
-import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
-import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { type Context, Effect, Layer, Schema } from "effect";
 import { once, ServerReach } from "#adapters/server-reach.ts";
 

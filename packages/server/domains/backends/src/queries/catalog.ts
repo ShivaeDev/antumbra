@@ -1,5 +1,5 @@
-import { query } from "@antumbra/feature/query.ts";
-import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
+import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { Effect, Option } from "effect";
 import { backendCatalog } from "#rows/backend-catalog.ts";
 

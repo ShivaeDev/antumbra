@@ -1,4 +1,4 @@
-import { query } from "@antumbra/feature/query.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { FLAG_KEYS, FLAGS, FLEET, FlagKey } from "#ids.ts";
 import { flag } from "#rows/flag.ts";

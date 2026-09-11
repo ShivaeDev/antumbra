@@ -1,6 +1,6 @@
 import { Database } from "@antumbra/persistence";
+import { decodeStoredAgentSessionStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect } from "effect";
 import { rootSessionsOf } from "#roots.ts";
 

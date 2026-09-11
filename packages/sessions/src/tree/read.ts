@@ -1,6 +1,6 @@
 import { Database, type StoredAgentSession } from "@antumbra/persistence";
-import { decodeStoredAgentSessionCompleteness, decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
-import { decodeStoredSubsessionOutcome } from "@antumbra/vocabulary/session-events/stored-outcome.ts";
+import { decodeStoredAgentSessionCompleteness, decodeStoredAgentSessionStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
+import { decodeStoredSubsessionOutcome } from "@antumbra/platform-vocabulary/session-events/stored-outcome.ts";
 import { Effect } from "effect";
 import { assembleSessionTree } from "#tree/view.ts";
 

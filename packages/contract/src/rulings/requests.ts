@@ -1,4 +1,4 @@
-import { RulingRadiusSchema, RulingUrgencySchema } from "@antumbra/vocabulary/ruling.ts";
+import { RulingRadiusSchema, RulingUrgencySchema } from "@antumbra/platform-vocabulary/ruling.ts";
 import { Schema } from "effect";
 
 export const RuleRequest = Schema.Struct({

@@ -1,9 +1,12 @@
 import type { PrismaError } from "@antumbra/persistence";
+import type {
+	InvalidSessionExecutionStatus,
+	InvalidSessionExecutionTransition,
+} from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
+import type { StoredAgentSessionStatusInvalid } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import type { BackendFailure } from "@antumbra/plugin-api";
 import type { StoredBackendCapacityInvalid } from "@antumbra/provider-capacity/model";
 import type { SessionInputFailure } from "@antumbra/session-inputs";
-import type { InvalidSessionExecutionStatus, InvalidSessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
-import type { StoredAgentSessionStatusInvalid } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Data } from "effect";
 import type { SubsessionAttachRefused } from "#attach-roots.ts";
 import type { SessionEnded, SessionNotFound } from "#errors.ts";

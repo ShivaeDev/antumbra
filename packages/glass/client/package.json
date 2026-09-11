@@ -16,7 +16,7 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/role-settings": "workspace:*",
+		"@antumbra/domain-role-settings": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
@@ -28,8 +28,8 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/feature": "workspace:*",
-		"@antumbra/rpc": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:"

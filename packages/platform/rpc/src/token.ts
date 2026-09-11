@@ -6,11 +6,11 @@ export const header = "x-antumbra-token";
 
 export class Unauthorized extends Schema.TaggedError<Unauthorized>()("Unauthorized", {}) {}
 
-export class ClientToken extends Context.Service<ClientToken, { readonly token: string }>()("@antumbra/rpc/ClientToken") {}
+export class ClientToken extends Context.Service<ClientToken, { readonly token: string }>()("@antumbra/platform-rpc/ClientToken") {}
 
-export class ServerToken extends Context.Service<ServerToken, { readonly token: string }>()("@antumbra/rpc/ServerToken") {}
+export class ServerToken extends Context.Service<ServerToken, { readonly token: string }>()("@antumbra/platform-rpc/ServerToken") {}
 
-export class Token extends RpcMiddleware.Service<Token>()("@antumbra/rpc/Token", { error: Unauthorized, requiredForClient: true }) {}
+export class Token extends RpcMiddleware.Service<Token>()("@antumbra/platform-rpc/Token", { error: Unauthorized, requiredForClient: true }) {}
 
 const same = (expected: string, given: string): boolean => {
 	let difference = expected.length ^ given.length;

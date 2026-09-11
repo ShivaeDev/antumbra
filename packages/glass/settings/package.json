@@ -16,7 +16,7 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/rpc": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
@@ -30,7 +30,7 @@
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/settings-domain": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:"

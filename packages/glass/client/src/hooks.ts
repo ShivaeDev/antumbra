@@ -1,10 +1,10 @@
-import type { CommandShape } from "@antumbra/feature/command.ts";
-import type { Values } from "@antumbra/feature/fields.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import type { RejectedBy } from "@antumbra/feature/rejection.ts";
-import type { Send } from "@antumbra/rpc/client.ts";
-import type { Watch } from "@antumbra/rpc/query.ts";
-import type { Unauthorized } from "@antumbra/rpc/token.ts";
+import type { CommandShape } from "@antumbra/platform-feature/command.ts";
+import type { Values } from "@antumbra/platform-feature/fields.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import type { RejectedBy } from "@antumbra/platform-feature/rejection.ts";
+import type { Send } from "@antumbra/platform-rpc/client.ts";
+import type { Watch } from "@antumbra/platform-rpc/query.ts";
+import type { Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import { useAtomValue } from "@effect/atom-react";
 import type { Cause, Effect } from "effect";
 import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";

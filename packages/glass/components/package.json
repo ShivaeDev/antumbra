@@ -16,9 +16,9 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/backends": "workspace:*",
-		"@antumbra/role-settings": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*",
+		"@antumbra/domain-role-settings": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
@@ -30,10 +30,10 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/atom-form": "workspace:*",
-		"@antumbra/feature": "workspace:*",
+		"@antumbra/glass-form": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
-		"@antumbra/rpc": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:"

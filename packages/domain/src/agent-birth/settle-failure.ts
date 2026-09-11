@@ -1,8 +1,8 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { agentTransition } from "@antumbra/platform-vocabulary/agent-runtime/agent-lifecycle.ts";
+import { decodeStoredAgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { agentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Effect, Option } from "effect";
 import { ensureSessionStatus, settlementFor } from "#agent-birth/current-session.ts";
 import type { SpawnFields } from "#spawn-fields.ts";

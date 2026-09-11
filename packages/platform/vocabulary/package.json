@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/vocabulary",
+	"name": "@antumbra/platform-vocabulary",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",

@@ -14,6 +14,7 @@ export {
 	PieceNotFound,
 	StoredPieceVerdictInvalid,
 } from "@antumbra/pieces";
+export { AgentNotFound } from "@antumbra/platform-vocabulary/agent-runtime/missing.ts";
 export {
 	ResourceOwnerUnavailable,
 	ResourceReclaimClaimed,
@@ -32,7 +33,6 @@ export {
 	SessionStillDelegating,
 } from "@antumbra/sessions";
 export { AgentStillWorking } from "@antumbra/sessions/retirement/errors";
-export { AgentNotFound } from "@antumbra/vocabulary/agent-runtime/missing.ts";
 export {
 	CaptainAlreadyHailed,
 	CaptainSessionUnavailable,

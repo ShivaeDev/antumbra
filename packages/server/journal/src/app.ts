@@ -1,5 +1,5 @@
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { RowShape } from "@antumbra/feature/row.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Effect } from "effect";
 import { codecFor, type RowCodec } from "#codec.ts";
 import { shapeOf } from "#table.ts";

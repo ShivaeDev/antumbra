@@ -1,6 +1,6 @@
-import { choice, editing, optional, titled } from "@antumbra/feature/edit.ts";
-import { query } from "@antumbra/feature/query.ts";
-import { row } from "@antumbra/feature/row.ts";
+import { choice, editing, optional, titled } from "@antumbra/platform-feature/edit.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
 import { Effect, Schema } from "effect";
 import { expect, it } from "vitest";
 

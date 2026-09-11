@@ -1,8 +1,8 @@
-import { backends } from "@antumbra/backends/feature.ts";
+import { backends } from "@antumbra/domain-backends/feature.ts";
+import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { settings } from "@antumbra/domain-settings/feature.ts";
 import { connect, type Glass } from "@antumbra/glass-client/connect.ts";
 import type { Reach } from "@antumbra/glass-client/serving.ts";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
-import { settings } from "@antumbra/settings-domain/feature.ts";
 
 export type ConsoleGlass = Glass<readonly [typeof roleSettings, typeof backends, typeof settings]>;
 

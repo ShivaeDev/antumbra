@@ -1,8 +1,8 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { NewAgentSession } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { SessionEventJournal, SessionEventJournalLive } from "@antumbra/session-event-journal";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { expect } from "@effect/vitest";
 import { Effect, Layer, Option, PubSub } from "effect";
 

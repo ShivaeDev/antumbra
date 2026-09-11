@@ -1,5 +1,5 @@
-import type { AgentBackendTag } from "@antumbra/vocabulary/agent-backend.ts";
-import * as Id from "@antumbra/vocabulary/id.ts";
+import type { AgentBackendTag } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 
 export const BackendModelId = Id.brand("BackendModelId");
 export type BackendModelId = typeof BackendModelId.Type;

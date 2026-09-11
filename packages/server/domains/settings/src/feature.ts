@@ -1,4 +1,4 @@
-import { feature } from "@antumbra/feature/feature.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
 import { setCount } from "#commands/set-count.ts";
 import { setFlag } from "#commands/set-flag.ts";
 import { countSet } from "#facts/count-set.ts";

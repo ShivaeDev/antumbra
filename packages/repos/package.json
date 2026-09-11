@@ -25,7 +25,7 @@
 	"dependencies": {
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
-		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/platform-service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

@@ -1,7 +1,7 @@
 import type { EventQuery, SessionEvent, SightFailure } from "@antumbra/contract";
 import { DomainFeeds, type StoredEvent } from "@antumbra/domain-feeds";
+import { projectHistoricalAgentEvent } from "@antumbra/platform-vocabulary/session-events/historical.ts";
 import { SessionEventJournal } from "@antumbra/session-event-journal";
-import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events/historical.ts";
 import { Effect, Stream } from "effect";
 import { toFailure } from "#sight-failure.ts";
 

@@ -1,6 +1,6 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
+import { decodeStoredAgentSessionCompleteness } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import type { SessionAudit } from "@antumbra/plugin-api";
-import { decodeStoredAgentSessionCompleteness } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect, Result } from "effect";
 import { findings } from "#tree/audit/findings.ts";
 import { journalOn } from "#tree/audit/journal-on.ts";

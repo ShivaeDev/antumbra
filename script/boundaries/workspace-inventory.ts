@@ -35,7 +35,8 @@ const locations = (root: string, area: "apps" | "packages"): readonly WorkspaceP
 
 export const collectBoundaryPolicyInventory = (root: string): BoundaryPolicyInventory => {
 	const packages = locations(root, "packages");
-	const vocabulary = packages.find(({ name }) => name === "vocabulary")?.path ?? failPolicy("Boundary policy inventory found no vocabulary package");
+	const vocabulary =
+		packages.find(({ name }) => name === "platform-vocabulary")?.path ?? failPolicy("Boundary policy inventory found no platform-vocabulary package");
 	return {
 		applications: locations(root, "apps").map(({ name }) => name),
 		packages,

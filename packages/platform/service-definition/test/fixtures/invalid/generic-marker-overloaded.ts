@@ -1,5 +1,5 @@
-import { defineService } from "@antumbra/service-definition/define-service.ts";
-import { genericMethod } from "@antumbra/service-definition/generic-method.ts";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
+import { genericMethod } from "@antumbra/platform-service-definition/generic-method.ts";
 import { Effect } from "effect";
 
 function overloaded(value: string): Effect.Effect<string>;

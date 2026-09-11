@@ -1,5 +1,5 @@
-import type { Fields, Values } from "@antumbra/feature/fields.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
+import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import type { Cause, Stream } from "effect";
 import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";

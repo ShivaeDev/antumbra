@@ -1,5 +1,5 @@
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import { type Watching, watching } from "@antumbra/rpc/query.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import { type Watching, watching } from "@antumbra/platform-rpc/query.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { Stream } from "effect";
 import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";

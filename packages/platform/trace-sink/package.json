@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/trace-sink",
+	"name": "@antumbra/platform-trace-sink",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",

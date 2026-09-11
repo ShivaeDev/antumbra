@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/service-definition",
+	"name": "@antumbra/platform-service-definition",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",

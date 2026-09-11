@@ -1,5 +1,5 @@
 import type { ChangeRow } from "@antumbra/changes";
-import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/vocabulary/change.ts";
+import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/platform-vocabulary/change.ts";
 import type { RepoRow } from "#voyage-rows.ts";
 
 export interface ChangeView {

@@ -1,4 +1,4 @@
-import { rulingRadiusRank, rulingUrgencyRank } from "@antumbra/vocabulary/ruling.ts";
+import { rulingRadiusRank, rulingUrgencyRank } from "@antumbra/platform-vocabulary/ruling.ts";
 import type { Ruling } from "#model.ts";
 
 const RANKS: ReadonlyArray<(ruling: Ruling) => number> = [

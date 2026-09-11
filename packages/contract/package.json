@@ -25,7 +25,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@shivaedev/effect-trpc": "catalog:",
 		"@trpc/server": "catalog:",
 		"effect": "catalog:"

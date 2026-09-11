@@ -1,11 +1,11 @@
 import { createServer } from "node:http";
-import { app } from "@antumbra/journal/app.ts";
-import { DataDirectory } from "@antumbra/journal/database.ts";
-import * as Journal from "@antumbra/journal/journal.ts";
-import { serving } from "@antumbra/journal/rpc.ts";
-import { group } from "@antumbra/rpc/group.ts";
-import { serialization } from "@antumbra/rpc/serialization.ts";
-import { ServerToken } from "@antumbra/rpc/token.ts";
+import { group } from "@antumbra/platform-rpc/group.ts";
+import { serialization } from "@antumbra/platform-rpc/serialization.ts";
+import { ServerToken } from "@antumbra/platform-rpc/token.ts";
+import { app } from "@antumbra/server-journal/app.ts";
+import { DataDirectory } from "@antumbra/server-journal/database.ts";
+import * as Journal from "@antumbra/server-journal/journal.ts";
+import { serving } from "@antumbra/server-journal/rpc.ts";
 import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import { Cause, Console, Effect, Exit, Layer, Logger, type Runtime } from "effect";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";

@@ -1,4 +1,4 @@
-import { feature } from "@antumbra/feature/feature.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
 import { listModels } from "#commands/list-models.ts";
 import { modelsListed } from "#facts/models-listed.ts";
 import { modelsListedMaterializer } from "#materializers/models-listed.ts";

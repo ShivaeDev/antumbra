@@ -1,4 +1,4 @@
-import { fact } from "@antumbra/feature/fact.ts";
+import { fact } from "@antumbra/platform-feature/fact.ts";
 import { Schema } from "effect";
 import { CountKey } from "#ids.ts";
 

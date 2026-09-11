@@ -1,6 +1,6 @@
-import { agentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
-import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
+import { agentTransition } from "@antumbra/platform-vocabulary/agent-runtime/agent-lifecycle.ts";
+import { decodeStoredAgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import { Effect } from "effect";
 import { AgentBirthStranded, AgentNotSpawnable, AgentSessionConflict } from "#errors.ts";
 import type { SpawnFields } from "#spawn-fields.ts";

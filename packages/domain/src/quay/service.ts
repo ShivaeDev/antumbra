@@ -1,7 +1,7 @@
 import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
+import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Repos } from "@antumbra/repos";
-import { defineService } from "@antumbra/service-definition/define-service.ts";
 import { Effect } from "effect";
 import { read } from "#quay/read.ts";
 

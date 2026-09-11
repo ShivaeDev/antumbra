@@ -24,8 +24,8 @@
 	},
 	"dependencies": {
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/skills": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-skills": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@earendil-works/pi-coding-agent": "catalog:",
 		"effect": "catalog:"
 	}

@@ -1,9 +1,9 @@
-import { efforts } from "@antumbra/backends/queries/efforts.ts";
-import { models } from "@antumbra/backends/queries/models.ts";
-import { command } from "@antumbra/feature/command.ts";
-import { choice, optional } from "@antumbra/feature/edit.ts";
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
-import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
+import { efforts } from "@antumbra/domain-backends/queries/efforts.ts";
+import { models } from "@antumbra/domain-backends/queries/models.ts";
+import { command } from "@antumbra/platform-feature/command.ts";
+import { choice, optional } from "@antumbra/platform-feature/edit.ts";
+import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Effect, Schema } from "effect";
 import { roleSettingChosen } from "#facts/role-setting-chosen.ts";
 

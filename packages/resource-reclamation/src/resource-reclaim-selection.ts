@@ -1,4 +1,4 @@
-import type { BerthStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
+import type { BerthStatus } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
 import type { ResourceReclaimSnapshot } from "#resource-reclaim-state.ts";
 
 export interface ClaimedBerth {

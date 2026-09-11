@@ -1,6 +1,6 @@
-import { query } from "@antumbra/feature/query.ts";
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
-import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
+import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Effect, Schema } from "effect";
 import { FLEET } from "#ids.ts";
 import { roleSetting } from "#rows/role-setting.ts";

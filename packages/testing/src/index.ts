@@ -1,10 +1,10 @@
 import { dirname, join } from "node:path";
 import { applicationLayers } from "@antumbra/domain";
 import { Database } from "@antumbra/persistence";
+import { AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { RoleSettings } from "@antumbra/settings";
 import { makeEffectApp, makeScriptedBackend, passiveRunner, scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
-import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 

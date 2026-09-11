@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import { projectHistoricalAgentEvent } from "@antumbra/vocabulary/session-events/historical.ts";
+import { projectHistoricalAgentEvent } from "@antumbra/platform-vocabulary/session-events/historical.ts";
 import { Effect } from "effect";
 
 const rawOf = (row: { readonly kind: string; readonly payload: string }): ReadonlyArray<string> => {

@@ -1,9 +1,9 @@
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type NewAgentSession } from "@antumbra/persistence";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { SessionAudit, SessionCensus } from "@antumbra/plugin-api";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { Effect, Layer, Ref } from "effect";
 import { SessionTreeAudits } from "#tree/audit/service.ts";
 import { SessionTreeLedger } from "#tree/ledger/service.ts";

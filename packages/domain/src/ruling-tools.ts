@@ -1,8 +1,8 @@
 import { addContextSpec, bind, requestRulingSpec } from "@antumbra/agent-tools";
+import type { RulingAuthority } from "@antumbra/platform-vocabulary/ruling.ts";
 import type { DirectToolOutcome } from "@antumbra/plugin-api";
 import { type Ruling, type RulingRequest, Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
-import type { RulingAuthority } from "@antumbra/vocabulary/ruling.ts";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { Effect } from "effect";
 import { CaptainMembership } from "#captain-membership.ts";

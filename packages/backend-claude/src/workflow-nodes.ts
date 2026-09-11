@@ -1,5 +1,5 @@
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
-import type { Origin } from "@antumbra/vocabulary/session-events/origin.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { Origin } from "@antumbra/platform-vocabulary/session-events/origin.ts";
 import { type WorkflowAgentRef, workflowRunRef } from "#mirror-keys.ts";
 import { claudeRaw } from "#raw-payload.ts";
 import type { WorkflowIdentities, WorkflowIdentity } from "#workflow-identity.ts";

@@ -1,10 +1,10 @@
 import { SightSource } from "@antumbra/contract";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
 import { SessionTurnRests } from "@antumbra/sessions/turn-rest/service";
 import { it } from "@antumbra/testing";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { rawOf } from "#test/harness.ts";

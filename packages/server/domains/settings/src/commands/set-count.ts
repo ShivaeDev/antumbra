@@ -1,5 +1,5 @@
-import { command } from "@antumbra/feature/command.ts";
-import { titled } from "@antumbra/feature/edit.ts";
+import { command } from "@antumbra/platform-feature/command.ts";
+import { titled } from "@antumbra/platform-feature/edit.ts";
 import { Effect, Schema } from "effect";
 import { countSet } from "#facts/count-set.ts";
 import { COUNTS, CountKey } from "#ids.ts";

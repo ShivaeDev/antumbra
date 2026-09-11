@@ -1,4 +1,4 @@
-import { feature } from "@antumbra/feature/feature.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
 import { choose } from "#commands/choose.ts";
 import { roleSettingChosen } from "#facts/role-setting-chosen.ts";
 import { roleSettingChosenMaterializer } from "#materializers/role-setting-chosen.ts";

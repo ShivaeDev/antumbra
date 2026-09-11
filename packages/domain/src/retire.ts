@@ -1,11 +1,11 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { agentTransition } from "@antumbra/platform-vocabulary/agent-runtime/agent-lifecycle.ts";
+import type { AgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
+import { decodeStoredAgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { ResourceReconciler } from "@antumbra/resource-reclamation";
 import { SessionRetirement } from "@antumbra/sessions/retirement/service";
-import { agentTransition } from "@antumbra/vocabulary/agent-runtime/agent-lifecycle.ts";
-import type { AgentStatus } from "@antumbra/vocabulary/agent-runtime/statuses.ts";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
 import { Effect, Option, Schema } from "effect";
 import { AgentNotFound } from "#errors.ts";
 

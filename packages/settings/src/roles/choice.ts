@@ -1,4 +1,4 @@
-import type { AgentRole } from "@antumbra/vocabulary/agent-role.ts";
+import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 
 export const FLEET_SCOPE = "fleet";
 

@@ -1,4 +1,4 @@
-import { testing } from "@antumbra/journal/testing/entry.ts";
+import { testing } from "@antumbra/server-journal/testing/entry.ts";
 import { Effect, Option, Stream } from "effect";
 import { roleSettings } from "#feature.ts";
 

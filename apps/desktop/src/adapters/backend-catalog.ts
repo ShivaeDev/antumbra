@@ -1,8 +1,8 @@
-import type { backends } from "@antumbra/backends/feature.ts";
 import { BackendCatalog } from "@antumbra/domain/backend-catalog/service";
+import type { backends } from "@antumbra/domain-backends/feature.ts";
+import type { Api } from "@antumbra/platform-rpc/client.ts";
+import { AGENT_BACKEND_TAGS, type AgentBackendTag } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import type { ModelChoice } from "@antumbra/plugin-api";
-import type { Api } from "@antumbra/rpc/client.ts";
-import { AGENT_BACKEND_TAGS, type AgentBackendTag } from "@antumbra/vocabulary/agent-backend.ts";
 import { type Context, Effect } from "effect";
 import { ServerReach } from "#adapters/server-reach.ts";
 

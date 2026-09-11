@@ -1,5 +1,5 @@
 import { Database } from "@antumbra/persistence";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect } from "effect";
 
 type SubsessionOutcome = Extract<AgentEvent, { type: "subsession.ended" }>["outcome"];

@@ -1,5 +1,5 @@
-import { fact } from "@antumbra/feature/fact.ts";
-import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
+import { fact } from "@antumbra/platform-feature/fact.ts";
+import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { Schema } from "effect";
 
 const ListedModel = Schema.Struct({

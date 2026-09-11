@@ -1,6 +1,6 @@
-import type { SessionOpened, TurnCompleted } from "@antumbra/vocabulary/session-events/events.ts";
-import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
-import type { SessionBackgroundEvent, SessionState, SessionStateEvent } from "@antumbra/vocabulary/session-events/state.ts";
+import type { SessionOpened, TurnCompleted } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
+import type { SessionBackgroundEvent, SessionState, SessionStateEvent } from "@antumbra/platform-vocabulary/session-events/state.ts";
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 

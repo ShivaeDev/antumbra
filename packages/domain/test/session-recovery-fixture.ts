@@ -1,8 +1,8 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
-import { wakeWords } from "@antumbra/prompts/wake.ts";
 import { Repos } from "@antumbra/repos";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Schedule, Stream } from "effect";

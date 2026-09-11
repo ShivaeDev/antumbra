@@ -1,4 +1,4 @@
-import { admiralWords } from "@antumbra/prompts/admiral.ts";
+import { admiralWords } from "@antumbra/platform-prompts/admiral.ts";
 import { Effect } from "effect";
 import { promptInput } from "#input.ts";
 import { load } from "#input-delivery/load.ts";

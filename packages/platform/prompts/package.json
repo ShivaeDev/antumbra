@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/prompts",
+	"name": "@antumbra/platform-prompts",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",

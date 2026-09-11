@@ -1,9 +1,9 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { defineIntent, IntentExecution } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { decodeSessionExecutionStatus, sessionExecutionTransition } from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
+import { decodeStoredAgentSessionStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored-session.ts";
 import { SessionFabric } from "@antumbra/session-fabric";
-import { decodeSessionExecutionStatus, sessionExecutionTransition } from "@antumbra/vocabulary/agent-runtime/session-execution.ts";
-import { decodeStoredAgentSessionStatus } from "@antumbra/vocabulary/agent-runtime/stored-session.ts";
 import { Effect, Option, Schema } from "effect";
 import { SessionStillDelegating } from "#errors.ts";
 import { LiveDelegations } from "#tree/live.ts";

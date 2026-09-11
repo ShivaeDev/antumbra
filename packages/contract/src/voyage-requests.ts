@@ -1,5 +1,5 @@
-import { BoardRegisterSchema } from "@antumbra/vocabulary/board.ts";
-import { PieceVerdict } from "@antumbra/vocabulary/verdict.ts";
+import { BoardRegisterSchema } from "@antumbra/platform-vocabulary/board.ts";
+import { PieceVerdict } from "@antumbra/platform-vocabulary/verdict.ts";
 import { Schema } from "effect";
 
 export const OpenVoyageRequest = Schema.Struct({

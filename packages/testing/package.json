@@ -27,7 +27,7 @@
 		"@antumbra/boards": "workspace:*",
 		"@antumbra/repos": "workspace:*",
 		"@antumbra/settings": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*"
+		"@antumbra/platform-vocabulary": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain": "workspace:*",

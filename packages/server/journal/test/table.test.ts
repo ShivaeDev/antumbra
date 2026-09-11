@@ -1,4 +1,4 @@
-import { row } from "@antumbra/feature/row.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
 import { it } from "@effect/vitest";
 import { Effect, Schema } from "effect";
 import { expect } from "vitest";

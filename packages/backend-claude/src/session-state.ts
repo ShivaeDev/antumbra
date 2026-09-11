@@ -1,7 +1,7 @@
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
-import type { RawPayload } from "@antumbra/vocabulary/session-events/raw.ts";
-import type { SessionState } from "@antumbra/vocabulary/session-events/state.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
+import type { SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
 
 type StateMessage = Extract<SDKMessage, { subtype: "session_state_changed" }>;
 type TasksMessage = Extract<SDKMessage, { subtype: "background_tasks_changed" }>;

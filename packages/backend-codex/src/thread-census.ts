@@ -1,5 +1,5 @@
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { SessionCensus } from "@antumbra/plugin-api";
-import type { AgentEvent } from "@antumbra/vocabulary/session-events/events.ts";
 import { rawOf } from "#mapping.ts";
 import type { CensusSweep, SpawnedChild } from "#thread-sweep.ts";
 

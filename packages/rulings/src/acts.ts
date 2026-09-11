@@ -1,4 +1,4 @@
-import type { RulingAuthority, RulingRadius, RulingUrgency } from "@antumbra/vocabulary/ruling.ts";
+import type { RulingAuthority, RulingRadius, RulingUrgency } from "@antumbra/platform-vocabulary/ruling.ts";
 import type { RulingAxes, RulingRequester, RulingSubject } from "#model.ts";
 
 export interface RulingChoiceInput {

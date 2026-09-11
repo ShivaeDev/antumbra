@@ -23,7 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/service-definition": "workspace:*",
+		"@antumbra/platform-service-definition": "workspace:*",
 		"effect": "catalog:"
 	}
 }

@@ -25,8 +25,8 @@
 	"dependencies": {
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
-		"@antumbra/service-definition": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
+		"@antumbra/platform-service-definition": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
 		"sharp": "catalog:"
 	}

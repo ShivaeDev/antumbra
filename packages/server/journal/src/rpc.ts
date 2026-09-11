@@ -1,8 +1,8 @@
-import type { CommandShape } from "@antumbra/feature/command.ts";
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import { group, type Rpcs } from "@antumbra/rpc/group.ts";
-import { layerServer, type ServerToken, type Token } from "@antumbra/rpc/token.ts";
+import type { CommandShape } from "@antumbra/platform-feature/command.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
+import { layerServer, type ServerToken, type Token } from "@antumbra/platform-rpc/token.ts";
 import { Effect, Layer, type Stream } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import { Commit, type CommitService } from "#commit.ts";

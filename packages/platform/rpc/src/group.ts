@@ -1,7 +1,7 @@
-import type { CommandShape } from "@antumbra/feature/command.ts";
-import type { FeatureShape } from "@antumbra/feature/feature.ts";
-import type { QueryShape } from "@antumbra/feature/query.ts";
-import type { AlreadyDone, RejectedBy, RejectionSpecs } from "@antumbra/feature/rejection.ts";
+import type { CommandShape } from "@antumbra/platform-feature/command.ts";
+import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import type { AlreadyDone, RejectedBy, RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
 import { Schema } from "effect";
 import * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcGroup from "effect/unstable/rpc/RpcGroup";

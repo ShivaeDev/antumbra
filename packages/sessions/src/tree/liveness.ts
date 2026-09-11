@@ -1,5 +1,5 @@
 import type { StoredAgentSession } from "@antumbra/persistence";
-import { decodeStoredAgentStatus } from "@antumbra/vocabulary/agent-runtime/stored.ts";
+import { decodeStoredAgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/stored.ts";
 import { Result } from "effect";
 
 export interface Spawner {

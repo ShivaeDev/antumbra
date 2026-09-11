@@ -1,5 +1,5 @@
-import { fact } from "@antumbra/feature/fact.ts";
-import { AgentRoleSchema } from "@antumbra/vocabulary/agent-role.ts";
+import { fact } from "@antumbra/platform-feature/fact.ts";
+import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Schema } from "effect";
 
 export const roleSettingChosen = fact("RoleSettingChosen", {

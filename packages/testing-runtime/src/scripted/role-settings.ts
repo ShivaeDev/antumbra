@@ -1,3 +1,5 @@
+import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import { AGENT_ROLES, type AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import {
 	type AgentSettingsChoice,
 	FLEET_SCOPE,
@@ -6,8 +8,6 @@ import {
 	UNCHOSEN_AGENT_SETTINGS,
 	type VoyageAgentSettings,
 } from "@antumbra/settings";
-import { AGENT_BACKEND_TAGS } from "@antumbra/vocabulary/agent-backend.ts";
-import { AGENT_ROLES, type AgentRole } from "@antumbra/vocabulary/agent-role.ts";
 import { Effect, Layer, Ref } from "effect";
 
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;

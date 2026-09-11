@@ -33,14 +33,14 @@ describe("tests-own-their-processes rule", () => {
 
 	it("keeps the spawner out of a nested test and lets the named owner keep it", () => {
 		expect(check("packages/platform/rpc/test/group.test.ts", importing("node:child_process"))).toEqual([
-			"@antumbra/rpc tests may not spawn: node:child_process; only a package under apps/ runs children.",
+			"@antumbra/platform-rpc tests may not spawn: node:child_process; only a package under apps/ runs children.",
 		]);
 		expect(check("packages/platform/service-definition/test/compiler-fixtures.test.ts", importing("node:child_process"))).toEqual([]);
 	});
 
 	it("keeps the whole Node service set out of a nested test and lets a single service in", () => {
 		expect(check("packages/server/journal/test/live.test.ts", usingNode("NodeServices"))).toEqual([
-			"@antumbra/journal tests may not spawn: NodeServices; only a package under apps/ runs children.",
+			"@antumbra/server-journal tests may not spawn: NodeServices; only a package under apps/ runs children.",
 		]);
 		expect(check("packages/server/journal/test/file.test.ts", usingNode("NodeFileSystem"))).toEqual([]);
 	});

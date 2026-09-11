@@ -1,4 +1,4 @@
-import type { RowShape } from "@antumbra/feature/row.ts";
+import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { SchemaAST } from "effect";
 
 export type ColumnKind = "INTEGER" | "JSON" | "REAL" | "TEXT";

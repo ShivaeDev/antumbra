@@ -1,5 +1,5 @@
-import { row } from "@antumbra/feature/row.ts";
-import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
+import { row } from "@antumbra/platform-feature/row.ts";
+import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { Schema } from "effect";
 import { BackendModelId } from "#ids.ts";
 

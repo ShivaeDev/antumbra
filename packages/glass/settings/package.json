@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/glass-role-settings",
+	"name": "@antumbra/glass-settings",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -28,12 +28,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/backends": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/role-settings": "workspace:*",
 		"@antumbra/settings-domain": "workspace:*",
-		"@antumbra/vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:"

@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/server",
+	"name": "@antumbra/domain-voyages",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -11,11 +11,13 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../script/test.ts",
+		"test": "node ../../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/server-journal": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
@@ -24,13 +26,9 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",
-		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
-		"@antumbra/domain-settings": "workspace:*",
-		"@antumbra/domain-voyages": "workspace:*",
-		"@effect/platform-node": "catalog:",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:"
 	}
 }

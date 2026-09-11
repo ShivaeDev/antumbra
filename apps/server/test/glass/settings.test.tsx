@@ -1,11 +1,16 @@
+// @vitest-environment happy-dom
+import "#test/glass/setup.ts";
+import { settings } from "@antumbra/domain-settings/feature.ts";
+import { Settings } from "@antumbra/glass-settings/settings.tsx";
 import { expect, it } from "@effect/vitest";
-import { Effect, SubscriptionRef } from "effect";
+import { Effect, Option, Stream } from "effect";
 import type { ReactNode } from "react";
-import { Settings } from "#settings.tsx";
-import { type Desk, desk } from "#test/desk.ts";
-import { mount, settle, until, write } from "#test/dom.ts";
+import { desk } from "#test/glass/desk.ts";
+import { mount, settle, until, write } from "#test/glass/dom.ts";
 
-const shown = (board: Desk, screen: ReactNode) =>
+const settingsDesk = () => desk([settings] as const);
+
+const shown = (board: Effect.Success<ReturnType<typeof settingsDesk>>, screen: ReactNode) =>
 	Effect.gen(function* () {
 		const { container, root } = yield* mount();
 		yield* settle(() => root.render(<board.glass.Provider>{screen}</board.glass.Provider>));
@@ -23,53 +28,53 @@ const saving = (container: HTMLElement, place: number) =>
 
 it.live("gives every flag and every count a form under the words the catalogue gives it and the sentence that says what it does", () =>
 	Effect.gen(function* () {
-		const board = desk();
+		const board = yield* settingsDesk();
 		const container = yield* shown(board, <Settings api={board.glass.api} />);
 		yield* until(() => container.querySelectorAll("form").length === 9);
-		expect([...container.querySelectorAll("form")].map(named)).toEqual([
-			"Fold runs of tool calls",
-			"Retire rested agents",
-			"Hold everything",
-			"Hold piece dispatch",
-			"Hold wakes",
-			"Maximum running agents",
-			"Idle before siesta, in minutes",
-			"Routine mail before a wake, in minutes",
-			"Rest before retirement, in minutes",
-		]);
-		expect(container.textContent).toContain("Nothing Antumbra sends on its own goes out. Every queue keeps filling and running sessions carry on.");
-		expect(container.textContent).toContain("How many agents may be running at once.");
+		const flags = Option.getOrThrow(yield* board.api.settings.flags({}).pipe(Stream.runHead));
+		const counts = Option.getOrThrow(yield* board.api.settings.counts({}).pipe(Stream.runHead));
+		const readings = [...flags, ...counts];
+		expect([...container.querySelectorAll("form")].map(named)).toEqual(readings.map((reading) => reading.title));
+		for (const reading of readings) {
+			expect(container.textContent).toContain(reading.description);
+		}
 	}),
 );
 
-it.live("sends the key of the flag that was switched", () =>
+it.live("saves the flag that was switched", () =>
 	Effect.gen(function* () {
-		const board = desk();
+		const board = yield* settingsDesk();
 		const container = yield* shown(board, <Settings api={board.glass.api} />);
 		yield* until(() => container.querySelectorAll("form").length === 9);
 		yield* settle(() => labelled<HTMLInputElement>(container, "Hold everything On").click());
 		yield* saving(container, 2);
-		yield* until(() => board.sent.length === 1);
-		expect(board.sent[0]).toMatchObject({ key: "holdEverything", on: true });
+		const saved = yield* board.api.settings.flags({}).pipe(
+			Stream.filter((flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on)),
+			Stream.runHead,
+		);
+		expect(Option.getOrThrow(saved).find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 	}),
 );
 
-it.live("draws a count Antumbra holds and sends the whole number that replaces it", () =>
+it.live("draws a saved count and commits the whole number that replaces it", () =>
 	Effect.gen(function* () {
-		const board = desk();
-		yield* SubscriptionRef.set(board.stored, new Map([["maxParallelSessions", 9]]));
+		const board = yield* settingsDesk();
+		yield* board.api.settings.setCount({ count: 9, key: "maxParallelSessions" });
 		const container = yield* shown(board, <Settings api={board.glass.api} />);
 		yield* until(() => labelled<HTMLInputElement>(container, "Maximum running agents Count").value === "9");
 		yield* settle(() => write(labelled<HTMLInputElement>(container, "Maximum running agents Count"), "12"));
 		yield* saving(container, 5);
-		yield* until(() => board.sent.length === 1);
-		expect(board.sent[0]).toMatchObject({ count: 12, key: "maxParallelSessions" });
+		const saved = yield* board.api.settings.counts({}).pipe(
+			Stream.filter((counts) => counts.some((count) => count.key === "maxParallelSessions" && count.count === 12)),
+			Stream.runHead,
+		);
+		expect(Option.getOrThrow(saved).find((count) => count.key === "maxParallelSessions")?.count).toBe(12);
 	}),
 );
 
 it.live("puts a count the key does not allow on the field that carries it", () =>
 	Effect.gen(function* () {
-		const board = desk();
+		const board = yield* settingsDesk();
 		const container = yield* shown(board, <Settings api={board.glass.api} />);
 		yield* until(() => container.querySelectorAll("form").length === 9);
 		const field = labelled<HTMLInputElement>(container, "Maximum running agents Count");
@@ -77,5 +82,15 @@ it.live("puts a count the key does not allow on the field that carries it", () =
 		yield* saving(container, 5);
 		yield* until(() => field.getAttribute("aria-invalid") === "true");
 		expect(container.textContent).toContain("Maximum running agents takes a whole number from 1 to 64");
+	}),
+);
+
+it.live("refreshes an open screen when a command changes a count", () =>
+	Effect.gen(function* () {
+		const board = yield* settingsDesk();
+		const container = yield* shown(board, <Settings api={board.glass.api} />);
+		yield* until(() => container.querySelectorAll("form").length === 9);
+		yield* board.api.settings.setCount({ count: 13, key: "maxParallelSessions" });
+		yield* until(() => labelled<HTMLInputElement>(container, "Maximum running agents Count").value === "13");
 	}),
 );

@@ -20,7 +20,14 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-settings": "workspace:*",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"happy-dom": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",

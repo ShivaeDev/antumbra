@@ -4,25 +4,9 @@ import type { MaterializerShape } from "#materializer.ts";
 import type { QueryShape } from "#query.ts";
 import type { RowShape } from "#row.ts";
 
-interface FactNeedsExactlyOneMaterializer {
-	readonly _featureError: "every fact needs exactly one materializer in this feature";
-}
-
-interface MaterializesAnUndeclaredFact {
-	readonly _featureError: "the materialized fact is not declared in this feature's facts";
-}
-
-interface EmitsAnUndeclaredFact {
-	readonly _featureError: "the emitted fact is not declared in this feature's facts";
-}
-
-interface TouchesAnUndeclaredRow {
-	readonly _featureError: "a row that is read or written is not declared in this feature's rows";
-}
+type Complaint<Sentence extends string> = { readonly [Text in Sentence]: never };
 
 type Named<Parts extends readonly { readonly name: string }[]> = Parts[number]["name"];
-
-type Declared<Used extends string, Names extends string> = [Exclude<Used, Names>] extends [never] ? true : false;
 
 type MaterializersFor<Name extends string, Materializers extends readonly MaterializerShape[]> = Materializers extends readonly [
 	infer Head extends MaterializerShape,
@@ -33,10 +17,38 @@ type MaterializersFor<Name extends string, Materializers extends readonly Materi
 		: MaterializersFor<Name, Rest>
 	: [];
 
+type FactProof<Fact extends FactShape, Found extends readonly MaterializerShape[]> = Found extends readonly [unknown]
+	? Fact
+	: Found extends readonly []
+		? Complaint<`the fact "${Fact["name"]}" has no materializer in this feature`>
+		: Complaint<`the fact "${Fact["name"]}" has more than one materializer in this feature`>;
+
+type MaterializerRowsProof<Materializer extends MaterializerShape, Undeclared extends string> = [Undeclared] extends [never]
+	? Materializer
+	: Complaint<`the materializer for "${Materializer["fact"]["name"]}" writes the row "${Undeclared}", which this feature does not declare`>;
+
+type MaterializerProof<Materializer extends MaterializerShape, Facts extends readonly FactShape[], Rows extends readonly RowShape[]> = [
+	Exclude<Materializer["fact"]["name"], Named<Facts>>,
+] extends [never]
+	? MaterializerRowsProof<Materializer, Exclude<Named<Materializer["writes"]>, Named<Rows>>>
+	: Complaint<`the materializer for "${Materializer["fact"]["name"]}" materializes a fact this feature does not declare`>;
+
+type CommandRowsProof<Command extends CommandShape, Undeclared extends string> = [Undeclared] extends [never]
+	? Command
+	: Complaint<`the command "${Command["name"]}" reads the row "${Undeclared}", which this feature does not declare`>;
+
+type CommandProof<Command extends CommandShape, Facts extends readonly FactShape[], Rows extends readonly RowShape[]> = [
+	Exclude<Command["emits"]["name"], Named<Facts>>,
+] extends [never]
+	? CommandRowsProof<Command, Exclude<Named<Command["reads"]>, Named<Rows>>>
+	: Complaint<`the command "${Command["name"]}" emits the fact "${Command["emits"]["name"]}", which this feature does not declare`>;
+
+type QueryProof<Query extends QueryShape, Undeclared extends string> = [Undeclared] extends [never]
+	? Query
+	: Complaint<`the query "${Query["name"]}" reads the row "${Undeclared}", which this feature does not declare`>;
+
 export type FactsProof<Facts extends readonly FactShape[], Materializers extends readonly MaterializerShape[]> = {
-	readonly [Index in keyof Facts]: MaterializersFor<Facts[Index]["name"], Materializers> extends readonly [unknown]
-		? Facts[Index]
-		: FactNeedsExactlyOneMaterializer;
+	readonly [Index in keyof Facts]: FactProof<Facts[Index], MaterializersFor<Facts[Index]["name"], Materializers>>;
 };
 
 export type MaterializersProof<
@@ -44,21 +56,13 @@ export type MaterializersProof<
 	Facts extends readonly FactShape[],
 	Rows extends readonly RowShape[],
 > = {
-	readonly [Index in keyof Materializers]: Declared<Materializers[Index]["fact"]["name"], Named<Facts>> extends true
-		? Declared<Named<Materializers[Index]["writes"]>, Named<Rows>> extends true
-			? Materializers[Index]
-			: TouchesAnUndeclaredRow
-		: MaterializesAnUndeclaredFact;
+	readonly [Index in keyof Materializers]: MaterializerProof<Materializers[Index], Facts, Rows>;
 };
 
 export type CommandsProof<Commands extends readonly CommandShape[], Facts extends readonly FactShape[], Rows extends readonly RowShape[]> = {
-	readonly [Index in keyof Commands]: Declared<Commands[Index]["emits"]["name"], Named<Facts>> extends true
-		? Declared<Named<Commands[Index]["reads"]>, Named<Rows>> extends true
-			? Commands[Index]
-			: TouchesAnUndeclaredRow
-		: EmitsAnUndeclaredFact;
+	readonly [Index in keyof Commands]: CommandProof<Commands[Index], Facts, Rows>;
 };
 
 export type QueriesProof<Queries extends readonly QueryShape[], Rows extends readonly RowShape[]> = {
-	readonly [Index in keyof Queries]: Declared<Named<Queries[Index]["reads"]>, Named<Rows>> extends true ? Queries[Index] : TouchesAnUndeclaredRow;
+	readonly [Index in keyof Queries]: QueryProof<Queries[Index], Exclude<Named<Queries[Index]["reads"]>, Named<Rows>>>;
 };

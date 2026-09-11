@@ -5,7 +5,7 @@ import { testing } from "#testing/entry.ts";
 
 export const pieceApp = app([pieces]);
 
-export const it = testing(pieceApp);
+export const it = testing(pieceApp.features);
 
 export const voyage = VoyageId.make("voyage-1");
 

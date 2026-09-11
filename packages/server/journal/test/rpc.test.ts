@@ -42,6 +42,30 @@ it.app("the same request id twice answers on the wire with the sequence number i
 	expect(refused).toMatchObject({ requestId, seq });
 });
 
+it.app("the request id the caller fixes is the one the journal applies", function* (app) {
+	const database = yield* Database;
+	yield* app.seed.piece(launched(1));
+	yield* app.seed.piece(launched(2));
+	const requestId = Id.Request.make("voyage:flagship");
+	const seq = yield* app.api.pieces.park({ pieceId: pieceId(1), reason: "blocked on review", requestId });
+
+	expect(yield* app.api.pieces.park({ pieceId: pieceId(2), reason: "blocked on review", requestId })).toBe(seq);
+	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toHaveLength(1);
+	expect((yield* app.rows.piece.get(pieceId(2))).status).toBe("launched");
+});
+
+it.app("a call that names no request id is minted one of its own", function* (app) {
+	const database = yield* Database;
+	yield* app.seed.piece(launched(1));
+	yield* app.seed.piece(launched(2));
+	yield* app.api.pieces.park({ pieceId: pieceId(1), reason: "blocked on review" });
+	yield* app.api.pieces.park({ pieceId: pieceId(2), reason: "blocked on review" });
+
+	const applied = yield* Effect.orDie(database.write`SELECT * FROM "applied"`);
+	expect(new Set(applied.map((entry) => String(entry.requestId))).size).toBe(2);
+	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toHaveLength(2);
+});
+
 it.app("a live query through the client emits the rows it watches and emits again when its scope is dirtied", function* (app) {
 	yield* app.seed.piece(launched(1));
 	yield* app.seed.piece(launched(2, elsewhere));

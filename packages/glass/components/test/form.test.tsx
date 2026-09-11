@@ -193,3 +193,77 @@ it.live("draws a number field as a number input under the words the screen gives
 		expect(asked[0]).toMatchObject({ count: 12, key: "maxParallelSessions" });
 	}),
 );
+
+const opened = fact("Opened", { context: Schema.String, kind: Schema.String, name: Schema.String });
+
+const openVoyage = command("open", {
+	input: {
+		name: titled(Schema.String, { title: "Name" }),
+		context: titled(Schema.String, { multiline: true, title: "Context" }),
+		kind: titled(Schema.Literals(["voyage", "flagship"]), { title: "Kind" }),
+	},
+	reads: [],
+	emits: opened,
+	rejections: { Blank: { field: Schema.String, message: Schema.String } },
+	run: (input) => Effect.succeed({ context: input.context, kind: input.kind, name: input.name }),
+});
+
+const FIXED_KIND = { kind: "voyage" } as const;
+
+const opening = (sent: Record<string, unknown>[], answer: (input: Record<string, unknown>) => Effect.Effect<number, unknown>) =>
+	Object.assign(
+		(input: Record<string, unknown>) => {
+			sent.push(input);
+			return answer(input);
+		},
+		{ command: openVoyage },
+	);
+
+it.live("draws a multiline field as a textarea", () =>
+	Effect.gen(function* () {
+		const board = desk();
+		const sent: Record<string, unknown>[] = [];
+		const container = yield* shown(board, <CommandForm command={opening(sent, () => Effect.succeed(1))} fixed={FIXED_KIND} submit="Open voyage" />);
+
+		expect(labelled<HTMLElement>(container, "Open voyage Context").tagName).toBe("TEXTAREA");
+		expect(labelled<HTMLElement>(container, "Open voyage Name").tagName).toBe("INPUT");
+	}),
+);
+
+it.live("draws an empty form with its submit button, sends the fixed values undrawn, and clears", () =>
+	Effect.gen(function* () {
+		const board = desk();
+		const sent: Record<string, unknown>[] = [];
+		const container = yield* shown(board, <CommandForm command={opening(sent, () => Effect.succeed(1))} fixed={FIXED_KIND} submit="Open voyage" />);
+		const button = () => container.querySelector("button");
+		expect(labelled<HTMLInputElement>(container, "Open voyage Name").value).toBe("");
+		expect(container.querySelector('[aria-label="Open voyage Kind"]')).toBeNull();
+		expect(button()?.textContent).toBe("Open voyage");
+		expect(button()?.disabled).toBe(false);
+
+		yield* settle(() => write(labelled<HTMLInputElement>(container, "Open voyage Name"), "Chart the reef"));
+		yield* settle(() => write(labelled<HTMLTextAreaElement>(container, "Open voyage Context"), "Two lines\nof context"));
+		yield* saving(container, 0);
+		yield* until(() => sent.length === 1);
+
+		expect(sent[0]).toEqual({ context: "Two lines\nof context", kind: "voyage", name: "Chart the reef" });
+		yield* until(() => labelled<HTMLInputElement>(container, "Open voyage Name").value === "");
+		expect(labelled<HTMLTextAreaElement>(container, "Open voyage Context").value).toBe("");
+	}),
+);
+
+it.live("keeps what was typed and names the field a rejection blames", () =>
+	Effect.gen(function* () {
+		const board = desk();
+		const sent: Record<string, unknown>[] = [];
+		const refusing = opening(sent, () => Effect.fail(new openVoyage.Rejection.Blank({ field: "name", message: "A voyage needs a name" })));
+		const container = yield* shown(board, <CommandForm command={refusing} fixed={FIXED_KIND} submit="Open voyage" />);
+
+		yield* settle(() => write(labelled<HTMLInputElement>(container, "Open voyage Context"), "the reef"));
+		yield* saving(container, 0);
+		yield* until(() => labelled<HTMLInputElement>(container, "Open voyage Name").getAttribute("aria-invalid") === "true");
+
+		expect(container.textContent).toContain("A voyage needs a name");
+		expect(labelled<HTMLTextAreaElement>(container, "Open voyage Context").value).toBe("the reef");
+	}),
+);

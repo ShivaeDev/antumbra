@@ -1,4 +1,5 @@
 import { RowNotFound } from "@antumbra/platform-feature/rejection.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Cause, Effect, Option } from "effect";
 import { expect } from "vitest";
 import { park } from "#example/commands/park.ts";
@@ -11,6 +12,15 @@ it.app("a commit returns the sequence number and moves the projection row", func
 	const found = yield* app.rows.piece.get(pieceId(1));
 	expect(found.status).toBe("parked");
 	expect(found.parkedReason).toBe("blocked on review");
+});
+
+it.app("the test kit commits under the request id the caller fixes", function* (app) {
+	yield* app.seed.piece(launched(1));
+	const requestId = Id.Request.make("voyage:flagship");
+	const seq = yield* app.commit.pieces.park({ pieceId: pieceId(1), reason: "blocked on review", requestId });
+	const refused = yield* Effect.flip(app.commit.pieces.park({ pieceId: pieceId(1), reason: "again", requestId }));
+
+	expect(refused).toMatchObject({ _tag: "AlreadyDone", requestId, seq });
 });
 
 it.app("a rejection is the class the command declared", function* (app) {

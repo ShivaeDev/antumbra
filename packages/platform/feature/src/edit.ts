@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import type { QueryShape } from "#query.ts";
 
 const CHOICE = "antumbra/choice";
+const MULTILINE = "antumbra/multiline";
 const OPTIONAL = "antumbra/optional";
 
 type Listed<Query extends QueryShape> = Query["output"]["Type"] extends readonly (infer Element)[] ? Element : never;
@@ -28,6 +29,7 @@ export interface Editing {
 	readonly flag: boolean;
 	readonly inner: Schema.Top;
 	readonly literals: readonly string[] | undefined;
+	readonly multiline: boolean;
 	readonly number: boolean;
 	readonly optional: boolean;
 	readonly title: string | undefined;
@@ -66,8 +68,8 @@ export const choice = <Query extends QueryShape>(query: Query, of: ChoiceOf<Quer
 export const optional = <S extends Schema.Constraint>(schema: S, options: { readonly title: string }): Schema.NullOr<S> =>
 	Schema.NullOr(schema).annotate({ [OPTIONAL]: true, title: options.title });
 
-export const titled = <S extends Schema.Constraint>(schema: S, options: { readonly title: string }): S =>
-	retyped(topped(schema).annotate({ title: options.title }));
+export const titled = <S extends Schema.Constraint>(schema: S, options: { readonly multiline?: true; readonly title: string }): S =>
+	retyped(topped(schema).annotate({ [MULTILINE]: options.multiline === true, title: options.title }));
 
 const wordsOf = (literals: readonly unknown[] | undefined): readonly string[] | undefined => {
 	if (literals === undefined) {
@@ -93,6 +95,7 @@ export const editing = (field: Schema.Constraint): Editing => {
 		flag: inner.ast._tag === "Boolean",
 		inner,
 		literals: wordsOf(shaped(inner).literals),
+		multiline: annotations?.[MULTILINE] === true,
 		number: inner.ast._tag === "Number",
 		optional: optionally,
 		title: outer?.title,

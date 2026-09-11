@@ -17,7 +17,7 @@ function loose(service: unknown): unknown {
 
 const commandsOf = (commit: LooseCommit, feature: FeatureShape): Record<string, unknown> =>
 	Object.fromEntries(
-		feature.commands.map((command) => [command.name, (input: Record<string, unknown>) => commit.commit(command, { ...input, requestId: Id.make() })]),
+		feature.commands.map((command) => [command.name, (input: Record<string, unknown>) => commit.commit(command, { requestId: Id.make(), ...input })]),
 	);
 
 export function commitsOf<Features extends readonly FeatureShape[]>(definition: AppDefinition<Features>, service: CommitService): Commits<Features>;

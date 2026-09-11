@@ -1,5 +1,5 @@
 import type { Offer } from "#choices.ts";
-import { CONTROL, TEXT_CONTROL } from "#classes.ts";
+import { CONTROL, LINES_CONTROL, TEXT_CONTROL } from "#classes.ts";
 
 export interface Shown {
 	readonly described: string | undefined;
@@ -24,6 +24,20 @@ export const Words = (props: { readonly shown: Shown }) => (
 		onBlur={props.shown.onBlur}
 		onChange={(event) => props.shown.onChange(event.target.value)}
 		placeholder={props.shown.placeholder}
+		value={worded(props.shown.value)}
+	/>
+);
+
+export const Lines = (props: { readonly shown: Shown }) => (
+	<textarea
+		aria-describedby={props.shown.described}
+		aria-invalid={props.shown.invalid}
+		aria-label={props.shown.name}
+		className={LINES_CONTROL}
+		onBlur={props.shown.onBlur}
+		onChange={(event) => props.shown.onChange(event.target.value)}
+		placeholder={props.shown.placeholder}
+		rows={3}
 		value={worded(props.shown.value)}
 	/>
 );

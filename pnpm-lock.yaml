@@ -1078,6 +1078,9 @@ importers:
       '@antumbra/domain-settings':
         specifier: workspace:*
         version: link:../../server/domains/settings
+      '@antumbra/domain-voyages':
+        specifier: workspace:*
+        version: link:../../server/domains/voyages
       '@antumbra/glass-client':
         specifier: workspace:*
         version: link:../client
@@ -1658,6 +1661,9 @@ importers:
       '@antumbra/glass-settings':
         specifier: workspace:*
         version: link:../glass/settings
+      '@antumbra/glass-voyages':
+        specifier: workspace:*
+        version: link:../glass/voyages
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary

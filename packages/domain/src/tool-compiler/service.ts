@@ -8,6 +8,7 @@ import { Repos } from "@antumbra/repos";
 import { Rulings } from "@antumbra/rulings";
 import { RulingHolds } from "@antumbra/rulings/holds/service";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { VoyageAuthority } from "@antumbra/voyages/authority/service";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { CaptainMembership } from "#captain-membership.ts";
@@ -32,6 +33,7 @@ export const AgentToolCompiler = defineService({
 		RulingHolds,
 		RoleSettings,
 		VoyageAuthority,
+		Voyages,
 		BackendCatalog,
 		CaptainMembership,
 		ExecutionSource,

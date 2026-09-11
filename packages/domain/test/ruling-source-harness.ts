@@ -8,8 +8,8 @@ import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { scriptedRoleSettings } from "@antumbra/settings/testing";
-import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Voyages } from "@antumbra/voyages";
+import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Deferred, Effect, Layer, Stream } from "effect";
 import { RulingSourceLive } from "#ruling-source.ts";
 

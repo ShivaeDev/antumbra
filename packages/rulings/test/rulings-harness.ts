@@ -6,11 +6,7 @@ import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Effect, Layer } from "effect";
 import { RulingsLive } from "#rulings.ts";
 
-export const layer = RulingsLive.pipe(
-	Layer.provideMerge(scriptedVoyages),
-	Layer.provide(scriptedRoleSettings),
-	Layer.provide(DomainFeedsLive),
-);
+export const layer = RulingsLive.pipe(Layer.provideMerge(scriptedVoyages), Layer.provide(scriptedRoleSettings), Layer.provide(DomainFeedsLive));
 
 export const requesterId = "agent-hand";
 export const voyageId = "voyage-reef";

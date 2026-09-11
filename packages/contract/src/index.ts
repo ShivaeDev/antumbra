@@ -101,7 +101,6 @@ export {
 	CrewReceipt,
 	DismissChangeRequest,
 	HailReceipt,
-	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
 } from "#voyage-requests.ts";

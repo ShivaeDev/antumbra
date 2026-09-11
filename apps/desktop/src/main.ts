@@ -16,7 +16,6 @@ import { registerServerBridge } from "#adapters/server-bridge.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import { ServerReachLive } from "#adapters/server-reach.ts";
 import { SettingsOverRpc } from "#adapters/settings.ts";
-import { VoyagesOverRpc } from "#adapters/voyages.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -33,6 +32,7 @@ import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
+import { VoyagesOverRpc } from "#adapters/voyages.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { openConsole, rendererDocument } from "#adapters/windows/open.ts";

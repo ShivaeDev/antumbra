@@ -2,19 +2,6 @@ import { BoardRegisterSchema } from "@antumbra/platform-vocabulary/board.ts";
 import { PieceVerdict } from "@antumbra/platform-vocabulary/verdict.ts";
 import { Schema } from "effect";
 
-export const OpenVoyageRequest = Schema.Struct({
-	captainBackend: Schema.optionalKey(Schema.String),
-	captainEffort: Schema.optionalKey(Schema.String),
-	captainModel: Schema.optionalKey(Schema.String),
-	context: Schema.String,
-	crewBackend: Schema.optionalKey(Schema.String),
-	crewEffort: Schema.optionalKey(Schema.String),
-	crewModel: Schema.optionalKey(Schema.String),
-	name: Schema.String,
-	northStar: Schema.String,
-});
-export type OpenVoyageRequest = typeof OpenVoyageRequest.Type;
-
 export const CharterPieceRequest = Schema.Struct({
 	charter: Schema.String,
 	dependsOn: Schema.Array(Schema.String),

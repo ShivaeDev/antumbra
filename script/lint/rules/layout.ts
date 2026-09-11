@@ -10,6 +10,7 @@ const SCOPE = "@antumbra/";
 const OLD_IMPORT_EXCEPTIONS: readonly { readonly from: string; readonly to: string }[] = [
 	{ from: "@antumbra/renderer", to: "@antumbra/glass-role-settings" },
 	{ from: "@antumbra/renderer", to: "@antumbra/glass-settings" },
+	{ from: "@antumbra/renderer", to: "@antumbra/glass-voyages" },
 ];
 
 const excepted = (from: WorkspacePackage, to: WorkspacePackage): boolean =>

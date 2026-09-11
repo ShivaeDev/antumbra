@@ -1,5 +1,6 @@
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
+import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { PiecesLive } from "@antumbra/pieces";
 import { ReposLive } from "@antumbra/repos";
@@ -18,36 +19,41 @@ const QuayLayer = Quay.layer.pipe(
 	Layer.provide(DomainFeedsLive),
 );
 
-it.effectDB("reads every berthing and resolves only the originating root session", function* (db) {
-	yield* Effect.gen(function* () {
-		const quay = yield* Quay;
-		const sailing = yield* Voyages;
-		for (const id of ["voyage-one", "voyage-two", "voyage-empty"]) {
-			yield* sailing.open({ context: "reef", id, name: id, northStar: "chart the reef" });
-		}
-		for (const id of ["piece-one", "piece-empty"]) {
-			yield* db.Piece.create({
-				id,
-				title: id,
-				charter: "chart",
-				expectation: "charted",
-				role: "hand",
-				launchedAt: null,
-				parkedAt: null,
-				createdAt: new Date(id === "piece-one" ? "2026-09-01T00:00:00.000Z" : "2026-09-02T00:00:00.000Z"),
-			});
-			yield* db.VoyagePiece.create({ pieceId: id, voyageId: "voyage-one" });
-		}
+const berthings = Effect.fnUntraced(function* () {
+	const db = yield* Database;
+	const sailing = yield* Voyages;
+	for (const id of ["voyage-one", "voyage-two", "voyage-empty"]) {
+		yield* sailing.open({ context: "reef", id, name: id, northStar: "chart the reef" });
+	}
+	for (const id of ["piece-one", "piece-empty"]) {
 		yield* db.Piece.create({
-			id: "unberthed",
-			title: "unberthed",
+			id,
+			title: id,
 			charter: "chart",
 			expectation: "charted",
 			role: "hand",
 			launchedAt: null,
 			parkedAt: null,
+			createdAt: new Date(id === "piece-one" ? "2026-09-01T00:00:00.000Z" : "2026-09-02T00:00:00.000Z"),
 		});
-		yield* db.VoyagePiece.create({ pieceId: "piece-one", voyageId: "voyage-two" });
+		yield* db.VoyagePiece.create({ pieceId: id, voyageId: "voyage-one" });
+	}
+	yield* db.Piece.create({
+		id: "unberthed",
+		title: "unberthed",
+		charter: "chart",
+		expectation: "charted",
+		role: "hand",
+		launchedAt: null,
+		parkedAt: null,
+	});
+	yield* db.VoyagePiece.create({ pieceId: "piece-one", voyageId: "voyage-two" });
+});
+
+it.effectDB("reads every berthing and resolves only the originating root session", function* (db) {
+	yield* Effect.gen(function* () {
+		const quay = yield* Quay;
+		yield* berthings();
 		const empty = yield* quay.read();
 		expect(empty.rows).toEqual([]);
 		expect(empty.pieces).toEqual([

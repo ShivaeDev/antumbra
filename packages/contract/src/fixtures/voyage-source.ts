@@ -26,7 +26,6 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 		hail: () => Effect.succeed({ agentId: "agent-hailed" }),
 		landPieceVerdict: () => Effect.void,
 		launch: () => Effect.void,
-		open: (request) => Effect.succeed({ ...reefSummary, name: request.name }),
 		park: () => Effect.void,
 		quay: Effect.succeed(quayView),
 		quayFeed: feeds.quay,

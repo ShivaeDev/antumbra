@@ -4,9 +4,9 @@ import { Database } from "@antumbra/persistence";
 export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 
 import { PiecesLive } from "@antumbra/pieces";
+import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { scriptedRoleSettings } from "@antumbra/settings/testing";
 import { scriptedVoyages } from "@antumbra/voyages/testing";
-import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { Effect, Layer, Ref } from "effect";
 import { changesLayer as configuredChangesLayer } from "#layer.ts";
 

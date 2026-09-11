@@ -64,14 +64,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className={ASIDE}>
-				<VoyagesAside
-					backends={props.fleet?.backends ?? []}
-					defaults={props.fleet?.roleSettings ?? []}
-					onError={props.onError}
-					onSelect={props.onVoyage}
-					selected={props.voyage}
-					voyages={props.voyages}
-				/>
+				<VoyagesAside onError={props.onError} onSelect={props.onVoyage} selected={props.voyage} voyages={props.voyages} />
 			</aside>
 			{props.voyage === undefined ? (
 				<section className="m-auto text-xs text-muted-foreground">select a voyage to see its pieces</section>

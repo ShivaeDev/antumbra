@@ -10,16 +10,7 @@ const list = () =>
 	renderToStaticMarkup(<VoyagesPanel onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary]} />);
 
 const aside = () =>
-	renderToStaticMarkup(
-		<VoyagesAside
-			backends={["claude"]}
-			defaults={[]}
-			onError={() => undefined}
-			onSelect={() => undefined}
-			selected={undefined}
-			voyages={[reefSummary]}
-		/>,
-	);
+	renderToStaticMarkup(<VoyagesAside onError={() => undefined} onSelect={() => undefined} selected={undefined} voyages={[reefSummary]} />);
 
 const flagshipSummary: VoyageSummary = {
 	...reefSummary,

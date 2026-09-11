@@ -11,7 +11,6 @@ import type {
 	CharterReceipt,
 	CrewReceipt,
 	HailReceipt,
-	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
 } from "#voyage-requests.ts";
@@ -31,7 +30,6 @@ export class VoyageSource extends Context.Service<
 		readonly hail: (voyageId: string) => Effect.Effect<HailReceipt, SightFailure>;
 		readonly landPieceVerdict: (request: PieceVerdictRequest) => Effect.Effect<void, SightFailure>;
 		readonly launch: (pieceId: string) => Effect.Effect<void, SightFailure>;
-		readonly open: (request: OpenVoyageRequest) => Effect.Effect<VoyageSummary, SightFailure>;
 		readonly park: (pieceId: string) => Effect.Effect<void, SightFailure>;
 		readonly removeArtifactSupersession: (request: ArtifactSupersessionRequest) => Effect.Effect<void, SightFailure>;
 		readonly quay: Effect.Effect<QuayView, SightFailure>;

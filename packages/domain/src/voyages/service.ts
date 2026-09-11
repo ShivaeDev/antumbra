@@ -15,7 +15,6 @@ import { VoyageSummaries } from "#voyage/summaries/service.ts";
 import { readVoyageView } from "#voyage-read.ts";
 import { charterWithNotice } from "#voyages/charter.ts";
 import { list } from "#voyages/list.ts";
-import { open } from "#voyages/open.ts";
 
 export const VoyageProcedureService = defineService({
 	id: "@antumbra/domain/VoyageProcedures",
@@ -25,7 +24,6 @@ export const VoyageProcedureService = defineService({
 		charterWithNotice,
 		hail: hailCaptain,
 		list,
-		open,
 		read: readVoyageView,
 		workNow: workPieceNow,
 	}),

@@ -1,7 +1,7 @@
 import type { RulingAgentView, RulingSubjectView } from "@antumbra/contract";
 import type { StoredAgent } from "@antumbra/persistence";
-import type { Voyage } from "@antumbra/voyages";
 import type { Ruling, RulingSubject } from "@antumbra/rulings";
+import type { Voyage } from "@antumbra/voyages";
 import { Option } from "effect";
 import type { PieceRow, RepoRow } from "#voyage-rows.ts";
 

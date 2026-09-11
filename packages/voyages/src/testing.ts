@@ -17,7 +17,10 @@ export const scriptedSailing = (): ScriptedSailing => Ref.makeUnsafe<Sailing>(ne
 const named = (value: string | undefined): string | null => (value === undefined || value === "" ? null : value);
 
 const seatsOf = (input: OpenVoyageInput) => [
-	{ choice: { backend: named(input.captainBackend), effort: named(input.captainEffort), model: named(input.captainModel) }, role: "captain" } as const,
+	{
+		choice: { backend: named(input.captainBackend), effort: named(input.captainEffort), model: named(input.captainModel) },
+		role: "captain",
+	} as const,
 	{ choice: { backend: named(input.crewBackend), effort: named(input.crewEffort), model: named(input.crewModel) }, role: "crew" } as const,
 ];
 

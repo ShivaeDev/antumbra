@@ -41,7 +41,7 @@ export const VoyageSourceLive = Layer.effect(VoyageSource)(
 			delegating: delegations.delegating(),
 		});
 		const reads = yield* makeVoyageReads(runtime);
-		const acts = yield* makeVoyageActs(reads);
+		const acts = yield* makeVoyageActs;
 		const refreshes = yield* makeVoyageRefreshes;
 		const smoothBoard = yield* makeSmoothBoard;
 		const quay = Effect.gen(function* () {

@@ -7,10 +7,10 @@ import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backe
 import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import type { VoyageKind } from "@antumbra/platform-vocabulary/voyage.ts";
+import { Voyages, type VoyagesService } from "@antumbra/voyages";
 import { captainRoleOf } from "@antumbra/voyages/captain-role";
 import { VoyageNotFound } from "@antumbra/voyages/errors";
 import type { OpenVoyageInput, Voyage } from "@antumbra/voyages/model";
-import { Voyages, type VoyagesService } from "@antumbra/voyages";
 import { type Context, Effect, Layer, Option, Schema } from "effect";
 import { once, ServerReach } from "#adapters/server-reach.ts";
 
@@ -64,9 +64,17 @@ const asked = (input: OpenVoyageInput, kind: VoyageKind, requestId: Id.Request) 
 	});
 
 const readOne = <Failure extends { readonly _tag: string }>(reach: Reach<Failure>, voyageId: string) =>
-	Effect.map(once(reach.voyages.byId({ id: VoyageId.make(voyageId) })), (stored) => (stored === null ? Option.none() : Option.some(voyageOf(stored))));
+	Effect.map(once(reach.voyages.byId({ id: VoyageId.make(voyageId) })), (stored) =>
+		stored === null ? Option.none() : Option.some(voyageOf(stored)),
+	);
 
-const openOne = <Failure extends { readonly _tag: string }>(reach: Reach<Failure>, feeds: Feeds, input: OpenVoyageInput, kind: VoyageKind, requestId: Id.Request) =>
+const openOne = <Failure extends { readonly _tag: string }>(
+	reach: Reach<Failure>,
+	feeds: Feeds,
+	input: OpenVoyageInput,
+	kind: VoyageKind,
+	requestId: Id.Request,
+) =>
 	Effect.gen(function* () {
 		yield* Effect.orDie(reach.voyages.open(yield* asked(input, kind, requestId)));
 		yield* feeds.publishVoyageRefresh();
@@ -103,7 +111,7 @@ export const voyagesOver = <Failure extends { readonly _tag: string }>(reach: Re
 	setFocus: Effect.fn("Voyages.setFocus")(function* (voyageId: string, focused: boolean) {
 		yield* reach.voyages
 			.setFocus({ focused, id: VoyageId.make(voyageId) })
-			.pipe(Effect.catchTag("Unknown", () => new VoyageNotFound({ voyageId })), Effect.orDie);
+			.pipe(Effect.catch((failure) => (failure._tag === "Unknown" ? new VoyageNotFound({ voyageId }) : Effect.die(failure))));
 		yield* feeds.publishVoyageRefresh();
 	}),
 	verifyExists: Effect.fn("Voyages.verifyExists")(function* (voyageId: string) {

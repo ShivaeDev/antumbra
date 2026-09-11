@@ -93,7 +93,12 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		new Map(),
 		join(dirname(temporary.database), "artifacts"),
 		join(dirname(temporary.database), "session-inputs"),
-	).pipe(Layer.provide(NodeServices.layer), Layer.provideMerge(scriptedVoyages), Layer.provideMerge(scriptedRoleSettings), Layer.provideMerge(scriptedSettings));
+	).pipe(
+		Layer.provide(NodeServices.layer),
+		Layer.provideMerge(scriptedVoyages),
+		Layer.provideMerge(scriptedRoleSettings),
+		Layer.provideMerge(scriptedSettings),
+	);
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	Layer.mergeAll(SightSourceLive, installKernelReach).pipe(

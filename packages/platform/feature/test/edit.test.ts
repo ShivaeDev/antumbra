@@ -1,4 +1,4 @@
-import { choice, editing, optional } from "@antumbra/feature/edit.ts";
+import { choice, editing, optional, titled } from "@antumbra/feature/edit.ts";
 import { query } from "@antumbra/feature/query.ts";
 import { row } from "@antumbra/feature/row.ts";
 import { Effect, Schema } from "effect";
@@ -38,7 +38,22 @@ it("reads a choice that lets a value outside the list through", () => {
 });
 
 it("reads a plain field as neither optional nor chosen from a list", () => {
-	expect(editing(Schema.String)).toMatchObject({ choice: undefined, flag: false, literals: undefined, optional: false, title: undefined });
+	expect(editing(Schema.String)).toMatchObject({
+		choice: undefined,
+		flag: false,
+		literals: undefined,
+		number: false,
+		optional: false,
+		title: undefined,
+	});
+});
+
+it("titles a field that takes one value rather than none", () => {
+	const field = titled(Schema.Number.check(Schema.isInt()), { title: "Count" });
+
+	expect(editing(field)).toMatchObject({ number: true, optional: false, title: "Count" });
+	expect(Schema.decodeUnknownSync(field)(7)).toBe(7);
+	expect(() => Schema.decodeUnknownSync(field)(7.5)).toThrow();
 });
 
 it("reads a boolean field as a flag", () => {

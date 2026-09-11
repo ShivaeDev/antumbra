@@ -47,7 +47,7 @@ export const ConsoleMain = (props: ConsoleProps) => {
 		);
 	}
 	if (props.mode === "settings") {
-		return <SettingsPanel onError={props.onError} onSettings={props.onSettings} settings={props.settings} />;
+		return <SettingsPanel onError={props.onError} />;
 	}
 	if (props.mode === "quay") {
 		return <QuayPanel onError={props.onError} onSelect={props.onChange} selectedId={props.change} />;

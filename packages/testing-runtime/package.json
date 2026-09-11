@@ -21,6 +21,7 @@
 	},
 	"dependencies": {
 		"@antumbra/boards": "workspace:*",
+		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",

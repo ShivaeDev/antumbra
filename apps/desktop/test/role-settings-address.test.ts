@@ -1,8 +1,8 @@
 import { it } from "@effect/vitest";
 import { Effect, Layer, Ref } from "effect";
 import { expect } from "vitest";
-import { addressOf } from "#adapters/role-settings.ts";
 import { ServerProcess } from "#adapters/server-process.ts";
+import { addressOf } from "#adapters/server-reach.ts";
 
 const RESPAWNED = [7001, 7002] as const;
 

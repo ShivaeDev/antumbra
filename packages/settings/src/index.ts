@@ -7,4 +7,3 @@ export {
 	type VoyageAgentSettings,
 } from "#roles/choice.ts";
 export { RoleSettings, type RoleSettingsService } from "#roles/service.ts";
-export { SettingsSourceLive } from "#source.ts";

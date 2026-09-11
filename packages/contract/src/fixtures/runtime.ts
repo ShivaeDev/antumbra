@@ -9,23 +9,9 @@ import { rulingFixture } from "#fixtures/ruling-source.ts";
 import { sightFixture } from "#fixtures/sight-source.ts";
 import { voyageFixture } from "#fixtures/voyage-source.ts";
 import { windowFixture } from "#fixtures/window-source.ts";
-import { SETTINGS } from "#settings/catalog.ts";
-import { type SettingsReading, SettingsSource } from "#settings/readings.ts";
+import { SETTING_FALLBACKS, type SettingsReading, SettingsSource } from "#settings/readings.ts";
 
-const reading: SettingsReading = {
-	overridden: [],
-	settings: {
-		foldToolCalls: SETTINGS.foldToolCalls.fallback,
-		maxParallelSessions: SETTINGS.maxParallelSessions.fallback,
-		idleSiestaMinutes: SETTINGS.idleSiestaMinutes.fallback,
-		routineMailMinutes: SETTINGS.routineMailMinutes.fallback,
-		retireRestMinutes: SETTINGS.retireRestMinutes.fallback,
-		retireSweep: SETTINGS.retireSweep.fallback,
-		holdEverything: SETTINGS.holdEverything.fallback,
-		holdPieceDispatch: SETTINGS.holdPieceDispatch.fallback,
-		holdWakes: SETTINGS.holdWakes.fallback,
-	},
-};
+const reading: SettingsReading = { settings: SETTING_FALLBACKS };
 
 export const makeRuntime = (feeds: FixtureFeeds = staticFeeds) =>
 	ManagedRuntime.make(

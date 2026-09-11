@@ -14,6 +14,8 @@ import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers } from "#adapters/runtime.ts";
 import { registerServerBridge } from "#adapters/server-bridge.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
+import { ServerReachLive } from "#adapters/server-reach.ts";
+import { SettingsOverRpc } from "#adapters/settings.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -44,13 +46,14 @@ const layoutStore = Effect.provide(
 
 const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
 	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
-	const roleSettings = RoleSettingsOverRpc.pipe(Layer.provide(serverProcess), Layer.provide(DomainFeedsLive));
+	const reach = Layer.provide(ServerReachLive, serverProcess);
+	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc).pipe(Layer.provideMerge(reach), Layer.provide(DomainFeedsLive));
 	return Layer.mergeAll(
 		AppInfoSourceLive,
 		WindowSourceLive(shell),
 		devTracing(),
 		serverProcess,
-		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provideMerge(applicationLayers(), roleSettings)))),
+		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provideMerge(applicationLayers(), overRpc)))),
 	);
 };
 

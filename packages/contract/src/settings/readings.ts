@@ -1,24 +1,35 @@
-import { Context, Data, type Effect, Schema } from "effect";
-import { SETTINGS, SettingKey } from "#settings/catalog.ts";
-import { SettingValue } from "#settings/declaration.ts";
+import { Context, type Effect, Schema } from "effect";
+import { SettingKey } from "#settings/catalog.ts";
 
-const fields: { readonly [K in SettingKey]: (typeof SETTINGS)[K]["value"] } = {
-	foldToolCalls: SETTINGS.foldToolCalls.value,
-	maxParallelSessions: SETTINGS.maxParallelSessions.value,
-	idleSiestaMinutes: SETTINGS.idleSiestaMinutes.value,
-	routineMailMinutes: SETTINGS.routineMailMinutes.value,
-	retireRestMinutes: SETTINGS.retireRestMinutes.value,
-	retireSweep: SETTINGS.retireSweep.value,
-	holdEverything: SETTINGS.holdEverything.value,
-	holdPieceDispatch: SETTINGS.holdPieceDispatch.value,
-	holdWakes: SETTINGS.holdWakes.value,
-};
+export const SettingValue = Schema.Union([Schema.Boolean, Schema.Number]);
+export type SettingValue = typeof SettingValue.Type;
 
-export const Settings = Schema.Struct(fields);
+export const Settings = Schema.Struct({
+	foldToolCalls: Schema.Boolean,
+	maxParallelSessions: Schema.Number,
+	idleSiestaMinutes: Schema.Number,
+	routineMailMinutes: Schema.Number,
+	retireRestMinutes: Schema.Number,
+	retireSweep: Schema.Boolean,
+	holdEverything: Schema.Boolean,
+	holdPieceDispatch: Schema.Boolean,
+	holdWakes: Schema.Boolean,
+});
 export type Settings = typeof Settings.Type;
 
+export const SETTING_FALLBACKS: Settings = {
+	foldToolCalls: false,
+	maxParallelSessions: 4,
+	idleSiestaMinutes: 60,
+	routineMailMinutes: 5,
+	retireRestMinutes: 15,
+	retireSweep: true,
+	holdEverything: false,
+	holdPieceDispatch: false,
+	holdWakes: false,
+};
+
 export const SettingsReading = Schema.Struct({
-	overridden: Schema.Array(SettingKey),
 	settings: Settings,
 });
 export type SettingsReading = typeof SettingsReading.Type;
@@ -28,15 +39,6 @@ export const SettingChange = Schema.Struct({
 	value: SettingValue,
 });
 export type SettingChange = typeof SettingChange.Type;
-
-export class SettingRefused extends Data.TaggedError("SettingRefused")<{
-	readonly expects: string;
-	readonly key: SettingKey;
-}> {
-	override get message(): string {
-		return `${this.key} expects ${this.expects}`;
-	}
-}
 
 export class SettingsSource extends Context.Service<
 	SettingsSource,

@@ -31,7 +31,6 @@ const place = {
 } as const satisfies ConsolePlace;
 
 const reading = (overrides: Partial<SettingsReading["settings"]>): SettingsReading => ({
-	overridden: [],
 	settings: {
 		foldToolCalls: false,
 		holdEverything: false,

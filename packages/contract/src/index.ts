@@ -72,19 +72,8 @@ export {
 	subsessionDisplayName,
 	UNNAMED_SUBSESSION,
 } from "#session-tree.ts";
-export { SETTING_KEYS, SETTINGS, SettingKey } from "#settings/catalog.ts";
-export {
-	type SettingCount,
-	type SettingDeclaration,
-	SettingValue,
-} from "#settings/declaration.ts";
-export {
-	SettingChange,
-	SettingRefused,
-	Settings,
-	SettingsReading,
-	SettingsSource,
-} from "#settings/readings.ts";
+export { SettingKey } from "#settings/catalog.ts";
+export { SETTING_FALLBACKS, SettingChange, Settings, SettingsReading, SettingsSource } from "#settings/readings.ts";
 export {
 	EventQuery,
 	RepoRegistration,

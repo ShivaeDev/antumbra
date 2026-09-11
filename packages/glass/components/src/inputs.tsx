@@ -13,6 +13,8 @@ export interface Shown {
 
 const worded = (value: unknown): string => (typeof value === "string" ? value : "");
 
+const counted = (value: unknown): string => (typeof value === "number" ? String(value) : worded(value));
+
 export const Words = (props: { readonly shown: Shown }) => (
 	<input
 		aria-describedby={props.shown.described}
@@ -78,5 +80,20 @@ export const Flag = (props: { readonly shown: Shown }) => (
 		onBlur={props.shown.onBlur}
 		onChange={(event) => props.shown.onChange(event.target.checked)}
 		type="checkbox"
+	/>
+);
+
+export const Digits = (props: { readonly shown: Shown }) => (
+	<input
+		aria-describedby={props.shown.described}
+		aria-invalid={props.shown.invalid}
+		aria-label={props.shown.name}
+		className={TEXT_CONTROL}
+		onBlur={props.shown.onBlur}
+		onChange={(event) => props.shown.onChange(event.target.value === "" ? "" : Number(event.target.value))}
+		placeholder={props.shown.placeholder}
+		step={1}
+		type="number"
+		value={counted(props.shown.value)}
 	/>
 );

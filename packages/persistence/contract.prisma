@@ -479,9 +479,3 @@ model RulingContext {
 
   @@index([rulingId])
 }
-
-model Setting {
-  key       String   @id
-  value     String
-  updatedAt DateTime @default(now())
-}

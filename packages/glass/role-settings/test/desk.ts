@@ -1,5 +1,5 @@
 import { backends } from "@antumbra/backends/feature.ts";
-import { served } from "@antumbra/glass-client/connect.ts";
+import { type Glass, served } from "@antumbra/glass-client/connect.ts";
 import { roleSettings } from "@antumbra/role-settings/feature.ts";
 import { FLEET } from "@antumbra/role-settings/ids.ts";
 import { api } from "@antumbra/rpc/client.ts";
@@ -9,7 +9,6 @@ import { AGENT_ROLES, VOYAGE_AGENT_ROLES } from "@antumbra/vocabulary/agent-role
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
-import type { RoleSettingsGlass } from "#glass.ts";
 
 const FEATURES = [roleSettings, backends] as const;
 
@@ -35,7 +34,7 @@ export interface Model {
 }
 
 export interface Desk {
-	readonly glass: RoleSettingsGlass;
+	readonly glass: Glass<typeof FEATURES>;
 	readonly sent: readonly Choice[];
 	readonly settings: SubscriptionRef.SubscriptionRef<readonly Setting[]>;
 }

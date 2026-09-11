@@ -4,7 +4,7 @@ import type { ModelChoice } from "@antumbra/plugin-api";
 import type { Api } from "@antumbra/rpc/client.ts";
 import { AGENT_BACKEND_TAGS, type AgentBackendTag } from "@antumbra/vocabulary/agent-backend.ts";
 import { type Context, Effect } from "effect";
-import { ServerReach } from "#adapters/role-settings.ts";
+import { ServerReach } from "#adapters/server-reach.ts";
 
 type Reach<Failure> = Api<readonly [typeof backends], Failure>;
 

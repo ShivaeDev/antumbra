@@ -28,6 +28,7 @@
 		"@antumbra/journal": "workspace:*",
 		"@antumbra/role-settings": "workspace:*",
 		"@antumbra/rpc": "workspace:*",
+		"@antumbra/settings-domain": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:"
 	}

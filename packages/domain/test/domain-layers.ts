@@ -8,8 +8,8 @@ import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
-import { RoleSettings, SettingsSourceLive } from "@antumbra/settings";
-import { scriptedRoleSettings } from "@antumbra/testing-runtime";
+import { RoleSettings } from "@antumbra/settings";
+import { scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
 import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
@@ -54,7 +54,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 			),
 		),
 		Layer.provideMerge(scriptedRoleSettings),
-		Layer.provideMerge(SettingsSourceLive),
+		Layer.provideMerge(scriptedSettings),
 		Layer.provideMerge(temporary.layer),
 	);
 
@@ -103,7 +103,7 @@ export const domainKernelServices = (
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
 		Layer.provideMerge(scriptedRoleSettings),
-		Layer.provideMerge(SettingsSourceLive),
+		Layer.provideMerge(scriptedSettings),
 	);
 
 export const domainKernelLayer = (...args: Parameters<typeof domainKernelServices>) =>

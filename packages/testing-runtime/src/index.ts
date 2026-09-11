@@ -3,3 +3,4 @@ export { makeScriptedBackend, rawOf, type ScriptedBackend, type ScriptedSession 
 export { endsTurn } from "#scripted/ends-turn.ts";
 export { scriptedRoleSettings } from "#scripted/role-settings.ts";
 export { makeScriptedRunner, passiveRunner, type ScriptedRunner } from "#scripted/runner.ts";
+export { scriptedSettings } from "#scripted/settings.ts";

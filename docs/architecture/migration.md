@@ -28,8 +28,8 @@ something updates this file in the same change. A status here is one of three wo
 - **A screen names a command; the form derives from the command's schema, which declares every value a field can take.** A field's title, the values
   it may take, and the query its choices come from are annotations on the command's input, so a screen holds only what only it knows: the row it
   edits, the fields that identify it, and the placeholder text.
-- **A move states its carry-over.** A feature's pull request says whether the data it already stored carries over and how. The pilot carries nothing
-  over: the admiral re-enters the role settings.
+- **A move states its carry-over.** A feature's pull request says whether the data it already stored carries over and how. Neither settings move
+  carries anything over: the database is wiped before either ships, and the admiral re-enters the role defaults and the fleet's settings.
 
 ## Layout
 
@@ -58,7 +58,7 @@ packages/
     git/
   glass/
     client/  atom-form/  components/  renderer/  harness/
-    role-settings/    a feature's screens, one glass package per feature
+    role-settings/  settings/    a feature's screens, one glass package per feature
 
   <flat>            the old code, untouched until its feature moves
 ```
@@ -67,7 +67,8 @@ A lint rule reads the path and holds the direction: `platform` imports only `pla
 groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, of which a domain's tests
 reach only the test kit, and an edge imports `platform` only; old packages import old packages and `platform`, and nothing nested imports old. The one
 exception the rule allows is a named list, so that `domain` can read a moved feature until it is deleted and the old renderer can mount a glass island
-until the renderer moves (`@antumbra/renderer` reaching `@antumbra/glass-role-settings`); every entry is removed with the package that needed it.
+until the renderer moves (`@antumbra/renderer` reaching `@antumbra/glass-role-settings` and `@antumbra/glass-settings`); every entry is removed with
+the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out
@@ -86,7 +87,7 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 | 1    | Spikes: Effect SQL on `node:sqlite`, DDL from Schema classes, `atom-form`. Their findings are in the North Star.                                                                                                                                                                                                                                                        | landed      |
 | 2    | Platform packages, standalone, with tests: the journal kit's core (commit, materializers, live query, DDL from Schema classes) and the RPC client's core (contract kit, client with a live atom). Reconcilers, rebuild on shape hash, fact migrations, reconnect, the token, and `atom-form` arrive with the first feature that needs each. Nothing in the app changes. | in progress |
 | 3    | The server process on Effect RPC with one feature on the journal: Voyage role settings, one command, one fact, one projection, one screen. The Electron window is the first glass.                                                                                                                                                                                      | landed      |
-| 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                        | not started |
+| 4    | Features move one at a time, in the order below.                                                                                                                                                                                                                                                                                                                        | in progress |
 | 5    | Delete Prisma, tRPC, and the wrappers.                                                                                                                                                                                                                                                                                                                                  | not started |
 
 ## Features
@@ -94,7 +95,7 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 | feature                        | today                                                                | status      |
 | ------------------------------ | -------------------------------------------------------------------- | ----------- |
 | Voyage role settings           | `settings`, `contract` catalog                                       | landed      |
-| Settings, the rest             | `settings`                                                           | not started |
+| Settings, the rest             | `settings`                                                           | landed      |
 | Voyages                        | `voyages`                                                            | not started |
 | Pieces and dependencies        | `pieces`                                                             | not started |
 | Boards and mail                | `boards`                                                             | not started |
@@ -127,7 +128,7 @@ Where each package goes. A package "stays" when its job is unchanged by the move
 | `intent-demand`                                                                      | reconcilers over rows                                                                        | not started |
 | `domain-feeds`                                                                       | reactivity keys, marked dirty by the commit                                                  | not started |
 | `resource-reclamation`                                                               | a reconciler over rows plus acts on the runner                                               | not started |
-| `settings`                                                                           | domains; role settings are `packages/server/domains/role-settings`                           | in progress |
+| `settings`                                                                           | both halves are domains: `role-settings` and `settings`; the roles' service and words stay   | in progress |
 | the backends' model catalogue (`domain`, `plugin-api`)                               | a domain the shell reports into: `packages/server/domains/backends`                          | in progress |
 | `changes`, `repos`, `voyages`, `pieces`, `boards`, `rulings`, `artifacts`, `reports` | domains: Schema classes, facts, projections, commands                                        | not started |
 | `session-fabric`                                                                     | the runner                                                                                   | not started |

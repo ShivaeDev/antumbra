@@ -1,5 +1,5 @@
 import { command } from "@antumbra/feature/command.ts";
-import { optional } from "@antumbra/feature/edit.ts";
+import { optional, titled } from "@antumbra/feature/edit.ts";
 import { fact } from "@antumbra/feature/fact.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { choose } from "@antumbra/role-settings/commands/choose.ts";
@@ -152,5 +152,32 @@ it.live("draws a boolean field as a checkbox", () =>
 		yield* saving(container, 0);
 		yield* until(() => asked.length === 1);
 		expect(asked[0]).toMatchObject({ role: "crew", wanted: true });
+	}),
+);
+
+const counted = fact("Counted", { key: Schema.String, count: Schema.Number });
+
+const setCount = command("setCount", {
+	input: { key: Schema.String, count: titled(Schema.Number, { title: "Count" }) },
+	reads: [],
+	emits: counted,
+	rejections: {},
+	run: (input) => Effect.succeed({ count: input.count, key: input.key }),
+});
+
+it.live("draws a number field as a number input under the words the screen gives the row", () =>
+	Effect.gen(function* () {
+		const board = desk();
+		const asked: Record<string, unknown>[] = [];
+		const counting = Object.assign((input: Record<string, unknown>) => Effect.succeed(asked.push(input)), { command: setCount });
+		const row = { count: 4, key: "maxParallelSessions" };
+		const container = yield* shown(board, <CommandForm command={counting} label="Maximum running agents" row={row} />);
+		const field = labelled<HTMLInputElement>(container, "Maximum running agents Count");
+		expect(field.type).toBe("number");
+		expect(field.value).toBe("4");
+		yield* settle(() => write(field, "12"));
+		yield* saving(container, 0);
+		yield* until(() => asked.length === 1);
+		expect(asked[0]).toMatchObject({ count: 12, key: "maxParallelSessions" });
 	}),
 );

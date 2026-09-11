@@ -6,7 +6,7 @@ import { inputOf, type Offer, offersOf } from "#choices.ts";
 import { ALERT, CELL, TITLE } from "#classes.ts";
 import { type Editable, type Held, titleOf } from "#fields.ts";
 import type { Generated } from "#generated.ts";
-import { Digits, Flag, Free, Listed, type Shown, Words } from "#inputs.tsx";
+import { Digits, Flag, Free, Lines, Listed, type Shown, Words } from "#inputs.tsx";
 
 const literalOffers = (literals: readonly string[]): readonly Offer[] => literals.map((literal) => ({ label: literal, value: literal }));
 
@@ -35,6 +35,9 @@ const drawnAs = (editable: Editable, shown: Shown, values: Held): ReactNode => {
 	}
 	if (shape.number) {
 		return <Digits shown={shown} />;
+	}
+	if (shape.multiline) {
+		return <Lines shown={shown} />;
 	}
 	return <Words shown={shown} />;
 };

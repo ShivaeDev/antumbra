@@ -56,6 +56,13 @@ it("titles a field that takes one value rather than none", () => {
 	expect(() => Schema.decodeUnknownSync(field)(7.5)).toThrow();
 });
 
+it("titles a field whose words run to many lines", () => {
+	const field = titled(Schema.String, { multiline: true, title: "Context" });
+
+	expect(editing(field)).toMatchObject({ multiline: true, title: "Context" });
+	expect(editing(titled(Schema.String, { title: "Name" })).multiline).toBe(false);
+});
+
 it("reads a boolean field as a flag", () => {
 	expect(editing(Schema.Boolean).flag).toBe(true);
 	expect(editing(optional(Schema.Boolean, { title: "Wanted" })).flag).toBe(true);

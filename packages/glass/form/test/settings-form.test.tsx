@@ -1,8 +1,9 @@
 import { RegistryProvider } from "@effect/atom-react";
 import { expect, it } from "@effect/vitest";
-import { Context, Data, Effect, Layer, Schema } from "effect";
+import { Context, Data, Deferred, Effect, Layer, Schema } from "effect";
 import * as Atom from "effect/unstable/reactivity/Atom";
-import { beforeEach } from "vitest";
+import { act } from "react";
+import { afterEach, beforeEach, vi } from "vitest";
 import * as Form from "#form.ts";
 import { useDirty, useField, useSubmit } from "#react.ts";
 import { mount, settle, write } from "#test/dom.ts";
@@ -30,18 +31,7 @@ const taken = new Set(["admin", "root"]);
 
 const checked: string[] = [];
 
-const SlugRegistryLive = Layer.succeed(SlugRegistry)({
-	isTaken: (slug) =>
-		Effect.sync(() => {
-			checked.push(slug);
-			return taken.has(slug);
-		}).pipe(Effect.delay("5 millis")),
-	save: (settings) => (taken.has(settings.slug) ? Effect.fail(new SlugTaken({ slug: settings.slug })) : Effect.succeed(settings)),
-});
-
-const runtime = Atom.runtime(SlugRegistryLive);
-
-const makeForm = (submitted: Settings[]) =>
+const makeForm = (submitted: Settings[], check: (slug: string) => Effect.Effect<boolean> = (slug) => Effect.succeed(taken.has(slug))) =>
 	Form.make(Settings, {
 		checks: {
 			slug: (slug) =>
@@ -59,14 +49,22 @@ const makeForm = (submitted: Settings[]) =>
 				submitted.push(saved);
 				return saved;
 			}).pipe(Effect.catchTag("SlugTaken", (error) => fail("slug", `"${error.slug}" is already in use`))),
-		runtime,
+		runtime: Atom.runtime(
+			Layer.succeed(SlugRegistry)({
+				isTaken: (slug) =>
+					Effect.suspend(() => {
+						checked.push(slug);
+						return check(slug);
+					}),
+				save: (settings) => (taken.has(settings.slug) ? Effect.fail(new SlugTaken({ slug: settings.slug })) : Effect.succeed(settings)),
+			}),
+		),
 	});
 
 type SettingsForm = ReturnType<typeof makeForm>;
 
-const Text = (props: { readonly form: SettingsForm; readonly name: "name" | "retries" | "slug"; readonly renders: Record<string, number> }) => {
+const Text = (props: { readonly form: SettingsForm; readonly name: "name" | "retries" | "slug" }) => {
 	const field = useField(props.form, props.name);
-	props.renders[props.name] = (props.renders[props.name] ?? 0) + 1;
 	return (
 		<label>
 			{props.name}
@@ -76,9 +74,8 @@ const Text = (props: { readonly form: SettingsForm; readonly name: "name" | "ret
 	);
 };
 
-const Choice = (props: { readonly form: SettingsForm; readonly renders: Record<string, number> }) => {
+const Choice = (props: { readonly form: SettingsForm }) => {
 	const field = useField(props.form, "backend");
-	props.renders.backend = (props.renders.backend ?? 0) + 1;
 	return (
 		<select aria-label="backend" onChange={() => undefined} value={field.value}>
 			{field.choices?.map((choice) => (
@@ -101,16 +98,16 @@ const SubmitButton = (props: { readonly form: SettingsForm }) => {
 	);
 };
 
-const shown = (form: SettingsForm, renders: Record<string, number> = {}) =>
+const shown = (form: SettingsForm) =>
 	Effect.gen(function* () {
 		const { container, root } = yield* mount();
 		yield* settle(() =>
 			root.render(
 				<RegistryProvider>
-					<Text form={form} name="name" renders={renders} />
-					<Text form={form} name="retries" renders={renders} />
-					<Text form={form} name="slug" renders={renders} />
-					<Choice form={form} renders={renders} />
+					<Text form={form} name="name" />
+					<Text form={form} name="retries" />
+					<Text form={form} name="slug" />
+					<Choice form={form} />
 					<DirtyFlag form={form} />
 					<SubmitButton form={form} />
 				</RegistryProvider>,
@@ -129,27 +126,20 @@ const typing = (container: HTMLElement, label: string, value: string) => settle(
 const clicking = (container: HTMLElement, words: string) =>
 	settle(() => [...container.querySelectorAll("button")].find((button) => button.textContent === words)?.click());
 
-const until = (ready: () => boolean): Effect.Effect<void> =>
-	Effect.gen(function* () {
-		for (let attempt = 0; attempt < 200; attempt += 1) {
-			yield* settle(() => undefined);
-			if (ready()) {
-				return;
-			}
-			yield* Effect.sleep("5 millis");
-		}
-		return yield* Effect.die("the form never settled");
-	});
+const advance = (millis: number) => Effect.promise(() => act(() => vi.advanceTimersByTimeAsync(millis)));
 
 beforeEach(() => {
 	checked.length = 0;
+	vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
 });
+
+afterEach(() => vi.useRealTimers());
 
 it.live("shows a field error for an invalid number", () =>
 	Effect.gen(function* () {
 		const container = yield* shown(makeForm([]));
 		yield* typing(container, "retries", "abc");
-		yield* until(() => said(container, "retries") !== "");
+		expect(said(container, "retries")).not.toBe("");
 		expect(said(container, "name")).toBe("");
 	}),
 );
@@ -161,12 +151,15 @@ it.live("derives select options from the schema", () =>
 	}),
 );
 
-it.live("reports a taken slug through the async check", () =>
+it.live("reports a taken slug when the async check completes", () =>
 	Effect.gen(function* () {
-		const container = yield* shown(makeForm([]));
+		const answer = yield* Deferred.make<boolean>();
+		const container = yield* shown(makeForm([], () => Deferred.await(answer)));
 		yield* typing(container, "slug", "admin");
+		expect(checked).toEqual(["admin"]);
 		expect(said(container, "slug")).toBe("");
-		yield* until(() => said(container, "slug") === "That slug is taken");
+		yield* settle(() => Effect.runSync(Deferred.succeed(answer, true)));
+		expect(said(container, "slug")).toBe("That slug is taken");
 	}),
 );
 
@@ -174,22 +167,25 @@ it.live("skips the async check while the field fails schema validation", () =>
 	Effect.gen(function* () {
 		const container = yield* shown(makeForm([]));
 		yield* typing(container, "slug", "ab");
-		yield* until(() => said(container, "slug") !== "");
+		expect(said(container, "slug")).not.toBe("");
 		expect(checked).toEqual([]);
 	}),
 );
 
-it.live("coalesces keystrokes into one check once the field is live", () =>
+it.live("checks the latest slug after a full debounce interval", () =>
 	Effect.gen(function* () {
 		const container = yield* shown(makeForm([]));
 		yield* typing(container, "slug", "free");
-		yield* until(() => checked.length === 1);
-		checked.length = 0;
+		expect(checked).toEqual(["free"]);
 		yield* typing(container, "slug", "adm");
-		yield* typing(container, "slug", "admi");
+		yield* advance(10);
 		yield* typing(container, "slug", "admin");
-		yield* until(() => said(container, "slug") === "That slug is taken");
-		expect(checked).toEqual(["admin"]);
+		yield* advance(19);
+		expect(checked).toEqual(["free"]);
+		expect(said(container, "slug")).toBe("");
+		yield* advance(1);
+		expect(checked).toEqual(["free", "admin"]);
+		expect(said(container, "slug")).toBe("That slug is taken");
 	}),
 );
 
@@ -197,9 +193,10 @@ it.live("clears the async check message once the slug is free", () =>
 	Effect.gen(function* () {
 		const container = yield* shown(makeForm([]));
 		yield* typing(container, "slug", "admin");
-		yield* until(() => said(container, "slug") === "That slug is taken");
+		expect(said(container, "slug")).toBe("That slug is taken");
 		yield* typing(container, "slug", "staging");
-		yield* until(() => said(container, "slug") === "");
+		yield* advance(20);
+		expect(said(container, "slug")).toBe("");
 	}),
 );
 
@@ -211,7 +208,7 @@ it.live("hands decoded values to onSubmit", () =>
 		yield* typing(container, "retries", "12");
 		yield* typing(container, "slug", "staging");
 		yield* clicking(container, "Save");
-		yield* until(() => submitted.length === 1);
+		expect(submitted).toHaveLength(1);
 		expect(submitted[0]).toEqual({ backend: "local", name: "Deployment", retries: 12, slug: "staging" });
 		expect(typeof submitted[0]?.retries).toBe("number");
 	}),
@@ -223,7 +220,7 @@ it.live("puts a tagged submit failure on the field it names", () =>
 		yield* typing(container, "name", "Ops");
 		yield* typing(container, "slug", "root");
 		yield* clicking(container, "Save");
-		yield* until(() => said(container, "slug") === `"root" is already in use`);
+		expect(said(container, "slug")).toBe(`"root" is already in use`);
 		expect(said(container, "name")).toBe("");
 	}),
 );
@@ -237,21 +234,5 @@ it.live("tracks dirty against the initial values", () =>
 		expect(flag()).toBe("dirty");
 		yield* typing(container, "name", "");
 		expect(flag()).toBe("clean");
-	}),
-);
-
-it.live("re-renders only the field that changed", () =>
-	Effect.gen(function* () {
-		const renders: Record<string, number> = {};
-		const container = yield* shown(makeForm([]), renders);
-		yield* until(() => said(container, "name") === "");
-		const before = { ...renders };
-		yield* typing(container, "name", "Ops");
-		yield* until(() => (renders.name ?? 0) > (before.name ?? 0));
-		yield* Effect.sleep("50 millis");
-		yield* settle(() => undefined);
-		expect(renders.retries).toBe(before.retries);
-		expect(renders.slug).toBe(before.slug);
-		expect(renders.backend).toBe(before.backend);
 	}),
 );

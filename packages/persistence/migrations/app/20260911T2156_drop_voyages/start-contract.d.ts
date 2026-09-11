@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:fac8d7d31549a4940e0f7805db77f625520a6dc8e87efdc9801a830190133d91'>;
+  StorageHashBase<'sha256:365f6b3b30f7fc28a7b98ab17920fe8917579c9270f68ef1a4642d2bf9ca43dd'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -335,6 +335,15 @@ export type FieldOutputTypes = {
       readonly text: CodecTypes['sqlite/text@1']['output'] | null;
       readonly attachmentId: CodecTypes['sqlite/text@1']['output'] | null;
       readonly displayName: CodecTypes['sqlite/text@1']['output'] | null;
+    };
+    readonly Voyage: {
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly name: CodecTypes['sqlite/text@1']['output'];
+      readonly northStar: CodecTypes['sqlite/text@1']['output'];
+      readonly context: CodecTypes['sqlite/text@1']['output'];
+      readonly focusedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
     };
     readonly VoyageAgent: {
       readonly voyageId: CodecTypes['sqlite/text@1']['output'];
@@ -656,6 +665,15 @@ export type FieldInputTypes = {
       readonly attachmentId: CodecTypes['sqlite/text@1']['input'] | null;
       readonly displayName: CodecTypes['sqlite/text@1']['input'] | null;
     };
+    readonly Voyage: {
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly name: CodecTypes['sqlite/text@1']['input'];
+      readonly northStar: CodecTypes['sqlite/text@1']['input'];
+      readonly context: CodecTypes['sqlite/text@1']['input'];
+      readonly focusedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
     readonly VoyageAgent: {
       readonly voyageId: CodecTypes['sqlite/text@1']['input'];
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
@@ -976,6 +994,15 @@ export type StorageColumnTypes = {
       readonly position: CodecTypes['sqlite/integer@1']['output'];
       readonly text: CodecTypes['sqlite/text@1']['output'] | null;
     };
+    readonly voyage: {
+      readonly context: CodecTypes['sqlite/text@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly focusedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly name: CodecTypes['sqlite/text@1']['output'];
+      readonly northStar: CodecTypes['sqlite/text@1']['output'];
+    };
     readonly voyageAgent: {
       readonly agentId: CodecTypes['sqlite/text@1']['output'];
       readonly role: CodecTypes['sqlite/text@1']['output'];
@@ -1295,6 +1322,15 @@ export type StorageColumnInputTypes = {
       readonly kind: CodecTypes['sqlite/text@1']['input'];
       readonly position: CodecTypes['sqlite/integer@1']['input'];
       readonly text: CodecTypes['sqlite/text@1']['input'] | null;
+    };
+    readonly voyage: {
+      readonly context: CodecTypes['sqlite/text@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly focusedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly name: CodecTypes['sqlite/text@1']['input'];
+      readonly northStar: CodecTypes['sqlite/text@1']['input'];
     };
     readonly voyageAgent: {
       readonly agentId: CodecTypes['sqlite/text@1']['input'];
@@ -2984,6 +3020,20 @@ type ContractBase = Omit<
                   readonly source: {
                     readonly namespaceId: '__unbound__' & NamespaceId;
                     readonly tableName: 'rulingSubject';
+                    readonly columns: readonly ['voyageId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'voyage';
+                    readonly columns: readonly ['id'];
+                  };
+                  readonly constraint: true;
+                  readonly index: true;
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'rulingSubject';
                     readonly columns: readonly ['pieceId'];
                   };
                   readonly target: {
@@ -3219,6 +3269,54 @@ type ContractBase = Omit<
                 },
               ];
             };
+            readonly voyage: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly kind: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'voyage'>;
+                  };
+                };
+                readonly name: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly northStar: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly context: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly focusedAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
             readonly voyageAgent: {
               columns: {
                 readonly voyageId: {
@@ -3313,6 +3411,7 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'SessionInputPart';
     };
+    readonly voyage: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Voyage' };
     readonly piece: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Piece' };
     readonly voyagePiece: {
       readonly namespace: '__unbound__' & NamespaceId;
@@ -5285,6 +5384,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly voyage: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'Voyage';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['voyageId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'rulingSubject';
@@ -5527,6 +5637,64 @@ type ContractBase = Omit<
                 readonly text: { readonly column: 'text' };
                 readonly attachmentId: { readonly column: 'attachmentId' };
                 readonly displayName: { readonly column: 'displayName' };
+              };
+            };
+          };
+          readonly Voyage: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly name: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly northStar: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly context: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly focusedAt: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: {
+              readonly rulingSubjects: {
+                readonly to: {
+                  readonly namespace: '__unbound__' & NamespaceId;
+                  readonly model: 'RulingSubject';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['voyageId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'voyage';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly kind: { readonly column: 'kind' };
+                readonly name: { readonly column: 'name' };
+                readonly northStar: { readonly column: 'northStar' };
+                readonly context: { readonly column: 'context' };
+                readonly focusedAt: { readonly column: 'focusedAt' };
+                readonly createdAt: { readonly column: 'createdAt' };
               };
             };
           };

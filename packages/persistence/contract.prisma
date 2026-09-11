@@ -164,17 +164,6 @@ model SessionInputPart {
   @@index([attachmentId])
 }
 
-model Voyage {
-  id        String    @id
-  kind      String    @default("voyage")
-  name      String
-  northStar String
-  context   String
-  focusedAt DateTime?
-  createdAt DateTime  @default(now())
-  rulingSubjects RulingSubject[]
-}
-
 model Piece {
   id          String    @id
   title       String
@@ -436,7 +425,6 @@ model RulingSubject {
   tag      String?
   ruling   Ruling  @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   repo     Repo?   @relation(fields: [repoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  voyage   Voyage? @relation(fields: [voyageId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   piece    Piece?  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   agent    Agent?  @relation(fields: [agentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 

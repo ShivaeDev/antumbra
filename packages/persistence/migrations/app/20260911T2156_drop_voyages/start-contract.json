@@ -140,6 +140,10 @@
       "model": "SessionInputPart",
       "namespace": "__unbound__"
     },
+    "voyage": {
+      "model": "Voyage",
+      "namespace": "__unbound__"
+    },
     "voyageAgent": {
       "model": "VoyageAgent",
       "namespace": "__unbound__"
@@ -3273,6 +3277,21 @@
                   "model": "Ruling",
                   "namespace": "__unbound__"
                 }
+              },
+              "voyage": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "voyageId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Voyage",
+                  "namespace": "__unbound__"
+                }
               }
             },
             "storage": {
@@ -3672,6 +3691,103 @@
               },
               "namespaceId": "__unbound__",
               "table": "sessionInputPart"
+            }
+          },
+          "Voyage": {
+            "fields": {
+              "context": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "focusedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "kind": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "name": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "northStar": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "rulingSubjects": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "voyageId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingSubject",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "context": {
+                  "column": "context"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "focusedAt": {
+                  "column": "focusedAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "kind": {
+                  "column": "kind"
+                },
+                "name": {
+                  "column": "name"
+                },
+                "northStar": {
+                  "column": "northStar"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "voyage"
             }
           },
           "VoyageAgent": {
@@ -5894,6 +6010,26 @@
                   "onUpdate": "restrict",
                   "source": {
                     "columns": [
+                      "voyageId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingSubject"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "voyage"
+                  }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
                       "pieceId"
                     ],
                     "namespaceId": "__unbound__",
@@ -6221,6 +6357,61 @@
               },
               "uniques": []
             },
+            "voyage": {
+              "columns": {
+                "context": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "focusedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "kind": {
+                  "codecId": "sqlite/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "voyage"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "name": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "northStar": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "voyageAgent": {
               "columns": {
                 "agentId": {
@@ -6298,7 +6489,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:fac8d7d31549a4940e0f7805db77f625520a6dc8e87efdc9801a830190133d91"
+    "storageHash": "sha256:365f6b3b30f7fc28a7b98ab17920fe8917579c9270f68ef1a4642d2bf9ca43dd"
   },
   "capabilities": {
     "sql": {

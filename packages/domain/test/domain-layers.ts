@@ -10,7 +10,8 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { RoleSettings } from "@antumbra/settings";
-import { scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
+import { scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
+import { type ScriptedSailing, scriptedSailing, scriptedVoyagesOn } from "@antumbra/voyages/testing";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
@@ -27,6 +28,18 @@ import { SessionShutdown } from "#shutdown/service.ts";
 import { SightSourceLive } from "#sight.ts";
 import { passiveRunner } from "#test/harness.ts";
 import { fakeKernelReach } from "#test/kernel-reach-fixture.ts";
+
+const sailedByFleet = new WeakMap<TemporaryPersistence, ScriptedSailing>();
+
+const fleetVoyages = (temporary: TemporaryPersistence) => {
+	const known = sailedByFleet.get(temporary);
+	if (known !== undefined) {
+		return scriptedVoyagesOn(known);
+	}
+	const opened = scriptedSailing();
+	sailedByFleet.set(temporary, opened);
+	return scriptedVoyagesOn(opened);
+};
 
 const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
@@ -53,7 +66,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 				Layer.provide(NodeServices.layer),
 			),
 		),
-		Layer.provideMerge(scriptedVoyages),
+		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
 		Layer.provideMerge(temporary.layer),
@@ -103,7 +116,7 @@ export const domainKernelServices = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
-		Layer.provideMerge(scriptedVoyages),
+		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
 	);

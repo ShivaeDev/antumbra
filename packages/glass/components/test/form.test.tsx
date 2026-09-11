@@ -57,6 +57,7 @@ it.live("draws a select of the values the field's schema allows", () =>
 			"claude",
 			"codex",
 			"opencode",
+			"pi",
 		]);
 		expect(container.querySelectorAll("form")).toHaveLength(4);
 	}),

@@ -1,18 +1,18 @@
 import { Database } from "@antumbra/persistence";
 import type { Ruling } from "@antumbra/rulings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { readCaptains } from "#voyage-captain-read.ts";
 
 const destinations = Effect.fn("RulingAscent.destinations")(function* (rulings: ReadonlyArray<Ruling>) {
 	const db = yield* Database;
+	const sailing = yield* Voyages;
 	const requesters = rulings.flatMap((ruling) =>
 		ruling.requester.kind === "agent" && Option.contains(ruling.rung, "captain") ? [ruling.requester.agentId] : [],
 	);
 	const crews = yield* db.VoyageAgent.where((member) => member.agentId.in(requesters)).all();
 	const flagship = rulings.some((ruling) => ruling.requester.kind === "agent" && Option.contains(ruling.rung, "flagship"))
-		? yield* db.Voyage.where({ kind: "flagship" })
-				.orderBy((voyage) => voyage.createdAt.asc())
-				.first()
+		? Option.fromUndefinedOr((yield* sailing.list()).find((voyage) => voyage.kind === "flagship"))
 		: Option.none();
 	return rulings.flatMap((ruling) => {
 		const requester = ruling.requester;

@@ -3,10 +3,17 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService, NewAgentSession } from "@antumbra/persistence";
 import type { UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
 import { SessionEventJournalLive } from "@antumbra/session-event-journal";
+import { scriptedRoleSettings, scriptedVoyages } from "@antumbra/testing-runtime";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Layer, Option, Stream } from "effect";
 import { CostSourceLive } from "#cost-source.ts";
 
-export const costsLayer = CostSourceLive.pipe(Layer.provideMerge(SessionEventJournalLive), Layer.provideMerge(DomainFeedsLive));
+export const costsLayer = CostSourceLive.pipe(
+	Layer.provideMerge(SessionEventJournalLive),
+	Layer.provideMerge(scriptedVoyages),
+	Layer.provideMerge(scriptedRoleSettings),
+	Layer.provideMerge(DomainFeedsLive),
+);
 
 export const costsView = Effect.gen(function* () {
 	const source = yield* CostSource;
@@ -72,10 +79,5 @@ export const openedSession = (db: DatabaseService, session: Opening) =>
 		status: "open",
 	} satisfies NewAgentSession);
 
-export const openedVoyage = (db: DatabaseService, voyageId: string, name: string) =>
-	db.Voyage.create({
-		context: "",
-		id: voyageId,
-		name,
-		northStar: "spend is visible",
-	});
+export const openedVoyage = (voyageId: string, name: string) =>
+	Effect.flatMap(Voyages, (sailing) => sailing.open({ context: "", id: voyageId, name, northStar: "spend is visible" }));

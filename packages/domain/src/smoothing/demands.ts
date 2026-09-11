@@ -3,6 +3,7 @@ import { defineIntentDemand } from "@antumbra/intent-demand";
 import type { IntentKind } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
+import { Voyages } from "@antumbra/voyages";
 import { Clock, Effect } from "effect";
 import { piecesAttempted, voyagesPassedSince } from "#smoothing/attempts.ts";
 import type { SmoothFields, SmoothPieceFields } from "#smoothing/fields.ts";
@@ -14,9 +15,8 @@ const dayStartMillis = (now: number): number => {
 };
 
 const voyageIds = Effect.fnUntraced(function* () {
-	const db = yield* Database;
-	const voyages = yield* db.Voyage.select("id").all();
-	return voyages.map((voyage) => voyage.id);
+	const sailing = yield* Voyages;
+	return (yield* sailing.list()).map((voyage) => voyage.id);
 });
 
 const dueVoyages = Effect.fnUntraced(function* () {
@@ -30,6 +30,7 @@ export const compileSmoothingDemands = (smooth: IntentKind<SmoothFields>, smooth
 		const changes = yield* Changes;
 		const db = yield* Database;
 		const pieces = yield* Pieces;
+		const sailing = yield* Voyages;
 		const spannedPieces = yield* makeSpannedPieces;
 		const settledPieces = Effect.gen(function* () {
 			const concluded = yield* concludedPiecesOf(yield* voyageIds(), yield* piecesAttempted());
@@ -37,12 +38,17 @@ export const compileSmoothingDemands = (smooth: IntentKind<SmoothFields>, smooth
 			return spanned.map((piece) => ({ pieceId: piece.pieceId, voyageId: piece.voyageId }) satisfies SmoothPieceFields);
 		});
 		return [
-			defineIntentDemand({ eligible: dueVoyages().pipe(Effect.provideService(Database, db)), identify: ({ voyageId }) => voyageId, kind: smooth }),
+			defineIntentDemand({
+				eligible: dueVoyages().pipe(Effect.provideService(Database, db), Effect.provideService(Voyages, sailing)),
+				identify: ({ voyageId }) => voyageId,
+				kind: smooth,
+			}),
 			defineIntentDemand({
 				eligible: settledPieces.pipe(
 					Effect.provideService(Changes, changes),
 					Effect.provideService(Database, db),
 					Effect.provideService(Pieces, pieces),
+					Effect.provideService(Voyages, sailing),
 				),
 				identify: ({ pieceId }) => pieceId,
 				kind: smoothPiece,

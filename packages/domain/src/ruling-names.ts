@@ -1,6 +1,7 @@
 import type { RulingAgentView, RulingSubjectView } from "@antumbra/contract";
-import type { StoredAgent, StoredVoyage } from "@antumbra/persistence";
+import type { StoredAgent } from "@antumbra/persistence";
 import type { Ruling, RulingSubject } from "@antumbra/rulings";
+import type { Voyage } from "@antumbra/voyages";
 import { Option } from "effect";
 import type { PieceRow, RepoRow } from "#voyage-rows.ts";
 
@@ -10,7 +11,7 @@ export interface RulingNames {
 	readonly agents: ReadonlyMap<string, StoredAgent>;
 	readonly pieces: ReadonlyMap<string, PieceRow>;
 	readonly repos: ReadonlyMap<string, RepoRow>;
-	readonly voyages: ReadonlyMap<string, StoredVoyage>;
+	readonly voyages: ReadonlyMap<string, Voyage>;
 }
 
 const NAME_OF: Readonly<Record<ReferenceKind, (world: RulingNames, id: string) => string | undefined>> = {

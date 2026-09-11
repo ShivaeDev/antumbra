@@ -1,18 +1,43 @@
-import type { RoleSettings, VoyageSummary } from "@antumbra/contract";
-import { OpenVoyageForm } from "#views/open-voyage-form.tsx";
+import type { VoyageSummary } from "@antumbra/contract";
+import { OpenVoyage } from "@antumbra/glass-voyages/open-voyage.tsx";
+import { PlusIcon } from "lucide-react";
+import { useState } from "react";
+import { glass } from "#adapters/glass.ts";
+import { Button } from "#components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
+import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { SectionHeading } from "#views/section.tsx";
 import { VoyagesPanel } from "#views/voyages.tsx";
 
+const OpenVoyageDialog = () => {
+	const [open, setOpen] = useState(false);
+	return (
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>
+				<Button className="w-full" type="button">
+					<PlusIcon />
+					Open voyage
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Open a voyage</DialogTitle>
+					<DialogDescription>
+						A voyage needs a name, the north star it steers by, and who sails it. The work itself is chartered later.
+					</DialogDescription>
+				</DialogHeader>
+				<OpenVoyage api={glass.api} onOpened={() => setOpen(false)} />
+			</DialogContent>
+		</Dialog>
+	);
+};
+
 export const VoyagesAside = ({
-	backends,
-	defaults,
 	onError,
 	onSelect,
 	selected,
 	voyages,
 }: {
-	readonly backends: ReadonlyArray<string>;
-	readonly defaults: ReadonlyArray<RoleSettings>;
 	readonly onError: (message: string) => void;
 	readonly onSelect: (voyageId: string) => void;
 	readonly selected: string | undefined;
@@ -20,7 +45,7 @@ export const VoyagesAside = ({
 }) => (
 	<div className="flex min-w-0 flex-col gap-3 font-sans">
 		<SectionHeading count={voyages.length} title="Voyages" />
-		<OpenVoyageForm backends={backends} defaults={defaults} onOpened={onSelect} />
+		<OpenVoyageDialog />
 		<VoyagesPanel onError={onError} onSelect={onSelect} selected={selected} voyages={voyages} />
 	</div>
 );

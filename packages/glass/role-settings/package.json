@@ -33,6 +33,7 @@
 		"@antumbra/glass-components": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",

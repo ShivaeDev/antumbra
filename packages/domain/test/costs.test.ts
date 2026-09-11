@@ -7,7 +7,7 @@ import { costsLayer, costsView, crewedAgent, openedSession, openedVoyage, spentT
 it.effectDB("sums every turn an agent spent, across its sessions and its delegated nodes", function* (db) {
 	yield* Effect.gen(function* () {
 		const at = new Date(yield* Clock.currentTimeMillis);
-		yield* openedVoyage(db, "voyage-reef", "Chart the reef");
+		yield* openedVoyage("voyage-reef", "Chart the reef");
 		yield* crewedAgent(db, "agent-navigator", "voyage-reef");
 		yield* openedSession(db, { agentId: "agent-navigator", backend: "claude", id: "session-root" });
 		yield* openedSession(db, { agentId: "agent-navigator", backend: "claude", id: "session-node", parentSessionId: "session-root" });
@@ -36,7 +36,7 @@ it.effectDB("sums every turn an agent spent, across its sessions and its delegat
 it.effectDB("marks a total partial when only some contributing turns reported a cost", function* (db) {
 	yield* Effect.gen(function* () {
 		const at = new Date(yield* Clock.currentTimeMillis);
-		yield* openedVoyage(db, "voyage-reef", "Chart the reef");
+		yield* openedVoyage("voyage-reef", "Chart the reef");
 		yield* crewedAgent(db, "agent-claude", "voyage-reef");
 		yield* crewedAgent(db, "agent-codex", "voyage-reef");
 		yield* openedSession(db, { agentId: "agent-claude", backend: "claude", id: "session-claude" });
@@ -54,7 +54,7 @@ it.effectDB("marks a total partial when only some contributing turns reported a 
 it.effectDB("reads a cost as not reported when no contributing turn carried one", function* (db) {
 	yield* Effect.gen(function* () {
 		const at = new Date(yield* Clock.currentTimeMillis);
-		yield* openedVoyage(db, "voyage-codex", "Codex only");
+		yield* openedVoyage("voyage-codex", "Codex only");
 		yield* crewedAgent(db, "agent-codex", "voyage-codex");
 		yield* openedSession(db, { agentId: "agent-codex", backend: "codex", id: "session-codex" });
 		yield* spentTurn(db, { at, inputTokens: 500, outputTokens: 50, model: "gpt-5-codex", seq: 0, sessionId: "session-codex" });
@@ -83,7 +83,7 @@ it.effectDB("keeps spend by agents on no voyage out of the voyage rows", functio
 it.effectDB("lays the last thirty days out in order, split by backend, and leaves older turns out of the series", function* (db) {
 	yield* Effect.gen(function* () {
 		const now = new Date(yield* Clock.currentTimeMillis);
-		yield* openedVoyage(db, "voyage-reef", "Chart the reef");
+		yield* openedVoyage("voyage-reef", "Chart the reef");
 		yield* crewedAgent(db, "agent-claude", "voyage-reef");
 		yield* crewedAgent(db, "agent-codex", "voyage-reef");
 		yield* openedSession(db, { agentId: "agent-claude", backend: "claude", id: "session-claude" });
@@ -109,7 +109,7 @@ it.effectDB("lists only metered work while retaining every turn from the same Se
 	yield* Effect.gen(function* () {
 		const at = new Date(yield* Clock.currentTimeMillis);
 		for (const name of ["working", "quiet"]) {
-			yield* openedVoyage(db, `voyage-${name}`, name);
+			yield* openedVoyage(`voyage-${name}`, name);
 			yield* crewedAgent(db, `agent-${name}`, `voyage-${name}`);
 			yield* openedSession(db, { agentId: `agent-${name}`, backend: "claude", id: `session-${name}` });
 		}

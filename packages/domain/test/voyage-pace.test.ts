@@ -1,6 +1,7 @@
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { voyagePace } from "#execution/voyage-pace.ts";
@@ -8,7 +9,7 @@ import { changeOf } from "#test/change-fixtures.ts";
 
 const HOME = ["held", "waiting", "parked", "running", "abandoned", "done", "pending"];
 
-const openVoyage = (id: string) => Effect.flatMap(Database, (db) => db.Voyage.create({ id, name: id, context: id, northStar: id }));
+const openVoyage = (id: string) => Effect.flatMap(Voyages, (sailing) => sailing.open({ context: id, id, name: id, northStar: id }));
 
 const charterOn = (voyageId: string, id: string) =>
 	Effect.flatMap(Database, (db) =>

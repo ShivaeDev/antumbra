@@ -2,6 +2,7 @@ import { Changes } from "@antumbra/changes";
 import { Database } from "@antumbra/persistence";
 import { Repos } from "@antumbra/repos";
 import { rootSessions } from "@antumbra/sessions";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { liesAtQuay } from "#quay/group.ts";
 import { quayReading } from "#quay/view.ts";
@@ -11,10 +12,10 @@ export const read = Effect.fn("Quay.read")(function* () {
 	const changes = yield* Changes;
 	const db = yield* Database;
 	const repos = yield* Repos;
+	const sailing = yield* Voyages;
 	const memberships = yield* db.VoyagePiece.all();
-	const voyages = yield* db.Voyage.where((voyage) => voyage.id.in(memberships.map((membership) => membership.voyageId)))
-		.orderBy((voyage) => voyage.createdAt.asc())
-		.all();
+	const berthed = new Set(memberships.map((membership) => membership.voyageId));
+	const voyages = (yield* sailing.list()).filter((voyage) => berthed.has(voyage.id));
 	const voyageIds = new Set(voyages.map((voyage) => voyage.id));
 	const pieceIds = memberships.filter((membership) => voyageIds.has(membership.voyageId)).map((membership) => membership.pieceId);
 	const pieces = yield* db.Piece.where((piece) => piece.id.in(pieceIds))

@@ -1,11 +1,11 @@
 import type { RulingGatedPieceView } from "@antumbra/contract";
-import type { StoredVoyage } from "@antumbra/persistence";
+import type { Voyage } from "@antumbra/voyages";
 import type { MembershipRow, PieceRow } from "#voyage-rows.ts";
 
 export const gatedPiecesSeen = (
 	pieces: ReadonlyArray<PieceRow>,
 	memberships: ReadonlyArray<MembershipRow>,
-	voyages: ReadonlyMap<string, StoredVoyage>,
+	voyages: ReadonlyMap<string, Voyage>,
 ): ReadonlyArray<RulingGatedPieceView> => {
 	if (pieces.length === 0) return [];
 	const byPiece = Map.groupBy(memberships, (membership) => membership.pieceId);

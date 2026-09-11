@@ -2,7 +2,6 @@ import type {
 	ArtifactMarkdown,
 	BoardWriteRequest,
 	CharterPieceRequest,
-	OpenVoyageRequest,
 	ReportMarkdown,
 	RewireRequest,
 	VoyageSummary,
@@ -47,13 +46,6 @@ export const readReportMarkdown = (reportId: string, onDone: (report: ReportMark
 		.then(onDone)
 		.catch((cause: unknown) => onError(toError(cause).message));
 };
-
-export const openVoyage = Effect.fn("Renderer.openVoyage")((request: OpenVoyageRequest) =>
-	Effect.tryPromise({
-		try: () => client.openVoyage.mutate(request),
-		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
-	}),
-);
 
 export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError): void =>
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);

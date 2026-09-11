@@ -74,6 +74,7 @@ describe("layout rules", () => {
 	it("lets the old renderer reach the glass it mounts", () => {
 		expect(check(importing("packages/renderer", "@antumbra/glass-role-settings"), "packages/glass/role-settings")).toEqual([]);
 		expect(check(importing("packages/renderer", "@antumbra/glass-settings"), "packages/glass/settings")).toEqual([]);
+		expect(check(importing("packages/renderer", "@antumbra/glass-voyages"), "packages/glass/voyages")).toEqual([]);
 		expect(check(importing("packages/renderer", "@antumbra/glass-client"), "packages/glass/client")).toEqual([
 			"@antumbra/renderer may not import @antumbra/glass-client: old packages import old and platform.",
 		]);

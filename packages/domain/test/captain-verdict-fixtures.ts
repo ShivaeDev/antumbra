@@ -4,7 +4,7 @@ import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
-import { eventually, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
+import { eventually, flagshipVoyage, openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
 export const ASKER = "agent-asker";
@@ -29,12 +29,6 @@ const seedAsker = (voyageId: string) =>
 		yield* db.VoyageAgent.create({ agentId: ASKER, role: "hand", voyageId });
 		yield* boards.ensure(BoardScope.Agent({ agentId: ASKER }));
 	});
-
-const openFlagship = Effect.gen(function* () {
-	const db = yield* Database;
-	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
-	return flagship.id;
-});
 
 export const ask = (radius: "fleet" | "voyage", rung: "captain" | "flagship") =>
 	Effect.gen(function* () {
@@ -66,7 +60,7 @@ const hailed = (scripted: ScriptedBackend, voyageId: string) =>
 export const crewLadder = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const voyage = yield* openReefVoyage;
 	yield* seedAsker(voyage.id);
-	const flagshipId = yield* openFlagship;
+	const flagshipId = (yield* flagshipVoyage).id;
 	const captain = yield* hailed(scripted, voyage.id);
 	const flagship = yield* hailed(scripted, flagshipId);
 	return {

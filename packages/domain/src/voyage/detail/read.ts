@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Repos } from "@antumbra/repos";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
-import { decodeVoyage } from "#voyage/decode.ts";
 import type { VoyageDetailRows } from "#voyage/detail/rows.ts";
 import { related } from "#voyage/related.ts";
 import { byId } from "#voyage-row-projection.ts";
@@ -9,9 +9,10 @@ import { byId } from "#voyage-row-projection.ts";
 export const read = Effect.fn("VoyageDetails.read")(function* (voyageId: string) {
 	const db = yield* Database;
 	const repos = yield* Repos;
-	const stored = yield* db.Voyage.where({ id: voyageId }).first();
+	const voyages = yield* Voyages;
+	const stored = yield* voyages.byId(voyageId);
 	if (Option.isNone(stored)) return Option.none();
-	const voyage = yield* decodeVoyage(stored.value);
+	const voyage = stored.value;
 	const rows = yield* related([voyageId]);
 	const memberIds = new Set(rows.memberships.map((membership) => membership.pieceId));
 	const reportIds = rows.pieceReports.filter((link) => memberIds.has(link.pieceId)).map((link) => link.reportId);

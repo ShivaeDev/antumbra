@@ -1,23 +1,8 @@
-import { Database } from "@antumbra/persistence";
 import { expect } from "@effect/vitest";
-import { Effect, Option } from "effect";
+import { Effect } from "effect";
 import { type ScriptedBackend, type ScriptedSession, sessionFor } from "#test/harness.ts";
-import { terminalIntent } from "#test/voyage-fixtures.ts";
+import { flagshipVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
-
-export const FLAGSHIP_ID = "voyage-flagship";
-
-export const openFlagship = Effect.gen(function* () {
-	const db = yield* Database;
-	yield* db.Voyage.create({
-		context: "Fleet-level rulings and findings belong here.",
-		focusedAt: null,
-		id: FLAGSHIP_ID,
-		kind: "flagship",
-		name: "Flagship",
-		northStar: "The fleet sails well.",
-	});
-});
 
 export const hailedCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
@@ -31,7 +16,6 @@ export const toolNames = (session: ScriptedSession): ReadonlyArray<string> => se
 
 export const flagshipCaptain = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {
-		const db = yield* Database;
-		const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
+		const flagship = yield* flagshipVoyage;
 		return { captain: yield* hailedCaptain(scripted, flagship.id), voyageId: flagship.id };
 	});

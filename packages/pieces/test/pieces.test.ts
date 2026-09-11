@@ -1,16 +1,18 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Option, PubSub } from "effect";
 
 const voyage = {
 	context: "the reef is uncharted",
-	focusedAt: null,
 	id: "voyage-1",
 	name: "Chart the reef",
 	northStar: "every shoal is known",
 };
+
+const opened = (input: typeof voyage) => Effect.flatMap(Voyages, (sailing) => sailing.open(input));
 
 it.effectApp("verifies existence without exposing a row", function* ({ db }) {
 	const pieces = yield* Pieces;
@@ -44,7 +46,7 @@ it.effectApp("answers voyage membership without exposing rows", function* ({ db 
 		role: "hand",
 		title: "Sound",
 	};
-	yield* db.Voyage.create(voyage);
+	yield* opened(voyage);
 	yield* db.Piece.create(member);
 	yield* db.VoyagePiece.create({
 		pieceId: member.id,
@@ -60,7 +62,7 @@ it.effectApp("publishes after successful piece changes", function* ({ db }) {
 	const pieces = yield* Pieces;
 	const notices = yield* feeds.subscribeVoyageRefresh();
 	const refreshVoyage = { ...voyage, id: "voyage-refresh" };
-	yield* db.Voyage.create(refreshVoyage);
+	yield* opened(refreshVoyage);
 
 	const piece = yield* pieces.charter({
 		charter: "sound the shallows",
@@ -106,7 +108,7 @@ it.effectApp("refuses an invalid charter without rows or a notification", functi
 
 it.effectApp("a refused charter leaves no partial piece or membership", function* ({ db }) {
 	const pieces = yield* Pieces;
-	yield* db.Voyage.create(voyage);
+	yield* opened(voyage);
 	const failure = yield* Effect.flip(
 		pieces.charter({
 			charter: "do adrift",
@@ -125,7 +127,7 @@ it.effectApp("a refused charter leaves no partial piece or membership", function
 
 it.effectApp("a refused rewire preserves the previous dependencies", function* ({ db }) {
 	const pieces = yield* Pieces;
-	yield* db.Voyage.create(voyage);
+	yield* opened(voyage);
 	const alpha = yield* pieces.charter({
 		charter: "do alpha",
 		dependsOn: [],

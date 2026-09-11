@@ -1,6 +1,7 @@
 import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Repos } from "@antumbra/repos";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Clock, Option } from "effect";
 import { TestClock } from "effect/testing";
@@ -15,10 +16,11 @@ it.effectApp("uses the system clock when requested", { clock: "live" }, function
 	expect(yield* Clock.currentTimeMillis).toBeGreaterThan(1_000_000_000_000);
 });
 
-it.effectApp("keeps both Board registers in write order", function* ({ db }) {
+it.effectApp("keeps both Board registers in write order", function* () {
 	const boards = yield* Boards;
+	const sailing = yield* Voyages;
 	const voyageId = "testing-board-voyage";
-	yield* db.Voyage.create({
+	yield* sailing.open({
 		context: "the reef is uncharted",
 		id: voyageId,
 		name: "Chart the reef",

@@ -26,14 +26,14 @@ function spotted(failure: unknown): unknown {
 	return typeof field === "string" && typeof message === "string" ? { field, message } : undefined;
 }
 
-export const generate = (editables: readonly Editable[], identity: Held, values: Held, send: Sending, sent?: () => void) =>
+export const generate = (editables: readonly Editable[], identity: Held, values: Held, send: Sending, sent: () => void) =>
 	Form.make(schemaOf(editables), {
 		initialValues: values,
 		onSubmit: (chosen, submitter) =>
 			Effect.catch(send({ ...identity, ...chosen }), (failure) => {
 				const spot = spotted(failure);
 				return spot === undefined ? Effect.fail(failure) : submitter.fail(spot.field, spot.message);
-			}).pipe(Effect.tap(() => Effect.sync(() => sent?.()))),
+			}).pipe(Effect.tap(() => Effect.sync(sent))),
 		runtime,
 	});
 

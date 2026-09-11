@@ -8,7 +8,6 @@ import {
 	CharterReceipt,
 	CrewReceipt,
 	HailReceipt,
-	OpenVoyageRequest,
 	PieceVerdictRequest,
 	RewireRequest,
 } from "#voyage-requests.ts";
@@ -54,13 +53,6 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.launch(input.pieceId));
 	}),
-	openVoyage: procedure
-		.input(OpenVoyageRequest)
-		.output(VoyageSummary)
-		.mutation(function* (input) {
-			const voyages = yield* VoyageSource;
-			return yield* surface(voyages.open(input));
-		}),
 	parkPiece: procedure.input(PieceRef).mutation(function* (input) {
 		const voyages = yield* VoyageSource;
 		yield* surface(voyages.park(input.pieceId));

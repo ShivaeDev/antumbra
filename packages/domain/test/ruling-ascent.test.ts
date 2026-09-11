@@ -7,18 +7,12 @@ import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { type ScriptedBackend, sessionFor } from "#test/harness.ts";
-import { eventually, openReefVoyage } from "#test/voyage-fixtures.ts";
+import { eventually, flagshipVoyage, openReefVoyage } from "#test/voyage-fixtures.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
 const ASKER = "agent-asker";
 
 type Rung = "admiral" | "captain" | "flagship";
-
-const openFlagship = Effect.gen(function* () {
-	const db = yield* Database;
-	const flagship = Option.getOrThrow(yield* db.Voyage.where({ kind: "flagship" }).first());
-	return flagship.id;
-});
 
 const hailCaptain = (scripted: ScriptedBackend, voyageId: string) =>
 	Effect.gen(function* () {
@@ -85,7 +79,7 @@ const carried = (agentId: string, count: number) =>
 
 const crewFleet = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
 	const reefId = yield* crewReef;
-	const flagshipId = yield* openFlagship;
+	const flagshipId = (yield* flagshipVoyage).id;
 	return {
 		flagshipCaptain: yield* hailCaptain(scripted, flagshipId),
 		reefCaptain: yield* hailCaptain(scripted, reefId),

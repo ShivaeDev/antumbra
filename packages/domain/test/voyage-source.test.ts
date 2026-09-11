@@ -2,14 +2,7 @@ import { type SightFailure, VoyageSource, type VoyageView } from "@antumbra/cont
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Stream } from "effect";
-import { eventually, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
-
-const reef = {
-	backend: "scripted",
-	context: "the reef is uncharted",
-	name: "Chart the reef",
-	northStar: "every shoal is known",
-};
+import { eventually, openReefVoyage, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
 
 const soundings = (voyageId: string) => ({
 	charter: "sound the northern shoals",
@@ -19,6 +12,17 @@ const soundings = (voyageId: string) => ({
 	title: "soundings",
 	voyageId,
 });
+
+const summaryOf = (voyageId: string) =>
+	Effect.gen(function* () {
+		const source = yield* VoyageSource;
+		for (const row of yield* source.voyages) {
+			if (row.id === voyageId) {
+				return row;
+			}
+		}
+		return yield* Effect.die(new Error(`no summary for voyage ${voyageId}`));
+	});
 
 const anyReady = (view: VoyageView) => view.pieces.some((piece) => piece.state === "ready");
 
@@ -41,22 +45,22 @@ const watchUntil = (feed: Stream.Stream<VoyageView, SightFailure>, matches: (vie
 
 it.effectApp("the list and the read carry the state the domain derived", function* () {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
-	expect(opened.state).toBe("quiet");
-	expect(opened.captain).toBeNull();
+	const opened = yield* openReefVoyage;
+	const quiet = yield* summaryOf(opened.id);
+	expect(quiet.state).toBe("quiet");
+	expect(quiet.captain).toBeNull();
 	const piece = yield* source.charterPiece(soundings(opened.id));
 	yield* source.launch(piece.pieceId);
-	const listed = yield* source.voyages;
-	expect(listed.find((row) => row.id === opened.id)?.counts).toEqual({ active: 0, done: 0, pieces: 1, ready: 1 });
+	expect((yield* summaryOf(opened.id)).counts).toEqual({ active: 0, done: 0, pieces: 1, ready: 1 });
 	const view = yield* source.voyage(opened.id);
-	expect(view.context).toBe(reef.context);
+	expect(view.context).toBe(opened.context);
 	expect(view.pieces.map((row) => row.state)).toEqual(["ready"]);
 	expect(view.pieces[0]?.launchedAt).toEqual(expect.any(String));
 });
 
 it.effectApp("a board entry the window writes carries no author agent", function* () {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
+	const opened = yield* openReefVoyage;
 	yield* source.writeBoard({
 		body: "the reef shifts after a storm",
 		register: "smooth",
@@ -78,7 +82,7 @@ it.effectApp("a board entry the window writes carries no author agent", function
 
 it.effectApp("a voyage read carries each piece's own log", function* () {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
+	const opened = yield* openReefVoyage;
 	const piece = yield* source.charterPiece(soundings(opened.id));
 	yield* source.writeBoard({
 		body: "## Sounding\n\nThe edge is **shallow**.",
@@ -97,7 +101,7 @@ it.effectApp("a voyage read carries each piece's own log", function* () {
 
 it.effectApp("a hail puts a captain and a crew row on what the window reads", { clock: "live" }, function* () {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
+	const opened = yield* openReefVoyage;
 	const hailed = yield* source.hail(opened.id);
 	yield* eventually(
 		Effect.gen(function* () {
@@ -116,7 +120,7 @@ it.effectApp("a hail puts a captain and a crew row on what the window reads", { 
 
 it.effectApp("the feed shows the piece as ready once it is launched", function* () {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
+	const opened = yield* openReefVoyage;
 	const piece = yield* source.charterPiece(soundings(opened.id));
 	const watcher = yield* watchUntil(source.voyageFeed(opened.id), anyReady);
 	yield* source.launch(piece.pieceId);
@@ -127,7 +131,7 @@ it.effectApp("the feed shows the piece as ready once it is launched", function* 
 // Retirement changes Agent status without writing Voyage; this proves the Voyage feed also reacts to fleet refreshes.
 it.effectApp("the feed follows an agent's status with no voyage row touched", { clock: "live" }, function* ({ scripted }) {
 	const source = yield* VoyageSource;
-	const opened = yield* source.open(reef);
+	const opened = yield* openReefVoyage;
 	const hailed = yield* source.hail(opened.id);
 	yield* eventually(
 		Effect.gen(function* () {

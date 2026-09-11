@@ -53,7 +53,7 @@ it.effectApp.withProviders(
 		expect(Option.getOrThrow(yield* db.Moorage.where({ agentId: payload.agentId }).first()).status).toBe("provisioning");
 		expect((yield* db.Berth.where({ agentId: payload.agentId }).all()).map((berth) => berth.status)).toEqual(["provisioning"]);
 		expect((yield* db.Agent.all()).map((row) => row.id)).toEqual([payload.agentId]);
-		expect((yield* db.Intent.all()).map((row) => row.id)).toEqual([submission.id]);
+		expect((yield* db.Intent.where({ tag: domain.spawn.tag }).all()).map((row) => row.id)).toEqual([submission.id]);
 		expect(yield* db.PieceAgent.all()).toEqual([]);
 		expect(yield* db.AgentSession.all()).toHaveLength(0);
 	},

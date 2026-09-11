@@ -1,7 +1,7 @@
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
-import { decodeStoredVoyageKind } from "@antumbra/platform-vocabulary/voyage.ts";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { charterFor } from "#crew-charter.ts";
 import { PieceNotFound } from "#errors.ts";
@@ -18,6 +18,7 @@ export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId
 	const reach = yield* KernelReach;
 	const db = yield* Database;
 	const pieces = yield* Pieces;
+	const sailing = yield* Voyages;
 	const found = yield* db.Piece.where({ id: pieceId }).first();
 	if (Option.isNone(found)) {
 		return yield* new PieceNotFound({ pieceId });
@@ -34,22 +35,22 @@ export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId
 	if (Option.isNone(membership)) {
 		return yield* new PieceNotOnVoyage({ pieceId });
 	}
-	const voyage = yield* db.Voyage.where({ id: membership.value.voyageId }).first();
-	if (Option.isNone(voyage)) {
+	const berthed = yield* sailing.byId(membership.value.voyageId);
+	if (Option.isNone(berthed)) {
 		return yield* new PieceNotOnVoyage({ pieceId });
 	}
-	const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyage.value.id, voyage.value.kind));
+	const voyage = berthed.value;
 	const agentId = crypto.randomUUID();
-	const settings = yield* (yield* RoleSettings).resolve(voyage.value.id, "crew");
+	const settings = yield* (yield* RoleSettings).resolve(voyage.id, "crew");
 	const intentId = yield* reach.submitSpawn({
 		agentId,
 		...settings,
-		charter: yield* charterFor(piece, { ...voyage.value, kind }, agentId),
+		charter: yield* charterFor(piece, voyage, agentId),
 		pieceId,
 		role: piece.role,
 		runner: "local",
 		sessionId: crypto.randomUUID(),
-		voyageId: voyage.value.id,
+		voyageId: voyage.id,
 	});
 	return { agentId, intentId };
 });

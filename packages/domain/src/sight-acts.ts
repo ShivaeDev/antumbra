@@ -1,5 +1,4 @@
 import type {
-	ModelChoice,
 	RepoRegistration,
 	RepoSummary,
 	SessionImage,
@@ -21,14 +20,12 @@ import { SessionSend } from "@antumbra/sessions/send/service";
 import { Effect } from "effect";
 import { AgentDomain } from "#agent-domain-service.ts";
 import { makeRetryBackendCapacity } from "#backend-capacity-retry.ts";
-import { BackendCatalog } from "#backend-catalog/service.ts";
 import { SessionMessageEmpty } from "#errors.ts";
 import { retirePieceCrew } from "#retire-crew.ts";
 import { toFailure } from "#sight-failure.ts";
 import { makeSituationDraft } from "#situation/draft.ts";
 
 interface SightActs {
-	readonly backendModels: (backend: string) => Effect.Effect<ReadonlyArray<ModelChoice>, SightFailure>;
 	readonly forgetRepo: (repoId: string) => Effect.Effect<void, SightFailure>;
 	readonly interrupt: (sessionId: string) => Effect.Effect<void, SightFailure>;
 	readonly registerRepo: (registration: RepoRegistration) => Effect.Effect<RepoSummary, SightFailure>;
@@ -47,7 +44,6 @@ export const makeSightActs = Effect.gen(function* () {
 	const db = yield* Database;
 	const repos = yield* Repos;
 	const domain = yield* AgentDomain;
-	const catalog = yield* BackendCatalog;
 	const sessionSend = yield* SessionSend;
 	const fabric = yield* SessionFabric;
 	const kernel = yield* Kernel;
@@ -56,7 +52,6 @@ export const makeSightActs = Effect.gen(function* () {
 	const retryBackend = yield* makeRetryBackendCapacity;
 
 	return {
-		backendModels: (backend) => catalog.listModels(backend).pipe(Effect.mapError(toFailure)),
 		forgetRepo: (repoId) => repos.forget(repoId).pipe(Effect.mapError(toFailure)),
 		interrupt: (sessionId) => fabric.interrupt(sessionId).pipe(Effect.mapError(toFailure)),
 		registerRepo: (registration) => repos.register(registration).pipe(Effect.mapError(toFailure)),

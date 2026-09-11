@@ -5,6 +5,7 @@ import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { TestClock } from "effect/testing";
+import { voyagePassesFor } from "#smoothing/attempts.ts";
 import { callTool, completesTurn, type ScriptedBackend } from "#test/harness.ts";
 import { openReefVoyage, terminalIntent } from "#test/voyage-fixtures.ts";
 
@@ -23,11 +24,15 @@ const roughVoyage = Effect.fnUntraced(function* () {
 	return voyage;
 });
 
-const smootherAtWork = Effect.fnUntraced(function* (scripted: ScriptedBackend) {
-	const db = yield* Database;
+const passOver = Effect.fnUntraced(function* (voyageId: string) {
+	const passes = yield* voyagePassesFor(voyageId);
+	return Option.getOrThrow(Option.fromUndefinedOr(passes[0]));
+});
+
+const smootherAtWork = Effect.fnUntraced(function* (scripted: ScriptedBackend, voyageId: string) {
 	const { input, sessionId } = yield* scripted.queued;
 	const session = yield* scripted.session(sessionId);
-	const intent = Option.getOrThrow(yield* db.Intent.where({ tag: "board/smooth" }).first());
+	const intent = yield* passOver(voyageId);
 	return {
 		intentId: intent.id,
 		sessionId,
@@ -58,7 +63,7 @@ it.effectApp("a pass writes one summary over the day it was given, and the tail 
 	expect(yield* smoothingOf(voyage.id)).toEqual({ state: "idle", uncovered: 2 });
 
 	yield* source.smoothBoard(voyage.id);
-	const pass = yield* smootherAtWork(scripted);
+	const pass = yield* smootherAtWork(scripted, voyage.id);
 	for (const note of NOTES) {
 		expect(pass.material).toContain(note);
 	}
@@ -87,7 +92,7 @@ it.effectApp("the smoother sails on Antumbra's own prompt with write_summary and
 	const voyage = yield* roughVoyage();
 
 	yield* source.smoothBoard(voyage.id);
-	const pass = yield* smootherAtWork(scripted);
+	const pass = yield* smootherAtWork(scripted, voyage.id);
 	yield* callTool(pass.session, "write_summary", { text: SUMMARY });
 	expect(yield* terminalIntent(pass.intentId)).toBe("succeeded");
 	yield* expectClosedPass(pass.sessionId);
@@ -106,7 +111,7 @@ it.effectApp("a pass that writes no summary leaves the log alone and stands as a
 	const scope = BoardScope.Voyage({ voyageId: voyage.id });
 
 	yield* source.smoothBoard(voyage.id);
-	const pass = yield* smootherAtWork(scripted);
+	const pass = yield* smootherAtWork(scripted, voyage.id);
 	yield* completesTurn(pass.session);
 	expect(yield* terminalIntent(pass.intentId)).toBe("failed");
 	yield* expectClosedPass(pass.sessionId);
@@ -122,8 +127,7 @@ it.effectApp("a smoothing pass with nothing uncovered opens no session at all", 
 	const voyage = yield* openReefVoyage;
 
 	yield* source.smoothBoard(voyage.id);
-	const intent = Option.getOrThrow(yield* db.Intent.where({ tag: "board/smooth" }).first());
-	expect(yield* terminalIntent(intent.id)).toBe("succeeded");
+	expect(yield* terminalIntent((yield* passOver(voyage.id)).id)).toBe("succeeded");
 	expect(yield* scripted.opened).toEqual([]);
 	expect(yield* db.VoyageAgent.where({ role: "smoother" }).count()).toBe(0);
 });
@@ -134,7 +138,7 @@ it.effectApp("a smoother that never answers fails the pass once its time is up",
 	const voyage = yield* roughVoyage();
 
 	yield* source.smoothBoard(voyage.id);
-	const pass = yield* smootherAtWork(scripted);
+	const pass = yield* smootherAtWork(scripted, voyage.id);
 	yield* TestClock.adjust("10 minutes");
 	expect(yield* terminalIntent(pass.intentId)).toBe("failed");
 	yield* expectClosedPass(pass.sessionId);

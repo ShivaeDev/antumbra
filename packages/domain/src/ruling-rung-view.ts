@@ -1,10 +1,10 @@
 import type { RulingRungView } from "@antumbra/contract";
-import type { StoredVoyage } from "@antumbra/persistence";
 import type { Ruling } from "@antumbra/rulings";
+import type { Voyage } from "@antumbra/voyages";
 import { Option } from "effect";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
 
-export type RungRows = Pick<VoyageSummaryRows, "crews"> & { readonly voyages: ReadonlyArray<StoredVoyage> };
+export type RungRows = Pick<VoyageSummaryRows, "crews"> & { readonly voyages: ReadonlyArray<Voyage> };
 
 const ADMIRAL: RulingRungView = { kind: "admiral" };
 

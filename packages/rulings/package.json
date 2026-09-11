@@ -17,13 +17,14 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/settings": "workspace:*",
+		"@antumbra/testing": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@antumbra/testing": "workspace:*"
+		"vitest": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/boards": "workspace:*",
@@ -31,6 +32,7 @@
 		"@antumbra/persistence": "workspace:*",
 		"@antumbra/platform-service-definition": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
 		"effect": "catalog:"
 	}
 }

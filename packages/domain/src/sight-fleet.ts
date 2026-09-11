@@ -10,6 +10,7 @@ import type { BackendCapacityReading } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { rootSessions } from "@antumbra/sessions";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { situationsByAgent } from "#agent-situations.ts";
 import { workByAgent } from "#agent-work.ts";
@@ -28,6 +29,7 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 	const db = yield* Database;
 	const registry = yield* Repos;
 	const changes = yield* Changes;
+	const sailing = yield* Voyages;
 	const storedAgents = yield* db.Agent.orderBy((agent) => agent.createdAt.asc()).all();
 	const agents = yield* Effect.forEach(storedAgents, (agent) =>
 		Effect.fromResult(decodeStoredAgentStatus(agent.id, agent.status)).pipe(Effect.map((status) => ({ ...agent, status }))),
@@ -54,13 +56,13 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 	const roleSettings = yield* (yield* RoleSettings).defaults();
 	const crews = yield* db.VoyageAgent.where({ role: CAPTAIN_ROLE }).all();
 	const memberships = yield* db.VoyagePiece.where((membership) => membership.pieceId.in(pieceIds)).all();
-	const voyageIds = [...new Set([...memberships.map((membership) => membership.voyageId), ...crews.map((crew) => crew.voyageId)])];
+	const voyageIds = new Set([...memberships.map((membership) => membership.voyageId), ...crews.map((crew) => crew.voyageId)]);
 	const work = workByAgent({
 		assignments,
 		crews,
 		memberships,
 		pieces: yield* db.Piece.where((piece) => piece.id.in(pieceIds)).all(),
-		voyages: yield* db.Voyage.where((voyage) => voyage.id.in(voyageIds)).all(),
+		voyages: (yield* sailing.list()).filter((voyage) => voyageIds.has(voyage.id)),
 	});
 	const sessionsByAgent = Map.groupBy(sessionSummaries, (session) => session.agentId);
 	const berthsByAgent = Map.groupBy(berths, (berth) => berth.agentId);

@@ -1,7 +1,6 @@
 import { BoardScope, Boards, entryBodies } from "@antumbra/boards";
-import { Database } from "@antumbra/persistence";
-import { decodeStoredVoyageKind } from "@antumbra/platform-vocabulary/voyage.ts";
 import { RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { captainRoleOf } from "@antumbra/voyages/captain-role";
 import { Effect, Option } from "effect";
 import { charterForKind } from "#charter-flagship.ts";
@@ -12,7 +11,6 @@ import { rulingLine, standingRulingsFor } from "#standing-rulings.ts";
 import { VoyageDetails } from "#voyage/detail/service.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import { readVoyageCaptain } from "#voyage-captain-read.ts";
-import { voyageRow } from "#voyage-row-projection.ts";
 import { voyageView } from "#voyage-view.ts";
 
 export interface HailedCaptain {
@@ -23,13 +21,12 @@ export interface HailedCaptain {
 export const hailCaptain = Effect.fn("Voyages.hail")(function* (voyageId: string) {
 	const boards = yield* Boards;
 	const reach = yield* KernelReach;
-	const db = yield* Database;
-	const storedVoyage = yield* db.Voyage.where({ id: voyageId }).first();
-	if (Option.isNone(storedVoyage)) {
+	const sailing = yield* Voyages;
+	const berthed = yield* sailing.byId(voyageId);
+	if (Option.isNone(berthed)) {
 		return yield* new VoyageNotFound({ voyageId });
 	}
-	const kind = yield* Effect.fromResult(decodeStoredVoyageKind(voyageId, storedVoyage.value.kind));
-	const voyage = voyageRow(storedVoyage.value, kind);
+	const voyage = berthed.value;
 	const current = yield* readVoyageCaptain(voyageId);
 	if (Option.isSome(current) && current.value.status === "alive") {
 		const sessionId = current.value.sessionId;

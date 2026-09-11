@@ -29,6 +29,7 @@
 		"@antumbra/domain-role-settings": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:"
 	}

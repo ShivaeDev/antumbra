@@ -12,6 +12,7 @@ import type { DirectTool } from "@antumbra/plugin-api";
 import { type RegisteredRepo, Repos } from "@antumbra/repos";
 import { type Ruling, type RulingProclamation, Rulings } from "@antumbra/rulings";
 import { type ResolvedAgentSettings, RoleSettings } from "@antumbra/settings";
+import { Voyages } from "@antumbra/voyages";
 import { Effect, Schema } from "effect";
 import { BackendCatalog } from "#backend-catalog/service.ts";
 import { compileCaptainTools } from "#captain-tools.ts";
@@ -82,6 +83,7 @@ export const compileFleetTools = Effect.fn("AgentToolCompiler.compileFleetTools"
 	const repos = yield* Repos;
 	const rulings = yield* Rulings;
 	const procedures = yield* VoyageProcedureService;
+	const sailing = yield* Voyages;
 	const roles = yield* RoleSettings;
 	const catalog = yield* BackendCatalog;
 	const readFleet = Effect.all({
@@ -99,7 +101,7 @@ export const compileFleetTools = Effect.fn("AgentToolCompiler.compileFleetTools"
 		Effect.all({ captain: roles.resolve(voyageId, "captain"), crew: roles.resolve(voyageId, "crew") }).pipe(
 			Effect.map((settings) => ({ ...settings, id: voyageId })),
 		);
-	const openAsked = (input: VoyageAsked) => Effect.flatMap(procedures.open(input), (voyage) => sailingAs(voyage.id));
+	const openAsked = (input: VoyageAsked) => Effect.flatMap(sailing.open(input), (voyage) => sailingAs(voyage.id));
 	const openTool = (identity: SessionIdentity, input: VoyageAsked) => {
 		const unknown = unknownBackend(input);
 		return unknown === undefined

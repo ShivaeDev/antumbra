@@ -1,5 +1,6 @@
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
+import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { ExecutionSource } from "#execution/service.ts";
 import { read } from "#hold-waits/read.ts";
@@ -9,5 +10,5 @@ export const HoldWaits = defineService({
 	id: "@antumbra/domain/HoldWaits",
 	initialize: Effect.void,
 	methods: () => ({ read }),
-	requires: [Database, ExecutionSource, MailDelivery],
+	requires: [Database, ExecutionSource, MailDelivery, Voyages],
 });

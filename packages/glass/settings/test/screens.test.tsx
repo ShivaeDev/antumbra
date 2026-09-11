@@ -21,7 +21,7 @@ const named = (form: HTMLFormElement): string | null | undefined => document.get
 const saving = (container: HTMLElement, place: number) =>
 	settle(() => [...container.querySelectorAll("form")][place]?.querySelector("button")?.click());
 
-it.live("gives every flag and every count a form under the words the catalogue gives it", () =>
+it.live("gives every flag and every count a form under the words the catalogue gives it and the sentence that says what it does", () =>
 	Effect.gen(function* () {
 		const board = desk();
 		const container = yield* shown(board, <Settings api={board.glass.api} />);
@@ -37,6 +37,8 @@ it.live("gives every flag and every count a form under the words the catalogue g
 			"Routine mail before a wake, in minutes",
 			"Rest before retirement, in minutes",
 		]);
+		expect(container.textContent).toContain("Nothing Antumbra sends on its own goes out. Every queue keeps filling and running sessions carry on.");
+		expect(container.textContent).toContain("How many agents may be running at once.");
 	}),
 );
 

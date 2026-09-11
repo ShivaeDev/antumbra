@@ -43,6 +43,7 @@
 		"@antumbra/runner-local": "workspace:*",
 		"@antumbra/server": "workspace:*",
 		"@antumbra/settings": "workspace:*",
+		"@antumbra/settings-domain": "workspace:*",
 		"@antumbra/skills": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
 		"@antumbra/trace-sink": "workspace:*",

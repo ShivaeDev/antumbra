@@ -3,7 +3,7 @@ import { applicationLayers } from "@antumbra/domain";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import { RoleSettings } from "@antumbra/settings";
-import { makeEffectApp, makeScriptedBackend, passiveRunner, scriptedRoleSettings } from "@antumbra/testing-runtime";
+import { makeEffectApp, makeScriptedBackend, passiveRunner, scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
 import { AGENT_ROLES } from "@antumbra/vocabulary/agent-role.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
@@ -39,7 +39,7 @@ export const it = {
 						join(directory, "session-inputs"),
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
-				Layer.provideMerge(scriptedRoleSettings),
+				Layer.provideMerge(Layer.mergeAll(scriptedRoleSettings, scriptedSettings)),
 			);
 			return { harness, layer };
 		}),

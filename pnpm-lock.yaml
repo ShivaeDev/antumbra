@@ -290,6 +290,9 @@ importers:
       '@antumbra/settings':
         specifier: workspace:*
         version: link:../../packages/settings
+      '@antumbra/settings-domain':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/settings
       '@antumbra/skills':
         specifier: workspace:*
         version: link:../../packages/platform/skills
@@ -1579,6 +1582,9 @@ importers:
       '@antumbra/glass-role-settings':
         specifier: workspace:*
         version: link:../glass/role-settings
+      '@antumbra/glass-settings':
+        specifier: workspace:*
+        version: link:../glass/settings
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -2160,12 +2166,6 @@ importers:
 
   packages/settings:
     dependencies:
-      '@antumbra/contract':
-        specifier: workspace:*
-        version: link:../contract
-      '@antumbra/persistence':
-        specifier: workspace:*
-        version: link:../persistence
       '@antumbra/vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -2173,9 +2173,6 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -2185,9 +2182,6 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/testing:
     dependencies:
@@ -2252,6 +2246,9 @@ importers:
       '@antumbra/boards':
         specifier: workspace:*
         version: link:../boards
+      '@antumbra/contract':
+        specifier: workspace:*
+        version: link:../contract
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../domain-feeds

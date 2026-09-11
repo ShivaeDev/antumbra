@@ -1,10 +1,7 @@
-import { backends } from "@antumbra/backends/feature.ts";
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { roleSettings } from "@antumbra/role-settings/feature.ts";
+import type { roleSettings } from "@antumbra/role-settings/feature.ts";
 import { FLEET } from "@antumbra/role-settings/ids.ts";
-import { type Api, client } from "@antumbra/rpc/client.ts";
-import { ClientToken } from "@antumbra/rpc/token.ts";
-import { transport } from "@antumbra/rpc/transport.ts";
+import type { Api } from "@antumbra/rpc/client.ts";
 import {
 	type AgentSettingsChoice,
 	type ResolvedAgentSettings,
@@ -15,13 +12,8 @@ import {
 } from "@antumbra/settings";
 import { AgentBackendTagSchema } from "@antumbra/vocabulary/agent-backend.ts";
 import type { AgentRole, VoyageAgentRole } from "@antumbra/vocabulary/agent-role.ts";
-import { NodeSocket } from "@effect/platform-node";
-import { Context, Effect, Layer, Option, Schema, Stream } from "effect";
-import { ServerProcess, type Serving } from "#adapters/server-process.ts";
-
-const connecting = client([roleSettings, backends]);
-
-export class ServerReach extends Context.Service<ServerReach, Effect.Success<typeof connecting>>()("@antumbra/desktop/ServerReach") {}
+import { type Context, Effect, Layer, Schema } from "effect";
+import { once, ServerReach } from "#adapters/server-reach.ts";
 
 type Reach<Failure> = Api<readonly [typeof roleSettings], Failure>;
 
@@ -33,12 +25,6 @@ interface Stored {
 	readonly model: string | null;
 	readonly role: AgentRole;
 }
-
-const once = <Value, Failure>(stream: Stream.Stream<Value, Failure>): Effect.Effect<Value> =>
-	Stream.runHead(stream).pipe(
-		Effect.flatMap(Option.match({ onNone: () => Effect.die(new Error("the server ended a live query before it answered")), onSome: Effect.succeed })),
-		Effect.orDie,
-	);
 
 const taggedBackend = Schema.decodeUnknownEffect(Schema.NullOr(AgentBackendTagSchema));
 
@@ -87,24 +73,11 @@ export const roleSettingsOver = <Failure>(reach: Reach<Failure>, feeds: Feeds): 
 	resolve: (voyageId: string | null, role: AgentRole) => Effect.map(once(reach.roleSettings.resolve({ role, voyageId })), resolvedOf),
 });
 
-export const addressOf = (serving: Effect.Effect<Serving>): Effect.Effect<string> => Effect.map(serving, ({ port }) => `ws://127.0.0.1:${port}/rpc`);
-
-const dialing = (serving: Effect.Effect<Serving>, token: string) =>
-	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(addressOf(serving)), Layer.succeed(ClientToken, { token })));
-
-const reaching = (serving: Effect.Effect<Serving>, token: string) =>
-	Layer.effect(ServerReach)(connecting).pipe(Layer.provide(dialing(serving, token)));
-
-export const RoleSettingsOverRpc: Layer.Layer<RoleSettings | ServerReach, never, Context.Service.Identifier<typeof DomainFeeds> | ServerProcess> =
-	Layer.unwrap(
-		Effect.gen(function* () {
-			const { serving } = yield* ServerProcess;
-			const { token } = yield* serving;
-			return Layer.effect(RoleSettings)(
-				Effect.gen(function* () {
-					const feeds = yield* DomainFeeds;
-					return roleSettingsOver(yield* ServerReach, feeds);
-				}),
-			).pipe(Layer.provideMerge(reaching(serving, token)));
-		}),
-	);
+export const RoleSettingsOverRpc: Layer.Layer<RoleSettings, never, Context.Service.Identifier<typeof DomainFeeds> | ServerReach> = Layer.effect(
+	RoleSettings,
+)(
+	Effect.gen(function* () {
+		const feeds = yield* DomainFeeds;
+		return roleSettingsOver(yield* ServerReach, feeds);
+	}),
+);

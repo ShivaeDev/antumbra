@@ -1,6 +1,5 @@
 export { ChangeWatcher } from "@antumbra/changes/watch/observer";
 export { SessionRestart } from "@antumbra/sessions/restart/service";
-export { SettingsSourceLive } from "@antumbra/settings";
 export { applicationLayers } from "#application.ts";
 export { BackendCapacityReleases } from "#backend-capacity-releases/service.ts";
 export { CostSourceLive } from "#cost-source.ts";

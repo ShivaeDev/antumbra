@@ -31,7 +31,6 @@ vi.mock("#adapters/trpc-holds.ts", () => ({ watchHolds }));
 vi.mock("#adapters/trpc-settings.ts", () => ({ changeSetting, loadSettings: vi.fn() }));
 
 const reading = (overrides: Partial<SettingsReading["settings"]>): SettingsReading => ({
-	overridden: [],
 	settings: {
 		foldToolCalls: false,
 		holdEverything: false,

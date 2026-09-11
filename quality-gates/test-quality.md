@@ -15,8 +15,8 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
 7. Observe asynchronous behavior through the cause the test controls:
    - Use `TestClock` for application time. When advancing the whole test clock would also drive unrelated fibers, provide a focused `Clock` to the act
      whose reading of time matters.
-   - Use `Deferred`, `Queue`, a stream element, or another explicit barrier for a controlled fake or signal. A real sleep or repeated state read is
-     not a substitute for a signal the test owns.
+   - Use `Deferred`, `Queue`, a stream element, the test kit's settling and scoped cleanup, or another explicit barrier for a controlled fake or
+     signal. A real sleep or repeated state read is not a substitute for a signal the test owns.
    - Use condition-named, bounded polling only across a true black-box boundary that exposes no causal signal.
 8. Use the established fixture at the boundary being tested: import `it` from `@antumbra/persistence/testing` for isolated `it.effectDB` acts, and use
    the appropriate `effectApp` harness for composed capability or runtime behavior. These helpers own the test scope, database cleanup, and test
@@ -25,3 +25,11 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
    reconstruction or durable recovery is the behavior under test. Request live time only when the boundary requires it.
 9. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
    only rename them, and never hide clocks, barriers, and black-box polling behind one universal waiting helper.
+10. Tests of the new architecture exercise real features through the shared test kit. Compose every feature needed to prove the behavior. Send
+    commands and observe public queries or rendered results; replace only external dependencies. Do not reimplement domain behavior in test fixtures.
+11. A test lives with the feature that owns the behavior it proves. A workflow that crosses features with no single owner is an application test under
+    `apps/`.
+12. Public queries are the default assertion boundary. Assert rows directly only when storage or materialization is itself the subject, and never let
+    a row assertion stand in for a cross-feature behavioral proof.
+13. A new screen test uses real features through a shared harness and fakes only the external dependencies the harness cannot run.
+14. A platform guarantee — idempotent requests, one materializer per fact, shape checks — is tested once in the kit, not repeated in every feature.

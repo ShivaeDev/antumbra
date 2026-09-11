@@ -30,12 +30,13 @@ interface Board {
 	readonly stored: SubscriptionRef.SubscriptionRef<Held>;
 }
 
-const flagsOf = (stored: Held) => FLAG_KEYS.map((key) => ({ key, on: stored.get(key) === true, title: FLAGS[key].title }));
+const flagsOf = (stored: Held) =>
+	FLAG_KEYS.map((key) => ({ description: FLAGS[key].description, key, on: stored.get(key) === true, title: FLAGS[key].title }));
 
 const countsOf = (stored: Held) =>
 	COUNT_KEYS.map((key) => {
 		const held = stored.get(key);
-		return { count: typeof held === "number" ? held : COUNTS[key].fallback, key, title: COUNTS[key].title };
+		return { count: typeof held === "number" ? held : COUNTS[key].fallback, description: COUNTS[key].description, key, title: COUNTS[key].title };
 	});
 
 type Handlers = Record<string, unknown>;

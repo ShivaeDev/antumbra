@@ -1,0 +1,42 @@
+[
+  {
+    "id": "dropTable.setting",
+    "label": "Drop table setting",
+    "summary": "Drops table setting which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "setting"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"setting\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "setting"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"setting\"",
+        "sql": "DROP TABLE \"setting\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"setting\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "setting"
+        ]
+      }
+    ]
+  }
+]

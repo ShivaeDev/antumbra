@@ -41,7 +41,7 @@ const Row = (props: {
 	readonly label: string;
 	readonly placeholders: Readonly<Record<string, string>>;
 	readonly send: Sending;
-	readonly sent: (() => void) | undefined;
+	readonly sent: () => void;
 	readonly submit: string;
 	readonly titles: boolean;
 	readonly values: Held;
@@ -113,6 +113,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	readonly label?: string;
 	readonly placeholders?: Readonly<Record<string, string>>;
 	readonly row?: Held;
+	readonly sent?: () => void;
 	readonly submit?: string;
 	readonly titles?: boolean;
 }): ReactNode => {
@@ -125,6 +126,12 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	const creating = props.row === undefined;
 	const row = props.row ?? BLANK;
 	const submit = props.submit ?? SAVE_WORDS;
+	const answered = () => {
+		if (creating) {
+			setCleared((count) => count + 1);
+		}
+		props.sent?.();
+	};
 	return (
 		<Row
 			creating={creating}
@@ -135,7 +142,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			label={props.label ?? (creating ? submit : labelOf(names, row))}
 			placeholders={props.placeholders ?? {}}
 			send={send}
-			sent={creating ? () => setCleared((count) => count + 1) : undefined}
+			sent={answered}
 			submit={submit}
 			titles={props.titles === true}
 			values={valuesOf(editables, row)}

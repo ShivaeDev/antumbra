@@ -1935,9 +1935,6 @@ importers:
       '@antumbra/feature':
         specifier: workspace:*
         version: link:../../../platform/feature
-      '@antumbra/vocabulary':
-        specifier: workspace:*
-        version: link:../../../platform/vocabulary
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
@@ -1945,12 +1942,6 @@ importers:
       '@antumbra/journal':
         specifier: workspace:*
         version: link:../../journal
-      '@antumbra/rpc':
-        specifier: workspace:*
-        version: link:../../../platform/rpc
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1

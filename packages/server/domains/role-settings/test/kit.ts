@@ -1,11 +1,8 @@
-import { app } from "@antumbra/journal/app.ts";
 import { testing } from "@antumbra/journal/testing/entry.ts";
 import { Effect, Option, Stream } from "effect";
 import { roleSettings } from "#feature.ts";
 
-export const roleSettingsApp = app([roleSettings]);
-
-export const it = testing(roleSettingsApp);
+export const it = testing([roleSettings]);
 
 export const reef = "voyage-reef";
 

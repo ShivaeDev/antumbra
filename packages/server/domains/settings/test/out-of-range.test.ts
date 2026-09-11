@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 import { expect } from "vitest";
+import { FLEET } from "#ids.ts";
 import { it } from "#test/kit.ts";
 
 it.app("refuses a count outside the range its key allows and stores nothing", function* (app) {
@@ -13,7 +14,7 @@ it.app("refuses a count outside the range its key allows and stores nothing", fu
 		message: "Maximum running agents takes a whole number from 1 to 64",
 		min: 1,
 	});
-	expect(yield* app.rows.count.count({})).toBe(0);
+	expect(yield* app.rows.count.count({ scope: FLEET })).toBe(0);
 });
 
 it.app("takes the count at the edge of the range", function* (app) {

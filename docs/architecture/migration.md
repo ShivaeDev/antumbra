@@ -64,10 +64,11 @@ packages/
 ```
 
 A lint rule reads the path and holds the direction: `platform` imports only `platform`; a process group imports `platform` and itself; across process
-groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, and an edge imports `platform`
-only; old packages import old packages and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that
-`domain` can read a moved feature until it is deleted and the old renderer can mount a glass island until the renderer moves (`@antumbra/renderer`
-reaching `@antumbra/glass-role-settings` and `@antumbra/glass-settings`); every entry is removed with the package that needed it.
+groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, of which a domain's tests
+reach only the test kit, and an edge imports `platform` only; old packages import old packages and `platform`, and nothing nested imports old. The one
+exception the rule allows is a named list, so that `domain` can read a moved feature until it is deleted and the old renderer can mount a glass island
+until the renderer moves (`@antumbra/renderer` reaching `@antumbra/glass-role-settings` and `@antumbra/glass-settings`); every entry is removed with
+the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/vocabulary/board.ts`), and an asset a package hands out

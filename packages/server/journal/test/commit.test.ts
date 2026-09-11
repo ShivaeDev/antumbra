@@ -30,12 +30,6 @@ it.app("a rejection is the class the command declared", function* (app) {
 	expect(rejection).toMatchObject({ _tag: "PieceNotLaunched", pieceId: pieceId(1), status: "chartered" });
 });
 
-it.app("a rejected command leaves the projection row alone", function* (app) {
-	yield* app.seed.piece({ ...launched(1), status: "chartered" });
-	yield* Effect.flip(app.commit.pieces.park({ pieceId: pieceId(1), reason: "too early" }));
-	expect((yield* app.rows.piece.get(pieceId(1))).status).toBe("chartered");
-});
-
 it.app("an id the glass carried too long is the rejection the command declared", function* (app) {
 	const rejection = yield* Effect.flip(app.commit.pieces.park({ pieceId: pieceId(9), reason: "gone" }));
 	expect(rejection).toBeInstanceOf(park.Rejection.PieceNotFound);

@@ -7,25 +7,17 @@
 		"./*": "./src/*"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/platform-rpc": "workspace:*",
-		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
-		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"happy-dom": "catalog:",
-		"react-dom": "catalog:",
-		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"typescript": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",

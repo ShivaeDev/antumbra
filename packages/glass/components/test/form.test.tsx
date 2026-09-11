@@ -165,6 +165,18 @@ const setCount = command("setCount", {
 	run: (input) => Effect.succeed({ count: input.count, key: input.key }),
 });
 
+const DESCRIPTION = "How many agents may be running at once.";
+
+it.live("draws the sentence the screen gives the row under it", () =>
+	Effect.gen(function* () {
+		const board = desk();
+		const counting = Object.assign((_input: Record<string, unknown>) => Effect.succeed(1), { command: setCount });
+		const row = { count: 4, key: "maxParallelSessions" };
+		const container = yield* shown(board, <CommandForm command={counting} description={DESCRIPTION} label="Maximum running agents" row={row} />);
+		expect(container.textContent).toContain(DESCRIPTION);
+	}),
+);
+
 it.live("draws a number field as a number input under the words the screen gives the row", () =>
 	Effect.gen(function* () {
 		const board = desk();

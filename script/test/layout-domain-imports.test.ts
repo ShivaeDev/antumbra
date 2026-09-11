@@ -11,10 +11,10 @@ const check = (path: string, specifier: string, ...others: readonly string[]) =>
 	layoutDomainImportViolations(inventoryOf({ sources: [importing(path, specifier), ...others.map(present)] })).map(({ message }) => message);
 
 const SOURCES =
-	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows and queries";
+	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const TESTS =
-	"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows and queries";
+	"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const from = "packages/server/domains/role-settings/src/rows/role-setting.ts";
 
@@ -30,9 +30,13 @@ describe("domain-imports rule", () => {
 		expect(check(from, "@antumbra/domain-role-settings/ids.ts")).toEqual([]);
 	});
 
-	it("lets a domain read another domain's rows and queries and nothing else of it", () => {
+	it("lets a domain read another domain's rows, queries and ids and nothing else of it", () => {
 		expect(check(from, "@antumbra/domain-pieces/rows/piece.ts", "packages/server/domains/pieces")).toEqual([]);
 		expect(check(from, "@antumbra/domain-pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);
+		expect(check(from, "@antumbra/domain-pieces/ids.ts", "packages/server/domains/pieces")).toEqual([]);
+		expect(check(from, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([
+			`@antumbra/domain-role-settings sources may not import @antumbra/domain-pieces/feature.ts: ${SOURCES}.`,
+		]);
 		expect(check(from, "@antumbra/domain-pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([
 			`@antumbra/domain-role-settings sources may not import @antumbra/domain-pieces/commands/rename.ts: ${SOURCES}.`,
 		]);

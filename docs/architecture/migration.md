@@ -18,7 +18,8 @@ something updates this file in the same change. A status here is one of three wo
   selects. `domain` gets no successor; the server's composition is thin and holds no view.
 - **A feature owns its wire shape.** Its Schema classes, RPC group, and rejections are files of the feature with no runtime dependency
   (`@antumbra/pieces/feature.ts`, `@antumbra/pieces/rows/piece.ts`). The glass and other features import those files directly and nothing else of the
-  feature.
+  feature. A domain's sources reach another domain only through its rows, queries and ids; a materializer that writes a neighbour's row uses that
+  neighbour's id rule.
 - **Rejections are Schema errors; everything else is a defect.** A command declares its rejections beside it as Schema classes with structured fields,
   and they cross the wire as they are. A row that does not decode, a missing table, an SDK that throws: defects, never mapped.
 - **The issuer mints the id; the commit stamps the time.** An id is part of the command's input, made by one helper in the vocabulary. The commit

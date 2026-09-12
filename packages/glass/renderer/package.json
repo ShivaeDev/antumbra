@@ -1,0 +1,39 @@
+{
+	"name": "@antumbra/glass-renderer",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"@effect/vitest": "catalog:",
+		"vitest": "catalog:",
+		"happy-dom": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
+		"@antumbra/glass-settings": "workspace:*",
+		"@antumbra/glass-role-settings": "workspace:*",
+		"@antumbra/glass-capacity": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@effect/atom-react": "catalog:",
+		"effect": "catalog:",
+		"lucide-react": "catalog:",
+		"react": "catalog:"
+	}
+}

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@antumbra/glass-components/ui/car
 import { AgentBerths } from "#agent-berths.tsx";
 import { AgentSessions } from "#agent-sessions.tsx";
 import { AgentWork } from "#agent-work.tsx";
+import { Diagnostics } from "#diagnostics.tsx";
 import type { SessionsApi } from "#glass.ts";
 import { presenceWords } from "#presence.ts";
 
@@ -46,6 +47,7 @@ export const AgentCard = (props: {
 				<summary className="cursor-pointer text-xs text-muted-foreground">charter</summary>
 				<p className="pt-1.5 text-xs wrap-anywhere">{props.agent.charter}</p>
 			</details>
+			<Diagnostics api={props.api} agent={props.agent} />
 		</CardContent>
 	</Card>
 );

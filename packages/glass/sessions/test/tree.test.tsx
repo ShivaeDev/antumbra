@@ -6,7 +6,7 @@ import { SessionTreePanel } from "#session-tree.tsx";
 
 it.glass("delegated work appears from runner evidence and opens its transcript", function* ({ api, render, run }) {
 	const sessionId = "session";
-	const runner = yield* run(connectRunner({ runnerId: "runner", logId: "runner-log", backends: ["scripted"] }));
+	const runner = yield* run(connectRunner({ runnerId: "runner", logId: "runner-log", backends: ["scripted"], imageInputBackends: [] }));
 	yield* runner.append([
 		{
 			logId: "runner-log",

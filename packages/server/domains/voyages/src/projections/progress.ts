@@ -20,6 +20,7 @@ export const voyageProgressProjection = projection("voyageProgress", {
 			for (const piece of pieces) counts[piece.state] += 1;
 			const next = {
 				id: voyage.id,
+				total: pieces.length,
 				counts,
 				state: counts.active > 0 || working.has(voyage.id) ? ("underWay" as const) : ("quiet" as const),
 				concluded: pieces.length > 0 && pieces.every((piece) => piece.concluded),

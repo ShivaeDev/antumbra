@@ -6,6 +6,7 @@ export const voyageProgress = row(
 	"voyageProgress",
 	{
 		id: VoyageId,
+		total: Schema.Number,
 		counts: Schema.Struct({
 			abandoned: Schema.Number,
 			active: Schema.Number,

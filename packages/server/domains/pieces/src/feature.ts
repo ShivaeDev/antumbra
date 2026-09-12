@@ -22,8 +22,12 @@ import { pieceVerdictLandedMaterializer } from "#materializers/piece-verdict-lan
 import { all } from "#queries/all.ts";
 import { byId } from "#queries/by-id.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
+import { dependencies } from "#queries/dependencies.ts";
+import { displayByVoyage } from "#queries/display-by-voyage.ts";
 import { edges } from "#queries/edges.ts";
 import { progress } from "#queries/progress.ts";
+import { reach } from "#queries/reach.ts";
+import { ready } from "#queries/ready.ts";
 import { piece } from "#rows/piece.ts";
 import { pieceAssignmentWork } from "#rows/piece-assignment-work.ts";
 import { pieceEdge } from "#rows/piece-edge.ts";
@@ -43,5 +47,5 @@ export const pieces = feature("pieces", {
 		pieceRewiredMaterializer,
 		pieceVerdictLandedMaterializer,
 	],
-	queries: [progress, byVoyage, byId, edges, all],
+	queries: [ready, dependencies, displayByVoyage, reach, progress, byVoyage, byId, edges, all],
 });

@@ -49,3 +49,15 @@ it.app("landing a Report updates live Piece and Voyage progress", function* (app
 	expect((yield* pieceLive.seen).at(-1)).toMatchObject({ state: "done" });
 	expect((yield* voyageLive.seen).at(-1)).toMatchObject({ counts: { done: 1, held: 0 }, concluded: true });
 });
+
+it.app("display order and prerequisite names are server readings", function* (app) {
+	yield* app.api.voyages.open(opening);
+	yield* app.api.pieces.charter(chartering("Zulu"));
+	yield* app.api.pieces.charter(chartering("Alpha", [pieceOf("Zulu")]));
+	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }))).map((piece) => piece.title)).toEqual(["Alpha", "Zulu"]);
+	yield* app.api.pieces.launch({ id: pieceOf("Zulu") });
+	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }))).map((piece) => piece.title)).toEqual(["Zulu", "Alpha"]);
+	expect(yield* answered(app.api.pieces.dependencies({ id: pieceOf("Alpha") }))).toEqual([{ id: pieceOf("Zulu"), title: "Zulu" }]);
+	expect((yield* answered(app.api.pieces.ready({}))).map((ready) => ready.piece.id)).toEqual([pieceOf("Zulu")]);
+	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ total: 2 });
+});

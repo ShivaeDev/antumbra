@@ -16,7 +16,17 @@ export const activity = Effect.fn("sessions.activity")(function* (fact: Observat
 		yield* rows.session.update(current.id, { attached: true, runnerId: evidence.runnerId, executionStatus: "active", idleSince: null });
 	if (evidence.type === "detached") yield* rows.session.update(current.id, { attached: false });
 	if (evidence.type === "slept") yield* rows.session.update(current.id, { attached: false, executionStatus: "idle", idleSince: at });
-	if (evidence.type === "ended") {
-		for (const node of nodes) yield* rows.session.update(node.id, { attached: false, status: "closed", executionStatus: "idle", idleSince: at });
+	yield* end(fact, rows, current, nodes);
+});
+
+const end = Effect.fn("Sessions.endTree")(function* (fact: Observation, rows: Rows, current: Session, nodes: readonly Session[]) {
+	const evidence = fact.evidence;
+	const at = new Date(fact.at).toISOString();
+	if (evidence.type !== "ended") return;
+	for (const node of nodes) yield* rows.session.update(node.id, { attached: false, status: "closed", executionStatus: "idle", idleSince: at });
+	const operations = yield* rows.sessionOperation.where({ sessionId: current.rootSessionId });
+	for (const operation of operations) {
+		if (operation.status === "requested" || operation.status === "waiting")
+			yield* rows.sessionOperation.update(operation.id, { status: "cancelled", detail: evidence.reason });
 	}
 });

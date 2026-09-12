@@ -4,6 +4,7 @@ import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
 
 export const Evidence = Schema.Union([
+	Schema.Struct({ type: Schema.Literals(["input-failed", "input-ambiguous"]), inputId: Schema.String, reason: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("node-seen") }),
 	Schema.Struct({
 		type: Schema.Literal("started"),

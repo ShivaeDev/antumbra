@@ -1,6 +1,12 @@
 import { Effect } from "effect";
 import { SessionOperationId } from "#ids.ts";
 import type { Observation, Rows, Session } from "#materializers/observation/types.ts";
+
+const receiptStatus = (evidence: Observation["evidence"]): "ambiguous" | "waiting" | "accepted" => {
+	if (evidence.type === "input-ambiguous") return "ambiguous";
+	if (evidence.type === "failed" || evidence.type === "input-failed") return "waiting";
+	return "accepted";
+};
 export const settle = Effect.fn("sessions.settle")(function* (fact: Observation, rows: Rows, current: Session) {
 	const evidence = fact.evidence;
 	const at = new Date(fact.at).toISOString();
@@ -12,12 +18,15 @@ export const settle = Effect.fn("sessions.settle")(function* (fact: Observation,
 			...(fact.operationId === current.startRequestId ? { charterDeliveredAt: at } : {}),
 		});
 	}
-	if (fact.operationId !== null && ["woke", "slept", "ended", "failed", "input-accepted", "interrupted"].includes(evidence.type)) {
+	if (
+		fact.operationId !== null &&
+		["slept", "ended", "failed", "input-accepted", "input-failed", "input-ambiguous", "interrupted"].includes(evidence.type)
+	) {
 		const id = SessionOperationId.make(fact.operationId);
 		if (yield* rows.sessionOperation.exists(id))
 			yield* rows.sessionOperation.update(id, {
-				status: evidence.type === "failed" ? "waiting" : "accepted",
-				detail: evidence.type === "failed" ? evidence.reason : null,
+				status: receiptStatus(evidence),
+				detail: "reason" in evidence ? evidence.reason : null,
 			});
 	}
 });

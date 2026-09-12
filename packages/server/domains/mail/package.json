@@ -25,6 +25,9 @@
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*"
 	}
 }

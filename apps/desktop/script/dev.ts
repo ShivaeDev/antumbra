@@ -6,10 +6,8 @@ import { closeWatcher, watchMainAndPreload } from "#script/adapters/bundler.ts";
 import { spawnElectron, waitForExit } from "#script/adapters/electron-process.ts";
 import { startRendererServer, stopRendererServer } from "#script/adapters/renderer-tooling.ts";
 import { runMain } from "#script/adapters/run.ts";
-import { packageRoot } from "#script/adapters/workspace.ts";
 
 const desktopRoot = dirname(import.meta.dirname);
-const rendererRoot = packageRoot("@antumbra/renderer");
 const RENDERER_PORT = 5183;
 
 const restartPending = (): void => {
@@ -21,7 +19,7 @@ const runIteration = (iteration: number) =>
 		yield* copyPersistenceAssets(desktopRoot);
 		yield* copySkillAssets(desktopRoot);
 		yield* copyOpencodePluginAssets(desktopRoot);
-		const server = yield* startRendererServer(rendererRoot, RENDERER_PORT);
+		const server = yield* startRendererServer(desktopRoot, RENDERER_PORT);
 		const watcher = yield* watchMainAndPreload(desktopRoot, restartPending);
 		const child = yield* spawnElectron(desktopRoot, `http://localhost:${RENDERER_PORT}`);
 		yield* Console.log(`antumbra dev: iteration ${iteration} — renderer HMR is live; main-process changes apply on the next restart`);

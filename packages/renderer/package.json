@@ -25,7 +25,8 @@
 		"@typescript/native": "catalog:",
 		"happy-dom": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/contract": "workspace:*",

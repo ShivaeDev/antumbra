@@ -2,13 +2,17 @@ import type { PieceView } from "@antumbra/contract";
 import { CharterPiece } from "@antumbra/glass-pieces/charter-piece.tsx";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { glass } from "#adapters/glass.ts";
+import { useGlass } from "#adapters/glass.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { PieceCard } from "#views/piece-card.tsx";
 import { Section, SectionHeading } from "#views/section.tsx";
 import { byLadder } from "#voyages/order.ts";
+
+const Chartering = ({ voyageId, onChartered }: { readonly voyageId: string; readonly onChartered: () => void }) => (
+	<CharterPiece api={useGlass()} onChartered={onChartered} voyageId={voyageId} />
+);
 
 const CharterPieceDialog = ({ voyageId }: { readonly voyageId: string }) => {
 	const [open, setOpen] = useState(false);
@@ -27,7 +31,7 @@ const CharterPieceDialog = ({ voyageId }: { readonly voyageId: string }) => {
 						A piece needs a title, the charter it works to, and the role that carries it. Name what it waits on to place it in the ladder.
 					</DialogDescription>
 				</DialogHeader>
-				<CharterPiece api={glass.api} onChartered={() => setOpen(false)} voyageId={voyageId} />
+				<Chartering onChartered={() => setOpen(false)} voyageId={voyageId} />
 			</DialogContent>
 		</Dialog>
 	);

@@ -1,3 +1,4 @@
+import { captain } from "@antumbra/domain-agents/queries/captain.ts";
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { pieceAgent } from "@antumbra/domain-agents/rows/piece-agent.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
@@ -21,11 +22,7 @@ export const hail = command("hail", {
 	},
 	run: Effect.fn("Starts.hail")(function* (input, rows, reject) {
 		if (input.voyageId === null || !(yield* rows.voyage.exists(input.voyageId))) return yield* reject.UnknownVoyage({ id: input.voyageId ?? "" });
-		const links = yield* rows.voyageAgent.where({ voyageId: input.voyageId, role: "captain" });
-		const assigned = new Set((yield* rows.pieceAgent.where({})).map((link) => link.agentId));
-		const ids = new Set(links.filter((link) => !assigned.has(link.agentId)).map((link) => link.agentId));
-		const candidates = (yield* rows.agent.where({})).filter((held) => ids.has(held.id)).toSorted((a, b) => a.createdAt.localeCompare(b.createdAt));
-		const current = candidates.find((held) => held.status === "spawning" || held.status === "alive") ?? candidates.at(-1);
+		const current = yield* captain.run({ voyageId: input.voyageId }, rows);
 		if (current?.status === "spawning") return yield* reject.CaptainAlreadyHailed({ agentId: current.id });
 		let wakeSessionId: null | typeof session.Row.Type.id = null;
 		if (current?.status === "alive") {
@@ -47,6 +44,7 @@ export const hail = command("hail", {
 			role: "captain",
 			charter: input.charter,
 			toolSetVersion: input.toolSetVersion,
+			tools: input.tools,
 		};
 	}),
 });

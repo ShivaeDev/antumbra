@@ -43,6 +43,7 @@ export const request = command("request", {
 			role: input.role,
 			charter: input.charter,
 			toolSetVersion: input.toolSetVersion,
+			tools: input.tools,
 		};
 	}),
 });

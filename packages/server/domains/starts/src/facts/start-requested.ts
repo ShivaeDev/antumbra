@@ -15,4 +15,5 @@ export const startRequested = fact("StartRequested", {
 	role: start.fields.role,
 	charter: start.fields.charter,
 	toolSetVersion: start.fields.toolSetVersion,
+	tools: start.fields.tools,
 });

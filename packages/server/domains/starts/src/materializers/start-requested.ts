@@ -38,6 +38,7 @@ export const startRequestedMaterializer = materializer(startRequested, {
 			role: fact.role,
 			charter: fact.charter,
 			toolSetVersion: fact.toolSetVersion,
+			tools: fact.tools,
 			status: "requested",
 			detail: null,
 			requestedAt: at,

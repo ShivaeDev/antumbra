@@ -32,6 +32,8 @@
 		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-capacity": "workspace:*",
-		"@antumbra/domain-reclamation": "workspace:*"
+		"@antumbra/domain-reclamation": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/server-journal": "workspace:*"
 	}
 }

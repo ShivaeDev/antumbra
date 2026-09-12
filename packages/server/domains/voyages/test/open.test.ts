@@ -1,9 +1,10 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { roleSettingId } from "@antumbra/domain-role-settings/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { FLAGSHIP_REQUEST, VoyageId } from "#ids.ts";
-import { answered, it, opening } from "#test/kit.ts";
+import { opening } from "#test/kit.ts";
 
 const REEF_REQUEST = Id.Request.make("voyage:reef");
 
@@ -18,7 +19,7 @@ const seated = (role: "captain" | "crew", backend: string, model: string, effort
 	scope: reef,
 });
 
-it.app("opening a voyage stores it with the captain and the crew seated, and a later choice moves only the role it names", function* (app) {
+it.app("seats both roles and changes only the chosen role", function* (app) {
 	yield* app.api.voyages.open({
 		...opening,
 		captainBackend: "claude",
@@ -49,7 +50,7 @@ it.app("opening a voyage stores it with the captain and the crew seated, and a l
 	]);
 });
 
-it.app("refuses a voyage with no name and stores nothing", function* (app) {
+it.app("rejects a blank name without creating a voyage", function* (app) {
 	const refused = yield* Effect.flip(app.api.voyages.open({ ...opening, name: "   " }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "name", message: "A voyage needs a name" });
@@ -57,7 +58,7 @@ it.app("refuses a voyage with no name and stores nothing", function* (app) {
 	expect(yield* app.rows.roleSetting.count({})).toBe(0);
 });
 
-it.app("opens the flagship once however often the same request arrives", function* (app) {
+it.app("deduplicates the flagship request", function* (app) {
 	const first = yield* app.api.voyages.open({ ...opening, kind: "flagship", requestId: FLAGSHIP_REQUEST });
 	const again = yield* app.api.voyages.open({ ...opening, kind: "flagship", requestId: FLAGSHIP_REQUEST });
 

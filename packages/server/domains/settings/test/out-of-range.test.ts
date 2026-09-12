@@ -1,8 +1,8 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { answered, it } from "#test/kit.ts";
 
-it.app("refuses counts outside their key's range and keeps the chosen value", function* (app) {
+it.app("preserves the chosen count after an out-of-range rejection", function* (app) {
 	yield* app.api.settings.setCount({ count: 12, key: "maxParallelSessions" });
 
 	for (const count of [0, 65]) {
@@ -13,7 +13,7 @@ it.app("refuses counts outside their key's range and keeps the chosen value", fu
 	}
 });
 
-it.app("accepts both edges of a count's range", function* (app) {
+it.app("accepts both range boundaries", function* (app) {
 	for (const count of [1, 1440]) {
 		yield* app.api.settings.setCount({ count, key: "idleSiestaMinutes" });
 

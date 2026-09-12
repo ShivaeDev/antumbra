@@ -4,8 +4,6 @@ import { Effect, Fiber, FileSystem, Latch, Layer } from "effect";
 import { expect } from "vitest";
 import { Database, DataDirectory } from "#database.ts";
 import * as Journal from "#journal.ts";
-import { launched, pieceApp, pieceId } from "#test/kit.ts";
-import { kit } from "#testing/kit.ts";
 
 const directory = Layer.effect(
 	DataDirectory,
@@ -15,9 +13,9 @@ const directory = Layer.effect(
 	}),
 ).pipe(Layer.provide(NodeFileSystem.layer), Layer.orDie);
 
-const layer = Layer.provideMerge(Journal.layer(pieceApp), Journal.file()).pipe(Layer.provide(directory));
+const layer = Journal.file().pipe(Layer.provide(directory));
 
-it.effect("the file-backed journal runs in write-ahead logging with synchronous NORMAL", () =>
+it.effect("file storage uses WAL and synchronous NORMAL", () =>
 	Effect.gen(function* () {
 		const database = yield* Database;
 		const mode = yield* Effect.orDie(database.write`PRAGMA journal_mode`);
@@ -27,27 +25,25 @@ it.effect("the file-backed journal runs in write-ahead logging with synchronous 
 	}).pipe(Effect.provide(layer), Effect.orDie),
 );
 
-it.effect("the read-only client sees a committed row and reads on while a transaction is open", () =>
+it.effect("readers see committed values during an open write transaction", () =>
 	Effect.gen(function* () {
-		const parts = yield* kit(pieceApp);
 		const database = yield* Database;
-		yield* parts.seed.piece(launched(1));
-		yield* parts.commit.pieces.park({ pieceId: pieceId(1), reason: "blocked on review" });
-		expect((yield* parts.rows.piece.get(pieceId(1))).status).toBe("parked");
+		yield* Effect.orDie(database.write`CREATE TABLE "note" ("id" TEXT PRIMARY KEY, "text" TEXT NOT NULL)`);
+		yield* Effect.orDie(database.write`INSERT INTO "note" ("id", "text") VALUES ('one', 'committed')`);
 		const inside = yield* Latch.make(false);
 		const release = yield* Latch.make(false);
 		const held = yield* Effect.forkChild(
 			database.write.withTransaction(
 				Effect.gen(function* () {
-					yield* database.write`UPDATE "piece" SET "title" = 'held' WHERE "id" = ${pieceId(1)}`;
+					yield* database.write`UPDATE "note" SET "text" = 'held' WHERE "id" = 'one'`;
 					yield* inside.open;
 					yield* release.await;
 				}),
 			),
 		);
 		yield* inside.await;
-		const seen = yield* Effect.orDie(database.read`SELECT "title" FROM "piece" WHERE "id" = ${pieceId(1)}`);
-		expect(seen[0]?.title).toBe("Piece 1");
+		const seen = yield* Effect.orDie(database.read`SELECT "text" FROM "note" WHERE "id" = 'one'`);
+		expect(seen[0]?.text).toBe("committed");
 		yield* release.open;
 		yield* Effect.orDie(Fiber.join(held));
 	}).pipe(Effect.provide(layer), Effect.orDie),

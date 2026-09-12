@@ -23,7 +23,10 @@ const edgeViolations = (path: string, from: WorkspacePackage, packages: readonly
 		return [];
 	}
 	const placement = placementOf(from.root);
-	if (mayImport(placement, placementOf(to.root)) || excepted(from, to)) {
+	const target = placementOf(to.root);
+	const testDependency =
+		path.startsWith(`${from.root}/test/`) && (to.root === "apps/testing" || (target.group === "server" && target.role === "domains"));
+	if (testDependency || mayImport(placement, target) || excepted(from, to)) {
 		return [];
 	}
 	const allowance = allowanceOf(placement);

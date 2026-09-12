@@ -1,8 +1,8 @@
+import { it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
 import { FLEET, roleSettingId } from "#ids.ts";
-import { it } from "#test/kit.ts";
 
-it.app("a second choice for a role replaces the row rather than adding one", function* (app) {
+it.app("replaces an existing choice", function* (app) {
 	const roles = app.api.roleSettings;
 	yield* roles.choose({ backend: "codex", effort: "medium", model: "gpt-5", role: "crew", scope: FLEET });
 	yield* roles.choose({ backend: "claude", effort: "high", model: "opus", role: "crew", scope: FLEET });

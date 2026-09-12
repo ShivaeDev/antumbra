@@ -1,9 +1,10 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
 import { VoyageId } from "#ids.ts";
-import { answered, it, opening } from "#test/kit.ts";
+import { opening } from "#test/kit.ts";
 
-it.app("lists the voyages oldest first and reads one by its id", function* (app) {
+it.app("lists oldest first and reads by id", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* TestClock.adjust("1 minute");
 	yield* app.api.voyages.open({ ...opening, name: "Sound the shallows" });

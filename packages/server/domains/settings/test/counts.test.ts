@@ -1,7 +1,7 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
-import { answered, it } from "#test/kit.ts";
 
-it.app("answers every count with the value Antumbra holds until one is set", function* (app) {
+it.app("reads default counts", function* (app) {
 	const answer = yield* answered(app.api.settings.counts({}));
 	for (const setting of answer) {
 		expect(setting.title.trim()).not.toBe("");
@@ -15,7 +15,7 @@ it.app("answers every count with the value Antumbra holds until one is set", fun
 	]);
 });
 
-it.app("replacing a count preserves the other settings", function* (app) {
+it.app("preserves other settings when replacing a count", function* (app) {
 	yield* app.api.settings.setCount({ count: 8, key: "maxParallelSessions" });
 	yield* app.api.settings.setCount({ count: 90, key: "idleSiestaMinutes" });
 	yield* app.api.settings.setCount({ count: 12, key: "maxParallelSessions" });

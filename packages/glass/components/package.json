@@ -7,27 +7,23 @@
 		"./*": "./src/*"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../../script/test.ts",
+		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/domain-backends": "workspace:*",
-		"@antumbra/domain-role-settings": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
-		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"happy-dom": "catalog:",
-		"react-dom": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"@effect/vitest": "catalog:",
+		"vitest": "catalog:",
+		"happy-dom": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/glass-form": "workspace:*",

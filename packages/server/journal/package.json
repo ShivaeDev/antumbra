@@ -17,6 +17,9 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-role-settings": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",

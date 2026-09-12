@@ -1,3 +1,4 @@
+import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { QuayPanel } from "@antumbra/glass-changes/quay-panel.tsx";
 import { HoldsPanel } from "@antumbra/glass-holds/holds.tsx";
 import { RulingsPanel } from "@antumbra/glass-rulings/rulings.tsx";
@@ -22,7 +23,7 @@ export const ConsoleMain = (
 ) => {
 	const hail = (voyageId: string) => {
 		Effect.runFork(
-			props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId }).pipe(
+			props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId: VoyageId.make(voyageId) }).pipe(
 				Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause)))),
 			),
 		);

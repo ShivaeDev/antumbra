@@ -10,7 +10,8 @@ A place to stand for the long view.
 ## Status
 
 Early development; there are no releases yet. The desktop app runs from source: `pnpm install`, then `pnpm --filter @antumbra/desktop dev`. The
-Electron shell starts a separate server and runner; its windows read the server over Effect RPC. CI packages a macOS build with
+Electron shell starts a separate server and runner; its windows read the server over Effect RPC. In development it also logs a `browser:` line; open
+that address in an ordinary browser tab to run the same window against the running server. CI packages a macOS build with
 `pnpm --filter @antumbra/desktop package`.
 
 ## Documentation

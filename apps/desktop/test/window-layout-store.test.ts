@@ -1,10 +1,11 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { defaultConsole } from "@antumbra/platform-shell/windows.ts";
 import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, FileSystem } from "effect";
-import { defaultConsole, layoutOf, restorePlan, type WindowLayout } from "#adapters/windows/layout.ts";
+import { layoutOf, restorePlan, type WindowLayout } from "#adapters/windows/layout.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";

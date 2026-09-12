@@ -1,13 +1,12 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
+import { defaultConsole, type WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { openInBrowser } from "#adapters/open-external.ts";
 import { selectRendererDocument } from "#adapters/renderer-document.ts";
 import { attachWindow, type WindowOpening } from "#adapters/windows/attach.ts";
 import { guardWindow } from "#adapters/windows/guard.ts";
-import { defaultConsole } from "#adapters/windows/layout.ts";
 import type { WindowShell } from "#adapters/windows/registry.ts";
 
 export const rendererDocument = Effect.sync(() =>

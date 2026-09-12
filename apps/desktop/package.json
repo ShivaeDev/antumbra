@@ -8,6 +8,7 @@
 		".": "./src/index.ts"
 	},
 	"imports": {
+		"#package.json": "./package.json",
 		"#script/*": "./script/*",
 		"#test/*": "./test/*",
 		"#*": "./src/*"

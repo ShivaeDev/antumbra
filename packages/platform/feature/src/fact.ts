@@ -4,7 +4,7 @@ import type { Fields } from "#fields.ts";
 
 const stamp = { at: Schema.Number, requestId: Request, seq: Schema.Number };
 
-const stamped = Object.keys(stamp);
+const reserved = Object.keys(stamp);
 
 export interface FactShape {
 	readonly name: string;
@@ -26,7 +26,7 @@ export type FactValue<Fact extends FactShape> = Fact["Fact"]["Type"];
 
 export function fact<Name extends string, const Payload extends Fields>(name: Name, payload: Payload): FactDefinition<Name, Payload>;
 export function fact(name: string, payload: Fields): unknown {
-	for (const field of stamped) {
+	for (const field of reserved) {
 		if (field in payload)
 			Effect.runSync(Effect.die(new Error(`the fact "${name}" declares the field "${field}", which the journal stamps on every fact`)));
 	}

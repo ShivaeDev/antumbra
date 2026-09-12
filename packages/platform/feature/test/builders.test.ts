@@ -70,6 +70,24 @@ describe("command", () => {
 		expect(Object.keys(write.Input.fields).toSorted()).toEqual(["noteId", "requestId", "text"]);
 	});
 
+	it("refuses an input field every command takes from its caller", () => {
+		const declare = () =>
+			command("write", {
+				input: { noteId: Schema.String, requestId: Schema.String },
+				reads: [note],
+				emits: noteWritten,
+				rejections: {},
+				run: Effect.fn("notes.write")(function* (input) {
+					return yield* Effect.succeed({ noteId: input.noteId, text: "" });
+				}),
+			});
+		expect(declare).toThrow('the command "write" declares the field "requestId", which every command takes from its caller');
+	});
+
+	it("accepts an input that names no reserved field", () => {
+		expect(Object.keys(write.input)).toEqual(["noteId", "text"]);
+	});
+
 	it("carries AlreadyDone beside the rejections it declared", () => {
 		expect(Object.keys(write.Rejection).toSorted()).toEqual(["AlreadyDone", "NoteIsEmpty"]);
 	});

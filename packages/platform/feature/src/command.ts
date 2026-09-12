@@ -1,5 +1,5 @@
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { type Effect, Schema } from "effect";
+import { Effect, Schema } from "effect";
 import type { FactPayload, FactShape } from "#fact.ts";
 import type { Fields, Values } from "#fields.ts";
 import type { ReadHandles } from "#handles.ts";
@@ -7,6 +7,8 @@ import { type Reject, type RejectedBy, type RejectionSpecs, type Rejections, rej
 import type { RowShape } from "#row.ts";
 
 const requested = { requestId: Request };
+
+const reserved = Object.keys(requested);
 
 export type CommandInput<Input extends Fields> = Values<Input & typeof requested>;
 
@@ -62,6 +64,10 @@ export function command<
 	const Specs extends RejectionSpecs,
 >(name: Name, declaration: Declaration<Input, Reads, Emits, Specs>): CommandDefinition<Name, Input, Reads, Emits, Specs>;
 export function command(name: string, declaration: Declaration<Fields, readonly RowShape[], FactShape, RejectionSpecs>): CommandShape {
+	for (const field of reserved) {
+		if (field in declaration.input)
+			Effect.runSync(Effect.die(new Error(`the command "${name}" declares the field "${field}", which every command takes from its caller`)));
+	}
 	const pair = rejectionPair(declaration.rejections);
 	return {
 		emits: declaration.emits,

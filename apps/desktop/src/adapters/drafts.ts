@@ -7,7 +7,7 @@ const DraftFile = Schema.fromJsonString(Schema.Record(Schema.String, DraftSnapsh
 export class ShellDrafts extends Context.Service<
 	ShellDrafts,
 	{
-		readonly read: (ref: DraftRef, legacy?: string) => Effect.Effect<DraftSnapshot>;
+		readonly read: (ref: DraftRef) => Effect.Effect<DraftSnapshot>;
 		readonly write: (ref: DraftRef, text: string) => Effect.Effect<DraftSnapshot>;
 		readonly clear: (ref: DraftRef, revision: string) => Effect.Effect<void>;
 		readonly onChanged: (listener: (ref: DraftRef, snapshot: DraftSnapshot) => void) => void;
@@ -30,8 +30,7 @@ export const ShellDraftsLayer = (directory: string) =>
 				return snapshot;
 			};
 			return {
-				read: (ref: DraftRef, legacy?: string) =>
-					Effect.sync(() => (read(ref).revision === "" && legacy !== undefined ? write(ref, legacy) : read(ref))),
+				read: (ref: DraftRef) => Effect.sync(() => read(ref)),
 				write: (ref: DraftRef, text: string) => Effect.sync(() => write(ref, text)),
 				clear: (ref: DraftRef, revision: string) =>
 					Effect.sync(() => {

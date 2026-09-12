@@ -12,7 +12,7 @@ import { indexDdl, shapeOf, tableDdl } from "#table.ts";
 
 const narrowed = row("piece", { id: PieceId, voyageId: VoyageId, title: Schema.String }, { key: "id", scope: "voyageId" });
 
-const registryFor = (rows: Registry["rows"]): Registry => ({ codecs: new Map(), materializers: new Map(), projections: [], rows });
+const registryFor = (rows: Registry["rows"]): Registry => ({ codecs: new Map(), materializers: new Map(), migrations: [], projections: [], rows });
 
 it("derives the projection table and its scope index from the row's schema", () => {
 	expect(tableDdl(piece)).toBe(

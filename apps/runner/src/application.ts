@@ -23,7 +23,13 @@ export const application = (options: Options, backends: ReadonlyMap<string, Agen
 			Layer.succeed(InputResolver, { resolve: (input) => resolveInput(paths.inputs, input).pipe(Effect.orDie) }),
 			Layer.succeed(RunnerIdentity, { runnerId: options.runnerId }),
 		);
-		return yield* runRunner({ runnerId: options.runnerId, logId: options.logId, backends: [...backends.keys()] }, makeLocalRunner(paths)).pipe(
-			Effect.provide(fabric.pipe(Layer.provideMerge(services))),
-		);
+		return yield* runRunner(
+			{
+				runnerId: options.runnerId,
+				logId: options.logId,
+				backends: [...backends.keys()],
+				imageInputBackends: [...backends].filter(([, backend]) => backend.capabilities.imageInput).map(([name]) => name),
+			},
+			makeLocalRunner(paths),
+		).pipe(Effect.provide(fabric.pipe(Layer.provideMerge(services))));
 	});

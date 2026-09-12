@@ -24,6 +24,6 @@
 	},
 	"dependencies": {
 		"effect": "catalog:",
-		"@antumbra/platform-runner": "workspace:*"
+		"@antumbra/platform-vocabulary": "workspace:*"
 	}
 }

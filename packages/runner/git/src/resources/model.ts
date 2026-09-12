@@ -1,4 +1,4 @@
-import type { Berth, ChangeEvidence, Moorage, Repo } from "@antumbra/platform-runner/resources.ts";
+import type { Berth, ChangeEvidence, Moorage, Repo } from "@antumbra/platform-vocabulary/resources.ts";
 import { Data } from "effect";
 
 export class RunnerFailure extends Data.TaggedError("RunnerFailure")<{

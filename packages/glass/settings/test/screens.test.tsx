@@ -1,4 +1,4 @@
-import { labelled, named, settle, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { click, form, labelled, named, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Option, Stream } from "effect";
@@ -6,7 +6,8 @@ import { Settings } from "#settings.tsx";
 
 it.glass("renders settings", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 9);
+	yield* renderedForm(container, "Hold everything");
+	yield* renderedForm(container, "Maximum running agents");
 	const flags = Option.getOrThrow(yield* api.settings.flags({}).pipe(Stream.runHead));
 	const counts = Option.getOrThrow(yield* api.settings.counts({}).pipe(Stream.runHead));
 	const readings = [...flags, ...counts];
@@ -18,10 +19,10 @@ it.glass("renders settings", function* ({ api, render }) {
 
 it.glass("saves a flag", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 9);
-	expect(labelled<HTMLInputElement>(container, "Hold everything On").type).toBe("checkbox");
-	yield* settle(() => labelled<HTMLInputElement>(container, "Hold everything On").click());
-	yield* submit(container, 2);
+	const holding = yield* renderedForm(container, "Hold everything");
+	expect(labelled<HTMLInputElement>(holding, "Hold everything On").type).toBe("checkbox");
+	yield* click(labelled<HTMLInputElement>(holding, "Hold everything On"));
+	yield* submit(container, "Hold everything");
 	const saved = yield* api.settings.flags({}).pipe(
 		Stream.filter((flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on)),
 		Stream.runHead,
@@ -32,10 +33,11 @@ it.glass("saves a flag", function* ({ api, render }) {
 it.glass("replaces a saved count", function* ({ api, render }) {
 	yield* api.settings.setCount({ count: 9, key: "maxParallelSessions" });
 	const container = yield* render(<Settings api={api} />);
-	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Maximum running agents Count"]')?.value === "9");
-	expect(labelled<HTMLInputElement>(container, "Maximum running agents Count").type).toBe("number");
-	yield* settle(() => write(labelled<HTMLInputElement>(container, "Maximum running agents Count"), "12"));
-	yield* submit(container, 5);
+	const running = yield* renderedForm(container, "Maximum running agents");
+	yield* until(() => labelled<HTMLInputElement>(running, "Maximum running agents Count").value === "9");
+	expect(labelled<HTMLInputElement>(running, "Maximum running agents Count").type).toBe("number");
+	yield* write(labelled<HTMLInputElement>(running, "Maximum running agents Count"), "12");
+	yield* submit(container, "Maximum running agents");
 	const saved = yield* api.settings.counts({}).pipe(
 		Stream.filter((counts) => counts.some((count) => count.key === "maxParallelSessions" && count.count === 12)),
 		Stream.runHead,
@@ -45,17 +47,17 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 
 it.glass("rejects an out-of-range count", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 9);
-	const field = labelled<HTMLInputElement>(container, "Maximum running agents Count");
-	yield* settle(() => write(field, "100"));
-	yield* submit(container, 5);
+	const running = yield* renderedForm(container, "Maximum running agents");
+	const field = labelled<HTMLInputElement>(running, "Maximum running agents Count");
+	yield* write(field, "100");
+	yield* submit(container, "Maximum running agents");
 	yield* until(() => field.getAttribute("aria-invalid") === "true");
 	expect(container.textContent).toContain("Maximum running agents takes a whole number from 1 to 64");
 });
 
 it.glass("refreshes after a command", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 9);
+	yield* renderedForm(container, "Maximum running agents");
 	yield* api.settings.setCount({ count: 13, key: "maxParallelSessions" });
-	yield* until(() => labelled<HTMLInputElement>(container, "Maximum running agents Count").value === "13");
+	yield* until(() => labelled<HTMLInputElement>(form(container, "Maximum running agents"), "Maximum running agents Count").value === "13");
 });

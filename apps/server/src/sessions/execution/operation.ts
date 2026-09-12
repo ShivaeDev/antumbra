@@ -1,5 +1,6 @@
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
 import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
+import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import type { Input } from "@antumbra/platform-runner/input.ts";
 import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import { Effect } from "effect";
@@ -22,7 +23,9 @@ export const runnerOperation = Effect.fn("Sessions.runnerOperation")(function* (
 		case "wake":
 		case "steer": {
 			const input: Input =
-				operation.inputId === null ? { id: operation.id, parts: [{ type: "text", text: operation.reason }] } : yield* edge.input(operation.inputId);
+				operation.inputId === null
+					? { id: operation.id, parts: [{ type: "text", text: operation.reason.trim() === "" ? wakeWords : operation.reason }] }
+					: yield* edge.input(operation.inputId, root.id);
 			if (attached) return { type: "Deliver", ...identity, act: "steer", input } satisfies Operation;
 			if (root.nativeRef === null) {
 				yield* holdOperation(operation.id, "The provider conversation has no native resume reference");

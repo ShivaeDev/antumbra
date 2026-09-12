@@ -1,7 +1,7 @@
+import { ChangeEvidence, Moorage } from "@antumbra/platform-vocabulary/resources.ts";
 import { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Schema } from "effect";
-import { ChangeEvidence, Moorage } from "#resources.ts";
 import { ToolCall } from "#tools.ts";
 
 const session = { requestId: Schema.String, sessionId: Schema.String };
@@ -69,5 +69,10 @@ export const LogEvent = Schema.Union([
 export type LogEvent = typeof LogEvent.Type;
 export const LogEntry = Schema.Struct({ logId: Schema.String, cursor: Schema.Int, at: Schema.Number, event: LogEvent });
 export type LogEntry = typeof LogEntry.Type;
-export const Registration = Schema.Struct({ runnerId: Schema.String, logId: Schema.String, backends: Schema.Array(Schema.String) });
+export const Registration = Schema.Struct({
+	runnerId: Schema.String,
+	logId: Schema.String,
+	backends: Schema.Array(Schema.String),
+	imageInputBackends: Schema.Array(Schema.String),
+});
 export type Registration = typeof Registration.Type;

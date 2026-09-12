@@ -20,10 +20,7 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/server": "workspace:*",
-		"@antumbra/platform-prompts": "workspace:*",
-		"@antumbra/server-journal": "workspace:*"
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",

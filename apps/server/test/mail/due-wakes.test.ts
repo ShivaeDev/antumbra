@@ -1,13 +1,14 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
-import { HAND, messageOf, sending } from "#test/kit.ts";
-import { ROOT, sessionEvidence, working } from "#test/resting.ts";
+import { HAND, messageOf, sending } from "#test/mail/kit.ts";
+import { ROOT, working } from "#test/mail/resting.ts";
 
 it.app("priority mail waits for active work to rest without being marked read", function* (app) {
-	yield* working(app);
+	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
+	const runner = yield* working(app);
 	yield* app.api.mail.send(sending("shoal"));
 	expect(yield* answered(app.api.mail.dueWakes({}))).toEqual([]);
-	yield* sessionEvidence(2, { type: "activity", state: "idle" });
+	yield* runner.rest(2);
 	expect(yield* answered(app.api.mail.dueWakes({}))).toMatchObject([
 		{ agentId: HAND, sessionId: ROOT, batch: { count: 1, precedence: "priority" }, unreadIds: [messageOf("shoal")] },
 	]);
@@ -15,8 +16,9 @@ it.app("priority mail waits for active work to rest without being marked read", 
 });
 
 it.app("routine mail waits for its threshold and includes earlier unread mail in the batch", function* (app) {
-	yield* working(app);
-	yield* sessionEvidence(2, { type: "activity", state: "idle" });
+	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
+	const runner = yield* working(app);
+	yield* runner.rest(2);
 	yield* app.api.mail.send({ ...sending("old"), precedence: "flash" });
 	yield* app.api.mail.markDelivered({ agentId: HAND, ids: [messageOf("old")] });
 	yield* app.clock.advance(60_000);

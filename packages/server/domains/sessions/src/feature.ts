@@ -10,6 +10,7 @@ import { providerEvent } from "#facts/provider-event.ts";
 import { observedMaterializer } from "#materializers/observed.ts";
 import { operationRequestedMaterializer } from "#materializers/operation-requested.ts";
 import { providerEventMaterializer } from "#materializers/provider-event.ts";
+import { operations } from "#queries/operations.ts";
 import { pending } from "#queries/pending.ts";
 import { forAgent, reading, tree } from "#queries/reading.ts";
 import { toolCall } from "#queries/tool-call.ts";
@@ -36,5 +37,5 @@ export const sessions = feature("sessions", {
 		operationRequestedMaterializer,
 		operationHeldMaterializer,
 	],
-	queries: [transcriptSources, usageAgent, toolCall, reading, tree, forAgent, pending],
+	queries: [operations, transcriptSources, usageAgent, toolCall, reading, tree, forAgent, pending],
 });

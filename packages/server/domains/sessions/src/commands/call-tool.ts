@@ -28,6 +28,7 @@ export const toolCalledMaterializer = materializer(toolCalled, {
 			yield* rows.sessionToolCall.insert({
 				id,
 				sessionId: fact.sessionId,
+				callId: fact.callId,
 				name: fact.name,
 				input: fact.input,
 				calledAt,

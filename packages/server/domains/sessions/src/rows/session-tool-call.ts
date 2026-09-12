@@ -7,6 +7,7 @@ export const sessionToolCall = row(
 	"sessionToolCall",
 	{
 		id: Schema.String,
+		callId: Schema.String,
 		sessionId: SessionId,
 		name: Schema.String,
 		input: Schema.String,

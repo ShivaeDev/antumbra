@@ -10,7 +10,7 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 	const node =
 		indexed.find((node) => node.nativeRef === evidence.nativeRef) ?? indexed.find((node) => !node.announced && node.spawnedBy === evidence.spawnedBy);
 	const calls = yield* rows.sessionToolCall.where({});
-	const caller = calls.find((call) => call.id === `${call.sessionId}:${evidence.spawnedBy}`);
+	const caller = calls.find((call) => call.callId === evidence.spawnedBy);
 	const parent = nodes.find((node) => node.id === caller?.sessionId) ?? nodes.find((node) => node.nativeRef === evidence.parentRef) ?? current;
 	if (node !== undefined) {
 		yield* rows.sessionNode.update(node.id, { announced: true, nativeRef: evidence.nativeRef, spawnedBy: evidence.spawnedBy });

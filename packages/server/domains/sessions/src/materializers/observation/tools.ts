@@ -11,6 +11,7 @@ export const tools = Effect.fn("sessions.tools")(function* (fact: Observation, r
 			yield* rows.sessionToolCall.insert({
 				id,
 				sessionId: current.id,
+				callId: evidence.callId,
 				name: evidence.name,
 				input: evidence.input,
 				answeredAt: null,

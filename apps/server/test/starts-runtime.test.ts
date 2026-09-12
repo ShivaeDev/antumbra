@@ -1,22 +1,21 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
+import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { StartId } from "@antumbra/domain-starts/ids.ts";
-import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
-import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect, Layer, Option } from "effect";
+import { Option } from "effect";
 import { expect } from "vitest";
-import { admission } from "#starts/admission.ts";
-import { execute } from "#starts/execution.ts";
-import { resources } from "#starts/resources.ts";
 
 it.app("provision refusal holds the start and explicit retry reuses its prepared resources", function* (app) {
 	const id = StartId.make("birth");
+	const agentId = AgentId.make("agent");
+	const sessionId = SessionId.make("session");
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] });
 	yield* app.api.starts.request({
 		requestId: Request.make(id),
-		agentId: AgentId.make("agent"),
-		sessionId: SessionId.make("session"),
+		agentId,
+		sessionId,
 		voyageId: null,
 		pieceId: null,
 		source: "direct",
@@ -28,55 +27,56 @@ it.app("provision refusal holds the start and explicit retry reuses its prepared
 		toolSetVersion: "frozen-v1",
 		tools: [],
 	});
-	yield* app.api.starts.admit({ requestId: Request.make("admit"), id });
-	const sent: Operation[] = [];
-	let refused = true;
-	const runner = Layer.succeed(RunnerOperations, {
-		connected: Effect.succeed([{ runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] }]),
-		execute: (_runnerId, operation) =>
-			Effect.sync(() => {
-				sent.push(operation);
-				if (operation.type === "Plan") return { type: "MooragePlanned" as const, plan: { root: "/prepared/agent", berths: [] } };
-				if (operation.type === "Provision" && refused) return { type: "Refused" as const, reason: "Repository authentication required" };
-				return { type: "Accepted" as const };
-			}),
-	});
-	const prepared = resources.pipe(Layer.provideMerge(runner));
-	const first = (yield* answered(app.api.starts.admitted({})))[0];
-	if (first === undefined) return yield* Effect.die("Missing admitted start");
-	yield* execute(first).pipe(Effect.provide(prepared));
-	expect(yield* answered(app.api.starts.bySession({ sessionId: first.sessionId }))).toMatchObject({
-		status: "waiting",
+	const plan = yield* runner.next;
+	expect(plan.type).toBe("Plan");
+	yield* runner.reply(plan.requestId, { type: "MooragePlanned", plan: { root: "/prepared/agent", berths: [] } });
+	const provision = yield* runner.next;
+	expect(provision.type).toBe("Provision");
+	yield* runner.reply(provision.requestId, { type: "Refused", reason: "Repository authentication required" });
+	expect(yield* eventually(app.api.starts.bySession({ sessionId }), (birth) => birth?.status === "waiting")).toMatchObject({
 		detail: "Repository authentication required",
 	});
-	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId: first.agentId })))).toMatchObject({
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({
 		root: "/prepared/agent",
 		status: "provisioning",
 	});
-	expect(yield* app.rows.session.count({})).toBe(0);
-	refused = false;
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toBeNull();
 	yield* app.api.starts.retry({ requestId: Request.make("retry"), id });
-	yield* app.api.starts.admit({ requestId: Request.make("readmit"), id });
-	const retried = (yield* answered(app.api.starts.admitted({})))[0];
-	if (retried === undefined) return yield* Effect.die("Missing retried start");
-	yield* execute(retried).pipe(Effect.provide(prepared));
-	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId: first.agentId })))).toMatchObject({
-		root: "/prepared/agent",
-		status: "ready",
-	});
-	expect(sent.find((operation) => operation.type === "Start")).toMatchObject({
+	const retry = yield* runner.next;
+	expect(retry).toMatchObject({ type: "Provision", requestId: "retry:provision", plan: { root: "/prepared/agent", berths: [] } });
+	yield* runner.reply(retry.requestId, { type: "Accepted" });
+	const start = yield* runner.next;
+	expect(start).toMatchObject({
+		type: "Start",
 		requestId: "retry",
-		sessionId: "session",
-		options: {
-			cwd: "/prepared/agent",
-			model: "chosen-model",
-			effort: "high",
-			toolSet: { version: "frozen-v1", tools: [] },
-		},
+		sessionId,
+		options: { cwd: "/prepared/agent", model: "chosen-model", effort: "high", toolSet: { version: "frozen-v1", tools: [] } },
 		charter: { id: "birth:charter", parts: [{ type: "text", text: "Inspect the assigned reef" }] },
 	});
-	expect(yield* app.rows.session.count({})).toBe(0);
-	expect(yield* answered(app.api.agents.byId({ id: first.agentId }))).toMatchObject({ status: "spawning" });
+	yield* runner.reply(start.requestId, { type: "Accepted" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toBeNull();
+	expect(yield* answered(app.api.agents.byId({ id: agentId }))).toMatchObject({ status: "spawning" });
+	yield* runner.append([
+		{
+			logId: "log",
+			cursor: 0,
+			at: 0,
+			event: {
+				type: "SessionStarted",
+				requestId: start.requestId,
+				sessionId,
+				agentId,
+				backend: "claude",
+				cwd: "/prepared/agent",
+				nativeRef: "native",
+				runnerId: "runner",
+				toolSetVersion: "frozen-v1",
+			},
+		},
+		{ logId: "log", cursor: 1, at: 0, event: { type: "InputAccepted", requestId: start.requestId, sessionId, inputId: "birth:charter" } },
+	]);
+	expect(yield* answered(app.api.agents.byId({ id: agentId }))).toMatchObject({ status: "alive" });
+	expect(yield* answered(app.api.starts.bySession({ sessionId }))).toMatchObject({ status: "running" });
 });
 
 it.app("raising the running budget admits the next held birth", function* (app) {
@@ -99,7 +99,6 @@ it.app("raising the running budget admits the next held birth", function* (app) 
 		});
 		yield* app.clock.advance(1);
 	}
-	yield* admission;
 	expect((yield* eventually(app.api.starts.admitted({}), (births) => births.length === 1)).map((birth) => birth.id)).toEqual(["first"]);
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 2 });
 	expect((yield* eventually(app.api.starts.admitted({}), (births) => births.length === 2)).map((birth) => birth.id)).toEqual(["first", "second"]);

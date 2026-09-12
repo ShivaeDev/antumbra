@@ -1,4 +1,4 @@
-import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
@@ -10,6 +10,23 @@ it.app("dispatch queues eligible work once and cancels its pending birth when pa
 	const voyageId = VoyageId.make("voyage");
 	const prerequisite = PieceId.make("prerequisite");
 	const dependant = PieceId.make("dependant");
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 1 });
+	yield* app.api.starts.request({
+		requestId: Request.make("occupying"),
+		agentId: AgentId.make("occupying"),
+		sessionId: SessionId.make("occupying-session"),
+		voyageId: null,
+		pieceId: null,
+		source: "direct",
+		backend: "claude",
+		model: null,
+		effort: null,
+		role: "crew",
+		charter: "Other work",
+		toolSetVersion: "crew-v1",
+		tools: [],
+	});
+	yield* eventually(app.api.starts.admitted({}), (births) => births.some((birth) => birth.id === "occupying"));
 	yield* app.api.voyages.open({
 		requestId: Request.make(voyageId),
 		name: "Reef",
@@ -35,23 +52,12 @@ it.app("dispatch queues eligible work once and cancels its pending birth when pa
 		});
 		yield* app.api.pieces.launch({ id });
 	}
-	expect((yield* answered(app.api.starts.dispatch({}))).ready.map((candidate) => candidate.piece.id)).toEqual([prerequisite]);
-	yield* app.api.starts.request({
-		requestId: Request.make("birth"),
-		agentId: AgentId.make("agent"),
-		sessionId: SessionId.make("session"),
-		voyageId,
-		pieceId: prerequisite,
-		source: "dispatch",
-		backend: "claude",
-		model: null,
-		effort: null,
-		role: "crew",
-		charter: "Survey",
-		toolSetVersion: "crew-v1",
-		tools: [],
-	});
+	const queued = yield* eventually(app.api.starts.all({}), (births) => births.some((birth) => birth.pieceId === prerequisite));
+	expect(queued.filter((birth) => birth.pieceId !== null)).toMatchObject([{ pieceId: prerequisite, source: "dispatch", status: "requested" }]);
+	const pending = queued.find((birth) => birth.pieceId === prerequisite);
 	expect((yield* answered(app.api.starts.dispatch({}))).ready).toEqual([]);
 	yield* app.api.pieces.park({ id: prerequisite });
-	expect((yield* answered(app.api.starts.dispatch({}))).cancel.map((birth) => birth.id)).toEqual(["birth"]);
+	expect(
+		yield* eventually(app.api.starts.all({}), (births) => births.some((birth) => birth.id === pending?.id && birth.status === "cancelled")),
+	).toEqual(expect.arrayContaining([expect.objectContaining({ id: pending?.id, status: "cancelled" })]));
 });

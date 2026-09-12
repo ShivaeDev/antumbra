@@ -1,10 +1,10 @@
 import { ChangeEvidence, Moorage } from "@antumbra/platform-vocabulary/resources.ts";
+import { ToolSet } from "@antumbra/platform-vocabulary/tool-set.ts";
 import { Schema } from "effect";
 import { ListModels, ModelsListed } from "#catalog.ts";
 import { DeliveryAct, Input } from "#input.ts";
 import { LogEntry } from "#log.ts";
 import { CaptureChange, Plan, Provision, PushChange, Reclaim, Scrap } from "#resources.ts";
-import { ToolSet } from "#tools.ts";
 
 const identity = { requestId: Schema.String, sessionId: Schema.String };
 export const SessionOptions = Schema.Struct({

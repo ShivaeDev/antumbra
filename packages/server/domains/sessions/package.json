@@ -28,6 +28,7 @@
 		"effect": "catalog:",
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*"
+		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/domain-capacity": "workspace:*"
 	}
 }

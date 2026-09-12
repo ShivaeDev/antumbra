@@ -1,13 +1,13 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect, Option } from "effect";
 import { observed } from "#facts/observed.ts";
-import { activity } from "#materializers/observation/activity.ts";
-import { attribute } from "#materializers/observation/attribute.ts";
-import { settle } from "#materializers/observation/settle.ts";
-import { start } from "#materializers/observation/start.ts";
-import { tools } from "#materializers/observation/tools.ts";
-import { tree } from "#materializers/observation/tree.ts";
-import { writes } from "#materializers/observation/types.ts";
+import { activity } from "#materializers/observation-activity.ts";
+import { attribute } from "#materializers/observation-attribute.ts";
+import { settle } from "#materializers/observation-settle.ts";
+import { start } from "#materializers/observation-start.ts";
+import { tools } from "#materializers/observation-tools.ts";
+import { tree } from "#materializers/observation-tree.ts";
+import { writes } from "#materializers/observation-types.ts";
 export const observedMaterializer = materializer(observed, {
 	writes,
 	run: Effect.fn("sessions.observed")(function* (fact, rows) {

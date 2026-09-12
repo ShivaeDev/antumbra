@@ -1,5 +1,5 @@
 import { Effect, Option } from "effect";
-import type { Observation, Rows, Session } from "#materializers/observation/types.ts";
+import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 export const tools = Effect.fn("sessions.tools")(function* (fact: Observation, rows: Rows, current: Session) {
 	const evidence = fact.evidence;
 	const at = new Date(fact.at).toISOString();

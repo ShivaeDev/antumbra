@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { Observation, Rows } from "#materializers/observation/types.ts";
+import type { Observation, Rows } from "#materializers/observation-types.ts";
 export const start = Effect.fn("sessions.start")(function* (fact: Observation, rows: Rows) {
 	const evidence = fact.evidence;
 	const at = new Date(fact.at).toISOString();

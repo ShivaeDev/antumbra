@@ -1,6 +1,6 @@
 import { Effect, Option } from "effect";
 import { SessionId } from "#ids.ts";
-import type { Observation, Rows, Session } from "#materializers/observation/types.ts";
+import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 
 export const attribute = Effect.fn("Sessions.attribute")(function* (fact: Observation, rows: Rows, root: Session, nodes: readonly Session[]) {
 	const origin = fact.origin;

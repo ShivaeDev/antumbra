@@ -1,6 +1,6 @@
 import { Effect, Option } from "effect";
 import { SessionId } from "#ids.ts";
-import type { Observation, Rows, Session } from "#materializers/observation/types.ts";
+import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 
 const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: Rows, current: Session, nodes: readonly Session[]) {
 	const evidence = fact.evidence;

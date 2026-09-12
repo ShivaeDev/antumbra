@@ -1,6 +1,6 @@
 import { Effect } from "effect";
 import { SessionOperationId } from "#ids.ts";
-import type { Observation, Rows, Session } from "#materializers/observation/types.ts";
+import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 
 const receiptStatus = (evidence: Observation["evidence"]): "ambiguous" | "waiting" | "accepted" => {
 	if (evidence.type === "input-ambiguous") return "ambiguous";

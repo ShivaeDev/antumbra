@@ -19,6 +19,7 @@ import { usageAgent } from "#queries/usage.ts";
 import { tree } from "#queries/tree.ts";
 import { session } from "#rows/session.ts";
 import { sessionEvent } from "#rows/session-event.ts";
+import { sessionCapacityWait } from "#rows/session-capacity-wait.ts";
 import { sessionGap } from "#rows/session-gap.ts";
 import { sessionNode } from "#rows/session-node.ts";
 import { sessionOperation } from "#rows/session-operation.ts";
@@ -26,7 +27,7 @@ import { sessionStartResult } from "#rows/session-start-result.ts";
 import { sessionToolCall } from "#rows/session-tool-call.ts";
 import { sessionUsage } from "#rows/session-usage.ts";
 export const sessions = feature("sessions", {
-	rows: [sessionEvent, sessionUsage, session, sessionOperation, sessionToolCall, sessionStartResult, sessionNode, sessionGap],
+	rows: [sessionCapacityWait, sessionEvent, sessionUsage, session, sessionOperation, sessionToolCall, sessionStartResult, sessionNode, sessionGap],
 	facts: [providerEvent, toolCalled, operationRetried, toolAnswered, observed, operationRequested, operationHeld],
 	commands: [request, retry],
 	materializers: [

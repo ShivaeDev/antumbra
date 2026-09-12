@@ -3,6 +3,7 @@ import { Effect, Option } from "effect";
 import { observed } from "#facts/observed.ts";
 import { activity } from "#materializers/observation-activity.ts";
 import { attribute } from "#materializers/observation-attribute.ts";
+import { census } from "#materializers/observation-census.ts";
 import { settle } from "#materializers/observation-settle.ts";
 import { start } from "#materializers/observation-start.ts";
 import { tools } from "#materializers/observation-tools.ts";
@@ -18,6 +19,7 @@ export const observedMaterializer = materializer(observed, {
 		const nodes = yield* rows.session.where({ rootSessionId: root.value.rootSessionId });
 		const current = yield* attribute(fact, rows, root.value, nodes);
 		yield* tree(fact, rows, current, nodes);
+		yield* census(fact, rows, root.value);
 		yield* activity(fact, rows, current, nodes);
 		yield* tools(fact, rows, current);
 		yield* settle(fact, rows, current);

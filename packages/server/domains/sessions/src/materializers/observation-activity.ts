@@ -5,15 +5,14 @@ export const activity = Effect.fn("sessions.activity")(function* (fact: Observat
 	const at = new Date(fact.at).toISOString();
 
 	if (evidence.type === "native") yield* rows.session.update(current.id, { nativeRef: evidence.nativeRef });
-	if (evidence.type === "activity")
+	if (evidence.type === "activity" && fact.live)
 		yield* rows.session.update(current.id, { executionStatus: evidence.state, idleSince: evidence.state === "idle" ? at : null });
-	if (evidence.type === "background") yield* rows.session.update(current.id, { openDelegations: evidence.count });
+	if (evidence.type === "background" && fact.live) yield* rows.session.update(current.id, { openDelegations: evidence.count });
 	if (evidence.type === "gap") {
 		yield* rows.sessionGap.insert({ id: `${fact.seq}:gap`, sessionId: current.id, kind: evidence.kind, detail: evidence.detail, observedAt: at });
 		yield* rows.session.update(current.id, { completeness: "incomplete" });
 	}
-	if (evidence.type === "woke")
-		yield* rows.session.update(current.id, { attached: true, runnerId: evidence.runnerId, executionStatus: "active", idleSince: null });
+	if (evidence.type === "woke") yield* rows.session.update(current.id, { attached: true, runnerId: evidence.runnerId });
 	if (evidence.type === "detached") yield* rows.session.update(current.id, { attached: false });
 	if (evidence.type === "slept") yield* rows.session.update(current.id, { attached: false, executionStatus: "idle", idleSince: at });
 	yield* end(fact, rows, current, nodes);

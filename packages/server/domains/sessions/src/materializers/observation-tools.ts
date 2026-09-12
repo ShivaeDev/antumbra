@@ -1,6 +1,7 @@
 import { Effect, Option } from "effect";
 import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 export const tools = Effect.fn("sessions.tools")(function* (fact: Observation, rows: Rows, current: Session) {
+	if (!fact.live) return;
 	const evidence = fact.evidence;
 	const at = new Date(fact.at).toISOString();
 
@@ -28,7 +29,7 @@ export const tools = Effect.fn("sessions.tools")(function* (fact: Observation, r
 		const id = `${current.id}:${evidence.callId}`;
 		const call = yield* rows.sessionToolCall.find(id);
 		if (Option.isSome(call) && call.value.answeredAt === null) {
-			yield* rows.sessionToolCall.update(id, { answeredAt: at });
+			yield* rows.sessionToolCall.update(id, { answeredAt: at, answer: evidence.answer ?? call.value.answer });
 			yield* rows.session.update(current.id, { toolCalls: Math.max(0, current.toolCalls - 1) });
 		}
 	}

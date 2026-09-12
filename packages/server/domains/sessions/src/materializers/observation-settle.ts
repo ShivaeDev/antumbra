@@ -1,4 +1,4 @@
-import { Effect } from "effect";
+import { Effect, Option } from "effect";
 import { SessionOperationId } from "#ids.ts";
 import type { Observation, Rows, Session } from "#materializers/observation-types.ts";
 
@@ -23,10 +23,11 @@ export const settle = Effect.fn("sessions.settle")(function* (fact: Observation,
 		["slept", "ended", "failed", "input-accepted", "input-failed", "input-ambiguous", "interrupted"].includes(evidence.type)
 	) {
 		const id = SessionOperationId.make(fact.operationId);
-		if (yield* rows.sessionOperation.exists(id))
-			yield* rows.sessionOperation.update(id, {
-				status: receiptStatus(evidence),
-				detail: "reason" in evidence ? evidence.reason : null,
-			});
+		const operation = yield* rows.sessionOperation.find(id);
+		if (Option.isNone(operation) || operation.value.status === "cancelled") return;
+		yield* rows.sessionOperation.update(id, {
+			status: receiptStatus(evidence),
+			detail: "reason" in evidence ? evidence.reason : null,
+		});
 	}
 });

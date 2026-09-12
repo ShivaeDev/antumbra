@@ -1,8 +1,9 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
+import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { SessionId } from "#ids.ts";
+import { SessionId, SessionOperationId } from "#ids.ts";
 
 const sessionId = SessionId.make("session");
 const registration = { runnerId: "runner", logId: "runner-log", backends: ["claude"] };
@@ -49,6 +50,7 @@ it.app("sleep waits for tools and rejects a delegated node as an operation targe
 			cursor: 3,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId,
 				event: { type: "subsession.opened", subsessionRef: "child", spawnedBy: "call", label: "Explorer", kind: "task", raw },
 			},
@@ -69,6 +71,7 @@ it.app("late delegated discovery retains attribution and its gap when the node e
 			cursor: 1,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId,
 				event: { type: "session.state", state: "running", origin: { node: "child", spawnedBy: "spawn" }, raw },
 			},
@@ -78,6 +81,7 @@ it.app("late delegated discovery retains attribution and its gap when the node e
 			cursor: 2,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId,
 				event: { type: "subsession.opened", subsessionRef: "child", spawnedBy: "spawn", label: "Explorer", kind: "task", raw },
 			},
@@ -85,7 +89,12 @@ it.app("late delegated discovery retains attribution and its gap when the node e
 		{
 			...source,
 			cursor: 3,
-			event: { type: "ProviderEvent", sessionId, event: { type: "subsession.ended", subsessionRef: "child", outcome: "completed", raw } },
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: { type: "subsession.ended", subsessionRef: "child", outcome: "completed", raw },
+			},
 		},
 	]);
 	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
@@ -97,4 +106,29 @@ it.app("late delegated discovery retains attribution and its gap when the node e
 		outcome: "completed",
 		completeness: "incomplete",
 	});
+});
+
+it.app("an uncertain provider handoff remains held and cannot be resent by retry", function* (app) {
+	const runner = yield* connectRunner(registration);
+	yield* runner.append([{ ...source, cursor: 0, event: start }]);
+	yield* app.api.sessions.request({
+		requestId: Request.make("send"),
+		sessionId,
+		kind: "steer",
+		inputId: null,
+		reason: "Check the current result",
+		requestedAt: new Date(100).toISOString(),
+	});
+	const operation = yield* runner.next;
+	expect(operation).toMatchObject({ type: "Deliver", requestId: "send", act: "steer" });
+	yield* runner.append([
+		{
+			...source,
+			cursor: 1,
+			event: { type: "InputAmbiguous", sessionId, requestId: "send", inputId: "send", reason: "Provider receipt is uncertain" },
+		},
+	]);
+	yield* runner.reply("send", { type: "Accepted" });
+	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([expect.objectContaining({ id: "send", status: "ambiguous" })]);
+	expect(yield* Effect.flip(app.api.sessions.retry({ id: SessionOperationId.make("send") }))).toMatchObject({ _tag: "Unavailable" });
 });

@@ -1,9 +1,12 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { Origin } from "@antumbra/platform-vocabulary/session-events/origin.ts";
+import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
 
 export const Evidence = Schema.Union([
+	Schema.Struct({ type: Schema.Literal("census"), nodes: Schema.Array(Schema.Struct({ nativeRef: Schema.String, working: Schema.Boolean })) }),
+	Schema.Struct({ type: Schema.Literal("node-audited"), nativeRef: Schema.String }),
 	Schema.Struct({ type: Schema.Literals(["input-failed", "input-ambiguous"]), inputId: Schema.String, reason: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("node-seen") }),
 	Schema.Struct({
@@ -31,11 +34,12 @@ export const Evidence = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("closed"), nativeRef: Schema.String, outcome: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("gap"), kind: Schema.String, detail: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("tool-called"), callId: Schema.String, name: Schema.String, input: Schema.String }),
-	Schema.Struct({ type: Schema.Literal("tool-answered"), callId: Schema.String }),
+	Schema.Struct({ type: Schema.Literal("tool-answered"), callId: Schema.String, answer: Schema.NullOr(ToolAnswer) }),
 	Schema.Struct({ type: Schema.Literal("input-accepted"), inputId: Schema.String }),
 ]);
 export const observed = fact("SessionObserved", {
 	sessionId: SessionId,
+	live: Schema.Boolean,
 	nodeRef: Schema.NullOr(Schema.String),
 	origin: Schema.NullOr(Origin),
 	operationId: Schema.NullOr(Schema.String),

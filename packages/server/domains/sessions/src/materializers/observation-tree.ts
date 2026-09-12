@@ -13,17 +13,14 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 	const caller = calls.find((call) => call.callId === evidence.spawnedBy);
 	const parent = nodes.find((node) => node.id === caller?.sessionId) ?? nodes.find((node) => node.nativeRef === evidence.parentRef) ?? current;
 	if (node !== undefined) {
+		const stored = yield* rows.session.get(node.id);
 		yield* rows.sessionNode.update(node.id, { announced: true, nativeRef: evidence.nativeRef, spawnedBy: evidence.spawnedBy });
 		yield* rows.session.update(node.id, {
-			status: "open",
-			executionStatus: "active",
-			attached: true,
-			outcome: null,
-			completeness: "recording",
-			parentSessionId: parent.id,
+			...(fact.live ? { status: "open", executionStatus: "active", attached: true, outcome: null, completeness: "recording" } : {}),
+			parentSessionId: node.announced ? stored.parentSessionId : parent.id,
 			nativeRef: evidence.nativeRef,
-			label: evidence.label,
-			kind: evidence.kind,
+			label: evidence.label ?? stored.label,
+			kind: evidence.kind ?? stored.kind,
 		});
 		if (!node.announced)
 			yield* rows.sessionGap.insert({
@@ -43,7 +40,7 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 		parentSessionId: parent.id,
 		label: evidence.label,
 		kind: evidence.kind,
-		executionStatus: "active",
+		executionStatus: fact.live ? "active" : "idle",
 		status: "open",
 		completeness: "recording",
 		outcome: null,
@@ -51,7 +48,7 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 		idleSince: null,
 		toolCalls: 0,
 		openDelegations: 0,
-		attached: true,
+		attached: fact.live,
 		charterDeliveredAt: null,
 	});
 	yield* rows.sessionNode.insert({
@@ -66,19 +63,23 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 export const tree = Effect.fn("Sessions.treeEvidence")(function* (fact: Observation, rows: Rows, current: Session, nodes: readonly Session[]) {
 	yield* open(fact, rows, current, nodes);
 	const evidence = fact.evidence;
-	if (evidence.type !== "closed") return;
+	if (evidence.type !== "closed" && evidence.type !== "node-audited") return;
 	const indexed = yield* rows.sessionNode.where({ rootSessionId: current.rootSessionId, nativeRef: evidence.nativeRef });
 	const index = indexed[0];
 	if (index === undefined) return;
 	const node = yield* rows.session.find(index.id);
 	if (Option.isNone(node)) return;
 	const gaps = yield* rows.sessionGap.count({ sessionId: index.id });
+	if (evidence.type === "node-audited") {
+		if (node.value.completeness !== "unaudited") yield* rows.session.update(index.id, { completeness: gaps > 0 ? "incomplete" : "complete" });
+		return;
+	}
 	yield* rows.session.update(index.id, {
 		status: "closed",
 		executionStatus: "idle",
 		attached: false,
 		outcome: evidence.outcome,
-		completeness: gaps > 0 ? "incomplete" : "complete",
+		completeness: gaps > 0 ? "incomplete" : "recording",
 		idleSince: new Date(fact.at).toISOString(),
 	});
 });

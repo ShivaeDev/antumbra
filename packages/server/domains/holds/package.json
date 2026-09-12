@@ -20,7 +20,8 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-pieces": "workspace:*",

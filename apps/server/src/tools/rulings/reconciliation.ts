@@ -4,8 +4,8 @@ import { markDelivered } from "@antumbra/domain-rulings/commands/mark-delivered.
 import { delivery, type RulingDelivery } from "@antumbra/domain-rulings/queries/delivery.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
-import { Effect, Layer, Stream } from "effect";
+import { run } from "@antumbra/server-journal/reconcile.ts";
+import { Effect } from "effect";
 import { replayed } from "#tools/rulings/runtime.ts";
 
 const deliver = Effect.fn("rulings.deliver")(function* (notice: RulingDelivery) {
@@ -30,18 +30,6 @@ const deliver = Effect.fn("rulings.deliver")(function* (notice: RulingDelivery) 
 			}),
 		);
 });
-export const rulingReconciliation = Layer.effectDiscard(
-	Effect.gen(function* () {
-		const live = yield* Live;
-		yield* live.live(delivery, {}).pipe(
-			Stream.runForEach((notices) =>
-				Effect.forEach(
-					notices,
-					(notice) => deliver(notice).pipe(Effect.catchCause((cause) => Effect.logError("A ruling notice could not be delivered", cause))),
-					{ discard: true },
-				),
-			),
-			Effect.forkScoped,
-		);
-	}),
+export const rulingReconciliation = run(delivery, {}, (notices) =>
+	Effect.forEach(notices, (notice) => deliver(notice).pipe(Effect.orDie), { discard: true }),
 );

@@ -6,6 +6,8 @@ import { reconcile as mail } from "#mail/reconcile.ts";
 import { reconcile as resources } from "#resources/reconcile.ts";
 import { resumeCapacity } from "#sessions/capacity.ts";
 import { reconcile as sessions } from "#sessions/reconcile.ts";
+import { prepareSmoother } from "#smoothing/prepare.ts";
+import { smoothing } from "#smoothing/run.ts";
 import { runtime as starts } from "#starts/runtime.ts";
 
 export class ServerRuntime extends Context.Service<ServerRuntime, { readonly await: Effect.Effect<void> }>()("@antumbra/server/Runtime") {}
@@ -19,7 +21,9 @@ export const runtime = Layer.effect(
 		const reconnect = reactivity
 			.stream(["runner:connected"], runners.connected)
 			.pipe(Stream.runForEach(() => Effect.forEach(workers, (worker) => worker.refresh, { discard: true })));
-		const supervisor = yield* Effect.forkScoped(Effect.raceAllFirst([...workers.map((worker) => worker.await), reconnect]));
+		const supervisor = yield* Effect.forkScoped(
+			Effect.raceAllFirst([...workers.map((worker) => worker.await), reconnect, smoothing(prepareSmoother)]),
+		);
 		return { await: Fiber.join(supervisor) };
 	}),
 );

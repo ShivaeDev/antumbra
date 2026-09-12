@@ -1,4 +1,4 @@
-import { providers } from "@antumbra/domain-capacity/queries.ts";
+import { providers } from "@antumbra/domain-capacity/queries/providers.ts";
 import { holdCapacity } from "@antumbra/domain-sessions/commands/hold.ts";
 import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";

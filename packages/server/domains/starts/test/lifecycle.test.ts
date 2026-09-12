@@ -1,10 +1,9 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { StartId } from "#ids.ts";
@@ -65,16 +64,16 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 	const creation = birth("one");
 	yield* app.api.starts.request(creation);
 	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("admit") });
-	const commit = yield* Commit;
-	const source = { logId: "runner", at: 100, requestId: Id.Request.make("observation") };
-	const identity = { sessionId: creation.sessionId, nodeRef: null, origin: null, operationId: "one" };
-	yield* commit.observe(observed, {
-		...source,
-		cursor: 0,
-		payload: {
-			...identity,
-			evidence: {
-				type: "started",
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
+	const source = { logId: "runner", at: 100 };
+	const identity = { sessionId: creation.sessionId, requestId: "one" };
+	yield* runner.append([
+		{
+			...source,
+			cursor: 0,
+			event: {
+				...identity,
+				type: "SessionStarted",
 				agentId: creation.agentId,
 				backend: "claude",
 				cwd: "/moorage",
@@ -83,9 +82,9 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 				toolSetVersion: "1",
 			},
 		},
-	});
+	]);
 	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({ status: "spawning", presence: "idle" });
-	yield* commit.observe(observed, { ...source, cursor: 1, payload: { ...identity, evidence: { type: "input-accepted", inputId: "charter" } } });
+	yield* runner.append([{ ...source, cursor: 1, event: { ...identity, type: "InputAccepted", inputId: "charter" } }]);
 	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({
 		status: "alive",
 		presence: "working",
@@ -97,7 +96,7 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 	expect(yield* Effect.flip(app.api.agents.retire({ id: creation.agentId, requestId: Id.Request.make("retire-working") }))).toMatchObject({
 		_tag: "Working",
 	});
-	yield* commit.observe(observed, { ...source, cursor: 2, payload: { ...identity, evidence: { type: "slept", reason: "rest" } } });
+	yield* runner.append([{ ...source, cursor: 2, event: { ...identity, type: "SessionSlept" } }]);
 	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({
 		status: "alive",
 		presence: "asleep",
@@ -110,20 +109,15 @@ it.app("failed start waits and explicit retry has a new deduplicated edge reques
 	const creation = birth("one");
 	yield* app.api.starts.request(creation);
 	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("admit") });
-	const commit = yield* Commit;
-	yield* commit.observe(observed, {
-		logId: "runner",
-		at: 100,
-		requestId: Id.Request.make("failure"),
-		cursor: 0,
-		payload: {
-			sessionId: creation.sessionId,
-			nodeRef: null,
-			origin: null,
-			operationId: "one",
-			evidence: { type: "failed", reason: "Sign in required" },
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
+	yield* runner.append([
+		{
+			logId: "runner",
+			at: 100,
+			cursor: 0,
+			event: { type: "SessionFailed", requestId: "one", sessionId: creation.sessionId, reason: "Sign in required" },
 		},
-	});
+	]);
 	expect(yield* answered(app.api.starts.bySession({ sessionId: creation.sessionId }))).toMatchObject({
 		status: "waiting",
 		detail: "Sign in required",
@@ -157,16 +151,16 @@ it.app("smoothing reuses its Agent across fresh constrained sessions", function*
 	const input = { ...initial, voyageId, constrainedPrompt: "Summarize only", cwd: null };
 	yield* app.api.starts.smooth(input);
 	yield* app.api.starts.admit({ id: StartId.make("smooth-one"), requestId: Id.Request.make("admit") });
-	const commit = yield* Commit;
-	const source = { logId: "smooth-log", at: 100, requestId: Id.Request.make("log") };
-	const identity = { sessionId: input.sessionId, nodeRef: null, origin: null, operationId: "smooth-one" };
-	yield* commit.observe(observed, {
-		...source,
-		cursor: 0,
-		payload: {
-			...identity,
-			evidence: {
-				type: "started",
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
+	const source = { logId: "runner", at: 100 };
+	const identity = { sessionId: input.sessionId, requestId: "smooth-one" };
+	yield* runner.append([
+		{
+			...source,
+			cursor: 0,
+			event: {
+				...identity,
+				type: "SessionStarted",
 				agentId: input.agentId,
 				backend: "claude",
 				cwd: "/smooth",
@@ -175,9 +169,9 @@ it.app("smoothing reuses its Agent across fresh constrained sessions", function*
 				toolSetVersion: "1",
 			},
 		},
-	});
-	yield* commit.observe(observed, { ...source, cursor: 1, payload: { ...identity, evidence: { type: "input-accepted", inputId: "charter" } } });
-	yield* commit.observe(observed, { ...source, cursor: 2, payload: { ...identity, evidence: { type: "ended", reason: "complete" } } });
+	]);
+	yield* runner.append([{ ...source, cursor: 1, event: { ...identity, type: "InputAccepted", inputId: "charter" } }]);
+	yield* runner.append([{ ...source, cursor: 2, event: { ...identity, type: "SessionEnded", reason: "complete" } }]);
 	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({ id: input.agentId, status: "alive", currentSessionId: null });
 	const next = {
 		...input,

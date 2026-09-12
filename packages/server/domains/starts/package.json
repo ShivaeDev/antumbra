@@ -20,7 +20,8 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/server-journal": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
@@ -33,7 +34,6 @@
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-capacity": "workspace:*",
 		"@antumbra/domain-reclamation": "workspace:*",
-		"@antumbra/platform-runner": "workspace:*",
-		"@antumbra/server-journal": "workspace:*"
+		"@antumbra/platform-runner": "workspace:*"
 	}
 }

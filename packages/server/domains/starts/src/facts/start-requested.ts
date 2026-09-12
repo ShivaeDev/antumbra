@@ -5,6 +5,7 @@ import { start } from "#rows/start.ts";
 export const startRequested = fact("StartRequested", {
 	wakeSessionId: Schema.NullOr(SessionId),
 	id: start.fields.id,
+	source: start.fields.source,
 	agentId: start.fields.agentId,
 	sessionId: start.fields.sessionId,
 	voyageId: start.fields.voyageId,

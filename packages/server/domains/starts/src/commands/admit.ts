@@ -1,5 +1,6 @@
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
+import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { COUNTS } from "@antumbra/domain-settings/ids.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
@@ -11,9 +12,10 @@ import { StartId } from "#ids.ts";
 import { start } from "#rows/start.ts";
 export const admit = command("admit", {
 	input: { id: StartId },
-	reads: [start, agent, session, count, flag, capacity],
+	reads: [pieceProgress, start, agent, session, count, flag, capacity],
 	emits: startAdmitted,
 	rejections: {
+		NotEligible: { id: Schema.String },
 		Unknown: { id: Schema.String },
 		NotRequested: { id: Schema.String },
 		Held: { reason: Schema.String },
@@ -25,8 +27,12 @@ export const admit = command("admit", {
 		if (Option.isNone(found)) return yield* reject.Unknown({ id: input.id });
 		const held = found.value;
 		if (held.status !== "requested") return yield* reject.NotRequested({ id: input.id });
+		const eligibility = new Map((yield* rows.pieceProgress.where({})).map((value) => [value.id, value.eligible]));
+		const eligible = (value: typeof start.Row.Type) =>
+			value.source !== "dispatch" || value.pieceId === null || eligibility.get(value.pieceId) === true;
+		if (!eligible(held)) return yield* reject.NotEligible({ id: held.id });
 		const flags = yield* rows.flag.where({});
-		if (flags.some((value) => value.on && (value.key === "holdEverything" || (held.pieceId !== null && value.key === "holdPieceDispatch"))))
+		if (held.source === "dispatch" && flags.some((value) => value.on && (value.key === "holdEverything" || value.key === "holdPieceDispatch")))
 			return yield* reject.Held({ reason: "dispatch held" });
 		const capacities = yield* rows.capacity.where({});
 		if (capacities.some((value) => value.backend === held.backend && value.status === "blocked"))
@@ -36,8 +42,9 @@ export const admit = command("admit", {
 			.filter(
 				(value) =>
 					value.status === "requested" &&
+					eligible(value) &&
 					!capacities.some((c) => c.backend === value.backend && c.status === "blocked") &&
-					!(value.pieceId !== null && flags.some((f) => f.on && f.key === "holdPieceDispatch")),
+					!(value.source === "dispatch" && flags.some((f) => f.on && (f.key === "holdPieceDispatch" || f.key === "holdEverything"))),
 			)
 			.toSorted((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))[0];
 		if (oldest !== undefined && oldest.id !== held.id) return yield* reject.NotOldest({ id: oldest.id });

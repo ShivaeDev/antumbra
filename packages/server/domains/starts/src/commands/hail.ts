@@ -43,6 +43,7 @@ export const hail = command("hail", {
 			effort: input.effort,
 			role: "captain",
 			charter: input.charter,
+			source: "direct" as const,
 			toolSetVersion: input.toolSetVersion,
 			tools: input.tools,
 		};

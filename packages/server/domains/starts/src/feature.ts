@@ -3,6 +3,8 @@ import { pieceAgent } from "@antumbra/domain-agents/rows/piece-agent.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
+import { pieceAssignmentWork } from "@antumbra/domain-pieces/rows/piece-assignment-work.ts";
+import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { sessionStartResult } from "@antumbra/domain-sessions/rows/session-start-result.ts";
@@ -32,7 +34,22 @@ import { bySession } from "#queries/by-session.ts";
 import { pending } from "#queries/pending.ts";
 import { start } from "#rows/start.ts";
 export const starts = feature("starts", {
-	rows: [sessionStartResult, start, agent, pieceAgent, voyageAgent, piece, voyage, session, sessionOperation, count, flag, capacity],
+	rows: [
+		pieceAssignmentWork,
+		pieceProgress,
+		sessionStartResult,
+		start,
+		agent,
+		pieceAgent,
+		voyageAgent,
+		piece,
+		voyage,
+		session,
+		sessionOperation,
+		count,
+		flag,
+		capacity,
+	],
 	facts: [startHeld, startRequested, startAdmitted, startCancelled, startRetried],
 	commands: [hold, request, hail, admit, cancel, retry],
 	materializers: [startHeldMaterializer, startRequestedMaterializer, startAdmittedMaterializer, startCancelledMaterializer, startRetriedMaterializer],

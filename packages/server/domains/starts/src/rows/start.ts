@@ -12,6 +12,7 @@ export const start = row(
 	{
 		id: StartId,
 		operationRequestId: Schema.String,
+		source: Schema.Literals(["dispatch", "work-now", "direct"]),
 		agentId: AgentId,
 		sessionId: SessionId,
 		voyageId: Schema.NullOr(VoyageId),

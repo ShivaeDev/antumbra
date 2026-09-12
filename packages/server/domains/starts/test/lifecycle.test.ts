@@ -1,11 +1,12 @@
-import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
+import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { StartId } from "#ids.ts";
-import { admission } from "#reconcilers/admission.ts";
 
 const birth = (id: string) => ({
 	requestId: Id.Request.make(id),
@@ -18,6 +19,7 @@ const birth = (id: string) => ({
 	effort: null,
 	role: "hand",
 	charter: "Sound the reef",
+	source: "direct" as const,
 	toolSetVersion: "1",
 	tools: [],
 });
@@ -58,14 +60,79 @@ it.app("retirement preserves the identity and closes resource eligibility", func
 	expect(yield* app.rows.resourceOwner.get("one")).toMatchObject({ status: "retired" });
 });
 
-it.app("admission wakes when the configured running budget increases", function* (app) {
-	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 1, requestId: Id.Request.make("limit") });
-	yield* app.api.starts.request(birth("one"));
-	yield* app.clock.advance(1);
-	yield* app.api.starts.request(birth("two"));
-	yield* admission;
-	yield* eventually(app.api.starts.admitted({}), (rows) => rows.length === 1);
-	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 2, requestId: Id.Request.make("increase") });
-	const admitted = yield* eventually(app.api.starts.admitted({}), (rows) => rows.length === 2);
-	expect(admitted.map((held) => held.id)).toEqual(["one", "two"]);
+it.app("only logged charter acceptance activates the Agent and work reading", function* (app) {
+	const creation = birth("one");
+	yield* app.api.starts.request(creation);
+	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("admit") });
+	const commit = yield* Commit;
+	const source = { logId: "runner", at: 100, requestId: Id.Request.make("observation") };
+	const identity = { sessionId: creation.sessionId, nodeRef: null, origin: null, operationId: "one" };
+	yield* commit.observe(observed, {
+		...source,
+		cursor: 0,
+		payload: {
+			...identity,
+			evidence: {
+				type: "started",
+				agentId: creation.agentId,
+				backend: "claude",
+				cwd: "/moorage",
+				nativeRef: "native",
+				runnerId: "runner",
+				toolSetVersion: "1",
+			},
+		},
+	});
+	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({ status: "spawning", presence: "idle" });
+	yield* commit.observe(observed, { ...source, cursor: 1, payload: { ...identity, evidence: { type: "input-accepted", inputId: "charter" } } });
+	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({
+		status: "alive",
+		presence: "working",
+		canInterrupt: true,
+		canSleep: false,
+	});
+	expect(yield* answered(app.api.agents.workingCount({}))).toBe(1);
+	expect(yield* answered(app.api.starts.bySession({ sessionId: creation.sessionId }))).toMatchObject({ status: "running" });
+	expect(yield* Effect.flip(app.api.agents.retire({ id: creation.agentId, requestId: Id.Request.make("retire-working") }))).toMatchObject({
+		_tag: "Working",
+	});
+	yield* commit.observe(observed, { ...source, cursor: 2, payload: { ...identity, evidence: { type: "slept", reason: "rest" } } });
+	expect(yield* answered(app.api.agents.reading({ id: creation.agentId }))).toMatchObject({
+		status: "alive",
+		presence: "asleep",
+		canSend: true,
+		canSleep: false,
+	});
+	expect(yield* answered(app.api.agents.workingCount({}))).toBe(0);
+});
+it.app("failed start waits and explicit retry has a new deduplicated edge request", function* (app) {
+	const creation = birth("one");
+	yield* app.api.starts.request(creation);
+	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("admit") });
+	const commit = yield* Commit;
+	yield* commit.observe(observed, {
+		logId: "runner",
+		at: 100,
+		requestId: Id.Request.make("failure"),
+		cursor: 0,
+		payload: {
+			sessionId: creation.sessionId,
+			nodeRef: null,
+			origin: null,
+			operationId: "one",
+			evidence: { type: "failed", reason: "Sign in required" },
+		},
+	});
+	expect(yield* answered(app.api.starts.bySession({ sessionId: creation.sessionId }))).toMatchObject({
+		status: "waiting",
+		detail: "Sign in required",
+	});
+	yield* app.api.starts.retry({ id: StartId.make("one"), requestId: Id.Request.make("retry") });
+	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("readmit") });
+	expect(yield* answered(app.api.starts.bySession({ sessionId: creation.sessionId }))).toMatchObject({
+		status: "admitted",
+		operationRequestId: "retry",
+		agentId: "one",
+		sessionId: "session:one",
+	});
 });

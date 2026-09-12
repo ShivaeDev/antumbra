@@ -29,6 +29,7 @@
 		"@antumbra/domain-pieces": "workspace:*",
 		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/domain-reclamation": "workspace:*"
+		"@antumbra/domain-reclamation": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*"
 	}
 }

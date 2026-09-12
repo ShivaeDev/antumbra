@@ -19,15 +19,7 @@ export const SessionSituations = (props: {
 	return (
 		<>
 			<Live query={props.api.changes.sessionSituations} input={{ sessionId: SessionId.make(props.sessionId) }}>
-				{(situations) => (
-					<div className="flex min-w-0 flex-wrap gap-2">
-						{situations.map((situation) => (
-							<Button key={situation.id} onClick={() => setChosen(situation)} size="sm" variant="outline">
-								{situationLabel[situation.situation]} {situation.reference}
-							</Button>
-						))}
-					</div>
-				)}
+				{(situations) => <SituationChoices situations={situations} choose={setChosen} />}
 			</Live>
 			{chosen === undefined ? null : (
 				<SituationDialog
@@ -42,3 +34,19 @@ export const SessionSituations = (props: {
 		</>
 	);
 };
+
+const SituationChoices = ({
+	situations,
+	choose,
+}: {
+	readonly situations: readonly (typeof sessionSituation.Row.Type)[];
+	readonly choose: (situation: typeof sessionSituation.Row.Type) => void;
+}) => (
+	<div className="flex min-w-0 flex-wrap gap-2">
+		{situations.map((situation) => (
+			<Button key={situation.id} onClick={() => choose(situation)} size="sm" variant="outline">
+				{situationLabel[situation.situation]} {situation.reference}
+			</Button>
+		))}
+	</div>
+);

@@ -1,11 +1,10 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
 import { expect } from "vitest";
 import { ChangeId } from "#ids.ts";
-import { adoption, chartering, opening, pieceId, registration, repoId, request, seen, voyageId } from "#test/kit.ts";
+import { adoption, chartering, opening, pieceId, registration, repoId, seen, voyageId } from "#test/kit.ts";
 
 it.app("filters the Quay without losing its selected change or landed piece outcome", function* (app) {
 	yield* app.api.voyages.open(opening);
@@ -47,22 +46,30 @@ it.app("shows situations only while the assigned session and external change are
 		charter: "Sound the reef",
 		toolSetVersion: "v1",
 	});
-	const commit = yield* Commit;
-	const identity = { sessionId, nodeRef: null, origin: null, operationId: null };
-	const source = { logId: "situation-runner", at: 100, requestId: request("situation:start") };
-	yield* commit.observe(observed, {
-		...source,
-		cursor: 0,
-		payload: {
-			...identity,
-			evidence: { type: "started", agentId, backend: "claude", cwd: "/reef", nativeRef: "native", runnerId: "runner", toolSetVersion: "v1" },
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "situation-runner", backends: ["claude"], imageInputBackends: [] });
+	const identity = { sessionId, requestId: "situation:start" };
+	const source = { logId: "situation-runner", at: 100 };
+	yield* runner.append([
+		{
+			...source,
+			cursor: 0,
+			event: {
+				type: "SessionStarted",
+				...identity,
+				agentId,
+				backend: "claude",
+				cwd: "/reef",
+				nativeRef: "native",
+				runnerId: "runner",
+				toolSetVersion: "v1",
+			},
 		},
-	});
+	]);
 	const situations = yield* answered(app.api.changes.sessionSituations({ sessionId }));
 	expect(situations.map((row) => row.situation)).toEqual(["merge_conflicts", "checks_failed", "unresolved_reviews"]);
 	expect(situations[0]).toMatchObject({ reference: "#41" });
 	expect(situations[0]?.text).toContain("reef");
 	expect(situations[0]?.text).toContain("work/reef");
-	yield* commit.observe(observed, { ...source, cursor: 1, payload: { ...identity, evidence: { type: "ended", reason: "stopped" } } });
+	yield* runner.append([{ ...source, cursor: 1, event: { type: "SessionEnded", ...identity, reason: "stopped" } }]);
 	expect(yield* answered(app.api.changes.sessionSituations({ sessionId }))).toEqual([]);
 });

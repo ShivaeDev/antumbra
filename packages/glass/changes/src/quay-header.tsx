@@ -18,22 +18,26 @@ export const QuayHeader = ({ api, sightedAt }: { readonly api: ChangesApi; reado
 				<CommandAct command={api.changes.refresh} input={{}} label="Refresh" />
 			</div>
 		</div>
-		<Live query={api.changes.hostCapabilities} input={{}}>
-			{(hosts) =>
-				hosts.length === 0 ? (
-					<span className="text-2xs text-muted-foreground">No change host is registered</span>
-				) : (
-					<div className="flex flex-wrap gap-3">
-						{hosts.map((host) => (
-							<div className="flex items-center gap-1.5" key={host.host}>
-								<Badge variant={host.available ? "outline" : "warning"}>{host.host}</Badge>
-								<span className="text-2xs text-muted-foreground">{host.detail}</span>
-							</div>
-						))}
-					</div>
-				)
-			}
-		</Live>
+		<HostCapabilities api={api} />
 		<AdoptionRequests api={api} />
 	</header>
+);
+
+const HostCapabilities = ({ api }: { readonly api: ChangesApi }) => (
+	<Live query={api.changes.hostCapabilities} input={{}}>
+		{(hosts) =>
+			hosts.length === 0 ? (
+				<span className="text-2xs text-muted-foreground">No change host is registered</span>
+			) : (
+				<div className="flex flex-wrap gap-3">
+					{hosts.map((host) => (
+						<div className="flex items-center gap-1.5" key={host.host}>
+							<Badge variant={host.available ? "outline" : "warning"}>{host.host}</Badge>
+							<span className="text-2xs text-muted-foreground">{host.detail}</span>
+						</div>
+					))}
+				</div>
+			)
+		}
+	</Live>
 );

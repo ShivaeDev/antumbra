@@ -19,18 +19,22 @@ export const AdoptChangeDialog = ({ api }: { readonly api: ChangesApi }) => {
 					<DialogTitle>Adopt a pull request</DialogTitle>
 					<DialogDescription>Link an existing pull request to the piece that owes it.</DialogDescription>
 				</DialogHeader>
-				<Live query={api.pieces.all} input={{}}>
-					{(pieces) =>
-						pieces.length === 0 ? (
-							<p className="text-xs text-muted-foreground">
-								No piece is chartered yet — a change is adopted onto the piece that owes it, so charter one first
-							</p>
-						) : (
-							<CommandForm command={api.changes.requestAdoption} label="Adopt change" submit="Adopt" sent={() => setOpen(false)} titles />
-						)
-					}
-				</Live>
+				<AdoptionForm api={api} close={() => setOpen(false)} />
 			</DialogContent>
 		</Dialog>
 	);
 };
+
+const AdoptionForm = ({ api, close }: { readonly api: ChangesApi; readonly close: () => void }) => (
+	<Live query={api.pieces.all} input={{}}>
+		{(pieces) =>
+			pieces.length === 0 ? (
+				<p className="text-xs text-muted-foreground">
+					No piece is chartered yet — a change is adopted onto the piece that owes it, so charter one first
+				</p>
+			) : (
+				<CommandForm command={api.changes.requestAdoption} label="Adopt change" submit="Adopt" sent={close} titles />
+			)
+		}
+	</Live>
+);

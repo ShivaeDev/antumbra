@@ -95,7 +95,8 @@ until an explicit release or suitable evidence permits progress. Resource reclam
 Git evidence decides whether cleanup is safe. Dirty or uncertain resources do not become disposable merely through age.
 
 An operation has an issuer-minted request id. Reconnection may repeat that operation and receive its existing result. A new authorized attempt gets a
-new id. The runner protocol and its cursor rules are described in [Runner wire](packages/platform/runner/README.md).
+new id. The [runner RPC schema](packages/platform/runner/src/rpc.ts) declares the protocol; the [append handler](apps/server/src/runner/append.ts)
+commits observed facts and their cursor.
 
 ## Sessions, tools, and recovery
 

@@ -1,13 +1,13 @@
 import { answered } from "@antumbra/app-testing/answers.ts";
-import { until } from "@antumbra/app-testing/glass/dom.ts";
+import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
-import { Deferred, Effect, Option } from "effect";
+import { Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import { useLive, useSend } from "#hooks.ts";
+import { useCommand, useLive } from "#hooks.ts";
 
 type Choose = Api["roleSettings"]["choose"];
-type SendChoice = (input: Parameters<Choose>[0]) => ReturnType<Choose>;
+type Choice = Parameters<Choose>[0];
 
 const Defaults = (props: { readonly api: Api }) => {
 	const rows = useLive(props.api.roleSettings.defaults, {});
@@ -21,9 +21,16 @@ const Defaults = (props: { readonly api: Api }) => {
 	);
 };
 
-const Sender = (props: { readonly api: Api; readonly ready: (send: SendChoice) => void }) => {
-	props.ready(useSend(props.api.roleSettings.choose));
-	return null;
+const Sender = (props: { readonly api: Api; readonly choice: Choice }) => {
+	const action = useCommand(props.api.roleSettings.choose);
+	return (
+		<>
+			<button disabled={action.pending} onClick={() => action.run(props.choice)} type="button">
+				Choose
+			</button>
+			<output>{Option.getOrUndefined(AsyncResult.value(action.result))}</output>
+		</>
+	);
 };
 
 it.glass("refreshes a live query after a committed choice", function* ({ api, render }) {
@@ -37,13 +44,14 @@ it.glass("refreshes a live query after a committed choice", function* ({ api, re
 });
 
 it.glass("returns committed sequences from the command hook", function* ({ api, render }) {
-	const sender = yield* Deferred.make<SendChoice>();
-	yield* render(<Sender api={api} ready={(send) => Effect.runSync(Deferred.succeed(sender, send))} />);
-	const send = yield* Deferred.await(sender);
 	const choice = { backend: "codex", effort: "high", model: "gpt", role: "captain", scope: "fleet" } as const;
-	const first = yield* send(choice);
-	const second = yield* send({ ...choice, backend: "claude" });
-	expect(second).toBeGreaterThan(first);
+	const container = yield* render(<Sender api={api} choice={choice} />);
+	yield* press(container, "Choose");
+	yield* until(() => Number(container.querySelector("output")?.textContent) > 0, "the first committed sequence to appear");
+	const first = Number(container.querySelector("output")?.textContent);
+	yield* render(<Sender api={api} choice={{ ...choice, backend: "claude" }} />);
+	yield* press(container, "Choose");
+	yield* until(() => Number(container.querySelector("output")?.textContent) > first, "the next committed sequence to appear");
 	const saved = yield* answered(api.roleSettings.defaults({}));
 	expect(saved.find((row) => row.role === "captain")).toMatchObject({ backend: "claude", model: "gpt", effort: "high" });
 });

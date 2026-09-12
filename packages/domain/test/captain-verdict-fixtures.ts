@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
@@ -80,9 +80,9 @@ export const unruled = (ruling: Ruling) => Option.isNone(ruling.answer);
 export const delivered = (rulingId: string) =>
 	eventually(
 		Effect.gen(function* () {
-			const boards = yield* Boards;
-			const entries = yield* boards.unread(ASKER);
-			expect(entries.map((entry) => entry.sourceRef)).toContain(`ruling:${rulingId}`);
+			const mail = yield* Mail;
+			const entries = yield* mail.mailbox(ASKER);
+			expect(entries.map((held) => held.id)).toContain(`ruling:${rulingId}`);
 			return entries;
 		}),
 	);

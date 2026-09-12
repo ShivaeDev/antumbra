@@ -9,6 +9,7 @@ import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
 import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { scriptedMail } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
 import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Deferred, Effect, Layer, Stream } from "effect";
@@ -20,7 +21,7 @@ export const layer = RulingSourceLive.pipe(
 	Layer.provideMerge(RulingHoldsLive),
 	Layer.provideMerge(scriptedBoards),
 	Layer.provideMerge(RulingsLive),
-	Layer.provideMerge(scriptedPieces),
+	Layer.provideMerge(Layer.mergeAll(scriptedMail, scriptedPieces)),
 	Layer.provideMerge(scriptedVoyages),
 	Layer.provide(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),

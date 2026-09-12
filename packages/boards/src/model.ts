@@ -1,7 +1,5 @@
-import type { BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
+import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
 import { Data, type Option } from "effect";
-
-export type MailPrecedence = "flash" | "priority" | "routine";
 
 export type BoardScope = Data.TaggedEnum<{
 	Agent: { readonly agentId: string };
@@ -11,7 +9,12 @@ export type BoardScope = Data.TaggedEnum<{
 
 export const BoardScope = Data.taggedEnum<BoardScope>();
 
-interface EntryRowFields {
+export interface BoardOwner {
+	readonly ownerId: string;
+	readonly ownerKind: BoardOwnerKind;
+}
+
+interface BoardEntryFields {
 	readonly authorAgentId: string | null;
 	readonly body: string;
 	readonly createdAt: Date;
@@ -20,22 +23,16 @@ interface EntryRowFields {
 	readonly seq: number;
 }
 
-export interface MailRow extends EntryRowFields {
-	readonly kind: "mail";
-	readonly precedence: MailPrecedence;
-	readonly sourceRef: string;
-}
-
-export interface NoteRow extends EntryRowFields {
+export interface NoteRow extends BoardEntryFields {
 	readonly kind: "note";
 }
 
-export interface PieceSummaryRow extends EntryRowFields {
+export interface PieceSummaryRow extends BoardEntryFields {
 	readonly kind: "pieceSummary";
 	readonly pieceId: string;
 }
 
-export interface SummaryRow extends EntryRowFields {
+export interface SummaryRow extends BoardEntryFields {
 	readonly coversFrom: number;
 	readonly coversTo: number;
 	readonly kind: "summary";
@@ -44,8 +41,6 @@ export interface SummaryRow extends EntryRowFields {
 
 export type BoardEntryRow = NoteRow | PieceSummaryRow | SummaryRow;
 
-export type UnreadMailRow = MailRow & { readonly delivered: boolean };
-
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
 	readonly body: string;
@@ -53,11 +48,6 @@ interface EntryFields {
 }
 
 export type EntryInput = Data.TaggedEnum<{
-	Mail: Omit<EntryFields, "id"> & {
-		readonly precedence: MailPrecedence;
-		readonly register: BoardRegister;
-		readonly sourceRef: string;
-	};
 	Note: EntryFields & {
 		readonly register: BoardRegister;
 	};
@@ -72,18 +62,6 @@ export type EntryInput = Data.TaggedEnum<{
 }>;
 
 export const EntryInput = Data.taggedEnum<EntryInput>();
-
-export type MailEntry = Extract<EntryInput, { readonly _tag: "Mail" }>;
-
-export type BoardEntryInput = Exclude<EntryInput, { readonly _tag: "Mail" }>;
-
-export interface MailInput {
-	readonly authorAgentId: Option.Option<string>;
-	readonly body: string;
-	readonly precedence: MailPrecedence;
-	readonly sourceRef: string;
-	readonly toAgentId: string;
-}
 
 export interface AppendFields {
 	readonly nowMillis: number;

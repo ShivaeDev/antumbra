@@ -7,7 +7,15 @@ import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { KernelLive } from "@antumbra/kernel";
 import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
-import { makeEffectApp, scriptedBoards, scriptedPieces, scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
+import {
+	makeEffectApp,
+	scriptedBoards,
+	scriptedMail,
+	scriptedPieces,
+	scriptedRoleSettings,
+	scriptedSettings,
+	scriptedVoyages,
+} from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Deferred, Effect, Layer, Option, Stream } from "effect";
 import {
@@ -97,6 +105,7 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 	).pipe(
 		Layer.provide(NodeServices.layer),
 		Layer.provideMerge(scriptedBoards),
+		Layer.provideMerge(scriptedMail),
 		Layer.provideMerge(scriptedPieces),
 		Layer.provideMerge(scriptedVoyages),
 		Layer.provideMerge(scriptedRoleSettings),

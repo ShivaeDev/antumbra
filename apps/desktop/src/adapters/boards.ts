@@ -1,12 +1,10 @@
-import { type BoardEntryInput, BoardScope, Boards, type BoardsService } from "@antumbra/boards";
-import { mailboxOver } from "@antumbra/boards/mailbox";
+import { BoardScope, Boards, type BoardsService, type EntryInput } from "@antumbra/boards";
 import { uncoveredDays, uncoveredSpan } from "@antumbra/boards/summaries";
 import type { boards } from "@antumbra/domain-boards/feature.ts";
 import { agentBoard, type BoardId, pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { Database } from "@antumbra/persistence";
 import type { Api } from "@antumbra/platform-rpc/client.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { type Context, Effect, Layer, Option } from "effect";
@@ -18,8 +16,6 @@ type Reach<Failure> = Api<readonly [typeof boards], Failure>;
 
 type Feeds = Effect.Success<typeof DomainFeeds>;
 
-type Store = Effect.Success<typeof Database>;
-
 const NAMELESS = "";
 
 const boardOf = (scope: BoardScope): BoardId =>
@@ -29,7 +25,7 @@ const boardOf = (scope: BoardScope): BoardId =>
 		Voyage: ({ voyageId }) => voyageBoard(VoyageId.make(voyageId)),
 	});
 
-export const boardsOver = <Failure extends BoardRefused>(reach: Reach<Failure>, store: Store, feeds: Feeds): BoardsService => {
+export const boardsOver = <Failure extends BoardRefused>(reach: Reach<Failure>, feeds: Feeds): BoardsService => {
 	const kept = (scope: BoardScope) => Effect.map(once(reach.boards.entries({ board: boardOf(scope) })), (stored) => stored.map(entryOf));
 	const wrote = Effect.fnUntraced(function* (scope: BoardScope, entryId: string) {
 		if (scope._tag !== "Agent") {
@@ -39,14 +35,13 @@ export const boardsOver = <Failure extends BoardRefused>(reach: Reach<Failure>, 
 		return written === undefined ? yield* Effect.die(new Error(`the journal wrote board entry ${entryId} and does not hold it`)) : written;
 	});
 	return {
-		...mailboxOver(store),
 		digest: (scope: BoardScope) => Effect.map(once(reach.boards.digest({ board: boardOf(scope) })), (stored) => stored.map(entryOf)),
 		read: kept,
 		span: (scope: BoardScope) => Effect.map(kept(scope), uncoveredSpan),
 		uncovered: (scope: BoardScope) => Effect.map(kept(scope), uncoveredDays),
 		under: (scope: BoardScope, summaryId: string) =>
 			Effect.map(once(reach.boards.under({ board: boardOf(scope), summaryId })), (stored) => stored.map(entryOf)),
-		write: Effect.fn("Boards.write")(function* (scope: BoardScope, input: BoardEntryInput) {
+		write: Effect.fn("Boards.write")(function* (scope: BoardScope, input: EntryInput) {
 			const board = boardOf(scope);
 			const requestId = Id.Request.make(input.id ?? Id.make());
 			const author = Option.getOrElse(input.authorAgentId, () => null);
@@ -74,14 +69,9 @@ export const boardsOver = <Failure extends BoardRefused>(reach: Reach<Failure>, 
 	};
 };
 
-export const BoardsOverRpc: Layer.Layer<
-	Boards,
-	never,
-	Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof DomainFeeds> | ServerReach
-> = Layer.effect(Boards)(
+export const BoardsOverRpc: Layer.Layer<Boards, never, Context.Service.Identifier<typeof DomainFeeds> | ServerReach> = Layer.effect(Boards)(
 	Effect.gen(function* () {
 		const feeds = yield* DomainFeeds;
-		const store = yield* Database;
-		return boardsOver(yield* ServerReach, store, feeds);
+		return boardsOver(yield* ServerReach, feeds);
 	}),
 );

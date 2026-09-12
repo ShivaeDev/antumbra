@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { BoardScope, Boards, Mail } from "@antumbra/boards";
 import { AgentDomain, type SpawnFields } from "@antumbra/domain";
 import { VoyageProcedureService } from "@antumbra/domain/voyages/service";
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
@@ -120,24 +120,23 @@ it.effectApp("crew write to the board of their piece and of its voyage", { clock
 });
 
 it.effectApp("mail tools read without marking and receipt only when asked", { clock: "live" }, function* ({ scripted }) {
-	const boards = yield* Boards;
+	const mail = yield* Mail;
 	const crew = yield* workingCrew;
 	const live = yield* sessionOf(scripted, crew.agentId);
-	const entry = yield* boards
-		.mail({
-			authorAgentId: Option.none(),
-			body: "the admiral selected this mail",
-			precedence: "priority",
-			sourceRef: "selection:tool-test",
-			toAgentId: crew.agentId,
-		})
-		.pipe(Effect.orDie);
+	const messageId = "selection:tool-test";
+	yield* mail.send({
+		authorAgentId: null,
+		body: "the admiral selected this mail",
+		precedence: "priority",
+		requestId: messageId,
+		toAgentId: crew.agentId,
+	});
 	const first = yield* callTool(live, "read_mail", undefined);
 	const second = yield* callTool(live, "read_mail", undefined);
 	expect(first).toMatchObject({ ok: true });
-	expect(first.text).toContain(entry.id);
-	expect(second.text).toContain(entry.id);
-	expect(yield* callTool(live, "mark_read", { entryIds: [entry.id] })).toEqual({ ok: true, text: "marked read" });
+	expect(first.text).toContain(messageId);
+	expect(second.text).toContain(messageId);
+	expect(yield* callTool(live, "mark_read", { entryIds: [messageId] })).toEqual({ ok: true, text: "marked read" });
 	expect(yield* callTool(live, "read_mail", undefined)).toEqual({ ok: true, text: "No mail." });
 });
 

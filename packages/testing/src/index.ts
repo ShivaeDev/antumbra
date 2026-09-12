@@ -10,6 +10,7 @@ import {
 	makeScriptedBackend,
 	passiveRunner,
 	scriptedBoards,
+	scriptedMail,
 	scriptedPieces,
 	scriptedRoleSettings,
 	scriptedSettings,
@@ -18,13 +19,11 @@ import {
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 
-const scriptedFleet = scriptedBoards.pipe(
-	Layer.provideMerge(
-		scriptedPieces.pipe(
-			Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
-		),
-	),
+const scriptedCharts = Layer.mergeAll(scriptedMail, scriptedPieces).pipe(
+	Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
 );
+
+const scriptedFleet = scriptedBoards.pipe(Layer.provideMerge(scriptedCharts));
 
 interface Providers {
 	readonly backends?: ReadonlyMap<string, AgentBackend>;

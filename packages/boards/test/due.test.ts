@@ -1,4 +1,4 @@
-import { dueMail, type MailPrecedence, type UnreadMailRow } from "@antumbra/boards";
+import { dueMail, type MailPrecedence, type MailRow } from "@antumbra/boards";
 import { describe, expect, it } from "@effect/vitest";
 
 const QUIET = 300_000;
@@ -10,17 +10,15 @@ interface Waiting {
 	readonly waitedMillis?: number;
 }
 
-const waiting = (mail: Waiting, index: number): UnreadMailRow => ({
+const waiting = (mail: Waiting, index: number): MailRow => ({
 	authorAgentId: null,
 	body: "the eastern approach is closed",
-	createdAt: new Date(NOW - (mail.waitedMillis ?? 0)),
-	delivered: mail.delivered ?? false,
-	id: `entry-${index}`,
-	kind: "mail",
+	deliveredAt: mail.delivered === true ? new Date(NOW) : null,
+	id: `mail-${index}`,
 	precedence: mail.precedence,
-	register: "smooth",
-	seq: index + 1,
-	sourceRef: `test:mail-${index}`,
+	readAt: null,
+	sentAt: new Date(NOW - (mail.waitedMillis ?? 0)),
+	toAgentId: "agent-hand",
 });
 
 const due = (...mail: ReadonlyArray<Waiting>) => dueMail({ nowMillis: NOW, quietMillis: QUIET, unread: mail.map(waiting) });

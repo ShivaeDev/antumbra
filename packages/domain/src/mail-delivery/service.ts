@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
@@ -12,5 +12,5 @@ export const MailDelivery = defineService({
 	id: "@antumbra/domain/MailDelivery",
 	initialize: Effect.void,
 	methods: () => ({ deliver, dueWakes }),
-	requires: [Boards, Database, SettingsSource, KernelReach, Voyages],
+	requires: [Mail, Database, SettingsSource, KernelReach, Voyages],
 });

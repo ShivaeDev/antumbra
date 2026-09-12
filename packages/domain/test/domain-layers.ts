@@ -13,7 +13,7 @@ import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
 import { RulingDelivery } from "@antumbra/rulings/delivery/service";
 import { SessionFabricLive } from "@antumbra/session-fabric";
 import { RoleSettings } from "@antumbra/settings";
-import { scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
+import { type ScriptedMailbag, scriptedMailbag, scriptedMailOn, scriptedRoleSettings, scriptedSettings } from "@antumbra/testing-runtime";
 import { type ScriptedSailing, scriptedSailing, scriptedVoyagesOn } from "@antumbra/voyages/testing";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
@@ -42,6 +42,18 @@ const fleetVoyages = (temporary: TemporaryPersistence) => {
 	const opened = scriptedSailing();
 	sailedByFleet.set(temporary, opened);
 	return scriptedVoyagesOn(opened);
+};
+
+const mailedToFleet = new WeakMap<TemporaryPersistence, ScriptedMailbag>();
+
+const fleetMail = (temporary: TemporaryPersistence) => {
+	const known = mailedToFleet.get(temporary);
+	if (known !== undefined) {
+		return scriptedMailOn(known);
+	}
+	const bag = scriptedMailbag();
+	mailedToFleet.set(temporary, bag);
+	return scriptedMailOn(bag);
 };
 
 const chartedByFleet = new WeakMap<TemporaryPersistence, ScriptedChart>();
@@ -94,6 +106,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 			),
 		),
 		Layer.provideMerge(fleetBoards(temporary)),
+		Layer.provideMerge(fleetMail(temporary)),
 		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
@@ -147,6 +160,7 @@ export const domainKernelServices = (
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
 		Layer.provideMerge(fleetBoards(temporary)),
+		Layer.provideMerge(fleetMail(temporary)),
 		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),

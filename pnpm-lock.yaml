@@ -223,6 +223,15 @@ importers:
       '@anthropic-ai/claude-agent-sdk':
         specifier: 'catalog:'
         version: 0.3.225(@anthropic-ai/sdk@0.116.0(zod@4.4.3))(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(zod@4.4.3)
+      '@antumbra/boards':
+        specifier: workspace:*
+        version: link:../../packages/boards
+      '@antumbra/domain-mail':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/mail
+      '@antumbra/platform-feature':
+        specifier: workspace:*
+        version: link:../../packages/platform/feature
       sharp:
         specifier: 'catalog:'
         version: 0.35.3(@types/node@24.10.1)
@@ -245,9 +254,6 @@ importers:
       '@antumbra/backend-pi':
         specifier: workspace:*
         version: link:../../packages/backend-pi
-      '@antumbra/boards':
-        specifier: workspace:*
-        version: link:../../packages/boards
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../../packages/contract
@@ -377,6 +383,9 @@ importers:
       '@antumbra/domain-boards':
         specifier: workspace:*
         version: link:../../packages/server/domains/boards
+      '@antumbra/domain-mail':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/mail
       '@antumbra/domain-pieces':
         specifier: workspace:*
         version: link:../../packages/server/domains/pieces
@@ -685,9 +694,6 @@ importers:
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../domain-feeds
-      '@antumbra/persistence':
-        specifier: workspace:*
-        version: link:../persistence
       '@antumbra/pieces':
         specifier: workspace:*
         version: link:../pieces
@@ -701,9 +707,6 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
-      '@antumbra/settings':
-        specifier: workspace:*
-        version: link:../settings
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
@@ -2130,6 +2133,34 @@ importers:
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../voyages
+      '@antumbra/platform-feature':
+        specifier: workspace:*
+        version: link:../../../platform/feature
+      '@antumbra/platform-vocabulary':
+        specifier: workspace:*
+        version: link:../../../platform/vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
+      '@antumbra/app-testing':
+        specifier: workspace:*
+        version: link:../../../../apps/testing
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/domains/mail:
+    dependencies:
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature

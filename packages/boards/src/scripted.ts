@@ -1,6 +1,5 @@
-import type { BoardOwnerKind } from "@antumbra/platform-vocabulary/board.ts";
 import { Option } from "effect";
-import { type AppendFields, type BoardEntryInput, type BoardEntryRow, BoardScope } from "#model.ts";
+import { type AppendFields, type BoardEntryRow, type BoardOwner, BoardScope, type EntryInput } from "#model.ts";
 
 export type Log = ReadonlyMap<string, ReadonlyArray<BoardEntryRow>>;
 
@@ -13,7 +12,7 @@ export const boardKey = (scope: BoardScope): string =>
 		Voyage: ({ voyageId }) => `voyage:${voyageId}`,
 	});
 
-export const ownerOf = (scope: BoardScope): { readonly ownerId: string; readonly ownerKind: BoardOwnerKind } =>
+export const ownerOf = (scope: BoardScope): BoardOwner =>
 	BoardScope.$match(scope, {
 		Agent: ({ agentId }) => ({ ownerId: agentId, ownerKind: "agent" as const }),
 		Piece: ({ pieceId }) => ({ ownerId: pieceId, ownerKind: "piece" as const }),
@@ -24,7 +23,7 @@ export const entriesOn = (log: Log, scope: BoardScope): ReadonlyArray<BoardEntry
 
 export const appended = (log: Log, scope: BoardScope, row: BoardEntryRow): Log => new Map(log).set(boardKey(scope), [...entriesOn(log, scope), row]);
 
-export const writtenRow = (input: BoardEntryInput, fields: AppendFields): BoardEntryRow => {
+export const writtenRow = (input: EntryInput, fields: AppendFields): BoardEntryRow => {
 	const shared = {
 		authorAgentId: Option.getOrElse(input.authorAgentId, () => null),
 		body: input.body,

@@ -1,12 +1,10 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { Voyages } from "@antumbra/voyages";
 import { Clock, type Context, Effect, Layer, Option, Ref } from "effect";
 import { Boards } from "#boards.ts";
 import { BoardOwnerNotFound } from "#errors.ts";
-import { mailboxOver } from "#mailbox.ts";
-import { type BoardEntryInput, BoardScope } from "#model.ts";
+import { BoardScope, type EntryInput } from "#model.ts";
 import { appended, emptyLog, entriesOn, type Log, ownerOf, writtenRow } from "#scripted.ts";
 import { digestOf, entriesUnder, uncoveredDays, uncoveredSpan } from "#summaries.ts";
 
@@ -14,9 +12,7 @@ export type ScriptedLog = Ref.Ref<Log>;
 
 export const scriptedLog = (): ScriptedLog => Ref.makeUnsafe<Log>(emptyLog);
 
-export const scriptedBoardsOn = (
-	state: ScriptedLog,
-): Layer.Layer<Boards, never, Context.Service.Identifier<typeof Database> | Context.Service.Identifier<typeof DomainFeeds> | Pieces | Voyages> =>
+export const scriptedBoardsOn = (state: ScriptedLog): Layer.Layer<Boards, never, Context.Service.Identifier<typeof DomainFeeds> | Pieces | Voyages> =>
 	Layer.effect(Boards)(
 		Effect.gen(function* () {
 			const feeds = yield* DomainFeeds;
@@ -30,13 +26,12 @@ export const scriptedBoardsOn = (
 					Voyage: ({ voyageId }) => Effect.map(sailing.byId(voyageId), Option.isSome),
 				});
 			return {
-				...mailboxOver(yield* Database),
 				digest: (scope: BoardScope) => Effect.map(kept(scope), digestOf),
 				read: kept,
 				span: (scope: BoardScope) => Effect.map(kept(scope), uncoveredSpan),
 				uncovered: (scope: BoardScope) => Effect.map(kept(scope), uncoveredDays),
 				under: (scope: BoardScope, summaryId: string) => Effect.map(kept(scope), (entries) => entriesUnder(entries, summaryId)),
-				write: Effect.fnUntraced(function* (scope: BoardScope, input: BoardEntryInput) {
+				write: Effect.fnUntraced(function* (scope: BoardScope, input: EntryInput) {
 					if (!(yield* standing(scope))) {
 						return yield* new BoardOwnerNotFound(ownerOf(scope));
 					}

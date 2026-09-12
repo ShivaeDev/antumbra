@@ -1,4 +1,4 @@
-import { Boards, dueMail, type MailBatch } from "@antumbra/boards";
+import { dueMail, Mail, type MailBatch } from "@antumbra/boards";
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
 import { decodeSessionExecutionStatus } from "@antumbra/platform-vocabulary/agent-runtime/session-execution.ts";
@@ -31,7 +31,7 @@ const restingRootSessions = Effect.fn("MailDelivery.restingRootSessions")(functi
 });
 
 export const dueWakes = Effect.fn("MailDelivery.dueWakes")(function* () {
-	const boards = yield* Boards;
+	const mail = yield* Mail;
 	const settings = yield* SettingsSource;
 	const { settings: chosen } = yield* settings.current;
 	const quietMillis = chosen.routineMailMinutes * MILLIS_PER_MINUTE;
@@ -39,17 +39,17 @@ export const dueWakes = Effect.fn("MailDelivery.dueWakes")(function* () {
 	const resting = yield* restingRootSessions();
 	const due: Array<DueWake> = [];
 	for (const session of resting) {
-		const unread = yield* boards.unread(session.agentId);
+		const unread = yield* mail.unread(session.agentId);
 		const batch = dueMail({ nowMillis, quietMillis, unread });
 		if (batch === undefined) {
 			continue;
 		}
-		const earliest = Math.min(...unread.map((entry) => entry.createdAt.getTime()));
+		const earliest = Math.min(...unread.map((held) => held.sentAt.getTime()));
 		due.push({
 			agentId: session.agentId,
 			batch,
 			sessionId: session.id,
-			unreadIds: unread.map((entry) => entry.id),
+			unreadIds: unread.map((held) => held.id),
 			waitedMillis: nowMillis - earliest,
 		});
 	}

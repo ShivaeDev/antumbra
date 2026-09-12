@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
@@ -32,16 +32,10 @@ export const deliversMail = Effect.gen(function* () {
 	return demand === undefined ? yield* Effect.die("no mail delivery demand is registered") : yield* demand.pass;
 });
 
-export const mailed = (body: string, sourceRef: string) =>
-	Effect.flatMap(Boards, (boards) =>
-		boards.mail({
-			authorAgentId: Option.none(),
-			body,
-			precedence: "priority",
-			sourceRef,
-			toAgentId: HAND.agentId,
-		}),
-	);
+export const mailbox = Effect.flatMap(Mail, (mail) => mail.mailbox(HAND.agentId));
+
+export const mailed = (body: string, requestId: string) =>
+	Effect.flatMap(Mail, (mail) => mail.send({ authorAgentId: null, body, precedence: "priority", requestId, toAgentId: HAND.agentId }));
 
 export const working = (scripted: ScriptedBackend) =>
 	Effect.gen(function* () {

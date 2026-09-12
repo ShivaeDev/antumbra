@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
@@ -45,10 +45,7 @@ const askedAndRuled = (question: string, answer: string) =>
 		return requested.id;
 	});
 
-const mailbox = Effect.gen(function* () {
-	const boards = yield* Boards;
-	return yield* boards.unread(ASKER);
-});
+const mailbox = Effect.flatMap(Mail, (mail) => mail.mailbox(ASKER));
 
 const deliveredMail = (count: number) =>
 	eventually(
@@ -68,9 +65,8 @@ it.effectApp("an answer reaches its asker as one priority mail", { clock: "live"
 
 	expect(entries[0]).toMatchObject({
 		authorAgentId: null,
-		kind: "mail",
+		id: `ruling:${rulingId}`,
 		precedence: "priority",
-		sourceRef: `ruling:${rulingId}`,
 	});
 	expect(entries[0]?.body).toBe(
 		[
@@ -95,7 +91,7 @@ it.effectApp("a later pass delivers the next answer and repeats no earlier one",
 	const second = yield* askedAndRuled("and the northern shoal?", "sound it");
 
 	const entries = yield* deliveredMail(2);
-	expect(entries.map((entry) => entry.sourceRef)).toEqual([`ruling:${first}`, `ruling:${second}`]);
+	expect(entries.map((entry) => entry.id)).toEqual([`ruling:${first}`, `ruling:${second}`]);
 });
 
 effectIt.live("an answer ruled while nothing observed is delivered on start", () =>
@@ -111,7 +107,7 @@ effectIt.live("an answer ruled while nothing observed is delivered on start", ()
 
 		yield* Effect.gen(function* () {
 			const entries = yield* deliveredMail(1);
-			expect(entries[0]?.sourceRef).toBe(`ruling:${rulingId}`);
+			expect(entries[0]?.id).toBe(`ruling:${rulingId}`);
 		}).pipe(Effect.provide(domainKernelLayer(temporary, scripted.backend)));
 	}),
 );

@@ -9,7 +9,7 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-it.app("waking a smoother retains its constraint and resolves the current smoother settings", function* ({ api }) {
+it.app("waking a smoother retains its constraint and the settings it was admitted on", function* ({ api }) {
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] });
 	const voyageId = VoyageId.make("constrained-voyage");
 	const sessionId = SessionId.make("constrained-session");
@@ -43,7 +43,8 @@ it.app("waking a smoother retains its constraint and resolves the current smooth
 	yield* api.agents.smooth({ requestId: Request.make("smooth"), agentId, sessionId, voyageId, cwd: "/berth" });
 	const start = yield* runner.next;
 	if (start.type !== "Start") return yield* Effect.die(`Expected Start, received ${start.type}`);
-	expect(start.options).toMatchObject({ constrainedPrompt: smootherWords, toolSet: { version: "smoothing-v1" } });
+	expect(start.options).toMatchObject({ constrainedPrompt: smootherWords, effort: null, toolSet: { version: "smoothing-v1" } });
+	const admitted = start.options.model;
 	yield* runner.append([
 		{
 			logId: "log",
@@ -79,7 +80,7 @@ it.app("waking a smoother retains its constraint and resolves the current smooth
 	expect(wake).toMatchObject({
 		type: "Wake",
 		nativeRef: "native",
-		options: { constrainedPrompt: smootherWords, model: "current-smoother", effort: "high", toolSet: { version: "smoothing-v1" } },
+		options: { constrainedPrompt: smootherWords, model: admitted, effort: null, toolSet: { version: "smoothing-v1" } },
 	});
 	yield* runner.reply(wake.requestId, { type: "Accepted" });
 });

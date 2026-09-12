@@ -52,6 +52,17 @@ describe("fact", () => {
 		expect(Object.keys(noteWritten.Fact.fields).toSorted()).toEqual(["at", "noteId", "requestId", "seq", "text"]);
 		expect(Object.keys(noteWritten.Payload.fields).toSorted()).toEqual(["noteId", "text"]);
 	});
+
+	it("refuses a payload field the journal stamps", () => {
+		expect(() => fact("NoteWritten", { noteId: Schema.String, seq: Schema.Number })).toThrow(
+			'the fact "NoteWritten" declares the field "seq", which the journal stamps on every fact',
+		);
+	});
+
+	it("accepts a payload that names no stamped field", () => {
+		const noteNumbered = fact("NoteNumbered", { noteId: Schema.String, number: Schema.Number });
+		expect(Object.keys(noteNumbered.Payload.fields)).toEqual(["noteId", "number"]);
+	});
 });
 
 describe("command", () => {

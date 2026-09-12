@@ -1,8 +1,10 @@
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Schema } from "effect";
+import { Effect, Schema } from "effect";
 import type { Fields } from "#fields.ts";
 
 const stamp = { at: Schema.Number, requestId: Request, seq: Schema.Number };
+
+const stamped = Object.keys(stamp);
 
 export interface FactShape {
 	readonly name: string;
@@ -24,5 +26,9 @@ export type FactValue<Fact extends FactShape> = Fact["Fact"]["Type"];
 
 export function fact<Name extends string, const Payload extends Fields>(name: Name, payload: Payload): FactDefinition<Name, Payload>;
 export function fact(name: string, payload: Fields): unknown {
+	for (const field of stamped) {
+		if (field in payload)
+			Effect.runSync(Effect.die(new Error(`the fact "${name}" declares the field "${field}", which the journal stamps on every fact`)));
+	}
 	return { Fact: Schema.Struct({ ...payload, ...stamp }), name, Payload: Schema.Struct(payload), payload };
 }

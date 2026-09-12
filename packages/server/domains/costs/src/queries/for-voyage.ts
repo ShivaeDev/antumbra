@@ -11,7 +11,7 @@ export const forVoyage = query("forVoyage", {
 	output: UsageTotal,
 	reads: [sessionUsage, voyageAgent],
 	run: Effect.fn("Costs.forVoyage")(function* (input, rows) {
-		const agents = new Set((yield* rows.voyageAgent.where({ voyageId: input.voyageId })).map((crew) => crew.agentId));
+		const agents = new Set<string>((yield* rows.voyageAgent.where({ voyageId: input.voyageId })).map((crew) => crew.agentId));
 		const tally = emptyTally();
 		for (const reading of yield* rows.sessionUsage.where({})) if (agents.has(reading.agentId)) countUsage(tally, reading.usage);
 		return totalOf(tally);

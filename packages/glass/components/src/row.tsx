@@ -1,23 +1,16 @@
 import { useDirty, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
-import { Cause, Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId, useState } from "react";
 import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
 import { type Editable, emptyOf, fedByOf, type Held } from "#fields.ts";
 import { generate, type Sending } from "#generated.ts";
-
-const SAID = "The change could not be saved";
+import { messageOf } from "#refusal.ts";
 
 const NOTHING: readonly Editable[] = [];
 
 const SENDING_WORDS = "Saving…";
-
-const messageOf = (cause: Cause.Cause<unknown>): string => {
-	const failure = Cause.findErrorOption(cause);
-	return Option.isSome(failure) && failure.value instanceof Error && failure.value.message !== "" ? failure.value.message : SAID;
-};
 
 const Spacer = () => (
 	<span aria-hidden="true" className={TITLE}>

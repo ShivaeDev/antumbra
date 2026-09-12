@@ -11,8 +11,10 @@ export const LINES_CONTROL = `min-h-16 py-1.5 ${FIELD} ${WRITABLE}`;
 
 export const LIST_CONTROL = `py-1.5 ${FIELD}`;
 
-export const SAVE =
-	"inline-flex h-7 w-full shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-input/40 px-2 text-2xs font-medium outline-none transition-colors hover:border-border-strong hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-50";
+export const ACT =
+	"inline-flex h-7 shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-input/40 px-2 text-2xs font-medium outline-none transition-colors hover:border-border-strong hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-50";
+
+export const SAVE = `w-full ${ACT}`;
 
 export const ROW = "flex min-w-0 flex-wrap items-start gap-x-2 gap-y-0.5";
 

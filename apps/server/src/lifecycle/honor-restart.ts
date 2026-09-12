@@ -1,8 +1,8 @@
 import { clear } from "@antumbra/domain-lifecycle/commands/clear.ts";
+import { LifecycleRefused } from "@antumbra/domain-lifecycle/commands/restart.ts";
 import { pending } from "@antumbra/domain-lifecycle/queries/pending.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
-import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

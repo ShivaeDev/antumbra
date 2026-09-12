@@ -39,7 +39,7 @@ export const SituationDialog = (props: {
 			Effect.gen(function* () {
 				const sent = yield* draft.capture();
 				const request = yield* inputRequest(props.sessionId, id, [], sent.text);
-				yield* props.inputs["sessionInput.submit"](request);
+				yield* props.inputs["inputs.submit"](request);
 				yield* draft.clear(sent);
 				props.onClose();
 			}).pipe(

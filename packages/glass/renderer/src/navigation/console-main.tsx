@@ -23,7 +23,7 @@ export const ConsoleMain = (
 ) => {
 	const hail = (voyageId: string) => {
 		Effect.runFork(
-			props.sessions["admiral.hail"]({ requestId: Id.Request.make(Id.make()), voyageId: VoyageId.make(voyageId) }).pipe(
+			props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId: VoyageId.make(voyageId) }).pipe(
 				Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause)))),
 			),
 		);

@@ -1,12 +1,12 @@
 [
 	{
-		"file": "packages/server/journal/test/compile.typecheck.ts",
-		"pragma": "@ts-expect-error",
-		"reason": "Compile-time proof of the guarantees the journal kit's types carry: a command's rows handle is read-only, a feature's every fact has exactly one materializer, AlreadyDone is not in the error type the rpc client hands a caller, and an app never carries two features with one name. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
-	},
-	{
 		"file": "packages/platform/rpc/test/compile.typecheck.ts",
 		"pragma": "@ts-expect-error",
-		"reason": "Compile-time proof that the rpc assembly rejects a hand-made tag inside a feature's namespace, a tag served by two groups, and two features with one name. A silent merge once let a feature command replace the admiral's hail handler and kill every renderer connection; these pragmas go unused, and the build fails, if the assembly ever accepts such a clash again."
+		"reason": "Compile-time proof that the served rpc group cannot carry two procedures with one tag: a group extending a feature cannot reuse a name of that feature's commands or queries, a hand-typed tag cannot sit on a procedure a feature serves, two hand-made groups cannot serve one tag, and two features cannot carry one name. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
+	},
+	{
+		"file": "packages/server/journal/test/compile.typecheck.ts",
+		"pragma": "@ts-expect-error",
+		"reason": "Compile-time proof of the three guarantees the journal kit's types carry: a command's rows handle is read-only, a feature's every fact has exactly one materializer, AlreadyDone is not in the error type the rpc client hands a caller, and an app never carries two features with one name. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
 	}
 ]

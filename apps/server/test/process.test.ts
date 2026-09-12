@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
-import { AdmiralRpc } from "@antumbra/domain-starts/commands/submit.ts";
+import { StartsRpc } from "@antumbra/domain-starts/commands/submit.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { client } from "@antumbra/platform-rpc/client.ts";
 import { serialization } from "@antumbra/platform-rpc/serialization.ts";
@@ -100,8 +100,8 @@ it.live("answers the fleet's role settings to a client that presents the token i
 
 const hailing = (port: number) =>
 	Effect.provide(
-		Effect.flatMap(RpcClient.make(AdmiralRpc.middleware(Token)), (admiral) =>
-			admiral["admiral.hail"]({ requestId: Request.make("hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) }),
+		Effect.flatMap(RpcClient.make(StartsRpc.middleware(Token)), (starts) =>
+			starts["starts.hail"]({ requestId: Request.make("hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) }),
 		),
 		dialing(port, TOKEN),
 	);

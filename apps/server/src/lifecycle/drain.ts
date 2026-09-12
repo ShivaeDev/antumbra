@@ -1,5 +1,5 @@
+import { LifecycleRefused } from "@antumbra/domain-lifecycle/commands/restart.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
-import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
 import { Effect } from "effect";
 
 const drainRunner = Effect.fn("Lifecycle.drainRunner")(function* (runnerId: string, requestId: string) {

@@ -73,7 +73,7 @@ it.glass("offers to hail the Flagship captain before a session exists", function
 it.glass("opens the Flagship captain conversation after hail", function* ({ api, render }) {
 	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
-	yield* api.starts.hail({
+	yield* api.starts.requestCaptain({
 		requestId: Id.Request.make("hail"),
 		agentId: AgentId.make("captain"),
 		sessionId: SessionId.make("conversation"),

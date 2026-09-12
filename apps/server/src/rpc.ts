@@ -1,19 +1,19 @@
 import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
-import { SessionInputRpc } from "@antumbra/domain-inputs/commands/submit.ts";
+import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
+import { LifecycleRpc } from "@antumbra/domain-lifecycle/commands/restart.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { AdmiralRpc } from "@antumbra/domain-starts/commands/submit.ts";
+import { StartsRpc } from "@antumbra/domain-starts/commands/submit.ts";
 import { assemble } from "@antumbra/platform-rpc/group.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
-import { RestartRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { features } from "#features.ts";
 
 export const rpc = assemble(
 	features,
 	artifactContent.middleware(Token),
-	SessionInputRpc.middleware(Token),
+	InputsRpc.middleware(Token),
 	TranscriptRpc.middleware(Token),
-	RestartRpc,
+	LifecycleRpc.middleware(Token),
 	RunnerRpc,
-	AdmiralRpc.middleware(Token),
+	StartsRpc.middleware(Token),
 );

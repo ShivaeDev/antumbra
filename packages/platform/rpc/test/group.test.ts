@@ -1,3 +1,4 @@
+import { extending } from "@antumbra/platform-feature/extension.ts";
 import { assemble, group } from "@antumbra/platform-rpc/group.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import { Schema } from "effect";
@@ -13,12 +14,6 @@ describe("group", () => {
 		expect(tags(notes, boards)).toEqual(["boards.all", "notes.onBoard", "notes.write"]);
 	});
 
-	it("assembles the features with hand-made groups that own their own namespaces", () => {
-		const ping = { payload: Schema.Struct({}), success: Schema.Void };
-		const assembled = assemble([notes, boards], RpcGroup.make(Rpc.make("restart.drain", ping)), RpcGroup.make(Rpc.make("runner.append", ping)));
-		expect([...assembled.requests.keys()].toSorted()).toEqual(["boards.all", "notes.onBoard", "notes.write", "restart.drain", "runner.append"]);
-	});
-
 	it("carries the token middleware on every rpc", () => {
 		for (const rpc of group([notes, boards]).requests.values()) {
 			expect([...rpc.middlewares]).toEqual([Token]);
@@ -29,5 +24,16 @@ describe("group", () => {
 		const requests = group([notes]).requests;
 		expect(requests.get("notes.write")?.successSchema.ast._tag).toBe("Number");
 		expect(requests.get("notes.onBoard")?.successSchema.ast._tag).toBe("Declaration");
+	});
+
+	it("prefixes a group extending a feature with that feature's name", () => {
+		const extension = extending(notes, RpcGroup.make(Rpc.make("tail", { payload: { id: Schema.String }, success: Schema.Void })));
+		expect([...extension.requests.keys()]).toEqual(["notes.tail"]);
+	});
+
+	it("assembles the features and the hand-made groups into one group", () => {
+		const extension = extending(notes, RpcGroup.make(Rpc.make("tail", { payload: { id: Schema.String }, success: Schema.Void })));
+		const assembled = assemble([notes, boards], extension);
+		expect([...assembled.requests.keys()].toSorted()).toEqual(["boards.all", "notes.onBoard", "notes.tail", "notes.write"]);
 	});
 });

@@ -50,18 +50,18 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 	Effect.gen(function* () {
 		const restarting = yield* Ref.make(false);
 		const runtime = ManagedRuntime.make(ownerLayers(shell, directory));
-		const restart = requestRestart(restarting, lifecycle("record").pipe(Effect.orDie), () => app.quit());
+		const restart = requestRestart(restarting, lifecycle("recordRestart").pipe(Effect.orDie), () => app.quit());
 		const main = Effect.gen(function* () {
 			yield* drainBeforeQuit(
 				drainManagedRuntime(runtime, lifecycle("drain")),
 				restarting,
-				Effect.promise(() => runtime.runPromise(lifecycle("abandon"))),
+				Effect.promise(() => runtime.runPromise(lifecycle("abandonRestart"))),
 			);
 			yield* whenReady;
 			yield* registerShellBridge(shell.registry, () => runtime.runPromise(restart));
 			yield* Effect.sync(registerOpenExternal);
 			yield* quitWhenAllWindowsClosed;
-			yield* lifecycle("honor");
+			yield* lifecycle("honorRestart");
 			const writer = yield* layoutWriter({ registry: shell.registry, store });
 			yield* restoreWindows(shell, store);
 			yield* Effect.sync(() => shell.registry.onChanged(() => runtime.runFork(writer.note)));

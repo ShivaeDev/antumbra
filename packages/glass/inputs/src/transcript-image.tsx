@@ -26,7 +26,7 @@ export const TranscriptImage = ({
 		let current = true;
 		setError(undefined);
 		Effect.runFork(
-			api["sessionInput.image"]({ inputId, position, sessionId }).pipe(
+			api["inputs.image"]({ inputId, position, sessionId }).pipe(
 				Effect.tap((result) =>
 					Effect.sync(() => {
 						if (!current) return;

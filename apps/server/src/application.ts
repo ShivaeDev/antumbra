@@ -14,7 +14,7 @@ import { layer as connections } from "#runner/connections.ts";
 import { layer as runnerHandlers } from "#runner/rpc.ts";
 import { runtime } from "#runtime.ts";
 import { execution } from "#sessions/execution/service.ts";
-import { servingAdmiral } from "#starts/handlers.ts";
+import { servingStarts } from "#starts/handlers.ts";
 import { resources } from "#starts/resources.ts";
 import { transcriptLayer } from "#transcript/route.ts";
 
@@ -33,7 +33,7 @@ const delivery = Layer.mergeAll(inputDeliveryLayer, execution, resources, artifa
 
 export const application = Layer.mergeAll(
 	runtime,
-	servingAdmiral,
+	servingStarts,
 	serving(definition.features),
 	artifactContentHandlers,
 	inputs,

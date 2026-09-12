@@ -53,7 +53,5 @@ export const projectionReadsCannotWrite = projection("read-only", {
 // @ts-expect-error observation payloads must match the selected fact schema.
 export const wrongObservation = observation(pieceParked, { pieceId: PieceId.make("piece-1"), reason: 3 });
 
-const piecesAgain = feature("pieces", { rows: [], facts: [], commands: [], materializers: [], queries: [] });
-
-// @ts-expect-error two features never carry the same name.
-export const twice = app([pieces, piecesAgain]);
+// @ts-expect-error two features cannot carry one name.
+export const sameNameTwice = app([pieces, pieces]);

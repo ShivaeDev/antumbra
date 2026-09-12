@@ -2,11 +2,13 @@ import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
+import { extending } from "@antumbra/platform-feature/extension.ts";
 import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Schema } from "effect";
 import * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
+import { starts } from "#feature.ts";
 
 export const Spawn = Schema.Struct({
 	requestId: Request,
@@ -19,8 +21,11 @@ export const Spawn = Schema.Struct({
 export type Spawn = typeof Spawn.Type;
 export class StartFailure extends Schema.TaggedError<StartFailure>()("StartFailure", { message: Schema.String }) {}
 export const BirthReceipt = Schema.Struct({ requestId: Request, agentId: AgentId });
-export const AdmiralRpc = RpcGroup.make(
-	Rpc.make("admiral.spawn", { payload: Spawn, success: BirthReceipt, error: StartFailure }),
-	Rpc.make("admiral.hail", { payload: { requestId: Request, voyageId: VoyageId }, success: BirthReceipt, error: StartFailure }),
-	Rpc.make("admiral.workNow", { payload: { requestId: Request, pieceId: PieceId }, success: BirthReceipt, error: StartFailure }),
+export const StartsRpc = extending(
+	starts,
+	RpcGroup.make(
+		Rpc.make("spawn", { payload: Spawn, success: BirthReceipt, error: StartFailure }),
+		Rpc.make("hail", { payload: { requestId: Request, voyageId: VoyageId }, success: BirthReceipt, error: StartFailure }),
+		Rpc.make("workNow", { payload: { requestId: Request, pieceId: PieceId }, success: BirthReceipt, error: StartFailure }),
+	),
 );

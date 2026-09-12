@@ -84,7 +84,7 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 	);
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
-	const updates = yield* Stream.toQueue(rpc("transcript.follow", { id: sessionId }), { capacity: "unbounded" });
+	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
 	const initial = yield* eventually(Stream.fromQueue(updates), (reading) =>
 		reading.items.some((item) => item.kind === "tool" && item.result === "/berth"),
 	);
@@ -118,7 +118,7 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		costPartial: false,
 	});
 	entries.splice(0);
-	const retained = yield* answered(rpc("transcript.follow", { id: sessionId }));
+	const retained = yield* answered(rpc("sessions.transcript", { id: sessionId }));
 	expect(retained.items).toEqual([]);
 	expect(retained.unavailable).not.toEqual([]);
 	expect(yield* answered(app.api.costs.forAgent({ agentId: "transcript-agent" }))).toMatchObject({

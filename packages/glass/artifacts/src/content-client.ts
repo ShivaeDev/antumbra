@@ -6,5 +6,5 @@ import * as RpcClient from "effect/unstable/rpc/RpcClient";
 
 export const contentClient = Effect.map(
 	RpcClient.make(artifactContent.middleware(Token)),
-	(client) => (artifactId: ArtifactId) => client["content.read"]({ artifactId }),
+	(client) => (artifactId: ArtifactId) => client["artifacts.read"]({ artifactId }),
 );

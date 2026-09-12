@@ -66,6 +66,7 @@
 		"sharp": "catalog:",
 		"@antumbra/domain-mail": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
-		"@earendil-works/pi-coding-agent": "catalog:"
+		"@earendil-works/pi-coding-agent": "catalog:",
+		"@antumbra/domain-lifecycle": "workspace:*"
 	}
 }

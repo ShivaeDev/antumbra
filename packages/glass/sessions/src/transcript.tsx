@@ -61,7 +61,7 @@ export const TranscriptView = (props: {
 	readonly onOpenNode?: ((id: string) => void) | undefined;
 }) => {
 	const atom = useMemo(
-		() => Atom.make(props.sessions["transcript.follow"]({ id: SessionId.make(props.sessionId) })),
+		() => Atom.make(props.sessions["sessions.transcript"]({ id: SessionId.make(props.sessionId) })),
 		[props.sessions, props.sessionId],
 	);
 	const result = useAtomValue(atom);

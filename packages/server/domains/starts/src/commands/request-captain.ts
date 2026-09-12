@@ -10,7 +10,7 @@ import { startRequested } from "#facts/start-requested.ts";
 import { StartId } from "#ids.ts";
 
 const { id: _id, wakeSessionId: _wake, ...fields } = startRequested.payload;
-export const hail = command("hail", {
+export const requestCaptain = command("requestCaptain", {
 	input: fields,
 	reads: [agent, pieceAgent, voyageAgent, session, voyage],
 	emits: startRequested,
@@ -20,7 +20,7 @@ export const hail = command("hail", {
 		CaptainSessionUnavailable: { agentId: Schema.String },
 		AgentExists: { id: Schema.String },
 	},
-	run: Effect.fn("Starts.hail")(function* (input, rows, reject) {
+	run: Effect.fn("Starts.requestCaptain")(function* (input, rows, reject) {
 		if (input.voyageId === null || !(yield* rows.voyage.exists(input.voyageId))) return yield* reject.UnknownVoyage({ id: input.voyageId ?? "" });
 		const current = yield* captain.run({ voyageId: input.voyageId }, rows);
 		if (current?.status === "spawning") return yield* reject.CaptainAlreadyHailed({ agentId: current.id });

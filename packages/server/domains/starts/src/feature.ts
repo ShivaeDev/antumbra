@@ -14,9 +14,9 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { admit } from "#commands/admit.ts";
 import { cancel } from "#commands/cancel.ts";
-import { hail } from "#commands/hail.ts";
 import { hold } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
+import { requestCaptain } from "#commands/request-captain.ts";
 import { retry } from "#commands/retry.ts";
 import { smooth } from "#commands/smooth.ts";
 import { smoothingRequested } from "#facts/smoothing-requested.ts";
@@ -55,7 +55,7 @@ export const starts = feature("starts", {
 		capacity,
 	],
 	facts: [smoothingRequested, startHeld, startRequested, startAdmitted, startCancelled, startRetried],
-	commands: [smooth, hold, request, hail, admit, cancel, retry],
+	commands: [smooth, hold, request, requestCaptain, admit, cancel, retry],
 	materializers: [
 		smoothingRequestedMaterializer,
 		startHeldMaterializer,

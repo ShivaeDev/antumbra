@@ -41,6 +41,7 @@
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"vitest": "catalog:",
-		"happy-dom": "catalog:"
+		"happy-dom": "catalog:",
+		"@antumbra/domain-lifecycle": "workspace:*"
 	}
 }

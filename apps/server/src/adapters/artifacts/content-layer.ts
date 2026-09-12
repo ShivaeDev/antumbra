@@ -4,4 +4,4 @@ import { Effect } from "effect";
 import { readArtifact } from "#adapters/artifacts/acts/read.ts";
 export const artifactContentHandlers = artifactContent
 	.middleware(Token)
-	.toLayer(Effect.succeed({ "content.read": ({ artifactId }) => readArtifact(artifactId) }));
+	.toLayer(Effect.succeed({ "artifacts.read": ({ artifactId }) => readArtifact(artifactId) }));

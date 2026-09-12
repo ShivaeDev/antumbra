@@ -1,6 +1,6 @@
 import { captain } from "@antumbra/domain-agents/queries/captain.ts";
 import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
-import { hail as requestHail } from "@antumbra/domain-starts/commands/hail.ts";
+import { requestCaptain } from "@antumbra/domain-starts/commands/request-captain.ts";
 import { StartFailure } from "@antumbra/domain-starts/commands/submit.ts";
 import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
@@ -20,7 +20,7 @@ export const hail = Effect.fn("Starts.hail")(function* (input: { requestId: Requ
 	const tools = yield* binding({ ...ids, voyageId: voyage.id, role: "captain" });
 	const settings = yield* live.read(resolve, { voyageId: voyage.id, role: voyage.kind === "flagship" ? "flagship" : "captain" });
 	yield* commit
-		.commit(requestHail, {
+		.commit(requestCaptain, {
 			...ids,
 			...tools,
 			...settings,

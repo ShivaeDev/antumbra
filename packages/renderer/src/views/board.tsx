@@ -1,7 +1,8 @@
 import type { BoardEntryView, BoardSmoothing, BoardTarget, PieceView } from "@antumbra/contract";
+import { WriteEntry } from "@antumbra/glass-boards/write-entry.tsx";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { BoardComposer } from "#views/board-composer.tsx";
+import { glass } from "#adapters/glass.ts";
 import { BoardNodes } from "#views/board-nodes.tsx";
 import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 import { Section } from "#views/section.tsx";
@@ -62,7 +63,7 @@ export const BoardPanel = ({
 					<BoardNodes boardName={name} depth={0} nodes={boardTree(entries)} pieces={{ known: pieces, onOpen: onPiece }} />
 				</>
 			) : null}
-			{open ? <BoardComposer scope={scope} /> : null}
+			{open ? <WriteEntry api={glass.api} owner={scope} /> : null}
 		</Section>
 	);
 };

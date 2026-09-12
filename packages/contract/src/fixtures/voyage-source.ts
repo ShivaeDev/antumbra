@@ -53,5 +53,4 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 		voyages: Effect.succeed([flagshipSummary, reefSummary]),
 		voyagesFeed: feeds.voyages,
 		workPieceNow: () => Effect.succeed({ agentId: "agent-crewed" }),
-		writeBoard: () => Effect.void,
 	});

@@ -1,4 +1,3 @@
-import { BoardRegisterSchema } from "@antumbra/platform-vocabulary/board.ts";
 import { Schema } from "effect";
 
 export const ArtifactSupersessionRequest = Schema.Struct({
@@ -12,13 +11,6 @@ export const BoardTarget = Schema.Union([
 	Schema.Struct({ kind: Schema.Literal("voyage"), voyageId: Schema.String }),
 ]);
 export type BoardTarget = typeof BoardTarget.Type;
-
-export const BoardWriteRequest = Schema.Struct({
-	body: Schema.String,
-	register: BoardRegisterSchema,
-	scope: BoardTarget,
-});
-export type BoardWriteRequest = typeof BoardWriteRequest.Type;
 
 export const AdoptChangeRequest = Schema.Struct({
 	pieceId: Schema.String,

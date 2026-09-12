@@ -10,7 +10,7 @@ it.app("commits store provenance and update public readings", function* (app) {
 	const requestId = Id.Request.make("count-change");
 	yield* app.clock.advance(1_700_000);
 	const seq = yield* app.commit.settings.setCount({ key: "maxParallelSessions", count: 9, requestId });
-	const facts = yield* Effect.orDie(database.write`SELECT * FROM "journal"`);
+	const facts = yield* Effect.orDie(database.write`SELECT * FROM "journal" WHERE "requestId" = ${requestId}`);
 	expect(facts).toHaveLength(1);
 	expect(facts[0]).toMatchObject({ at: 1_700_000, name: "CountSet", requestId, seq });
 	expect(JSON.parse(String(facts[0]?.payload))).toEqual({ count: 9, key: "maxParallelSessions" });
@@ -33,10 +33,12 @@ it.app("commits reject repeated requests without writing again", function* (app)
 	const database = yield* Database;
 	const requestId = Id.Request.make("count-change");
 	const seq = yield* app.commit.settings.setCount({ key: "maxParallelSessions", count: 9, requestId });
+	const facts = yield* Effect.orDie(database.write`SELECT * FROM "journal"`);
+	const applied = yield* Effect.orDie(database.write`SELECT * FROM "applied"`);
 	const refused = yield* Effect.flip(app.commit.settings.setCount({ key: "maxParallelSessions", count: 12, requestId }));
 	expect(refused).toBeInstanceOf(AlreadyDone);
 	expect(refused).toMatchObject({ requestId, seq });
-	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toHaveLength(1);
-	expect(yield* Effect.orDie(database.write`SELECT * FROM "applied"`)).toHaveLength(1);
+	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toEqual(facts);
+	expect(yield* Effect.orDie(database.write`SELECT * FROM "applied"`)).toEqual(applied);
 	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
 });

@@ -26,6 +26,7 @@
 		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",

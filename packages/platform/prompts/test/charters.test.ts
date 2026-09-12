@@ -4,7 +4,7 @@ import { crewCharter } from "#charter-crew.ts";
 it("omits context sections when the record has no notes or rulings", () => {
 	const text = crewCharter({
 		berths: [],
-		moorageRoot: "/work/agent-1",
+		moorageRoot: null,
 		context: "Some users lose unsaved edits after restarting.",
 		expectation: "A report identifying the cause and a proposed fix.",
 		northStar: "Work survives application restarts.",

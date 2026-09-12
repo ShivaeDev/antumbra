@@ -15,7 +15,7 @@ const submitChangeTool = bind(submitChangeSpec, (context, input) =>
 	),
 );
 
-export const openChangeTool = bind(openChangeSpec, (context, input) =>
+const openChangeTool = bind(openChangeSpec, (context, input) =>
 	onPiece(context, (pieceId) =>
 		answered(
 			context,

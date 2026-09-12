@@ -47,12 +47,12 @@ const smoothing = Effect.fn("Agents.smootherCharter")(function* (held: Birth) {
 const berthing = Effect.fn("Agents.berthing")(function* (agentId: string): Effect.fn.Return<Berthing, never, Live> {
 	const live = yield* Live;
 	const moorage = yield* live.read(current, { agentId });
-	if (Option.isNone(moorage)) return { berths: [], moorageRoot: "" };
+	if (Option.isNone(moorage)) return { berths: [], moorageRoot: null };
 	const moored = yield* live.read(berths, { agentId });
 	const registered = yield* live.read(repos, {});
 	const lines = [];
 	for (const registration of registered) {
-		const berth = moored.find((row) => row.source === registration.source);
+		const berth = moored.find((row) => row.source === registration.source && row.status !== "reclaimed");
 		if (berth === undefined) continue;
 		lines.push({ branch: berth.branch, folder: berth.path, repo: registration.name });
 	}

@@ -150,6 +150,15 @@ importers:
 
   .:
     devDependencies:
+      '@antumbra/platform-feature':
+        specifier: workspace:*
+        version: link:packages/platform/feature
+      '@antumbra/server':
+        specifier: workspace:*
+        version: link:apps/server
+      '@antumbra/server-journal':
+        specifier: workspace:*
+        version: link:packages/server/journal
       '@biomejs/biome':
         specifier: 'catalog:'
         version: 2.5.1

@@ -8,8 +8,8 @@ interface Editing {
 	editing: number;
 	written: number;
 }
-export const useDraft = (drafts: Drafts, sessionId: string) => {
-	const ref = useMemo<DraftRef>(() => ({ sessionId, slot: "message" }), [sessionId]);
+export const useDraft = (drafts: Drafts, sessionId: string, slot = "message") => {
+	const ref = useMemo<DraftRef>(() => ({ sessionId, slot }), [sessionId, slot]);
 	const state = useMemo<Editing>(() => ({ pending: undefined, latest: undefined, editing: 0, written: 0 }), [ref]);
 	const [text, setText] = useState("");
 	useEffect(() => {

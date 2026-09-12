@@ -7,6 +7,7 @@ import { chartering, opening, pieceId, registration, repoId, request, seen } fro
 
 const agentId = AgentId.make("agent:reef");
 const birth = {
+	source: "direct" as const,
 	requestId: request("start:reef"),
 	agentId,
 	sessionId: SessionId.make("session:reef"),

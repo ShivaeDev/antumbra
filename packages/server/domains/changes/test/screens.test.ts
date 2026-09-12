@@ -35,6 +35,7 @@ it.app("shows situations only while the assigned session and external change are
 	const sessionId = SessionId.make("session:situation");
 	const agentId = AgentId.make("agent:situation");
 	yield* app.api.starts.request({
+		source: "direct",
 		agentId,
 		sessionId,
 		pieceId,
@@ -45,6 +46,7 @@ it.app("shows situations only while the assigned session and external change are
 		role: "hand",
 		charter: "Sound the reef",
 		toolSetVersion: "v1",
+		tools: [],
 	});
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "situation-runner", backends: ["claude"], imageInputBackends: [] });
 	const identity = { sessionId, requestId: "situation:start" };

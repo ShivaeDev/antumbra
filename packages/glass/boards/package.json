@@ -32,6 +32,7 @@
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"lucide-react": "catalog:"
 	}
 }

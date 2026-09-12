@@ -1,5 +1,4 @@
 import { connect } from "@antumbra/glass-client/connect.ts";
-import { reachOf } from "@antumbra/glass-renderer/adapters/shell.ts";
 import { mount } from "@antumbra/glass-renderer/mount.tsx";
 import type { ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { features } from "@antumbra/server/features.ts";
@@ -14,5 +13,5 @@ declare global {
 
 const container = document.getElementById("root");
 if (container !== null) {
-	Effect.runFork(Effect.scoped(mount(container, window.antumbra, connect(features, reachOf(window.antumbra)))));
+	Effect.runFork(Effect.scoped(mount(container, window.antumbra, connect(features))));
 }

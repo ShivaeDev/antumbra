@@ -6,7 +6,7 @@ import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
 import type { RpcClientError } from "effect/unstable/rpc/RpcClientError";
 import { createElement, type ReactNode } from "react";
-import { dialing, type Reach } from "#serving.ts";
+import type { Dialing } from "#serving.ts";
 import { deferred, queriesOf } from "#wire.ts";
 import { type Wiring, WiringContext, wiringOf } from "#wiring.ts";
 
@@ -36,5 +36,6 @@ export function served(features: readonly FeatureShape[], built: Effect.Effect<u
 	};
 }
 
-export const connect = <const Features extends readonly FeatureShape[]>(features: Features, reach: Reach): Glass<Features> =>
-	served(features, Effect.provide(client(features), dialing(reach)));
+export const connect = <const Features extends readonly FeatureShape[]>(
+	features: Features,
+): Effect.Effect<Glass<Features>, never, Dialing | Scope.Scope> => Effect.map(client(features), (api) => served(features, Effect.succeed(api)));

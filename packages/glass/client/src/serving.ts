@@ -13,9 +13,11 @@ export interface Serving {
 
 export type Reach = Effect.Effect<Serving>;
 
+export type Dialing = RpcClient.Protocol | RpcMiddleware.ForClient<Token>;
+
 export const addressOf = (reach: Reach): Effect.Effect<string> => Effect.map(reach, ({ port }) => `ws://127.0.0.1:${port}/rpc`);
 
-export const dialing = (reach: Reach): Layer.Layer<RpcClient.Protocol | RpcMiddleware.ForClient<Token>> =>
+export const dialing = (reach: Reach): Layer.Layer<Dialing> =>
 	Layer.provide(
 		transport,
 		Layer.merge(

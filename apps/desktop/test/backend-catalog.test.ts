@@ -1,6 +1,6 @@
+import { it } from "@antumbra/app-testing/entry.ts";
 import type { BackendCatalog } from "@antumbra/domain/backend-catalog/service";
 import { BackendFailure } from "@antumbra/plugin-api";
-import { it } from "@antumbra/server/testing/entry.ts";
 import { Effect, Option, Stream } from "effect";
 import { expect } from "vitest";
 import { reportModelsOver } from "#adapters/backend-catalog.ts";

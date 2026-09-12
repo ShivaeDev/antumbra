@@ -14,7 +14,7 @@ const SOURCES =
 	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const TESTS =
-	"a domain's tests import effect, vitest, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
+	"a domain's tests import effect, vitest, @antumbra/app-testing, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const from = "packages/server/domains/role-settings/src/rows/role-setting.ts";
 
@@ -56,6 +56,7 @@ describe("domain-imports rule", () => {
 
 	it("allows test primitives and public domain readings", () => {
 		expect(check(kit, "vitest")).toEqual([]);
+		expect(check(kit, "@antumbra/app-testing/entry.ts")).toEqual([]);
 		expect(check(kit, "effect")).toEqual([]);
 		expect(check(kit, "#test/kit.ts")).toEqual([]);
 		expect(check(kit, "@antumbra/domain-pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);

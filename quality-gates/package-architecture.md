@@ -11,7 +11,9 @@ it sits in the layer its name claims, and whether Effect services have the right
 1. One package is one responsibility, stated by its name. A package holding two responsibilities is two packages that were never separated; a package
    named for a plural (`backends`, `runners`) is a folder of implementations pretending to be a module. If its purpose needs "and", find the split.
 2. Dependencies point one way: vocabulary and notification leaves carry shared language, port packages define interfaces, small capability packages
-   own business acts, the domain facade composes them, and adapters implement ports. Nothing points back.
+   own business acts, the domain facade composes them, and adapters implement ports. Production code never points back. Package tests may dev-depend
+   on `@antumbra/app-testing`, which depends on the production application; this development graph may contain package cycles, while the production
+   dependency graph stays one-way.
 3. Adapters know ports, never the domain. A backend or runner that imports a use case has stopped being replaceable.
 4. The domain knows ports, never providers. A vendor SDK, a provider name, or a concrete adapter appearing in the domain welds one implementation into
    the use cases.

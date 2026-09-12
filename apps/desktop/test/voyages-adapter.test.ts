@@ -1,8 +1,8 @@
+import { it } from "@antumbra/app-testing/entry.ts";
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
 import { FLAGSHIP_REQUEST } from "@antumbra/domain-voyages/ids.ts";
 import { Database } from "@antumbra/persistence";
 import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
-import { it } from "@antumbra/server/testing/entry.ts";
 import { Effect, Layer, Option, PubSub } from "effect";
 import { expect } from "vitest";
 import { voyagesOver } from "#adapters/voyages.ts";

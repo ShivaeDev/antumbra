@@ -25,11 +25,12 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
    reconstruction or durable recovery is the behavior under test. Request live time only when the boundary requires it.
 9. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
    only rename them, and never hide clocks, barriers, and black-box polling behind one universal waiting helper.
-10. Tests of the new application use its complete production composition through the fixed `it.app` and `it.glass` entries. Both entries use the same
-    application layer as production. Tests never select features, assemble a smaller application, or reimplement domain behavior. Only external
-    boundaries such as storage and transport are replaced for the test environment.
-11. Application behavior tests live under `apps/`, grouped by the behavior they prove. Package unit tests exercise their own primitives directly; they
-    do not construct substitute applications.
+10. Tests of the new application use its complete production composition through the fixed `it.app` and `it.glass` entries. Both entries come from
+    `@antumbra/app-testing`, which uses the same application layer as production. Tests never select features, assemble a smaller application, or
+    reimplement domain behavior. Only external boundaries such as storage and transport are replaced for the test environment.
+11. Tests live beside the package whose behavior they prove, including tests backed by the full application. They dev-depend on
+    `@antumbra/app-testing`; only that package owns test composition. Cross-package workflows without one owner live under `apps/`. Primitive unit
+    tests exercise their own machinery directly.
 12. Public queries are the default assertion boundary. Assert rows directly only when storage or materialization is itself the subject, and never let
     a row assertion stand in for a cross-feature behavioral proof.
 13. Screen tests use `it.glass`, which owns the complete application, glass client, provider, mounting, and cleanup. The test runner configures the

@@ -25,8 +25,8 @@ const SOURCES: Scope = {
 
 const TESTS: Scope = {
 	allowance:
-		"a domain's tests import effect, vitest, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids",
-	libraries: [...LIBRARIES, "vitest"],
+		"a domain's tests import effect, vitest, @antumbra/app-testing, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids",
+	libraries: [...LIBRARIES, "vitest", "@antumbra/app-testing"],
 	name: "tests",
 };
 

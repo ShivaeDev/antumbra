@@ -5,7 +5,8 @@ reject complexity that does not pay for itself with a current need. Run `pnpm re
 weaken, bypass, suppress, or exempt tooling to make a change pass.
 
 Runtime code is Effect-based: dependencies come from services and Layers, failures use the error channel, and boundary data is decoded with Schema.
-Package dependencies point one way; fix the package shape, never the boundary. Comments are exceptional and never narrate; `why:` is not repository
+Production package dependencies point one way. Tests may dev-depend on `@antumbra/app-testing`, which loads the production app; production sources
+never import it. Fix the package shape, never hide a dependency behind an alias. Comments are exceptional and never narrate; `why:` is not repository
 style.
 
 For judgment beyond the mechanical gates, follow only the applicable routes in `quality-gates/README.md`. When publishing, follow

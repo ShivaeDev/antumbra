@@ -21,8 +21,9 @@ something updates this file in the same change. A status here is one of three wo
   feature. A domain's sources reach another domain only through its rows, queries and ids; a materializer that writes a neighbour's row uses that
   neighbour's id rule.
 - **Application tests run the whole production application.** Backend tests use `it.app` and screen tests use `it.glass`, both over the application
-  layer production uses. The entries own setup and cleanup and accept no feature list. Application tests live under `apps/`, grouped by the behavior
-  they prove; only external boundaries are replaced for the test environment.
+  layer production uses. The entries live in `@antumbra/app-testing`, own setup and cleanup, and accept no feature list. Tests stay beside the package
+  whose behavior they prove and dev-depend on app-testing; only cross-package workflows without one owner live under `apps/`. Production dependency
+  direction stays unchanged; only external boundaries are replaced for the test environment.
 - **Rejections are Schema errors; everything else is a defect.** A command declares its rejections beside it as Schema classes with structured fields,
   and they cross the wire as they are. A row that does not decode, a missing table, an SDK that throws: defects, never mapped.
 - **The issuer mints the id; the commit stamps the time.** An id is part of the command's input, made by one helper in the vocabulary. The commit

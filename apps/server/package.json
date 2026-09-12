@@ -20,18 +20,7 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@antumbra/glass-client": "workspace:*",
-		"@antumbra/glass-settings": "workspace:*",
-		"@types/react": "catalog:",
-		"@types/react-dom": "catalog:",
-		"react": "catalog:",
-		"react-dom": "catalog:",
-		"happy-dom": "catalog:",
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/glass-voyages": "workspace:*",
-		"@antumbra/glass-role-settings": "workspace:*",
-		"@antumbra/glass-components": "workspace:*"
+		"vitest": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",

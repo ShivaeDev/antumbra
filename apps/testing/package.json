@@ -1,0 +1,35 @@
+{
+	"name": "@antumbra/app-testing",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/server": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
+		"@effect/vitest": "catalog:",
+		"effect": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
+		"vitest": "catalog:",
+		"happy-dom": "catalog:"
+	}
+}

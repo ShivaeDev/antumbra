@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { LogEntry, Registration } from "@antumbra/platform-runner/log.ts";
 import type { OperationResult } from "@antumbra/platform-runner/operations.ts";
@@ -7,6 +8,7 @@ import { Effect, Queue, Stream } from "effect";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
 import { eventually } from "#answers.ts";
+import { ScriptedArtifacts } from "#artifacts.ts";
 
 export type { LogEntry } from "@antumbra/platform-runner/log.ts";
 
@@ -14,7 +16,22 @@ export const connectRunner = Effect.fn("TestRunner.connect")(function* (registra
 	const calls = yield* RpcTest.makeClient(RunnerRpc, { flatten: true });
 	const operations = yield* RunnerOperations;
 	const reactivity = yield* Reactivity;
-	const incoming = yield* Stream.toQueue(calls("runner.operations", registration), { capacity: "unbounded" });
+	const { source } = yield* ScriptedArtifacts;
+	const incoming = yield* calls("runner.operations", registration).pipe(
+		Stream.filterEffect((operation) => {
+			if (operation.type !== "ReadArtifact") return Effect.succeed(true);
+			const content = source.get(operation.relativePath);
+			return calls("runner.reply", {
+				runnerId: registration.runnerId,
+				requestId: operation.requestId,
+				result:
+					content === undefined
+						? { type: "Refused", reason: "source file is missing" }
+						: { type: "ArtifactRead", name: basename(operation.relativePath), content },
+			}).pipe(Effect.as(false));
+		}),
+		Stream.toQueue({ capacity: "unbounded" }),
+	);
 	yield* eventually(reactivity.stream(["runner:connected"], operations.connected), (connected) =>
 		connected.some((runner) => runner.runnerId === registration.runnerId && runner.logId === registration.logId),
 	);

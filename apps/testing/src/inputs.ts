@@ -5,9 +5,10 @@ import { Effect } from "effect";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
 
 export const inputApi = Effect.gen(function* () {
-	const calls = yield* RpcTest.makeClient(InputsRpc.middleware(Token), { flatten: true });
+	const calls = yield* RpcTest.makeClient(InputsRpc.middleware(Token));
 	return {
-		submit: (draft: Draft) => calls("inputs.submit", draft),
-		image: (request: ImageRequest) => calls("inputs.image", request),
+		client: calls,
+		submit: (draft: Draft) => calls["inputs.submit"](draft),
+		image: (request: ImageRequest) => calls["inputs.image"](request),
 	};
 });

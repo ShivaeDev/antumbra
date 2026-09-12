@@ -1,8 +1,6 @@
 import { createHash } from "node:crypto";
-import { basename } from "node:path";
 import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
-import { ArtifactSourceNotOwned } from "@antumbra/server/adapters/artifacts/errors.ts";
-import { ArtifactFiles, ArtifactSource } from "@antumbra/server/adapters/artifacts/ports.ts";
+import { ArtifactFiles } from "@antumbra/server/adapters/artifacts/ports.ts";
 import { Context, Effect, Layer } from "effect";
 
 export { landArtifact } from "@antumbra/server/adapters/artifacts/acts/land.ts";
@@ -17,15 +15,6 @@ export const layer = Layer.effectContext(
 		const source = new Map<string, string>();
 		const stored = new Map<string, string>();
 		return Context.make(ScriptedArtifacts, { source }).pipe(
-			Context.add(ArtifactSource, {
-				read: ({ authorAgentId, path }) =>
-					Effect.suspend(() => {
-						const markdown = source.get(path);
-						return markdown === undefined
-							? Effect.fail(new ArtifactSourceNotOwned({ agentId: authorAgentId, path }))
-							: Effect.succeed({ basename: basename(path), bytes: new TextEncoder().encode(markdown) });
-					}),
-			}),
 			Context.add(ArtifactFiles, {
 				publish: ({ basename, bytes }) =>
 					Effect.sync(() => {

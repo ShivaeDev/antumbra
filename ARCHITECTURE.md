@@ -85,9 +85,10 @@ stops startup.
 
 The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
 a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact
-instead of reading as ended. The server commits observed facts and the consumed cursor together. Transport replies acknowledge operations; they do not
-fabricate Session completion. Image and Artifact bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or
-landing evidence.
+instead of reading as ended. The server commits observed facts and the consumed cursor together, keyed by the log's identity, and a log that opens
+against a file recorded under another shape sets that file aside beside itself and starts a new log under a renewed identity, so its entries reach a
+cursor of their own instead of being skipped. Transport replies acknowledge operations; they do not fabricate Session completion. Image and Artifact
+bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
 
 ## Requests and reconciliation
 

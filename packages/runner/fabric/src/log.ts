@@ -1,8 +1,9 @@
 import { LogEntry, type LogEvent } from "@antumbra/platform-runner/log.ts";
-import { Clock, Context, Effect, PubSub, Schema, Stream } from "effect";
+import { Clock, Context, Effect, Hash, PubSub, Schema, Stream } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 
 export interface Log {
+	readonly logId: string;
 	readonly append: (event: LogEvent) => Effect.Effect<LogEntry>;
 	readonly read: (after: number) => Effect.Effect<ReadonlyArray<LogEntry>>;
 	readonly request: (requestId: string) => Effect.Effect<ReadonlyArray<LogEntry>>;
@@ -11,15 +12,42 @@ export interface Log {
 }
 export class RunnerLog extends Context.Service<RunnerLog, Log>()("@antumbra/runner-fabric/RunnerLog") {}
 
-export class LogDatabase extends Context.Service<LogDatabase, SqlClient>()("@antumbra/runner-fabric/LogDatabase") {}
+export interface LogFile {
+	readonly sql: SqlClient;
+	readonly setAside: (epoch: number) => Effect.Effect<void>;
+}
+export class LogDatabase extends Context.Service<LogDatabase, LogFile>()("@antumbra/runner-fabric/LogDatabase") {}
+
+const ENTRIES = `CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`;
+const REQUESTS = `CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`;
+const SHAPE = `CREATE TABLE IF NOT EXISTS log_shape (logId TEXT PRIMARY KEY, hash TEXT NOT NULL)`;
+const logShape = Hash.string([ENTRIES, REQUESTS].join("; ")).toString(36);
 
 const Stored = Schema.Struct({ cursor: Schema.Int, at: Schema.Number, event: Schema.fromJsonString(LogEntry.fields.event) });
 const decode = Schema.decodeUnknownEffect(Schema.Array(Stored));
 
-export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
-	const sql = yield* LogDatabase;
-	yield* Effect.orDie(sql`CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`);
-	yield* Effect.orDie(sql`CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`);
+const recorded = Effect.fn("RunnerLog.recorded")(function* (sql: SqlClient) {
+	const tables = yield* Effect.orDie(sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('runner_log', 'log_shape')`);
+	const names = tables.map((table) => String(table.name));
+	const rows = names.includes("log_shape") ? yield* Effect.orDie(sql`SELECT logId, hash FROM log_shape`) : [];
+	return { present: names.includes("runner_log"), identity: rows[0] };
+});
+
+export const makeLog = Effect.fn("RunnerLog.make")(function* (seed: string) {
+	const { sql, setAside } = yield* LogDatabase;
+	const { present, identity } = yield* recorded(sql);
+	const kept = identity !== undefined && identity.hash === logShape ? identity : undefined;
+	const epoch = yield* Clock.currentTimeMillis;
+	if (present && kept === undefined) {
+		yield* setAside(epoch);
+		yield* Effect.orDie(sql.unsafe(`DROP TABLE runner_log`));
+	}
+	for (const statement of [ENTRIES, REQUESTS, SHAPE]) yield* Effect.orDie(sql.unsafe(statement));
+	const logId = kept === undefined ? `${seed}:${epoch}` : String(kept.logId);
+	if (kept === undefined) {
+		yield* Effect.orDie(sql`DELETE FROM log_shape`);
+		yield* Effect.orDie(sql`INSERT INTO log_shape ${sql.insert({ logId, hash: logShape })}`);
+	}
 	const changed = yield* PubSub.unbounded<void>();
 	const entries = (rows: ReadonlyArray<unknown>) =>
 		decode(rows).pipe(
@@ -68,5 +96,5 @@ export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
 				);
 			}),
 		);
-	return { append, read, request, tool, events } satisfies Log;
+	return { logId, append, read, request, tool, events } satisfies Log;
 });

@@ -13,7 +13,7 @@ it.effect("appends provider capacity evidence from the registered source", () =>
 			Option.some({ status: "blocked", reason: "usage-limit", detail: "provider limit" }),
 		);
 		const dependencies = Layer.mergeAll(
-			file({ filename: ":memory:", logId: "log" }),
+			file({ filename: ":memory:", seed: "log" }),
 			Layer.succeed(BackendRegistry, {
 				backends: new Map([
 					[

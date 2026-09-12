@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { serviceParameterViolations } from "#lint/rules/service-parameters.ts";
 import { inventoryOf, type SeedFile } from "#test/support/inventory.ts";
 
-const source = (content: string, path = "packages/domain/src/example.ts"): SeedFile => ({ content, path });
+const source = (content: string, path = "packages/x/src/example.ts"): SeedFile => ({ content, path });
 
 const check = (sources: readonly SeedFile[]) => serviceParameterViolations(inventoryOf({ sources }));
 
@@ -28,7 +28,7 @@ const nested = (deps: NestedDeps) => deps;
 
 	it("follows imported aliases of a tainted bundle", () => {
 		const violations = check([
-			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/domain/src/deps.ts"),
+			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/x/src/deps.ts"),
 			source(`
 import type { AgentDeps as Deps } from "./deps.ts";
 const use = (deps: Deps) => deps;

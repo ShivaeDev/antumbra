@@ -1,7 +1,6 @@
 import ts from "typescript";
 import type { SourceFile } from "#lint/inventory.ts";
 import { type CheckedSource, serviceParameterProgram } from "#lint/rules/service-parameter-program.ts";
-import { isForeignCompositionSeam } from "#lint/rules/service-parameter-seams.ts";
 import { typeIsServiceBearing, typeNodeIsServiceBearing } from "#lint/rules/service-parameter-types.ts";
 import { expressionMentionsService } from "#lint/rules/service-type-node.ts";
 import { serviceSymbols } from "#lint/rules/service-type-symbols.ts";
@@ -65,7 +64,7 @@ const debtsIn = (parsed: CheckedSource, checker: ts.TypeChecker, services: Reado
 				const callable = callableName(node, source);
 				const parameterName = parameter.name.getText(source);
 				const parameterType = parameter.type?.getText(source) ?? checker.typeToString(type);
-				if (parameterIsServiceBearing(parameter, checker, services) && !isForeignCompositionSeam(path, node, parameterName, parameterType, source)) {
+				if (parameterIsServiceBearing(parameter, checker, services)) {
 					debts.push({
 						callable,
 						file: path,

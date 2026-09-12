@@ -43,9 +43,8 @@ describe("node-only-in-apps rule", () => {
 		]);
 	});
 
-	it("leaves apps, test files and flat packages alone", () => {
+	it("leaves apps and test files alone", () => {
 		expect(check("apps/server/src/main.ts", "node:http")).toEqual([]);
 		expect(check("packages/platform/skills/test/shipped-skills.test.ts", "@effect/platform-node")).toEqual([]);
-		expect(check("packages/kernel/src/run.ts", "node:child_process")).toEqual([]);
 	});
 });

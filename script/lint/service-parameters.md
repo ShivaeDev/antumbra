@@ -10,6 +10,4 @@ It recognizes Effect `Context.Service` and `Context.Tag` classes, the database s
 Every service-bearing parameter in a checked file fails `pnpm lint`. There is no baseline or allowance: remove the parameter and require the service
 from Effect instead.
 
-Tests and the desktop composition root `apps/desktop/src/main.ts` are the path exemptions. Adapters remain checked. The two contract router runtime
-parameters are exact foreign-callback composition seams: they close the desktop-owned runtime into tRPC callbacks. Their file, callable, parameter,
-and type must all match; neighboring helpers remain checked.
+Tests and the desktop composition root `apps/desktop/src/main.ts` are the path exemptions. Adapters remain checked.

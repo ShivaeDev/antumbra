@@ -15,6 +15,9 @@ const edgeViolations = (path: string, from: WorkspacePackage, packages: readonly
 	}
 	const placement = placementOf(from.root);
 	const target = placementOf(to.root);
+	if (placement === undefined || target === undefined) {
+		return [];
+	}
 	const testDependency =
 		path.startsWith(`${from.root}/test/`) && (to.root === "apps/testing" || (target.group === "server" && target.role === "domains"));
 	if (testDependency || mayImport(placement, target)) {

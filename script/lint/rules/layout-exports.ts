@@ -1,7 +1,7 @@
 import { Result, Schema } from "effect";
 import { jsonDecoder } from "#lint/adapters/json.ts";
 import type { Inventory } from "#lint/inventory.ts";
-import { placementOf } from "#lint/rules/layout-groups.ts";
+import { isNestedPackage } from "#lint/rules/layout-groups.ts";
 import type { Violation } from "#lint/violation.ts";
 import { type WorkspacePackage, workspacePackages } from "#lint/workspace.ts";
 
@@ -12,10 +12,7 @@ const STYLE = 'a nested package exports { "./*": "./src/*" } and an import names
 const decodeExports = jsonDecoder(Schema.Struct({ exports: Schema.optional(Schema.Unknown) }));
 
 const nested = (packages: readonly WorkspacePackage[]): readonly WorkspacePackage[] =>
-	packages.filter((candidate) => {
-		const group = placementOf(candidate.root).group;
-		return group !== "app" && group !== "old";
-	});
+	packages.filter((candidate) => isNestedPackage(candidate.root));
 
 export const layoutExportsViolations = (inventory: Inventory): readonly Violation[] =>
 	nested(workspacePackages(inventory)).flatMap((owner) => {

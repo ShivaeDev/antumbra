@@ -9,12 +9,12 @@ const check = (sources: readonly SeedFile[]) => serviceParameterViolations(inven
 describe("Effect service parameter symbol analysis", () => {
 	it("follows generic constraints without confusing same-named symbols", () => {
 		const violations = check([
-			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/domain/src/deps.ts"),
+			source("export interface AgentDeps { readonly db: DatabaseService }\n", "packages/x/src/deps.ts"),
 			source("interface AgentDeps { readonly label: string }\nconst safe = (deps: AgentDeps) => deps;\n", "packages/other/src/safe.ts"),
-			source('import type { AgentDeps as Deps } from "./deps.ts";\nconst use = <T extends Deps>(deps: T) => deps;\n', "packages/domain/src/use.ts"),
+			source('import type { AgentDeps as Deps } from "./deps.ts";\nconst use = <T extends Deps>(deps: T) => deps;\n', "packages/x/src/use.ts"),
 		]);
 		expect(violations).toHaveLength(1);
-		expect(violations[0]?.file).toBe("packages/domain/src/use.ts");
+		expect(violations[0]?.file).toBe("packages/x/src/use.ts");
 	});
 
 	it("detects service factories and factory return types", () => {
@@ -28,7 +28,7 @@ const fromReturn = (deps: ReturnType<typeof makeDeps>) => deps;
 const fromFactory = (factory: () => AgentDeps) => factory();
 const fromContextFactory = (factory: typeof makeContext) => factory();
 `,
-				"packages/domain/src/factories.ts",
+				"packages/x/src/factories.ts",
 			),
 		]);
 		expect(violations.map((violation) => violation.message)).toEqual([
@@ -46,7 +46,7 @@ declare const makeDeps: () => AgentDeps;
 const generic = <T extends AgentDeps>({ db }: T) => db;
 const inferred = ({ db } = makeDeps()) => db;
 `,
-				"packages/domain/src/destructuring.ts",
+				"packages/x/src/destructuring.ts",
 			),
 		]);
 		expect(violations).toHaveLength(2);
@@ -80,7 +80,7 @@ const inferredRuntimeAlias = (services = runtimeAlias) => services;
 const runtimeFactory = (factory: typeof makeRuntimeAlias) => factory();
 const renamed = (services: RuntimeContext<{ readonly token: string }>) => services;
 `,
-				"packages/domain/src/context.ts",
+				"packages/x/src/context.ts",
 			),
 		]);
 		expect(violations.map((violation) => violation.message)).toEqual([
@@ -105,7 +105,7 @@ const execute = (program: Program<DatabaseService>) => program;
 const handle = (handler: Handler) => handler;
 const define = (options: Options) => options;
 `,
-					"packages/domain/src/program.ts",
+					"packages/x/src/program.ts",
 				),
 			]),
 		).toEqual([]);
@@ -128,7 +128,7 @@ const define = (options: Options) => options;
 class Fake extends Foreign.Service<Fake, { readonly read: () => void }>()("Fake") {}
 const use = (fake: Fake) => fake;
 `,
-					"packages/domain/src/foreign.ts",
+					"packages/x/src/foreign.ts",
 				),
 			]),
 		).toEqual([]);
@@ -143,31 +143,10 @@ interface Effect<T> { readonly value: T }
 const safe = (context: Context<string>) => context;
 const hidden = (program: Effect<DatabaseService>) => program;
 `,
-				"packages/domain/src/homonyms.ts",
+				"packages/x/src/homonyms.ts",
 			),
 		]);
 		expect(violations).toHaveLength(1);
 		expect(violations[0]?.message).toContain('"program" of "hidden"');
-	});
-
-	it("allows only the exact foreign callback composition seams", () => {
-		const content = `type DatabaseService = { readonly query: () => void };
-type AppRuntime = Context.Context<DatabaseService>;
-`;
-		const violations = check([
-			source(`${content}const makeProcedure = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router-procedure.ts"),
-			source(`${content}const makeAppRouter = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router.ts"),
-			source(`${content}const makeHelper = (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router-helper.ts"),
-		]);
-		expect(violations).toHaveLength(1);
-		expect(violations[0]?.message).toContain('"runtime" of "makeHelper"');
-		const nested = check([
-			source(`${content}const makeAppRouter = () => (runtime: AppRuntime) => runtime;\n`, "packages/contract/src/router.ts"),
-			source(
-				`${content}declare const consume: (callback: (runtime: AppRuntime) => AppRuntime) => void;\nconst makeProcedure = () => consume((runtime: AppRuntime) => runtime);\n`,
-				"packages/contract/src/router-procedure.ts",
-			),
-		]);
-		expect(nested).toHaveLength(2);
 	});
 });

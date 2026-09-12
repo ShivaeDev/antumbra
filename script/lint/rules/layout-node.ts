@@ -1,5 +1,5 @@
 import { type Inventory, isDeclaration } from "#lint/inventory.ts";
-import { placementOf } from "#lint/rules/layout-groups.ts";
+import { isNestedPackage } from "#lint/rules/layout-groups.ts";
 import { specifiersOf } from "#lint/rules/layout-specifiers.ts";
 import type { Violation } from "#lint/violation.ts";
 import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/workspace.ts";
@@ -51,10 +51,7 @@ const OWNERS: readonly { readonly root: string; readonly specifier: string }[] =
 
 const names = (specifier: string, module: string): boolean => specifier === module || specifier.startsWith(`${module}/`);
 
-const inScope = (owner: WorkspacePackage, path: string): boolean => {
-	const { group } = placementOf(owner.root);
-	return group !== "app" && group !== "old" && path.startsWith(`${owner.root}/src/`);
-};
+const inScope = (owner: WorkspacePackage, path: string): boolean => isNestedPackage(owner.root) && path.startsWith(`${owner.root}/src/`);
 
 const reaching = (owner: WorkspacePackage, specifier: string): boolean =>
 	REACHING.some((module) => names(specifier, module)) && !OWNERS.some((owns) => owns.root === owner.root && names(specifier, owns.specifier));

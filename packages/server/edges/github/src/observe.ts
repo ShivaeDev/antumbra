@@ -6,13 +6,12 @@ import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse } from "#payload.ts";
 import type { GhProcess } from "#process.ts";
 import { buildObservePlan, type LocatedPullRequestRef } from "#query.ts";
-
 import type { GitHubRepoName } from "#source.ts";
 
 const OBSERVE_TIMEOUT_MILLIS = 60_000;
 
 // GitHub can return a partial GraphQL response with a failing exit code.
-const partial = (failure: GhCommandFailed): Effect.Effect<string, GhError, GhProcess> =>
+const partial = (failure: GhCommandFailed): Effect.Effect<string, GhError> =>
 	failure.stdout.trim() === ""
 		? Effect.fail(failure)
 		: Effect.logDebug("github answered part of a change batch", {

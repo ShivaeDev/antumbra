@@ -1,4 +1,4 @@
-import type { LogEntry } from "@antumbra/platform-runner/log.ts";
+import type { LogEntry, LogEvent } from "@antumbra/platform-runner/log.ts";
 import type { Operation, OperationResult } from "@antumbra/platform-runner/operations.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import type { GitPushRefused } from "@antumbra/runner-git/errors.ts";
@@ -16,6 +16,16 @@ type ResourceOperation = Extract<
 	Operation,
 	{ type: "Plan" | "Provision" | "Reclaim" | "Scrap" | "CaptureChange" | "PushChange" | "ReadArtifact" | "ReadLog" }
 >;
+
+const reclaimEvent = (operation: Extract<ResourceOperation, { type: "Reclaim" }>, verdict: "dirty" | "reclaimed"): LogEvent => {
+	const berth = { requestId: operation.requestId, agentId: operation.agentId, slug: operation.berth.slug };
+	return verdict === "reclaimed" ? { type: "BerthReclaimed", ...berth } : { type: "BerthReclaimHeld", ...berth, reason: "dirty or unpushed work" };
+};
+
+const failureEvent = (operation: ResourceOperation, reason: string): LogEvent =>
+	operation.type === "Reclaim"
+		? { type: "BerthReclaimFailed", requestId: operation.requestId, agentId: operation.agentId, slug: operation.berth.slug, reason }
+		: { type: "ResourceFailed", requestId: operation.requestId, reason };
 
 const completed = (operation: ResourceOperation, history: ReadonlyArray<LogEntry>): OperationResult | undefined => {
 	for (const { event } of history) {
@@ -47,17 +57,7 @@ export const resourceOperations = (resources: LocalRunner) =>
 					return { type: "Accepted" };
 				case "Reclaim": {
 					const verdict = yield* resources.reclaim(operation.berth);
-					yield* log.append(
-						verdict._tag === "reclaimed"
-							? { type: "BerthReclaimed", requestId: operation.requestId, agentId: operation.agentId, slug: operation.berth.slug }
-							: {
-									type: "BerthReclaimHeld",
-									requestId: operation.requestId,
-									agentId: operation.agentId,
-									slug: operation.berth.slug,
-									reason: "dirty or unpushed work",
-								},
-					);
+					yield* log.append(reclaimEvent(operation, verdict._tag));
 					return { type: "Reclaimed", verdict: verdict._tag };
 				}
 				case "Scrap":
@@ -90,19 +90,7 @@ export const resourceOperations = (resources: LocalRunner) =>
 				return result === undefined ? execute(operation) : Effect.succeed(result);
 			}).pipe(
 				Effect.catch((failure) =>
-					log
-						.append(
-							operation.type === "Reclaim"
-								? {
-										type: "BerthReclaimFailed",
-										requestId: operation.requestId,
-										agentId: operation.agentId,
-										slug: operation.berth.slug,
-										reason: failure.message,
-									}
-								: { type: "ResourceFailed", requestId: operation.requestId, reason: failure.message },
-						)
-						.pipe(Effect.as({ type: "Refused" as const, reason: failure.message })),
+					log.append(failureEvent(operation, failure.message)).pipe(Effect.as({ type: "Refused" as const, reason: failure.message })),
 				),
 			);
 	});

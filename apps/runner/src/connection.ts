@@ -1,7 +1,6 @@
 import { serialization } from "@antumbra/platform-rpc/serialization.ts";
 import { ClientToken, layerClient } from "@antumbra/platform-rpc/token.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
-import { ServerTools } from "@antumbra/runner-fabric/ports.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Latch, Layer } from "effect";
 import * as RpcClient from "effect/unstable/rpc/RpcClient";
@@ -44,11 +43,3 @@ export const connected = <A, E extends { _tag: string }, R>(effect: Effect.Effec
 			Effect.retry({ while: (error) => error instanceof RpcClientError && error.reason._tag !== "RpcClientDefect" }),
 		);
 	});
-
-export const serverTools = Layer.effect(
-	ServerTools,
-	Effect.gen(function* () {
-		const client = yield* RunnerClient;
-		return { call: (call) => connected(client.calls["runner.tool"](call)).pipe(Effect.provideService(RunnerClient, client), Effect.orDie) };
-	}),
-);

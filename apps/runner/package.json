@@ -21,7 +21,10 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*"
 	},
 	"dependencies": {
 		"effect": "catalog:",
@@ -40,6 +43,7 @@
 		"@antumbra/runner-backends-pi": "workspace:*",
 		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"@modelcontextprotocol/sdk": "catalog:",
-		"@earendil-works/pi-coding-agent": "catalog:"
+		"@earendil-works/pi-coding-agent": "catalog:",
+		"@effect/sql-sqlite-node": "catalog:"
 	}
 }

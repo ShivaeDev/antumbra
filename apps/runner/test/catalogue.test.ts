@@ -1,3 +1,4 @@
+import { modelChoices } from "@antumbra/runner-backends-claude/models.ts";
 import { BackendRegistry } from "@antumbra/runner-fabric/ports.ts";
 import { BackendFailure } from "@antumbra/runner-ports/backend.ts";
 import { expect, it } from "@effect/vitest";
@@ -57,4 +58,14 @@ it.effect("refuses a catalogue that names no default model", () => {
 			failure: "pi: listed no default model",
 		});
 	}).pipe(Effect.provideService(BackendRegistry, { backends: new Map([["pi", backend]]) }));
+});
+
+it.effect("refuses a Claude listing that names no alias to recommend a model", () => {
+	const listing = [{ description: "Opus 5", displayName: "Opus 5", resolvedModel: "claude-opus-5", value: "opus" }];
+	const backend = { ...makePiBackend({ skills: "/skills" }), listModels: Effect.succeed(modelChoices(listing)) };
+	return Effect.gen(function* () {
+		expect(yield* listModels({ type: "ListModels", requestId: "request", backend: "claude" })).toMatchObject({
+			failure: "claude: listed no default model",
+		});
+	}).pipe(Effect.provideService(BackendRegistry, { backends: new Map([["claude", backend]]) }));
 });

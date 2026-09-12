@@ -5,18 +5,19 @@ import type { ModelChoice } from "@antumbra/runner-ports/backend.ts";
 const ALIAS = "default";
 
 export const modelChoices = (models: ReadonlyArray<ModelInfo>): ReadonlyArray<ModelChoice> => {
-	const alias = models.find((model) => model.value === ALIAS);
-	const recommended = alias?.resolvedModel;
-	const choices: ModelChoice[] = [];
+	const recommended = models.find((model) => model.value === ALIAS)?.resolvedModel;
+	const listed: ModelChoice[] = [];
+	let declared: string | undefined;
 	for (const model of models) {
 		if (model.value === ALIAS) continue;
-		choices.push({
+		if (declared === undefined && recommended !== undefined && model.resolvedModel === recommended) declared = model.value;
+		listed.push({
 			defaultEffort: null,
 			efforts: model.supportedEffortLevels ?? [],
 			id: model.value,
-			isDefault: recommended !== undefined && model.resolvedModel === recommended,
+			isDefault: false,
 			name: model.displayName,
 		});
 	}
-	return choices;
+	return listed.map((model) => (model.id === declared ? { ...model, isDefault: true } : model));
 };

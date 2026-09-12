@@ -27,7 +27,6 @@ const WALKED_ZONES = ["apps", "packages", "script"];
 const DOCUMENT_ROOTS = ["README.md", "DESIGN.md", "ARCHITECTURE.md", "GLOSSARY.md"];
 const DOCUMENT_ZONES = ["docs", "quality-gates"];
 const SOURCE_PATH = /\.tsx?$/;
-const GENERATED_ZONES = ["packages/persistence/migrations/"];
 const WORKSPACE_MANIFEST = /^(apps|packages)\/[^/]+(?:\/[^/]+){0,2}\/package\.json$/;
 const INVENTORY_CONCURRENCY = 16;
 
@@ -36,8 +35,6 @@ export const basename = (path: string): string => path.split("/").pop() ?? "";
 export const isDeclaration = (path: string): boolean => path.endsWith(".d.ts");
 
 const posix = (path: string): string => path.replaceAll("\\", "/");
-
-const generated = (path: string): boolean => GENERATED_ZONES.some((zone) => path.startsWith(zone));
 
 export const collectInventory = (root: string): Effect.Effect<Inventory, FilesystemFailure, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
@@ -49,7 +46,7 @@ export const collectInventory = (root: string): Effect.Effect<Inventory, Filesys
 		const entries = zones.flat().map((absolute) => ({ absolute, path: posix(relative(root, absolute)) }));
 		const sources = yield* Effect.all(
 			entries
-				.filter((entry) => SOURCE_PATH.test(entry.path) && !generated(entry.path))
+				.filter((entry) => SOURCE_PATH.test(entry.path))
 				.map((entry) =>
 					Effect.map(readRequiredText(entry.absolute), (raw) => ({
 						comments: sourceComments(entry.path, raw),

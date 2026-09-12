@@ -15,8 +15,8 @@ const check = (edge: SeedFile, ...others: readonly string[]) =>
 
 describe("layout rules", () => {
 	it("holds a platform package to platform", () => {
-		expect(check(importing("packages/platform/vocabulary", "@antumbra/kernel"), "packages/kernel")).toEqual([
-			"@antumbra/platform-vocabulary may not import @antumbra/kernel: platform packages import platform.",
+		expect(check(importing("packages/platform/vocabulary", "@antumbra/glass-boards"), "packages/glass/boards")).toEqual([
+			"@antumbra/platform-vocabulary may not import @antumbra/glass-boards: platform packages import platform.",
 		]);
 		expect(check(importing("packages/platform/vocabulary", "@antumbra/platform-prompts"), "packages/platform/prompts")).toEqual([]);
 	});
@@ -57,23 +57,9 @@ describe("layout rules", () => {
 		]);
 	});
 
-	it("holds an old package to old packages and platform", () => {
-		expect(check(importing("packages/domain", "@antumbra/kernel"), "packages/kernel")).toEqual([]);
-		expect(check(importing("packages/domain", "@antumbra/platform-vocabulary"), "packages/platform/vocabulary")).toEqual([]);
-		expect(check(importing("packages/domain", "@antumbra/domain-pieces/feature.ts"), "packages/server/domains/pieces")).toEqual([
-			"@antumbra/domain may not import @antumbra/domain-pieces/feature.ts: old packages import old and platform.",
-		]);
-	});
-
-	it("keeps old code out of the nested groups", () => {
-		expect(check(importing("packages/server/domains/pieces", "@antumbra/kernel"), "packages/kernel")).toEqual([
-			"@antumbra/domain-pieces may not import @antumbra/kernel: server packages import platform and server.",
-		]);
-	});
-
-	it("rejects retired renderer bridges", () => {
-		expect(check(importing("packages/renderer", "@antumbra/glass-boards"), "packages/glass/boards")).toEqual([
-			"@antumbra/renderer may not import @antumbra/glass-boards: old packages import old and platform.",
+	it("keeps a server package out of the glass", () => {
+		expect(check(importing("packages/server/domains/pieces", "@antumbra/glass-boards"), "packages/glass/boards")).toEqual([
+			"@antumbra/domain-pieces may not import @antumbra/glass-boards: server packages import platform and server.",
 		]);
 	});
 

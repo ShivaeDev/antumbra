@@ -3,7 +3,6 @@ import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
 import { app } from "electron";
 import { lifecycle, ShellLifecycle, ShellLifecycleLayer } from "#adapters/app-lifecycle.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
-import { requireSupportedData } from "#adapters/data-compatibility.ts";
 import { ShellDraftsLayer } from "#adapters/drafts.ts";
 import { drainManagedRuntime, requestRestart } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
@@ -49,7 +48,6 @@ const ownerLayers = (shell: WindowShell, directory: string) => {
 
 const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =>
 	Effect.gen(function* () {
-		yield* requireSupportedData(directory).pipe(Effect.provide(NodeServices.layer));
 		const restarting = yield* Ref.make(false);
 		const runtime = ManagedRuntime.make(ownerLayers(shell, directory));
 		const restart = requestRestart(restarting, lifecycle("recordRestart").pipe(Effect.orDie), () => app.quit());

@@ -1,6 +1,6 @@
 import ts from "typescript";
 import { type Inventory, isDeclaration, type SourceFile } from "#lint/inventory.ts";
-import { placementOf } from "#lint/rules/layout-groups.ts";
+import { isNestedPackage } from "#lint/rules/layout-groups.ts";
 import { specifiersOf } from "#lint/rules/layout-specifiers.ts";
 import type { Violation } from "#lint/violation.ts";
 import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/workspace.ts";
@@ -108,11 +108,6 @@ const isTest = (owner: WorkspacePackage | undefined, path: string): boolean =>
 	path.startsWith("script/test/") ||
 	(owner !== undefined && path.startsWith(`${owner.root}/test/`));
 
-const nested = (owner: WorkspacePackage): boolean => {
-	const { group } = placementOf(owner.root);
-	return group !== "app" && group !== "old";
-};
-
 export const layoutTestsViolations = (inventory: Inventory): readonly Violation[] => {
 	const packages = workspacePackages(inventory);
 	return inventory.sources
@@ -122,7 +117,7 @@ export const layoutTestsViolations = (inventory: Inventory): readonly Violation[
 			if (!isTest(owner, file.path)) return [];
 			const source = sourceOf(file);
 			const nodes = nodesOf(source);
-			const spawns = owner !== undefined && nested(owner) ? spawnViolations(file, owner, source, nodes) : [];
+			const spawns = owner !== undefined && isNestedPackage(owner.root) ? spawnViolations(file, owner, source, nodes) : [];
 			return [...pidViolations(file, source, nodes), ...spawns];
 		});
 };

@@ -29,12 +29,7 @@ describe("layout export rules", () => {
 		expect(check([manifest("packages/runner/git", undefined)])[0]?.rule).toBe("layout/package-exports");
 	});
 
-	it("leaves the old flat packages and the applications alone", () => {
-		expect(
-			check([
-				manifest("packages/contract", { ".": "./src/index.ts", "./channels": "./src/channels.ts" }),
-				manifest("apps/desktop", { ".": "./src/index.ts" }),
-			]),
-		).toEqual([]);
+	it("leaves the applications alone", () => {
+		expect(check([manifest("apps/desktop", { ".": "./src/index.ts" })])).toEqual([]);
 	});
 });

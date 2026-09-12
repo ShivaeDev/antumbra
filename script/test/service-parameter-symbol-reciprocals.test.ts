@@ -46,7 +46,7 @@ const useNamespace = (pieces: NamespacePieces) => pieces;
 				`import type { Context } from "effect/Context";
 export type Box<R> = { readonly runtime: Context<R> };
 `,
-				"packages/domain/src/box.ts",
+				"packages/x/src/box.ts",
 			),
 			source(
 				`import type { Context } from "effect/Context";
@@ -55,7 +55,7 @@ const inline = (box: { readonly runtime: Context<{ readonly token: string }> }) 
 const empty = (box: Box<never>) => box;
 const nonempty = (box: Box<{ readonly token: string }>) => box;
 `,
-				"packages/domain/src/use-box.ts",
+				"packages/x/src/use-box.ts",
 			),
 		]);
 		expect(violations.map((violation) => violation.message)).toEqual([
@@ -82,7 +82,7 @@ const liveBox = (box: Box<{ readonly token: string }>) => box;
 const emptyRecursive = (node: Recursive<never>) => node;
 const liveRecursive = (node: Recursive<{ readonly token: string }>) => node;
 `,
-				"packages/domain/src/interface-context.ts",
+				"packages/x/src/interface-context.ts",
 			),
 		]);
 		expect(violations.map((violation) => violation.message)).toEqual([
@@ -104,7 +104,7 @@ Factory = Foreign.Service;
 class Fake extends Factory<Fake, { readonly read: () => void }>()("Fake") {}
 const use = (fake: Fake) => fake;
 `,
-					"packages/domain/src/mutable-factory.ts",
+					"packages/x/src/mutable-factory.ts",
 				),
 			]),
 		).toEqual([]);

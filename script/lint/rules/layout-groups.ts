@@ -1,4 +1,4 @@
-export type LayoutGroup = "app" | "glass" | "old" | "platform" | "runner" | "server";
+export type LayoutGroup = "app" | "glass" | "platform" | "runner" | "server";
 
 export interface Placement {
 	readonly group: LayoutGroup;
@@ -24,7 +24,7 @@ const roleUnder = (group: string, segments: readonly string[]): string => {
 	return (PROCESS_ROLES[group] ?? []).includes(first) ? first : "";
 };
 
-export const placementOf = (root: string): Placement => {
+export const placementOf = (root: string): Placement | undefined => {
 	const [area, ...rest] = root.split("/");
 	if (area === "apps") {
 		return { group: "app", role: "" };
@@ -36,7 +36,12 @@ export const placementOf = (root: string): Placement => {
 	if (nest === "server" || nest === "runner") {
 		return { group: nest, role: roleUnder(nest, deeper) };
 	}
-	return { group: "old", role: "" };
+	return undefined;
+};
+
+export const isNestedPackage = (root: string): boolean => {
+	const placement = placementOf(root);
+	return placement !== undefined && placement.group !== "app";
 };
 
 const withinGroup = (from: Placement, to: Placement): boolean => {
@@ -53,12 +58,6 @@ export const mayImport = (from: Placement, to: Placement): boolean => {
 	if (from.group === "platform") {
 		return false;
 	}
-	if (from.group === "old") {
-		return to.group === "old";
-	}
-	if (to.group === "old") {
-		return false;
-	}
 	if (from.group === to.group) {
 		return withinGroup(from, to);
 	}
@@ -73,9 +72,6 @@ export const allowanceOf = (placement: Placement): Allowance => {
 	}
 	if (placement.group === "platform") {
 		return { allowed: "platform", group: "platform" };
-	}
-	if (placement.group === "old") {
-		return { allowed: "old and platform", group: "old" };
 	}
 	if (placement.group === "glass") {
 		return { allowed: `platform, glass, ${DOMAIN_FILES}`, group: "glass" };

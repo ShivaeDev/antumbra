@@ -35,7 +35,7 @@ describe("manifest rules", () => {
 			manifest("package.json", { devDependencies: { effect: "catalog:" } }),
 			manifest("packages/x/package.json", {
 				dependencies: {
-					"@antumbra/contract": "workspace:*",
+					"@antumbra/platform-vocabulary": "workspace:*",
 					effect: "catalog:",
 				},
 			}),

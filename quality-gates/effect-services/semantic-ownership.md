@@ -75,8 +75,8 @@ Add methods for existing domain questions; do not wrap every database operation 
 
 Semantic ownership is not a ban on querying, calculation, or reshaping:
 
-- Load related data through declared Prisma relations, such as `include`, so relation names and result types remain contract-owned. Do not reconstruct
-  a join with unrelated table reads and positional or identifier matching in a caller.
+- Load related data through the owner's declared query, which names the rows it reads and returns their declared shapes, so row names and result types
+  remain feature-owned. Do not reconstruct a join with unrelated row reads and positional or identifier matching in a caller.
 - Domain inference and calculation live where the question is answered. A pure private helper is part of that implementation; exporting it does not
   make foreign row access legitimate.
 - A consumer may reshape a stable domain result for presentation or its own algorithm. The consumer must not rebuild the owner's result from

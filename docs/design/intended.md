@@ -29,15 +29,8 @@ describes one of these carries a marker pointing here. When one ships, its line 
 - **Dedicated smoothing agents for standing rulings** — agents that reclassify, consolidate, and retire a scope's standing rulings so a captain's
   context is not spent on it. Superseding, withdrawing, and reclassifying exist as acts any authority may perform; consolidation and the dedicated
   pass do not. [Guide.](rulings.md#standing-rulings-and-smoothing)
-- **The commit** — one path for every fact and row, inside one transaction, with the keys marked dirty as it commits. Writes are single statements
-  today. [North Star.](../architecture/north-star.md#the-commit)
-- **Reconcilers** — live queries that read rows, write nothing, and call commands or the edge. The kernel's Intents, tick, and demand bridge do that
-  work today. [North Star.](../architecture/north-star.md#reconcilers)
-- **The runner process and its log** — sessions in a sibling process that survives a server restart. Sessions live in the main process today.
-  [North Star.](../architecture/north-star.md#the-runner-and-its-log)
-- **Live queries over projections** — screens the server re-pushes on invalidation. The renderer receives fed snapshots over the bridge today.
-  [North Star.](../architecture/north-star.md#four-parts)
-- **One schema** — tables, wire, forms, and columns derived from Schema classes. Prisma holds the tables and the contract holds the wire today.
-  [North Star.](../architecture/north-star.md#facts-projections-one-schema)
+- **One schema for the screen too** — the fields and columns a screen lays out derived from the same Schema classes. Tables, wire, and forms already
+  derive from the feature schemas; every screen still writes its own fields out by hand.
 - **Server swap and runner drain** — restarting either process without touching an agent. A requested restart cuts turns and wakes the roots it cut
-  today. [North Star.](../architecture/north-star.md#restarting-without-touching-an-agent)
+  today.
+- **Retention of provider events** — provider events kept for a bounded window; the window is undecided.

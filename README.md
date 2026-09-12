@@ -16,11 +16,9 @@ Electron shell starts a separate server and runner; its windows read the server 
 ## Documentation
 
 - [Design axioms](DESIGN.md) — the cross-context laws every design obeys.
-- [Architecture](ARCHITECTURE.md) — the process, package, and dependency shape.
+- [Architecture](ARCHITECTURE.md) — the process, package, and dependency shape, and the reasoning behind it.
 - [Glossary](GLOSSARY.md) — a short index of Antumbra's product language.
 - [Design guides](docs/design/README.md) — the relationships, acts, and rationale behind that language.
-- [The North Star](docs/architecture/north-star.md) — the architectural rationale; [migration](docs/architecture/migration.md) records the cutover and
-  data compatibility.
 - [Branding](docs/branding.md) — the wordmark, the dark palette, the type scale, and the copy register.
 
 - [Running tests](docs/contributing/tests.md) — test commands and local worktree coordination.

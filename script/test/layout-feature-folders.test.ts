@@ -41,6 +41,5 @@ describe("feature-folders rule", () => {
 	it("leaves a domain's tests and every package outside the domains alone", () => {
 		expect(check("packages/server/domains/pieces/test/park.test.ts")).toEqual([]);
 		expect(check("packages/server/journal/src/commit.ts")).toEqual([]);
-		expect(check("packages/kernel/src/run.ts")).toEqual([]);
 	});
 });

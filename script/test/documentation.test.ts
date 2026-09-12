@@ -113,7 +113,7 @@ describe("documentation rules", () => {
 		expect(hasRule(documents, "docs/glossary-row")).toBe(true);
 	});
 
-	it("requires a glossary owner under docs/design", () => {
+	it("requires a glossary owner to be a topic page", () => {
 		const documents = replaceDocument(
 			cleanDocuments(),
 			"GLOSSARY.md",

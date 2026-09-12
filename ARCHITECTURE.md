@@ -4,9 +4,6 @@ Antumbra is a macOS desktop app for long-horizon work with AI agents. The applic
 runner. Windows are clients of the server. This document describes their responsibilities and package boundaries; [DESIGN.md](DESIGN.md) owns the
 binding product axioms, and [intended work](docs/design/intended.md) records concepts that have not been built.
 
-The [North Star](docs/architecture/north-star.md) explains the architectural decisions. The [migration record](docs/architecture/migration.md) covers
-the cutover and its data compatibility limits.
-
 ## Process model
 
 The shell in `apps/desktop` selects the data directory, takes Electron's single-instance lock, starts and supervises the server and runner, and owns
@@ -23,15 +20,16 @@ Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuratio
 provider ownership into it: the runner reconnects and sends entries after the server's committed log cursor.
 
 Glass packages provide the web UI. They read server projections through live RPC queries and invoke declared commands; they do not reconstruct domain
-truth from independent client caches. Transcript reads are sequenced. Native actions go through the shell bridge. Reloading a window has no effect on
-an Agent or its runner attachment.
+truth from independent client caches. A screen is a narrow live query that the server re-pushes when a fact changes what that screen shows, which is
+why the glass holds no truth of its own and a window that dies costs nothing. Transcript reads are sequenced. Native actions go through the shell
+bridge. Reloading a window has no effect on an Agent or its runner attachment.
 
-## Workspace
+## Ownership
 
 | Path                       | Responsibility                                                                                                                |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `apps/desktop`             | Shell entry, native adapters, child supervision, and packaging                                                                |
-| `apps/server`              | Feature and projection assembly, RPC handlers, reconcilers, and external server adapters                                      |
+| `apps/server`              | Feature and projection assembly, RPC handlers, reconcilers, tool handlers, external custody, and server adapters              |
 | `apps/runner`              | Runner entry, provider SDK and process adapters, filesystem and Git execution                                                 |
 | `apps/testing`             | Production application composition with test implementations of external services                                             |
 | `packages/platform`        | Shared schemas, feature declarations, RPC and runner wire contracts, shell vocabulary, prompts, skills, and service utilities |
@@ -46,8 +44,8 @@ an Agent or its runner attachment.
 | `packages/glass`           | Client, forms, shared components, feature screens, renderer, and harness                                                      |
 
 Server domains include Agents, Sessions, starts, lifecycle, settings, role settings, backend catalog, Voyages, Pieces, Boards, mail, Rulings,
-repositories, Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants. There is no
-application-wide Domain facade or Kernel workflow store.
+repositories, Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants: every invariant
+has a feature owner and every runtime effect has an app owner.
 
 ## Dependencies and effects
 
@@ -71,7 +69,9 @@ exercise production composition; production code never imports it.
 
 The server journal is SQLite at `server/journal.db` under the selected data directory. A command guard reads current rows, then the journal appends
 its fact and runs materializers and derived projection stages in one transaction. Commands are serialized. Commit marks reactivity keys dirty only
-with the committed change. Tables and wire shapes derive from the feature schemas.
+with the committed change. Tables and wire shapes derive from the feature schemas. Every durable fact enters here and nothing else writes a fact or a
+row, so the moment a command is answered every projection already reflects it and every live query and reconciler that reads it has been woken.
+Provider events are not domain facts: they live in the runner's log, and a domain fact names a Session by id.
 
 Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts. An existing journal is
 backed up before an actual rebuild. This is not a promise to retain or prune a fixed number of backups.
@@ -83,12 +83,11 @@ nothing to drop it, so it may rewrite a payload, rename a fact, or drop the fact
 follow whether or not a row shape changed, and takes the same backup a rebuild takes. A migration that fails rewrites nothing, records nothing, and
 stops startup.
 
-The old Prisma `antumbra.db` has no importer in this cutover. The shell refuses an unsupported legacy installation before launching the new runtime;
-it neither deletes that database nor silently treats it as a new journal. See the [data policy](docs/architecture/migration.md#data-compatibility).
-
-The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it. The server commits observed facts and
-the consumed cursor together. Transport replies acknowledge operations; they do not fabricate Session completion. Image and Artifact bytes live in
-app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
+The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
+a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact
+instead of reading as ended. The server commits observed facts and the consumed cursor together. Transport replies acknowledge operations; they do not
+fabricate Session completion. Image and Artifact bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or
+landing evidence.
 
 ## Requests and reconciliation
 
@@ -116,7 +115,7 @@ Session. The [recovery guide](docs/design/agent-recovery.md) owns the product di
 
 Tool schemas and handlers are assembled on the server. Opening a Session binds its descriptors and tool-set version. The runner adapts those data
 descriptors to the provider and forwards calls with the trusted Session identity and stable call id. It logs tool invocation and answer evidence.
-Historical handler-version hosting and staged server swaps are not supplied by the cutover.
+Historical handler-version hosting and staged server swaps are not built.
 
 ## Validation
 
@@ -125,5 +124,4 @@ tests own process, filesystem, provider, and transport integration. Pure schema 
 [testing guide](docs/contributing/tests.md) lists commands and local test serialization.
 
 Run `pnpm ready` for the repository gates. The [quality routes](quality-gates/README.md) cover judgments that an import graph or passing test cannot
-make. Migration completion requires integrated verification, including process startup and packaging, rather than the presence of replacement packages
-alone.
+make.

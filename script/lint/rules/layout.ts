@@ -7,17 +7,6 @@ import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/works
 const RULE = "layout/dependency-direction";
 const SCOPE = "@antumbra/";
 
-const OLD_IMPORT_EXCEPTIONS: readonly { readonly from: string; readonly to: string }[] = [
-	{ from: "@antumbra/renderer", to: "@antumbra/glass-boards" },
-	{ from: "@antumbra/renderer", to: "@antumbra/glass-pieces" },
-	{ from: "@antumbra/renderer", to: "@antumbra/glass-role-settings" },
-	{ from: "@antumbra/renderer", to: "@antumbra/glass-settings" },
-	{ from: "@antumbra/renderer", to: "@antumbra/glass-voyages" },
-];
-
-const excepted = (from: WorkspacePackage, to: WorkspacePackage): boolean =>
-	OLD_IMPORT_EXCEPTIONS.some((exception) => exception.from === from.name && exception.to === to.name);
-
 const edgeViolations = (path: string, from: WorkspacePackage, packages: readonly WorkspacePackage[], specifier: Specifier): readonly Violation[] => {
 	const [name] = specifier.text.slice(SCOPE.length).split("/");
 	const to = packages.find((candidate) => candidate.name === `${SCOPE}${name}`);
@@ -28,7 +17,7 @@ const edgeViolations = (path: string, from: WorkspacePackage, packages: readonly
 	const target = placementOf(to.root);
 	const testDependency =
 		path.startsWith(`${from.root}/test/`) && (to.root === "apps/testing" || (target.group === "server" && target.role === "domains"));
-	if (testDependency || mayImport(placement, target) || excepted(from, to)) {
+	if (testDependency || mayImport(placement, target)) {
 		return [];
 	}
 	const allowance = allowanceOf(placement);

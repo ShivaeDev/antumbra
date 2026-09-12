@@ -9,11 +9,7 @@
 			"!**/release",
 			"!!.worktrees",
 			"!!.local",
-			"!packages/persistence/contract.json",
-			"!packages/persistence/contract.d.ts",
-			"!packages/persistence/migrations",
-			"!packages/persistence/test/fixtures",
-			"!packages/backend-codex/src/schema"
+			"!packages/runner/backends/codex/src/schema"
 		]
 	},
 	"formatter": {
@@ -29,19 +25,36 @@
 	"plugins": [
 		{
 			"path": "./script/lint/plugins/effect-boundaries.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts", "!**/adapters/**"]
+			"includes": [
+				"**/*.ts",
+				"**/*.tsx",
+				"!**/*.d.ts",
+				"!**/adapters/**"
+			]
 		},
 		{
 			"path": "./script/lint/plugins/ambient-runtime.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+			"includes": [
+				"**/*.ts",
+				"**/*.tsx",
+				"!**/*.d.ts"
+			]
 		},
 		{
 			"path": "./script/lint/plugins/type-assertions.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+			"includes": [
+				"**/*.ts",
+				"**/*.tsx",
+				"!**/*.d.ts"
+			]
 		},
 		{
 			"path": "./script/lint/plugins/imports.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
+			"includes": [
+				"**/*.ts",
+				"**/*.tsx",
+				"!**/*.d.ts"
+			]
 		}
 	],
 	"linter": {
@@ -58,7 +71,12 @@
 	},
 	"overrides": [
 		{
-			"includes": ["packages/platform/**", "packages/server/**", "packages/runner/**", "packages/glass/**"],
+			"includes": [
+				"packages/platform/**",
+				"packages/server/**",
+				"packages/runner/**",
+				"packages/glass/**"
+			],
 			"linter": {
 				"rules": {
 					"performance": {

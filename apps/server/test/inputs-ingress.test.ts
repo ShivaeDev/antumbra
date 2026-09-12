@@ -144,3 +144,46 @@ it.app("returns a durable queued receipt while provider capacity blocks delivery
 	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("queued_for_wake");
 	expect(yield* inputs.submit(draft)).toEqual({ id: inputId, status: "queued_for_wake" });
 });
+
+it.app("retries a known refusal with the same input identity and fresh delivery intent", function* ({ api }) {
+	const runner = yield* connect(false);
+	const inputs = yield* inputApi;
+	const draft = { id: inputId, sessionId, parts: [{ type: "text", text: "Retry after a definite refusal" }] } as const;
+	const first = yield* Effect.forkScoped(Effect.flip(inputs.submit(draft)));
+	const refused = yield* runner.next;
+	if (refused.type !== "Deliver") return yield* Effect.die(new Error(`Expected Deliver, got ${refused.type}`));
+	yield* runner.append([
+		{
+			logId: "log:input-ingress",
+			cursor: 2,
+			at: 1,
+			event: { type: "InputFailed", requestId: refused.requestId, sessionId, inputId, reason: "The provider refused before handoff" },
+		},
+	]);
+	yield* runner.reply(refused.requestId, { type: "Refused", reason: "The provider refused before handoff" });
+	expect(yield* Fiber.join(first)).toMatchObject({ _tag: "InputRefused" });
+	const retried = yield* Effect.forkScoped(inputs.submit(draft));
+	const accepted = yield* runner.next;
+	if (accepted.type !== "Deliver") return yield* Effect.die(new Error(`Expected Deliver, got ${accepted.type}`));
+	expect(accepted.input.id).toBe(inputId);
+	expect(accepted.requestId).not.toBe(refused.requestId);
+	yield* runner.append([
+		{
+			logId: "log:input-ingress",
+			cursor: 3,
+			at: 2,
+			event: { type: "InputFailed", requestId: refused.requestId, sessionId, inputId, reason: "Late duplicate refusal" },
+		},
+	]);
+	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("pending");
+	yield* runner.append([
+		{
+			logId: "log:input-ingress",
+			cursor: 4,
+			at: 3,
+			event: { type: "InputAccepted", requestId: accepted.requestId, sessionId, inputId },
+		},
+	]);
+	yield* runner.reply(accepted.requestId, { type: "Accepted" });
+	expect(yield* Fiber.join(retried)).toEqual({ id: inputId, status: "accepted" });
+});

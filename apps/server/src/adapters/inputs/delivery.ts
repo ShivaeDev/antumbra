@@ -2,7 +2,6 @@ import { providers } from "@antumbra/domain-capacity/queries/providers.ts";
 import { delivery } from "@antumbra/domain-inputs/commands/delivery.ts";
 import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
 import { InputAmbiguous, InputNotFound, InputRefused } from "@antumbra/domain-inputs/commands/errors.ts";
-import { inputOperationId } from "@antumbra/domain-inputs/ids.ts";
 import { deliveryReading } from "@antumbra/domain-inputs/queries/delivery.ts";
 import { support } from "@antumbra/domain-inputs/queries/support.ts";
 import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
@@ -52,7 +51,6 @@ export const inputDeliveryLayer = Layer.effect(InputDelivery)(
 				!root.attached ||
 				!registrations.some((runner) => runner.runnerId === root.runnerId) ||
 				capacities.some((capacity) => capacity.backend === root.backend && capacity.status === "blocked");
-			const operationId = inputOperationId(inputId);
 			if (queued) {
 				yield* commit
 					.commit(delivery, { requestId: Request.make(`input-queued:${inputId}`), id: inputId, status: "queued_for_wake", detail: null })
@@ -61,7 +59,7 @@ export const inputDeliveryLayer = Layer.effect(InputDelivery)(
 						Effect.catchTag("DeliverySettled", () => Effect.void),
 					);
 			}
-			const settled = yield* live.live(deliveryReading, { inputId, operationId }).pipe(
+			const settled = yield* live.live(deliveryReading, { inputId }).pipe(
 				Stream.filter(
 					(value) =>
 						queued ||

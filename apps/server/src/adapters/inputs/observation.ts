@@ -5,11 +5,11 @@ export const inputObservation = (entry: LogEntry): FactPayload<typeof inputObser
 	const event = entry.event;
 	switch (event.type) {
 		case "InputAccepted":
-			return { sessionId: event.sessionId, inputId: event.inputId, status: "accepted", detail: null };
+			return { sessionId: event.sessionId, inputId: event.inputId, operationId: event.requestId, status: "accepted", detail: null };
 		case "InputFailed":
-			return { sessionId: event.sessionId, inputId: event.inputId, status: "refused", detail: event.reason };
+			return { sessionId: event.sessionId, inputId: event.inputId, operationId: event.requestId, status: "refused", detail: event.reason };
 		case "InputAmbiguous":
-			return { sessionId: event.sessionId, inputId: event.inputId, status: "ambiguous", detail: event.reason };
+			return { sessionId: event.sessionId, inputId: event.inputId, operationId: event.requestId, status: "ambiguous", detail: event.reason };
 		default:
 			return null;
 	}

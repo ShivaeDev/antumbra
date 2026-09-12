@@ -3,7 +3,7 @@ import { supersede } from "@antumbra/domain-artifacts/commands/supersede.ts";
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
-import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
+import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
 import { removeArtifactSupersessionSpec, supersedeArtifactSpec } from "#tools/artifacts/specs.ts";

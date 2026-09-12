@@ -2,7 +2,7 @@ import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
-import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
+import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Effect } from "effect";
 import { landArtifact } from "#adapters/artifacts/acts/land.ts";
 import { landArtifactSpec } from "#tools/artifacts/specs.ts";

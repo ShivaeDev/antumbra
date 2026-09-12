@@ -28,6 +28,12 @@ it.app("only an explicit revision moves an artifact into history", function* (ap
 	const reading = yield* answered(app.api.artifacts.byPiece({ pieceId }));
 	expect(reading.current.map(({ id }) => id)).toEqual(expect.arrayContaining(["same", "revision"]));
 	expect(reading.history).toMatchObject([{ id: "old", supersededByArtifactId: "revision" }]);
+	expect(yield* app.rows.pieceOutcome.where({ pieceId })).toEqual(
+		expect.arrayContaining([
+			expect.objectContaining({ sourceId: "old", sourceKind: "artifact", status: "landed" }),
+			expect.objectContaining({ sourceId: "revision", sourceKind: "artifact", status: "landed" }),
+		]),
+	);
 });
 
 it.app("an unavailable source leaves no landed artifact", function* (app) {

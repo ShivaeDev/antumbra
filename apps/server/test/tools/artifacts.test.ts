@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { expect } from "vitest";
 
 const voyageId = VoyageId.make("voyage:reef");

@@ -32,13 +32,15 @@ export const landArtifact = Effect.fn("Artifacts.landArtifact")(function* (input
 	}
 	const source = yield* (yield* ArtifactSource).read({ authorAgentId: input.authorAgentId, path: input.path });
 	const stored = yield* (yield* ArtifactFiles).publish(source);
-	yield* (yield* Commit).commit(land, {
-		requestId: input.requestId,
-		pieceId: input.pieceId,
-		authorAgentId: input.authorAgentId,
-		title: input.title,
-		supersedesArtifactId: input.supersedesArtifactId,
-		...stored,
-	});
+	yield* (yield* Commit)
+		.commit(land, {
+			requestId: input.requestId,
+			pieceId: input.pieceId,
+			authorAgentId: input.authorAgentId,
+			title: input.title,
+			supersedesArtifactId: input.supersedesArtifactId,
+			...stored,
+		})
+		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 	return yield* landingReceipt(input);
 });

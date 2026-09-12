@@ -1,14 +1,14 @@
 import { failAdoption } from "@antumbra/domain-changes/commands/adoption-failed.ts";
 import { observeHostCapability } from "@antumbra/domain-changes/commands/host-capability.ts";
 import { failPublication } from "@antumbra/domain-changes/commands/publication-failed.ts";
-import { adoptions } from "@antumbra/domain-changes/queries/adoptions.ts";
+import { pendingAdoptions } from "@antumbra/domain-changes/queries/pending-adoptions.ts";
 import { publishing } from "@antumbra/domain-changes/queries/publishing.ts";
 import { world } from "@antumbra/domain-changes/queries/world.ts";
 import type { ChangeHost } from "@antumbra/platform-change-host/port.ts";
 import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
-import { run } from "@antumbra/server-journal/reconcile.ts";
+import { each, run } from "@antumbra/server-journal/reconcile.ts";
 import { Clock, Effect, Ref } from "effect";
 import { adoptExternal } from "#changes/adopt.ts";
 import { nextObserveDelayMillis, retryObserveDelayMillis } from "#changes/cadence.ts";
@@ -59,58 +59,56 @@ const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
 export const watchChanges = Effect.gen(function* () {
 	const hosts = yield* ChangeHosts;
 	const observers = yield* Effect.forEach(hosts, watchHost);
-	const publisher = yield* run(publishing, {}, (rows) =>
-		Effect.forEach(
-			rows,
-			(row) =>
-				publish(row).pipe(
-					Effect.catch((error) =>
-						Effect.gen(function* () {
-							const commit = yield* Commit;
-							yield* commit
-								.commit(failPublication, {
-									requestId: Request.make(make()),
-									changeId: row.id,
-									attemptId: row.publicationRequestId ?? "",
-									message: String(error),
-								})
-								.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-						}),
-					),
+	const publisher = yield* each(
+		publishing,
+		{},
+		(row) => row.id,
+		(row) =>
+			publish(row).pipe(
+				Effect.asVoid,
+				Effect.catch((error) =>
+					Effect.gen(function* () {
+						const commit = yield* Commit;
+						yield* commit
+							.commit(failPublication, {
+								requestId: Request.make(make()),
+								changeId: row.id,
+								attemptId: row.publicationRequestId ?? "",
+								message: String(error),
+							})
+							.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+					}),
 				),
-			{ discard: true },
-		),
+			),
 	);
-	const adopter = yield* run(adoptions, {}, (rows) =>
-		Effect.forEach(
-			rows.filter((row) => row.error === null),
-			(request) =>
-				Effect.gen(function* () {
-					const repository = (yield* readWorld).repos.find((repo) => repo.id === request.repoId);
-					if (repository !== undefined)
-						yield* adoptExternal({
-							adoptionId: request.id,
-							callId: `${request.id}:adopt`,
-							pieceId: request.pieceId,
-							repo: repository.name,
-							agentId: null,
-							url: request.url,
-						});
-				}).pipe(
-					Effect.catch((error) =>
-						Effect.gen(function* () {
-							const commit = yield* Commit;
-							yield* commit
-								.commit(failAdoption, { requestId: Request.make(make()), id: request.id, url: request.url, message: String(error) })
-								.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-						}),
-					),
+	const adopter = yield* each(
+		pendingAdoptions,
+		{},
+		(request) => request.id,
+		(request) =>
+			Effect.gen(function* () {
+				const repository = (yield* readWorld).repos.find((repo) => repo.id === request.repoId);
+				if (repository !== undefined)
+					yield* adoptExternal({
+						adoptionId: request.id,
+						callId: `${request.id}:adopt`,
+						pieceId: request.pieceId,
+						repo: repository.name,
+						agentId: null,
+						url: request.url,
+					});
+			}).pipe(
+				Effect.catch((error) =>
+					Effect.gen(function* () {
+						const commit = yield* Commit;
+						yield* commit
+							.commit(failAdoption, { requestId: Request.make(make()), id: request.id, url: request.url, message: String(error) })
+							.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+					}),
 				),
-			{ discard: true },
-		),
+			),
 	);
 	const all = [...observers, publisher, adopter];
-	yield* Effect.forkScoped(Effect.forever(Effect.sleep(cadence.warmMillis).pipe(Effect.andThen(publisher.refresh), Effect.andThen(adopter.refresh))));
 	return {
 		refresh: Effect.forEach(all, (observer) => observer.refresh, { discard: true }),
 		await: Effect.forEach(all, (observer) => observer.await, { discard: true, concurrency: "unbounded" }),

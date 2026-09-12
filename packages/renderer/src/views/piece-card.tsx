@@ -14,11 +14,13 @@ export const PieceCard = ({
 	piece,
 	pieces,
 	selected = false,
+	voyageId,
 }: {
 	readonly onError: (message: string) => void;
 	readonly piece: PieceView;
 	readonly pieces: ReadonlyArray<PieceView>;
 	readonly selected?: boolean;
+	readonly voyageId: string;
 }) => {
 	const [open, setOpen] = useState(selected);
 	const header = useRef<HTMLButtonElement>(null);
@@ -54,7 +56,7 @@ export const PieceCard = ({
 				</span>
 				<Badge variant={pieceTone[piece.state]}>{pieceStateLabel[piece.state]}</Badge>
 			</button>
-			{open ? <PieceDetail onError={onError} piece={piece} pieces={pieces} /> : null}
+			{open ? <PieceDetail onError={onError} piece={piece} pieces={pieces} voyageId={voyageId} /> : null}
 		</Card>
 	);
 };

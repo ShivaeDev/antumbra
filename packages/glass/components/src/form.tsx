@@ -2,7 +2,7 @@ import type { CommandShape } from "@antumbra/platform-feature/command.ts";
 import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { Send } from "@antumbra/platform-rpc/client.ts";
 import { type ReactNode, useState } from "react";
-import { editablesOf, fixedNames, fixedValues, type Held, identityOf, labelOf, signatureOf, valuesOf } from "#fields.ts";
+import { editablesOf, fixedNames, fixedValues, type Held, identityOf, labelOf, valuesOf } from "#fields.ts";
 import { sending } from "#generated.ts";
 import { Row } from "#row.tsx";
 
@@ -32,6 +32,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	const creating = props.row === undefined;
 	const row = props.row ?? BLANK;
 	const submit = props.submit ?? SAVE_WORDS;
+	const identity = { ...identityOf(command, row, editables), ...fixedValues(fixed) };
 	const answered = () => {
 		if (creating) {
 			setCleared((count) => count + 1);
@@ -43,8 +44,8 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			creating={creating}
 			description={props.description}
 			editables={editables}
-			identity={{ ...identityOf(command, row), ...fixedValues(fixed) }}
-			key={`${signatureOf(editables, row)}/${cleared}`}
+			identity={identity}
+			key={JSON.stringify([identity, editables.map(({ name }) => name), creating, cleared])}
 			known={{ ...row, ...fixedValues(fixed) }}
 			label={props.label ?? (creating ? submit : labelOf(names, row))}
 			placeholders={props.placeholders ?? {}}

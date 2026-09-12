@@ -1,7 +1,8 @@
-import { Effect, Equal, Option, Result, type Schema, SchemaParser } from "effect";
+import { Effect, Option, Result, type Schema, SchemaParser } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AtomRef from "effect/unstable/reactivity/AtomRef";
+import { draft } from "#draft.ts";
 import { type FieldMessages, literalChoices, messagesByField, noMessages, withoutField } from "#messages.ts";
 import {
 	type Config,
@@ -37,7 +38,8 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 	const checks: ReadonlyMap<string, unknown> = new Map(Object.entries(config.checks ?? {}));
 	const decode = SchemaParser.decodeUnknownEffect(schema, { errors: "all" });
 
-	const values = AtomRef.make(initialValues);
+	const editing = draft(initialValues);
+	const { values } = editing;
 	const status = AtomRef.make<Status>({ failures: noMessages, submitted: false, touched: {} });
 	const held = new Map<string, AtomRef.AtomRef<unknown>>();
 	const refFor = (name: string): AtomRef.AtomRef<unknown> => {
@@ -120,16 +122,14 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 	const submit = runtime.fn<void>()(() =>
 		Effect.gen(function* () {
 			status.update((current) => ({ ...current, failures: noMessages, submitted: true }));
-			const value = yield* decode(values.value).pipe(Effect.mapError((issue) => new Invalid({ messages: messagesByField(issue) })));
-			return yield* onSubmit(value, submitter).pipe(Effect.tapError(noted));
+			const submitted = values.value;
+			const value = yield* decode(submitted).pipe(Effect.mapError((issue) => new Invalid({ messages: messagesByField(issue) })));
+			return yield* onSubmit(value, submitter).pipe(
+				Effect.tapError(noted),
+				Effect.tap(() => Effect.sync(() => editing.accept(submitted))),
+			);
 		}),
 	);
-
-	const dirty = Atom.readable((get) => {
-		const current: Readonly<Record<string, unknown>> = get(valuesAtom);
-		const initial: Readonly<Record<string, unknown>> = initialValues;
-		return Object.keys(initial).some((name) => !Equal.equals(current[name], initial[name]));
-	});
 
 	return {
 		blur: touch,
@@ -138,9 +138,10 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 			touch(name);
 		},
 		choices: <K extends Name<F>>(name: K) => choicesOf<Encoded<F>[K]>(offered[name]),
-		dirty,
+		dirty: editing.dirty,
 		error,
 		field: <K extends Name<F>>(name: K) => fieldOf<Encoded<F>[K]>(refFor(name)),
+		receive: editing.receive,
 		submit,
 		submitting: Atom.map(submit, AsyncResult.isWaiting),
 		values,

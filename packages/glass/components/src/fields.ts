@@ -74,10 +74,10 @@ export const valuesOf = (editables: readonly Editable[], row: Held): Held => {
 	return values;
 };
 
-export const identityOf = (command: CommandShape, row: Held): Held => {
+export const identityOf = (command: CommandShape, row: Held, editables: readonly Editable[]): Held => {
 	const held: Record<string, unknown> = {};
 	for (const name of Object.keys(command.input)) {
-		if (name in row) {
+		if (name in row && !editables.some((editable) => editable.name === name)) {
 			held[name] = row[name];
 		}
 	}
@@ -98,8 +98,6 @@ export const labelOf = (fixed: readonly string[], row: Held): string => {
 	}
 	return words.join(" ");
 };
-
-export const signatureOf = (editables: readonly Editable[], row: Held): string => JSON.stringify(editables.map(({ name }) => row[name] ?? null));
 
 export const fedByOf = (editables: readonly Editable[]): ReadonlyMap<string, readonly Editable[]> => {
 	const fed = new Map<string, Editable[]>();

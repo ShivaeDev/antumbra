@@ -1,11 +1,11 @@
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import { expect, it } from "@effect/vitest";
-import { Effect, Fiber, Layer, Queue, Stream } from "effect";
+import { Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
 import * as Reactivity from "effect/unstable/reactivity/Reactivity";
 import { layer, RunnerConnections } from "#runner/connections.ts";
 
-const registration = { runnerId: "local", logId: "local-log", backends: ["codex"] };
+const registration = { runnerId: "local", logId: "local-log", backends: ["codex"], imageInputBackends: ["codex"] };
 const operation = { type: "Drain", requestId: "drain-one" } as const;
 const services = layer.pipe(Layer.provide(Reactivity.layer));
 
@@ -31,6 +31,7 @@ it.effect("replays an unanswered operation after the runner reconnects", () =>
 		const connections = yield* RunnerConnections;
 		const call = yield* Effect.forkScoped(runner.execute(registration.runnerId, operation));
 		const first = yield* Stream.runHead(connections.operations(registration));
+		expect(first).toEqual(Option.some(operation));
 		expect(yield* runner.connected).toEqual([]);
 		const replay = yield* Stream.runHead(connections.operations(registration));
 		expect(replay).toEqual(first);

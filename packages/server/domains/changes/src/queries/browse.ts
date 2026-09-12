@@ -1,0 +1,50 @@
+import { RepoId } from "@antumbra/domain-repos/ids.ts";
+import { query } from "@antumbra/platform-feature/query.ts";
+import { Effect, Schema } from "effect";
+import { ChangeId } from "#ids.ts";
+import { quayChange } from "#rows/quay-change.ts";
+
+export const QuayStatus = Schema.Literals(["all", "alongside", "checksRunning", "draft", "needsAttention"]);
+export const browse = query("browse", {
+	input: { query: Schema.String, repositoryId: Schema.NullOr(RepoId), status: QuayStatus, selectedId: Schema.NullOr(ChangeId) },
+	output: Schema.Struct({
+		rows: Schema.Array(quayChange.Row),
+		total: Schema.Number,
+		selected: Schema.NullOr(quayChange.Row),
+		repositories: Schema.Array(Schema.Struct({ id: RepoId, name: Schema.String })),
+		sightedAt: Schema.NullOr(Schema.String),
+	}),
+	reads: [quayChange],
+	run: Effect.fn("changes.browse")(function* (input, rows) {
+		const all = (yield* rows.quayChange.where({})).toSorted((left, right) => Date.parse(right.activityAt) - Date.parse(left.activityAt));
+		const query = input.query.trim().toLocaleLowerCase();
+		const repositories = new Map(all.map((row) => [row.repoId, { id: row.repoId, name: row.repoName }]));
+		const found = all.filter(
+			(row) =>
+				(input.repositoryId === null || row.repoId === input.repositoryId) &&
+				(input.status === "all" || row.group === input.status) &&
+				(query === "" ||
+					[
+						row.title,
+						row.externalId === null ? "" : `#${row.externalId}`,
+						row.repoName,
+						row.headRef,
+						...row.pieces.flatMap((piece) => [piece.voyageName, piece.title]),
+					]
+						.join(" ")
+						.toLocaleLowerCase()
+						.includes(query)),
+		);
+		return {
+			rows: found,
+			total: all.length,
+			selected: all.find((row) => row.id === input.selectedId) ?? null,
+			repositories: [...repositories.values()].toSorted((left, right) => left.name.localeCompare(right.name)),
+			sightedAt:
+				all
+					.map((row) => row.observedAt)
+					.toSorted()
+					.at(-1) ?? null,
+		};
+	}),
+});

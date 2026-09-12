@@ -1,5 +1,4 @@
-import type { Offer } from "#choices.ts";
-import { CONTROL, LINES_CONTROL, TEXT_CONTROL } from "#classes.ts";
+import { LINES_CONTROL, TEXT_CONTROL } from "#classes.ts";
 
 export interface Shown {
 	readonly described: string | undefined;
@@ -11,7 +10,7 @@ export interface Shown {
 	readonly value: unknown;
 }
 
-const worded = (value: unknown): string => (typeof value === "string" ? value : "");
+export const worded = (value: unknown): string => (typeof value === "string" ? value : "");
 
 const counted = (value: unknown): string => (typeof value === "number" ? String(value) : worded(value));
 
@@ -40,48 +39,6 @@ export const Lines = (props: { readonly shown: Shown }) => (
 		rows={3}
 		value={worded(props.shown.value)}
 	/>
-);
-
-export const Listed = (props: { readonly empty: boolean; readonly offers: readonly Offer[]; readonly shown: Shown }) => (
-	<select
-		aria-describedby={props.shown.described}
-		aria-invalid={props.shown.invalid}
-		aria-label={props.shown.name}
-		className={CONTROL}
-		onBlur={props.shown.onBlur}
-		onChange={(event) => props.shown.onChange(event.target.value)}
-		value={worded(props.shown.value)}
-	>
-		{props.empty ? <option value="">{props.shown.placeholder}</option> : null}
-		{props.offers.map((offer) => (
-			<option key={offer.value} value={offer.value}>
-				{offer.label}
-			</option>
-		))}
-	</select>
-);
-
-export const Free = (props: { readonly list: string; readonly offers: readonly Offer[]; readonly shown: Shown }) => (
-	<>
-		<input
-			aria-describedby={props.shown.described}
-			aria-invalid={props.shown.invalid}
-			aria-label={props.shown.name}
-			className={TEXT_CONTROL}
-			list={props.list}
-			onBlur={props.shown.onBlur}
-			onChange={(event) => props.shown.onChange(event.target.value)}
-			placeholder={props.shown.placeholder}
-			value={worded(props.shown.value)}
-		/>
-		<datalist id={props.list}>
-			{props.offers.map((offer) => (
-				<option key={offer.value} value={offer.value}>
-					{offer.label}
-				</option>
-			))}
-		</datalist>
-	</>
 );
 
 export const Flag = (props: { readonly shown: Shown }) => (

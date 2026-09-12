@@ -6,15 +6,25 @@ import { inputOf, type Offer, offersOf } from "#choices.ts";
 import { ALERT, CELL, TITLE } from "#classes.ts";
 import { type Editable, type Held, titleOf } from "#fields.ts";
 import type { Generated } from "#generated.ts";
-import { Digits, Flag, Free, Lines, Listed, type Shown, Words } from "#inputs.tsx";
+import { Digits, Flag, Lines, type Shown, Words } from "#inputs.tsx";
+import { Free, Listed, Several } from "#offered.tsx";
 
 const literalOffers = (literals: readonly string[]): readonly Offer[] => literals.map((literal) => ({ label: literal, value: literal }));
 
-const Chosen = (props: { readonly choice: Choice; readonly empty: boolean; readonly shown: Shown; readonly values: Held }) => {
+const Chosen = (props: {
+	readonly choice: Choice;
+	readonly empty: boolean;
+	readonly many: boolean;
+	readonly shown: Shown;
+	readonly values: Held;
+}) => {
 	const list = useId();
 	const input = inputOf(props.choice, props.values);
 	const listed = useChoices(input === undefined ? undefined : props.choice.query, input);
 	const offers = offersOf(props.choice, listed);
+	if (props.many) {
+		return <Several offers={offers} shown={props.shown} />;
+	}
 	return props.choice.free ? (
 		<Free list={list} offers={offers} shown={props.shown} />
 	) : (
@@ -25,7 +35,7 @@ const Chosen = (props: { readonly choice: Choice; readonly empty: boolean; reado
 const drawnAs = (editable: Editable, shown: Shown, values: Held): ReactNode => {
 	const shape = editable.editing;
 	if (shape.choice !== undefined) {
-		return <Chosen choice={shape.choice} empty={shape.optional} shown={shown} values={values} />;
+		return <Chosen choice={shape.choice} empty={shape.optional} many={shape.many} shown={shown} values={values} />;
 	}
 	if (shape.literals !== undefined) {
 		return <Listed empty={shape.optional} offers={literalOffers(shape.literals)} shown={shown} />;

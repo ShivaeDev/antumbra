@@ -1,23 +1,16 @@
 import { useDirty, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
-import { Cause, Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId, useState } from "react";
 import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
-import { type Editable, fedByOf, type Held } from "#fields.ts";
+import { type Editable, emptyOf, fedByOf, type Held } from "#fields.ts";
 import { generate, type Sending } from "#generated.ts";
+import { messageOf } from "#refusal.ts";
 
-const SAID = "The change could not be saved";
-
-const NOTHING: readonly string[] = [];
+const NOTHING: readonly Editable[] = [];
 
 const SENDING_WORDS = "Saving…";
-
-const messageOf = (cause: Cause.Cause<unknown>): string => {
-	const failure = Cause.findErrorOption(cause);
-	return Option.isSome(failure) && failure.value instanceof Error && failure.value.message !== "" ? failure.value.message : SAID;
-};
 
 const Spacer = () => (
 	<span aria-hidden="true" className={TITLE}>
@@ -30,6 +23,7 @@ export const Row = (props: {
 	readonly description: string | undefined;
 	readonly editables: readonly Editable[];
 	readonly identity: Held;
+	readonly known: Held;
 	readonly label: string;
 	readonly placeholders: Readonly<Record<string, string>>;
 	readonly send: Sending;
@@ -46,9 +40,9 @@ export const Row = (props: {
 	const fed = fedByOf(props.editables);
 	const change = (name: string, value: unknown): void => {
 		form.change(name, value);
-		for (const fedName of fed.get(name) ?? NOTHING) {
-			if (fedName !== name) {
-				change(fedName, "");
+		for (const editable of fed.get(name) ?? NOTHING) {
+			if (editable.name !== name) {
+				change(editable.name, emptyOf(editable.editing));
 			}
 		}
 	};
@@ -79,7 +73,7 @@ export const Row = (props: {
 					label={props.label}
 					placeholder={props.placeholders[editable.name]}
 					titles={props.titles}
-					values={values}
+					values={{ ...props.known, ...values }}
 				/>
 			))}
 			<span className={HEAD}>

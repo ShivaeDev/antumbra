@@ -8,6 +8,7 @@ export interface Log {
 	readonly append: (event: LogEvent) => Effect.Effect<LogEntry>;
 	readonly read: (after: number) => Effect.Effect<ReadonlyArray<LogEntry>>;
 	readonly request: (requestId: string) => Effect.Effect<ReadonlyArray<LogEntry>>;
+	readonly tool: (sessionId: string, callId: string) => Effect.Effect<ReadonlyArray<LogEntry>>;
 	readonly events: (after: number) => Stream.Stream<LogEntry>;
 }
 export class RunnerLog extends Context.Service<RunnerLog, Log>()("@antumbra/runner-fabric/RunnerLog") {}
@@ -20,6 +21,7 @@ const decode = Schema.decodeUnknownEffect(Schema.Array(Stored));
 export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
 	const sql = yield* LogDatabase;
 	yield* Effect.orDie(sql`CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`);
+	yield* Effect.orDie(sql`CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`);
 	const changed = yield* PubSub.unbounded<void>();
 	const entries = (rows: ReadonlyArray<unknown>) =>
 		decode(rows).pipe(
@@ -30,6 +32,11 @@ export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
 		sql`SELECT cursor, at, event FROM runner_log WHERE cursor > ${after} ORDER BY cursor`.pipe(Effect.orDie, Effect.flatMap(entries));
 	const request = (requestId: string) =>
 		sql`SELECT cursor, at, event FROM runner_log WHERE json_extract(event, '$.requestId') = ${requestId} ORDER BY cursor`.pipe(
+			Effect.orDie,
+			Effect.flatMap(entries),
+		);
+	const tool = (sessionId: string, callId: string) =>
+		sql`SELECT cursor, at, event FROM runner_log WHERE json_extract(event, '$.sessionId') = ${sessionId} AND json_extract(event, '$.callId') = ${callId} ORDER BY cursor`.pipe(
 			Effect.orDie,
 			Effect.flatMap(entries),
 		);
@@ -63,7 +70,7 @@ export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
 				);
 			}),
 		);
-	return { append, read, request, events } satisfies Log;
+	return { append, read, request, tool, events } satisfies Log;
 });
 
 export const file = (options: { readonly filename: string; readonly logId: string }) =>

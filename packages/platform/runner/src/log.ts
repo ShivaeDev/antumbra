@@ -16,6 +16,13 @@ export const CapacityObservationFields = {
 };
 
 export const LogEvent = Schema.Union([
+	Schema.Struct({
+		type: Schema.Literal("BerthReclaimFailed"),
+		requestId: Schema.String,
+		agentId: Schema.String,
+		slug: Schema.String,
+		reason: Schema.String,
+	}),
 	Schema.Struct({ type: Schema.Literal("SessionInterrupted"), ...session }),
 	Schema.Struct({ type: Schema.Literal("SessionDetached"), sessionId: Schema.String }),
 	Schema.Struct({

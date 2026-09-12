@@ -1,3 +1,4 @@
+import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
@@ -8,7 +9,7 @@ import { Prepared } from "#rows/content.ts";
 import { sessionInput } from "#rows/input.ts";
 export const record = command("record", {
 	input: Prepared.fields,
-	reads: [sessionInput, session],
+	reads: [sessionInput, session, capacity],
 	emits: inputRecorded,
 	rejections: {
 		InputRefused: { inputId: Schema.String, detail: Schema.String },
@@ -41,6 +42,14 @@ export const record = command("record", {
 		if (images.length > MAX_SESSION_IMAGES) return yield* reject.InvalidInput({ reason: "too_many_images", detail: "too many images" });
 		if (images.reduce((size, part) => size + part.attachment.byteSize, 0) > MAX_SESSION_INPUT_IMAGE_BYTES)
 			return yield* reject.InvalidInput({ reason: "input_too_large", detail: "normalized images exceed the input limit" });
-		return { id: input.id, sessionId: input.sessionId, requestDigest: input.requestDigest, parts: input.parts };
+		const capacities = yield* rows.capacity.where({});
+		const blocked = capacities.some((reading) => reading.backend === target.value.backend && reading.status === "blocked");
+		return {
+			id: input.id,
+			sessionId: input.sessionId,
+			requestDigest: input.requestDigest,
+			parts: input.parts,
+			deliveryKind: target.value.attached && !blocked ? ("steer" as const) : ("wake" as const),
+		};
 	}),
 });

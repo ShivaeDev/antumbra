@@ -4,6 +4,7 @@ import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import { watchChanges } from "#changes/watch.ts";
 import { reconcile as mail } from "#mail/reconcile.ts";
 import { reconcile as resources } from "#resources/reconcile.ts";
+import { audit } from "#sessions/audit.ts";
 import { resumeCapacity } from "#sessions/capacity.ts";
 import { reconcile as sessions } from "#sessions/reconcile.ts";
 import { prepareSmoother } from "#smoothing/prepare.ts";
@@ -18,7 +19,7 @@ export const runtime = Layer.effect(
 	Effect.gen(function* () {
 		const runners = yield* RunnerOperations;
 		const reactivity = yield* Reactivity;
-		const workers = yield* Effect.all([starts, sessions(), resumeCapacity(), resources(), mail(), watchChanges, rulingReconciliation]);
+		const workers = yield* Effect.all([starts, sessions(), audit(), resumeCapacity(), resources(), mail(), watchChanges, rulingReconciliation]);
 		const reconnect = reactivity
 			.stream(["runner:connected"], runners.connected)
 			.pipe(Stream.runForEach(() => Effect.forEach(workers, (worker) => worker.refresh, { discard: true })));

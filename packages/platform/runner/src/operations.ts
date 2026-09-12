@@ -25,6 +25,14 @@ export const Wake = Schema.Struct({
 	nativeRef: Schema.String,
 	instruction: Input,
 });
+export const Audit = Schema.Struct({
+	type: Schema.Literal("Audit"),
+	...identity,
+	backend: Schema.String,
+	cwd: Schema.String,
+	rootRef: Schema.String,
+	nodeRef: Schema.String,
+});
 export const Deliver = Schema.Struct({ type: Schema.Literal("Deliver"), ...identity, act: DeliveryAct, input: Input });
 export const Interrupt = Schema.Struct({ type: Schema.Literal("Interrupt"), ...identity });
 export const Sleep = Schema.Struct({ type: Schema.Literal("Sleep"), ...identity });
@@ -42,6 +50,7 @@ export const Operation = Schema.Union([
 	ListModels,
 	Start,
 	Wake,
+	Audit,
 	Deliver,
 	Interrupt,
 	Sleep,

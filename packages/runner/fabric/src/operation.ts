@@ -1,6 +1,7 @@
 import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import { Effect } from "effect";
 import { activity, settled } from "#activity.ts";
+import { audit } from "#audit.ts";
 import { close } from "#close.ts";
 import { deliver } from "#deliver.ts";
 import { RunnerLog } from "#log.ts";
@@ -13,6 +14,14 @@ export const run = Effect.fn("RunnerFabric.operation")(function* (state: State, 
 		case "Start":
 		case "Wake":
 			return yield* open(state, operation);
+		case "Audit":
+			yield* audit(
+				state.attachments.get(operation.sessionId),
+				{ sessionId: operation.sessionId, options: operation },
+				operation.rootRef,
+				operation.nodeRef,
+			);
+			return accepted;
 		case "Deliver":
 			return yield* deliver(state, operation.requestId, operation.sessionId, operation.input, operation.act);
 		case "Interrupt": {

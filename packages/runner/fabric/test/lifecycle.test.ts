@@ -77,3 +77,27 @@ it.effect("stream EOF releases provider resources and pending callbacks", () =>
 		}).pipe(Effect.provide(test.live));
 	}),
 );
+
+it.effect("audits a closed node without acquiring a provider session", () =>
+	Effect.gen(function* () {
+		const test = yield* fixture;
+		yield* Effect.gen(function* () {
+			const fabric = yield* RunnerFabric;
+			const log = yield* RunnerLog;
+			expect(
+				yield* fabric.execute({
+					type: "Audit",
+					requestId: "audit",
+					sessionId: "session",
+					backend: "scripted",
+					cwd: "/work",
+					rootRef: "native",
+					nodeRef: "child",
+				}),
+			).toEqual({ type: "Accepted" });
+			expect(test.opens()).toBe(0);
+			expect(yield* fabric.attached()).toEqual(new Set());
+			expect((yield* log.read(-1)).map(({ event }) => event.type)).toEqual(["SessionNodeAudited", "SessionCensus"]);
+		}).pipe(Effect.provide(test.live));
+	}),
+);

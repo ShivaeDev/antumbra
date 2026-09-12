@@ -13,6 +13,7 @@ import { app, registryOf } from "#app.ts";
 import { commitService } from "#commit.ts";
 import { Database } from "#database.ts";
 import * as Journal from "#journal.ts";
+import { observation } from "#observe.ts";
 import { start } from "#startup.ts";
 
 const source = row("source", { id: Schema.String, value: Schema.Number, at: Schema.Number, seq: Schema.Number }, { key: "id" });
@@ -110,5 +111,20 @@ it.effect("shape changes replay all projections with original fact provenance", 
 		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 6 }]);
 		expect(yield* commit.cursor("runner")).toBe(0);
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "journal"`)).toHaveLength(1);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
+it.effect("one runner record atomically contributes several facts or only advances its cursor", () =>
+	Effect.gen(function* () {
+		const { database, commit } = yield* setup;
+		const metadata = { logId: "runner", cursor: 0, at: 120, requestId: Request.make("operation") };
+		expect(yield* commit.observeBatch(metadata, [])).toBe(0);
+		expect(yield* commit.cursor("runner")).toBe(0);
+		const entries = [observation(added, { id: "one", value: 3 }), observation(added, { id: "two", value: 4 })];
+		const seq = yield* commit.observeBatch({ ...metadata, cursor: 1 }, entries);
+		expect(yield* commit.observeBatch({ ...metadata, cursor: 1 }, entries)).toBe(seq);
+		expect(yield* commit.cursor("runner")).toBe(1);
+		expect(yield* Effect.orDie(database.read`SELECT * FROM "journal"`)).toHaveLength(2);
+		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 14 }]);
 	}).pipe(Effect.provide(Journal.memory())),
 );

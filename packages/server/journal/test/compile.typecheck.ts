@@ -10,6 +10,7 @@ import { pieceParked } from "#example/facts/piece-parked.ts";
 import type { pieces } from "#example/feature.ts";
 import { PieceId } from "#example/ids.ts";
 import { piece } from "#example/rows/piece.ts";
+import { observation } from "#observe.ts";
 
 export const writingInsideACommand = Effect.fn("example.writing")(function* (
 	input: CommandInput<typeof park.input>,
@@ -47,3 +48,6 @@ export const projectionReadsCannotWrite = projection("read-only", {
 		return Effect.void;
 	},
 });
+
+// @ts-expect-error observation payloads must match the selected fact schema.
+export const wrongObservation = observation(pieceParked, { pieceId: PieceId.make("piece-1"), reason: 3 });

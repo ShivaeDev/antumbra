@@ -8,10 +8,11 @@ import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import { codecOf, type Registry } from "#app.ts";
 import { materialize } from "#materialize.ts";
-import { type Observation, observe, readCursor } from "#observe.ts";
+import { type Observation, type ObservationMetadata, type ObservedFact, observe, observeBatch, readCursor } from "#observe.ts";
 import { readHandle } from "#read-handle.ts";
 
 export interface CommitService {
+	readonly observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => Effect.Effect<number>;
 	readonly cursor: (logId: string) => Effect.Effect<number>;
 	readonly observe: <Fact extends FactShape>(fact: Fact, observation: Observation<FactPayload<Fact>>) => Effect.Effect<number>;
 	readonly commit: <
@@ -95,6 +96,7 @@ const perform = Effect.fn("journal.perform")(function* (context: CommitContext, 
 export function commitService(context: CommitContext): CommitService;
 export function commitService(context: CommitContext): unknown {
 	return {
+		observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => observeBatch(context, metadata, entries),
 		cursor: (logId: string) => readCursor(context.sql, logId),
 		observe: (fact: FactShape, observation: Observation<Record<string, unknown>>) => observe(context, fact, observation),
 		commit: (command: RunnableCommand, input: RuntimeInput) => perform(context, command, input),

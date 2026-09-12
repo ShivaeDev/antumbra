@@ -3,6 +3,7 @@ import * as Journal from "@antumbra/server-journal/journal.ts";
 import { serving } from "@antumbra/server-journal/rpc.ts";
 import { Effect, Layer, Path } from "effect";
 import { artifactContentHandlers } from "#adapters/artifacts/content-layer.ts";
+import { artifactSource } from "#adapters/artifacts/source.ts";
 import { inputDeliveryLayer } from "#adapters/inputs/delivery.ts";
 import { servingInputs } from "#adapters/inputs/handlers.ts";
 import { features } from "#features.ts";
@@ -28,7 +29,7 @@ const inputs = Layer.unwrap(
 );
 const journal = Journal.layer(definition);
 const services = connections.pipe(Layer.provideMerge(journal));
-const delivery = Layer.mergeAll(inputDeliveryLayer, execution, resources).pipe(Layer.provideMerge(services));
+const delivery = Layer.mergeAll(inputDeliveryLayer, execution, resources, artifactSource).pipe(Layer.provideMerge(services));
 
 export const application = Layer.mergeAll(
 	runtime,

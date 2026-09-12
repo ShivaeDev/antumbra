@@ -35,7 +35,7 @@ const spawned = (args: readonly string[]) =>
 
 const listening = (directory: string) =>
 	Effect.gen(function* () {
-		const child = yield* spawned(["--data", directory]);
+		const child = yield* spawned(["--data", directory, "--files", join(directory, "files"), "--port", "0"]);
 		const line = yield* Stream.runHead(Stream.splitLines(Stream.decodeText(child.stdout)));
 		const { port } = yield* Schema.decodeUnknownEffect(Readiness)(Option.getOrUndefined(line));
 		return { child, port };

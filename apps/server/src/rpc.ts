@@ -1,4 +1,4 @@
-import { artifactContent } from "@antumbra/domain-artifacts/rpc.ts";
+import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
 import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { StartsRpc } from "@antumbra/domain-starts/commands/submit.ts";
@@ -9,7 +9,7 @@ import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { features } from "#features.ts";
 
 export const rpc = group(features).merge(
-	artifactContent,
+	artifactContent.middleware(Token),
 	InputsRpc.middleware(Token),
 	TranscriptRpc.middleware(Token),
 	LifecycleRpc,

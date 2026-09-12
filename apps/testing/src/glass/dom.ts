@@ -54,8 +54,14 @@ export const write = (control: Writable, value: string): Effect.Effect<void> =>
 export const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
 	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
 
+const offers = (control: Writable, value: string): boolean =>
+	!(control instanceof HTMLSelectElement) || [...control.options].some((option) => option.value === value);
+
 export const fill = (container: HTMLElement, label: string, value: string): Effect.Effect<void> =>
-	Effect.suspend(() => write(labelled<Writable>(container, label), value));
+	Effect.gen(function* () {
+		yield* until(() => offers(labelled<Writable>(container, label), value), `"${label}" to offer "${value}"`);
+		yield* write(labelled<Writable>(container, label), value);
+	});
 
 export const named = (form: HTMLFormElement): string | null | undefined =>
 	document.getElementById(form.getAttribute("aria-labelledby") ?? "")?.textContent;

@@ -6,6 +6,8 @@ import { FleetPanel } from "@antumbra/glass-sessions/fleet.tsx";
 import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
 import { Flagship } from "@antumbra/glass-voyages/flagship.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { Cause, Effect } from "effect";
 import { VoyagesPage } from "#navigation/voyages.tsx";
 import type { RendererProps } from "#props.ts";
 import { SettingsPanel } from "#settings/settings.tsx";
@@ -18,20 +20,29 @@ export const ConsoleMain = (
 		readonly onError: (message: string) => void;
 	},
 ) => {
-	const session = (sessionId: string) => (
+	const hail = (voyageId: string) => {
+		Effect.runFork(
+			props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId }).pipe(
+				Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause)))),
+			),
+		);
+	};
+	const session = (sessionId: string, onClose?: () => void) => (
 		<SessionPane
 			api={props.api}
 			inputs={props.inputs}
 			sessions={props.sessions}
 			drafts={props.drafts}
 			sessionId={sessionId}
+			key={sessionId}
+			onClose={onClose}
 			foldToolCalls={props.foldToolCalls}
 			onError={props.onError}
 		/>
 	);
 	switch (props.place.mode) {
 		case "flagship":
-			return <Flagship api={props.api} renderSession={session} />;
+			return <Flagship api={props.api} renderSession={session} onHail={hail} />;
 		case "fleet":
 			return (
 				<div className="flex min-h-0 min-w-0 flex-1">
@@ -43,7 +54,7 @@ export const ConsoleMain = (
 						onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId })}
 						onVoyage={(voyageId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId: null })}
 					/>
-					{props.place.sessionId === null ? null : session(props.place.sessionId)}
+					{props.place.sessionId === null ? null : session(props.place.sessionId, () => props.onPlace({ ...props.place, sessionId: null }))}
 				</div>
 			);
 		case "settings":
@@ -53,6 +64,13 @@ export const ConsoleMain = (
 				<QuayPanel
 					api={props.api}
 					selectedId={props.place.changeId ?? undefined}
+					onOpenSession={(sessionId) => {
+						Effect.runFork(
+							props.shell
+								.open({ role: "transcript", sessionId })
+								.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))),
+						);
+					}}
 					onSelect={(changeId) => props.onPlace({ ...props.place, changeId: changeId ?? null })}
 				/>
 			);

@@ -22,7 +22,8 @@
 		"typescript": "catalog:",
 		"@effect/vitest": "catalog:",
 		"vitest": "catalog:",
-		"happy-dom": "catalog:"
+		"happy-dom": "catalog:",
+		"@types/react-dom": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",
@@ -34,6 +35,16 @@
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"lucide-react": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@antumbra/glass-artifacts": "workspace:*",
+		"@antumbra/glass-changes": "workspace:*",
+		"@antumbra/glass-holds": "workspace:*",
+		"@antumbra/glass-inputs": "workspace:*",
+		"@antumbra/glass-rulings": "workspace:*",
+		"@antumbra/glass-sessions": "workspace:*",
+		"@antumbra/glass-voyages": "workspace:*",
+		"@antumbra/platform-shell": "workspace:*",
+		"@antumbra/domain-artifacts": "workspace:*",
+		"react-dom": "catalog:"
 	}
 }

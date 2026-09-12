@@ -9,7 +9,9 @@ const HARNESS_PORT = 5184;
 
 const program = Effect.gen(function* () {
 	yield* startHarnessServer(harnessRoot, workspaceRoot, HARNESS_PORT);
-	yield* Console.log(`antumbra harness: the renderer is live on http://localhost:${HARNESS_PORT} against the contract fixtures`);
+	yield* Console.log(
+		`antumbra harness: the renderer is live on http://localhost:${HARNESS_PORT} through the desktop shell (--renderer-url=http://localhost:${HARNESS_PORT})`,
+	);
 });
 
 runMain(program);

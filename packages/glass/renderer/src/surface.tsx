@@ -2,7 +2,7 @@ import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { ArtifactWindow } from "@antumbra/glass-artifacts/artifact-window.tsx";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
 import { ExternalLinkContext } from "@antumbra/glass-components/external-link.tsx";
-import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
+import { TranscriptView } from "@antumbra/glass-sessions/transcript.tsx";
 import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/unstable/reactivity";
@@ -20,7 +20,7 @@ const TranscriptWindow = (props: RendererProps & { readonly sessionId: string; r
 	const foldToolCalls = AsyncResult.isSuccess(settings) && settings.value.some((flag) => flag.key === "foldToolCalls" && flag.on);
 	return (
 		<main className="flex h-screen min-w-0 flex-col bg-background text-foreground">
-			<SessionPane {...props} foldToolCalls={foldToolCalls} />
+			<TranscriptView api={props.api} sessions={props.sessions} inputs={props.inputs} sessionId={props.sessionId} foldToolCalls={foldToolCalls} />
 		</main>
 	);
 };

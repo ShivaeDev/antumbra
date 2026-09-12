@@ -5,33 +5,29 @@
 	"type": "module",
 	"imports": {
 		"#script/*": "./script/*",
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
 		"dev": "node script/dev.ts",
-		"test": "node ../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@effect/vitest": "catalog:",
 		"@tailwindcss/vite": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
-		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
 		"@vitejs/plugin-react": "catalog:",
 		"typescript": "catalog:",
-		"vite": "catalog:",
-		"vitest": "catalog:"
+		"vite": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/contract": "workspace:*",
-		"@antumbra/renderer": "workspace:*",
-		"@trpc/server": "catalog:",
-		"effect": "catalog:",
-		"react": "catalog:",
-		"react-dom": "catalog:"
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
+		"@antumbra/glass-harness": "workspace:*",
+		"@antumbra/glass-renderer": "workspace:*",
+		"@antumbra/platform-shell": "workspace:*",
+		"@antumbra/server": "workspace:*",
+		"effect": "catalog:"
 	}
 }

@@ -7,9 +7,9 @@ import { inputApi } from "#inputs.ts";
 import { connectRunner } from "#runner.ts";
 
 it.app("one runner acceptance updates its input and session before advancing the cursor", function* ({ api }) {
-	const runner = yield* connectRunner({ runnerId: "runner:scripted", logId: "log:scripted", backends: ["claude"] });
+	const runner = yield* connectRunner({ runnerId: "runner:scripted", logId: "log:scripted", backends: ["claude"], imageInputBackends: [] });
 	const sessionId = SessionId.make("session:scripted");
-	const inputId = SessionInputId.make("input:scripted");
+	const inputId = SessionInputId.make("00000000-0000-4000-8000-000000000001");
 	yield* runner.append([
 		{
 			logId: "log:scripted",

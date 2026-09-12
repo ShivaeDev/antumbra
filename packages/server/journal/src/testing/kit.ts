@@ -2,7 +2,7 @@ import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
-import { Duration, Effect, type Schema, Scope, Stream } from "effect";
+import { Duration, Effect, Schema, Scope, Stream } from "effect";
 import * as TestClock from "effect/testing/TestClock";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
@@ -33,10 +33,18 @@ const liveOf =
 			yield* Effect.addFinalizer(() => Effect.sync(watch.cancel));
 			const tracked = {
 				...query,
-				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1]) =>
-					watch.around(Effect.tap(query.run(given, rows), (value) => Effect.sync(() => seen.push(value)))),
+				// The union keeps query field modifiers out of the delivery envelope.
+				output: Schema.Struct({ value: Schema.Union([query.output]), generation: Schema.Number }),
+				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1]) => watch.around(query.run(given, rows)),
 			};
-			yield* Effect.forkScoped(Stream.runDrain(live.live(tracked, input)));
+			yield* Effect.forkScoped(
+				Stream.runForEach(live.live(tracked, input), ({ value, generation }) =>
+					Effect.sync(() => {
+						seen.push(value);
+						watch.delivered(generation);
+					}),
+				),
+			);
 			return { seen: Effect.sync(() => [...seen]) };
 		}).pipe(Effect.provideService(Scope.Scope, scope));
 

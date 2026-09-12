@@ -1,7 +1,7 @@
 import { it } from "@antumbra/app-testing/entry.ts";
 import { forVoyage } from "@antumbra/domain-role-settings/queries/for-voyage.ts";
 import { counts } from "@antumbra/domain-settings/queries/counts.ts";
-import { Effect } from "effect";
+import { Effect, Latch } from "effect";
 import { expect } from "vitest";
 
 it.app("live queries refresh only for their scope", function* (app) {
@@ -17,18 +17,26 @@ it.app("live queries refresh only for their scope", function* (app) {
 	expect((yield* live.seen).at(-1)).toContainEqual(expect.objectContaining({ role: "crew", model: "chosen" }));
 });
 
-it.app("live queries coalesce commits and publish the final value", function* (app) {
-	const live = yield* app.live(counts, {});
-	yield* app.settle();
-	const before = (yield* live.seen).length;
-	const changes = yield* Effect.forEach(
-		[9, 10, 11, 12, 13],
-		(count) => Effect.map(app.commit.settings.setCount({ key: "maxParallelSessions", count }), (seq) => ({ count, seq })),
-		{ concurrency: "unbounded" },
-	);
+it.app("coalesces commits while a query is reading", function* (app) {
+	const reading = yield* Latch.make(false);
+	const release = yield* Latch.make(false);
+	const held: typeof counts = {
+		...counts,
+		run: (input, rows) =>
+			Effect.gen(function* () {
+				yield* reading.open;
+				yield* release.await;
+				return yield* counts.run(input, rows);
+			}),
+	};
+	const live = yield* app.live(held, {});
+	yield* reading.await;
+	for (const count of [9, 10, 11, 12, 13]) {
+		yield* app.commit.settings.setCount({ key: "maxParallelSessions", count });
+	}
+	yield* release.open;
 	yield* app.settle();
 	const seen = yield* live.seen;
-	const last = changes.toSorted((left, right) => right.seq - left.seq)[0];
-	expect(seen.length - before).toBeLessThan(changes.length);
-	expect(seen.at(-1)).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: last?.count }));
+	expect(seen).toHaveLength(2);
+	expect(seen.at(-1)).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 13 }));
 });

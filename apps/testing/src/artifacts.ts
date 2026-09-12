@@ -4,6 +4,9 @@ import { ArtifactSourceNotOwned, StoredArtifactContentInvalid } from "@antumbra/
 import { ArtifactFiles, ArtifactSource } from "@antumbra/domain-artifacts/ports/content.ts";
 import { Context, Effect, Layer } from "effect";
 
+export { landArtifact } from "@antumbra/server/adapters/artifacts/acts/land.ts";
+export { readArtifact } from "@antumbra/server/adapters/artifacts/acts/read.ts";
+
 export class ScriptedArtifacts extends Context.Service<ScriptedArtifacts, { readonly source: Map<string, string> }>()(
 	"@antumbra/app-testing/ScriptedArtifacts",
 ) {}

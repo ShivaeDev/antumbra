@@ -3,6 +3,7 @@ import { SightSource } from "@antumbra/contract";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { BackendCapacities } from "@antumbra/provider-capacity";
 import { Repos } from "@antumbra/repos";
 import { SessionFabric } from "@antumbra/session-fabric";
@@ -33,6 +34,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 		const feeds = yield* DomainFeeds;
 		const kernel = yield* Kernel;
 		const db = yield* Database;
+		const pieces = yield* Pieces;
 		const sailing = yield* Voyages;
 		const acts = yield* makeSightActs;
 		const events = yield* makeSightSessionEvents;
@@ -55,6 +57,7 @@ export const SightSourceLive = Layer.effect(SightSource)(
 			Effect.provideService(Repos, repos),
 			Effect.provideService(RoleSettings, roles),
 			Effect.provideService(Database, db),
+			Effect.provideService(Pieces, pieces),
 			Effect.provideService(Voyages, sailing),
 			Effect.mapError(toFailure),
 		);

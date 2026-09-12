@@ -11,8 +11,8 @@ export {
 export { ChangeNotAddressable } from "@antumbra/changes/errors";
 export {
 	EdgeWouldCycle,
+	PieceIncomplete,
 	PieceNotFound,
-	StoredPieceVerdictInvalid,
 } from "@antumbra/pieces";
 export { AgentNotFound } from "@antumbra/platform-vocabulary/agent-runtime/missing.ts";
 export {

@@ -1,5 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Effect } from "effect";
 import { landReport } from "#land.ts";
@@ -12,7 +13,7 @@ export const Reports = defineService({
 		land: landReport,
 		read: readReport,
 	}),
-	requires: [Database, DomainFeeds],
+	requires: [Database, DomainFeeds, Pieces],
 });
 
 export const ReportsLive = Reports.layer;

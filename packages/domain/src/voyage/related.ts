@@ -6,6 +6,7 @@ import { RoleSettings } from "@antumbra/settings";
 import { Effect } from "effect";
 import { decodeRootSession } from "#execution/decode-session.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
+import { edgesOfVoyages, membershipsOf, piecesByIds, piecesOfVoyages } from "#piece-reading.ts";
 import { CAPTAIN_ROLE } from "#voyage-captain.ts";
 import type { VoyageSummaryRows } from "#voyage-rows.ts";
 
@@ -13,12 +14,12 @@ export const related = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<str
 	const db = yield* Database;
 	const rulings = yield* Rulings;
 	const roles = yield* RoleSettings;
-	const memberships = yield* db.VoyagePiece.where((membership) => membership.voyageId.in(voyageIds)).all();
-	const memberIds = memberships.map((membership) => membership.pieceId);
-	const edges = yield* db.PieceEdge.where((edge) => edge.toPieceId.in(memberIds)).all();
-	const pieces = yield* db.Piece.where((piece) => piece.id.in([...memberIds, ...edges.map((edge) => edge.fromPieceId)]))
-		.orderBy((piece) => piece.createdAt.asc())
-		.all();
+	const members = yield* piecesOfVoyages(voyageIds);
+	const memberships = membershipsOf(members);
+	const memberIds = members.map((piece) => piece.id);
+	const berthed = new Set(memberIds);
+	const edges = (yield* edgesOfVoyages(new Set(voyageIds))).filter((edge) => berthed.has(edge.toPieceId));
+	const pieces = yield* piecesByIds([...memberIds, ...edges.map((edge) => edge.fromPieceId)]);
 	const outcomes = yield* readOutcomes(pieces.map((piece) => piece.id));
 	const crews = yield* db.VoyageAgent.where((crew) => crew.voyageId.in(voyageIds)).all();
 	const captainIds = crews.filter((crew) => crew.role === CAPTAIN_ROLE).map((crew) => crew.agentId);

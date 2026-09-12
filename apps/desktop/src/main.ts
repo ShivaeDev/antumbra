@@ -10,6 +10,7 @@ import { reportModels } from "#adapters/backend-catalog.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
+import { PiecesOverRpc } from "#adapters/pieces.ts";
 import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers, persistence } from "#adapters/runtime.ts";
 import { registerServerBridge } from "#adapters/server-bridge.ts";
@@ -31,7 +32,6 @@ import {
 import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
-import { PiecesOverRpc } from "#adapters/pieces.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
 import { VoyagesOverRpc } from "#adapters/voyages.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";

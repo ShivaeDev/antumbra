@@ -5,6 +5,7 @@ import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
+import { membershipsOf, piecesByIds, piecesOfVoyages } from "#piece-reading.ts";
 import { namedIds, type RulingNames } from "#ruling-names.ts";
 import { standingRulingSeen } from "#ruling-projection.ts";
 import { rulingStaleness } from "#ruling-staleness.ts";
@@ -23,9 +24,10 @@ export const standing = Effect.fn("RulingDisplay.standing")(function* () {
 	const ruled = yield* rulings.standing([]);
 	const named = namedIds(ruled);
 	const voyageIds = new Set(named.voyages);
-	const memberships = yield* db.VoyagePiece.where((membership) => membership.voyageId.in(named.voyages)).all();
-	const pieceIds = [...named.pieces, ...memberships.map((membership) => membership.pieceId)];
-	const pieces = yield* db.Piece.where((piece) => piece.id.in(pieceIds)).all();
+	const berthed = yield* piecesOfVoyages(named.voyages);
+	const memberships = membershipsOf(berthed);
+	const pieceIds = [...named.pieces, ...berthed.map((piece) => piece.id)];
+	const pieces = yield* piecesByIds(pieceIds);
 	const assignments = yield* db.PieceAgent.where((assignment) => assignment.pieceId.in(pieceIds)).all();
 	const working = yield* db.Agent.where((agent) => agent.id.in(assignments.map((assignment) => assignment.agentId)))
 		.where((agent) => agent.status.in(["alive", "spawning"]))

@@ -1,4 +1,3 @@
-import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
 import { RoleSettings } from "@antumbra/settings";
 import { Voyages } from "@antumbra/voyages";
@@ -16,10 +15,9 @@ export interface CrewedPiece {
 
 export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId: string) {
 	const reach = yield* KernelReach;
-	const db = yield* Database;
 	const pieces = yield* Pieces;
 	const sailing = yield* Voyages;
-	const found = yield* db.Piece.where({ id: pieceId }).first();
+	const found = yield* pieces.byId(pieceId);
 	if (Option.isNone(found)) {
 		return yield* new PieceNotFound({ pieceId });
 	}
@@ -31,11 +29,7 @@ export const workPieceNow = Effect.fn("Voyages.workPieceNow")(function* (pieceId
 	if (working !== undefined) {
 		return yield* new PieceAlreadyCrewed({ agentId: working, pieceId });
 	}
-	const membership = yield* db.VoyagePiece.where({ pieceId }).first();
-	if (Option.isNone(membership)) {
-		return yield* new PieceNotOnVoyage({ pieceId });
-	}
-	const berthed = yield* sailing.byId(membership.value.voyageId);
+	const berthed = yield* sailing.byId(piece.voyageId);
 	if (Option.isNone(berthed)) {
 		return yield* new PieceNotOnVoyage({ pieceId });
 	}

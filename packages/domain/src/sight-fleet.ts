@@ -14,6 +14,7 @@ import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
 import { situationsByAgent } from "#agent-situations.ts";
 import { workByAgent } from "#agent-work.ts";
+import { membershipsOf, piecesByIds } from "#piece-reading.ts";
 import { attributeIntents } from "#sight-diagnostics.ts";
 import { type FleetRuntime, sessionSummary } from "#sight-fleet-sessions.ts";
 import type { PendingIntent } from "#sight-intents.ts";
@@ -55,13 +56,14 @@ export const fleetSnapshot = Effect.fn("Sight.fleetSnapshot")(function* (
 	const repos = yield* registry.registered();
 	const roleSettings = yield* (yield* RoleSettings).defaults();
 	const crews = yield* db.VoyageAgent.where({ role: CAPTAIN_ROLE }).all();
-	const memberships = yield* db.VoyagePiece.where((membership) => membership.pieceId.in(pieceIds)).all();
+	const berthed = yield* piecesByIds(pieceIds);
+	const memberships = membershipsOf(berthed);
 	const voyageIds = new Set([...memberships.map((membership) => membership.voyageId), ...crews.map((crew) => crew.voyageId)]);
 	const work = workByAgent({
 		assignments,
 		crews,
 		memberships,
-		pieces: yield* db.Piece.where((piece) => piece.id.in(pieceIds)).all(),
+		pieces: berthed,
 		voyages: (yield* sailing.list()).filter((voyage) => voyageIds.has(voyage.id)),
 	});
 	const sessionsByAgent = Map.groupBy(sessionSummaries, (session) => session.agentId);

@@ -1,5 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Voyages } from "@antumbra/voyages";
 import { type Context, Effect } from "effect";
@@ -7,7 +8,7 @@ import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
 import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";
 import { ensureBoard, writeEntry } from "#write.ts";
 
-const requirements = [Database, DomainFeeds, Voyages] as const;
+const requirements = [Database, DomainFeeds, Pieces, Voyages] as const;
 
 export const Boards = defineService({
 	id: "@antumbra/boards/Boards",

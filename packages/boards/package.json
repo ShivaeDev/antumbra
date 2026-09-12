@@ -26,6 +26,7 @@
 	"dependencies": {
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/pieces": "workspace:*",
 		"@antumbra/platform-service-definition": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/voyages": "workspace:*",

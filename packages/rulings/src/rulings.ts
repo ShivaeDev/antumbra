@@ -1,5 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Voyages } from "@antumbra/voyages";
 import { Effect } from "effect";
@@ -24,7 +25,7 @@ import { standing } from "#standing.ts";
 import { supersede } from "#supersede.ts";
 import { withdraw } from "#withdraw.ts";
 
-const requirements = [Database, DomainFeeds, Voyages] as const;
+const requirements = [Database, DomainFeeds, Pieces, Voyages] as const;
 
 export const Rulings = defineService({
 	id: "@antumbra/rulings/Rulings",

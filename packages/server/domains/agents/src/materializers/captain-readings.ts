@@ -17,6 +17,7 @@ export const captainReadings = projection("captainReadings", {
 				voyageId: held.id,
 				agentId: captain?.id ?? null,
 				currentSessionId: captain?.currentSessionId ?? null,
+				status: captain?.status ?? null,
 				standing: captain?.standing ?? "Not hailed",
 				atWork: captain?.atWork ?? false,
 				canHail: captain?.status !== "spawning",

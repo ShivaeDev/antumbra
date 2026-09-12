@@ -5,9 +5,9 @@ import { Effect } from "effect";
 import { agent } from "#rows/agent.ts";
 import { agentReading } from "#rows/agent-reading.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
+import { situation } from "#rows/situation.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
-import { situation } from "#situation.ts";
-import { atWork } from "#work.ts";
+import { atWork } from "#rows/working.ts";
 export const roster = projection("agentRoster", {
 	reads: [agent, session, pieceAgent, voyageAgent],
 	writes: [agentReading],

@@ -3,7 +3,7 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
-import { ToolSet } from "@antumbra/platform-runner/tools.ts";
+import { ToolSet } from "@antumbra/platform-vocabulary/tool-set.ts";
 import { Schema } from "effect";
 import { StartId } from "#ids.ts";
 

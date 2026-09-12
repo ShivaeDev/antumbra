@@ -1,3 +1,4 @@
+import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceAssignmentWork } from "@antumbra/domain-pieces/rows/piece-assignment-work.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { resourceOwner } from "@antumbra/domain-reclamation/rows/resource-owner.ts";
@@ -6,17 +7,22 @@ import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operati
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
+import { voyageActivity } from "@antumbra/domain-voyages/rows/voyage-activity.ts";
 import { voyageCaptainWork } from "@antumbra/domain-voyages/rows/voyage-captain-work.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { retire } from "#commands/retire.ts";
+import { retireCrew } from "#commands/retire-crew.ts";
 import { agentRetired } from "#facts/agent-retired.ts";
+import { crewRetired } from "#facts/crew-retired.ts";
 import { agentRetiredMaterializer } from "#materializers/agent-retired.ts";
+import { crewRetiredMaterializer } from "#materializers/crew-retired.ts";
 import { all } from "#queries/all.ts";
 import { authority } from "#queries/authority.ts";
 import { byId } from "#queries/by-id.ts";
 import { byPiece } from "#queries/by-piece.ts";
 import { bySession } from "#queries/by-session.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
+import { canRetireCrew } from "#queries/can-retire-crew.ts";
 import { captain } from "#queries/captain.ts";
 import { captain as captainView } from "#queries/captain-reading.ts";
 import { dueRetirements } from "#queries/due-retirements.ts";
@@ -32,6 +38,8 @@ import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
 export const agents = feature("agents", {
 	rows: [
+		piece,
+		voyageActivity,
 		count,
 		flag,
 		pieceProgress,
@@ -47,10 +55,11 @@ export const agents = feature("agents", {
 		sessionOperation,
 		voyage,
 	],
-	facts: [agentRetired],
-	commands: [retire],
-	materializers: [agentRetiredMaterializer],
+	facts: [crewRetired, agentRetired],
+	commands: [retireCrew, retire],
+	materializers: [crewRetiredMaterializer, agentRetiredMaterializer],
 	queries: [
+		canRetireCrew,
 		smoother,
 		captainView,
 		byVoyage,

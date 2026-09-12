@@ -5,7 +5,7 @@ import { projection } from "@antumbra/platform-feature/projection.ts";
 import { Effect } from "effect";
 import { agent } from "#rows/agent.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
-import { atWork } from "#work.ts";
+import { atWork } from "#rows/working.ts";
 export const assignments = projection("agentAssignments", {
 	reads: [agent, session, pieceAgent],
 	writes: [pieceAssignmentWork],

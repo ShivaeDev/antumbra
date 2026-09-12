@@ -5,7 +5,7 @@ import { Effect, Schema } from "effect";
 import { agent } from "#rows/agent.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
-import { atWork } from "#work.ts";
+import { atWork } from "#rows/working.ts";
 export const captain = query("captain", {
 	input: { voyageId: VoyageId },
 	output: Schema.NullOr(agent.Row),

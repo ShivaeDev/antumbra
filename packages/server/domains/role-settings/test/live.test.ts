@@ -1,8 +1,9 @@
+import { it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
 import { forVoyage } from "#queries/for-voyage.ts";
-import { it, reef, shallows } from "#test/kit.ts";
+import { reef, shallows } from "#test/kit.ts";
 
-it.app("a voyage's settings emit again when a choice lands in its scope", function* (app) {
+it.app("updates subscribers when a choice changes", function* (app) {
 	const live = yield* app.live(forVoyage, { voyageId: reef });
 	yield* app.settle();
 	const before = (yield* live.seen).length;
@@ -15,7 +16,7 @@ it.app("a voyage's settings emit again when a choice lands in its scope", functi
 	expect(seen.at(-1)?.at(0)).toMatchObject({ backend: "claude", role: "captain" });
 });
 
-it.app("a choice in another voyage's scope leaves the live query alone", function* (app) {
+it.app("ignores choices in another scope", function* (app) {
 	const live = yield* app.live(forVoyage, { voyageId: reef });
 	yield* app.settle();
 	const before = (yield* live.seen).length;

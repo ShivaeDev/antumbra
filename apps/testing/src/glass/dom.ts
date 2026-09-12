@@ -49,3 +49,18 @@ export const write = (control: Writable, value: string): void => {
 	Object.getOwnPropertyDescriptor(prototypeOf(control), "value")?.set?.call(control, value);
 	control.dispatchEvent(new Event(control instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }));
 };
+
+export const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
+	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
+
+export const named = (form: HTMLFormElement): string | null | undefined =>
+	document.getElementById(form.getAttribute("aria-labelledby") ?? "")?.textContent;
+
+export const submit = (container: HTMLElement, place: number) =>
+	settle(() => [...container.querySelectorAll("form")][place]?.querySelector("button")?.click());
+export const choose = (control: HTMLSelectElement, values: readonly string[]): void => {
+	for (const option of control.options) {
+		option.selected = values.includes(option.value);
+	}
+	control.dispatchEvent(new Event("change", { bubbles: true }));
+};

@@ -1,8 +1,8 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
 import { FLEET, roleSettingId } from "#ids.ts";
-import { answered, it } from "#test/kit.ts";
 
-it.app("names every role in the fleet's defaults, chosen or not", function* (app) {
+it.app("includes unchosen roles in fleet defaults", function* (app) {
 	const roles = app.api.roleSettings;
 	yield* roles.choose({ backend: "claude", effort: "high", model: null, role: "captain", scope: FLEET });
 
@@ -14,7 +14,7 @@ it.app("names every role in the fleet's defaults, chosen or not", function* (app
 	]);
 });
 
-it.app("stores a choice that names nothing as a row of nulls", function* (app) {
+it.app("stores an empty choice", function* (app) {
 	const roles = app.api.roleSettings;
 	yield* roles.choose({ backend: null, effort: null, model: null, role: "crew", scope: FLEET });
 

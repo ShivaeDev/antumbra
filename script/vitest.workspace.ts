@@ -37,9 +37,13 @@ export default defineConfig({
 	test: {
 		projects: workspacePackages.map(({ name, path }) => {
 			const own = join(repoRoot, path, "vitest.config.ts");
+			let config = existsSync(own) ? own : undefined;
+			if (config === undefined && name.startsWith("glass/")) {
+				config = join(repoRoot, "apps/testing/src/glass/config.ts");
+			}
 			return {
 				root: join(repoRoot, path),
-				...(existsSync(own) ? { extends: own } : {}),
+				...(config === undefined ? {} : { extends: config }),
 				test: {
 					include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
 					name,

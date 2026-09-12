@@ -1,9 +1,10 @@
+import { it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { VoyageId } from "#ids.ts";
-import { it, opening } from "#test/kit.ts";
+import { opening } from "#test/kit.ts";
 
-it.app("focus lands on the voyage and lifts again", function* (app) {
+it.app("sets and clears focus", function* (app) {
 	yield* app.api.voyages.open(opening);
 	const [opened] = yield* app.rows.voyage.where({});
 	const id = VoyageId.make(opened?.id ?? "");
@@ -15,7 +16,7 @@ it.app("focus lands on the voyage and lifts again", function* (app) {
 	expect((yield* app.rows.voyage.get(id)).focusedAt).toBeNull();
 });
 
-it.app("refuses focus on a voyage the fleet does not hold", function* (app) {
+it.app("rejects focus on an unknown voyage", function* (app) {
 	const refused = yield* Effect.flip(app.api.voyages.setFocus({ focused: true, id: VoyageId.make("voyage-nowhere") }));
 
 	expect(refused).toMatchObject({ _tag: "Unknown", id: "voyage-nowhere" });

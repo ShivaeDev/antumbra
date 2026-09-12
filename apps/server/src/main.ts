@@ -2,26 +2,23 @@ import { createServer } from "node:http";
 import { group } from "@antumbra/platform-rpc/group.ts";
 import { serialization } from "@antumbra/platform-rpc/serialization.ts";
 import { ServerToken } from "@antumbra/platform-rpc/token.ts";
-import { app } from "@antumbra/server-journal/app.ts";
 import { DataDirectory } from "@antumbra/server-journal/database.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
-import { serving } from "@antumbra/server-journal/rpc.ts";
 import { NodeHttpServer, NodeRuntime } from "@effect/platform-node";
 import { Cause, Console, Effect, Exit, Layer, Logger, type Runtime } from "effect";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import * as RpcServer from "effect/unstable/rpc/RpcServer";
-import { features } from "#features.ts";
+import { application, definition } from "#application.ts";
 import { options } from "#options.ts";
 
 const HOST = "127.0.0.1";
 const PATH = "/rpc";
 
-const journal = (directory: string) =>
-	Layer.provideMerge(Journal.layer(app(features)), Journal.file()).pipe(Layer.provide(Layer.succeed(DataDirectory, { path: directory })));
+const journal = (directory: string) => Journal.file().pipe(Layer.provide(Layer.succeed(DataDirectory, { path: directory })));
 
-const rpc = RpcServer.layer(group(features)).pipe(
-	Layer.provide(serving(features)),
+const rpc = RpcServer.layer(group(definition.features)).pipe(
+	Layer.provide(application),
 	Layer.provide(RpcServer.layerProtocolWebsocket({ path: PATH })),
 	Layer.provide(serialization),
 );

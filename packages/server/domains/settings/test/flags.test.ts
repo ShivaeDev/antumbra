@@ -1,7 +1,7 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
-import { answered, it } from "#test/kit.ts";
 
-it.app("answers every flag with the value Antumbra holds until one is set", function* (app) {
+it.app("reads default flags", function* (app) {
 	const answer = yield* answered(app.api.settings.flags({}));
 	for (const setting of answer) {
 		expect(setting.title.trim()).not.toBe("");
@@ -16,7 +16,7 @@ it.app("answers every flag with the value Antumbra holds until one is set", func
 	]);
 });
 
-it.app("replacing a flag preserves the other settings", function* (app) {
+it.app("preserves other settings when replacing a flag", function* (app) {
 	yield* app.api.settings.setFlag({ key: "holdEverything", on: false });
 	yield* app.api.settings.setFlag({ key: "retireSweep", on: false });
 	yield* app.api.settings.setFlag({ key: "holdEverything", on: true });

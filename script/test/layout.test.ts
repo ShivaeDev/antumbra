@@ -83,4 +83,28 @@ describe("layout rules", () => {
 	it("lets an app import anything", () => {
 		expect(check(importing("apps/desktop", "@antumbra/domain-pieces"), "packages/server/domains/pieces")).toEqual([]);
 	});
+	it("allows app-testing only from package tests", () => {
+		const root = "packages/glass/settings";
+		const specifier = "@antumbra/app-testing/glass/entry.tsx";
+		const source = importing(root, specifier);
+		const inspect = (path: string) =>
+			layoutViolations(
+				inventoryOf({
+					sources: [{ ...source, path }],
+					manifests: [
+						{ path: `${root}/package.json`, raw: JSON.stringify({ name: "@antumbra/glass-settings" }) },
+						{ path: "apps/testing/package.json", raw: JSON.stringify({ name: "@antumbra/app-testing" }) },
+					],
+				}),
+			);
+		expect(inspect(`${root}/test/screens.test.tsx`)).toEqual([]);
+		expect(inspect(source.path)).toHaveLength(1);
+		expect(check({ ...importing(root, "@antumbra/server/application.ts"), path: `${root}/test/screens.test.tsx` }, "apps/server")).toHaveLength(1);
+	});
+
+	it("allows domain contracts in journal tests", () => {
+		const source = importing("packages/server/journal", "@antumbra/domain-settings/queries/counts.ts");
+		expect(check({ ...source, path: "packages/server/journal/test/live.test.ts" }, "packages/server/domains/settings")).toEqual([]);
+		expect(check(source, "packages/server/domains/settings")).toHaveLength(1);
+	});
 });

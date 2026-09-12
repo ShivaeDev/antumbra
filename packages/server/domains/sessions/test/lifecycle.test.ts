@@ -17,7 +17,7 @@ const start = {
 	toolSetVersion: "tools",
 };
 const source = { logId: "runner-log", at: 100, requestId: Request.make("start") };
-const identity = { sessionId, nodeRef: null, operationId: "start" };
+const identity = { sessionId, nodeRef: null, origin: null, operationId: "start" };
 
 it.app("charter acceptance advances work while sleeping retains the conversation", function* (app) {
 	const commit = yield* Commit;
@@ -47,10 +47,39 @@ it.app("sleep waits for tools and rejects a delegated node as an operation targe
 	yield* commit.observe(observed, {
 		...source,
 		cursor: 3,
-		payload: { ...identity, evidence: { type: "opened", nativeRef: "child", parentRef: null, label: "Explorer", kind: "task" } },
+		payload: { ...identity, evidence: { type: "opened", spawnedBy: "call", nativeRef: "child", parentRef: null, label: "Explorer", kind: "task" } },
 	});
 	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
 	const child = nodes.find((node) => node.parentSessionId !== null);
 	if (child === undefined) return yield* Effect.die("Missing delegated session");
 	expect(yield* Effect.flip(app.api.sessions.request({ ...sleep, sessionId: child.id }))).toMatchObject({ _tag: "Unavailable" });
+});
+
+it.app("late delegated discovery retains attribution and its gap when the node ends", function* (app) {
+	const commit = yield* Commit;
+	yield* commit.observe(observed, { ...source, cursor: 0, payload: { ...identity, evidence: start } });
+	yield* commit.observe(observed, {
+		...source,
+		cursor: 1,
+		payload: { ...identity, nodeRef: "child", origin: { node: "child", spawnedBy: "spawn" }, evidence: { type: "activity", state: "active" } },
+	});
+	yield* commit.observe(observed, {
+		...source,
+		cursor: 2,
+		payload: { ...identity, evidence: { type: "opened", nativeRef: "child", spawnedBy: "spawn", parentRef: null, label: "Explorer", kind: "task" } },
+	});
+	yield* commit.observe(observed, {
+		...source,
+		cursor: 3,
+		payload: { ...identity, evidence: { type: "closed", nativeRef: "child", outcome: "completed" } },
+	});
+	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	expect(nodes).toHaveLength(2);
+	expect(nodes.find((node) => node.nativeRef === "child")).toMatchObject({
+		parentSessionId: sessionId,
+		label: "Explorer",
+		status: "closed",
+		outcome: "completed",
+		completeness: "incomplete",
+	});
 });

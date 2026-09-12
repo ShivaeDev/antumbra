@@ -24,7 +24,7 @@ export const toolAnsweredMaterializer = materializer(toolAnswered, {
 	writes: [sessionToolCall],
 	run: Effect.fn("Sessions.toolAnswered")(function* (fact, rows) {
 		const id = `${fact.sessionId}:${fact.callId}`;
-		const at = new Date(fact.at).toISOString();
+
 		if (yield* rows.sessionToolCall.exists(id)) yield* rows.sessionToolCall.update(id, { answer: fact.answer });
 		else
 			yield* rows.sessionToolCall.insert({
@@ -33,7 +33,7 @@ export const toolAnsweredMaterializer = materializer(toolAnswered, {
 				name: fact.name,
 				input: fact.input,
 				answer: fact.answer,
-				calledAt: at,
+				calledAt: null,
 				answeredAt: null,
 			});
 	}),

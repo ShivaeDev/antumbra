@@ -1,9 +1,11 @@
+import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { Input } from "@antumbra/platform-runner/input.ts";
-import type { Operation, OperationResult, SessionOptions } from "@antumbra/platform-runner/operations.ts";
+import type { Operation, SessionOptions } from "@antumbra/platform-runner/operations.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Context, Effect, Option, Stream } from "effect";
+import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import { hold } from "#commands/hold.ts";
 import { reading } from "#queries/reading.ts";
 import type { session } from "#rows/session.ts";
@@ -14,7 +16,6 @@ export class SessionExecution extends Context.Service<
 	{
 		readonly options: (root: typeof session.Row.Type) => Effect.Effect<SessionOptions>;
 		readonly input: (inputId: string) => Effect.Effect<Input>;
-		readonly execute: (operation: Operation) => Effect.Effect<OperationResult>;
 	}
 >()("@antumbra/domain-sessions/SessionExecution") {}
 
@@ -22,9 +23,18 @@ export const execute = Effect.fn("sessions.execute")(function* (operation: typeo
 	const live = yield* Live;
 	const commit = yield* Commit;
 	const edge = yield* SessionExecution;
-	const found = yield* Stream.runHead(live.live(reading, { id: operation.sessionId }));
-	const root = Option.getOrNull(found);
+	const runners = yield* RunnerOperations;
+	const root = yield* live.read(reading, { id: operation.sessionId });
 	if (root === null) return;
+	const reactivity = yield* Reactivity;
+	const available = reactivity
+		.stream(["runner:connected"], runners.connected)
+		.pipe(Stream.filter((registrations) => registrations.some((runner) => runner.backends.includes(root.backend))));
+	const connected = yield* Stream.runHead(available).pipe(Effect.map(Option.getOrThrow));
+	const previous = connected.find((runner) => runner.runnerId === root.runnerId);
+	const runner = previous ?? connected.find((runner) => runner.backends.includes(root.backend));
+	if (runner === undefined) return;
+	const attached = root.attached && previous !== undefined;
 	const identity = { requestId: operation.id, sessionId: root.id };
 	let wire: Operation;
 	switch (operation.kind) {
@@ -41,7 +51,7 @@ export const execute = Effect.fn("sessions.execute")(function* (operation: typeo
 		case "steer": {
 			const input: Input =
 				operation.inputId === null ? { id: operation.id, parts: [{ type: "text", text: operation.reason }] } : yield* edge.input(operation.inputId);
-			if (root.attached) wire = { type: "Deliver", ...identity, act: "steer", input };
+			if (attached) wire = { type: "Deliver", ...identity, act: "steer", input };
 			else {
 				if (root.nativeRef === null) {
 					yield* commit
@@ -58,7 +68,7 @@ export const execute = Effect.fn("sessions.execute")(function* (operation: typeo
 			break;
 		}
 	}
-	const result = yield* edge.execute(wire);
+	const result = yield* runners.execute(runner.runnerId, wire);
 	if (result.type === "Refused")
 		yield* commit
 			.commit(hold, { requestId: Request.make(`${operation.id}:held`), id: operation.id, detail: result.reason })

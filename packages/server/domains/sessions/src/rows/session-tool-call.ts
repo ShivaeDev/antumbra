@@ -12,7 +12,7 @@ export const sessionToolCall = row(
 		input: Schema.String,
 		answeredAt: Schema.NullOr(Schema.String),
 		answer: Schema.NullOr(ToolAnswer),
-		calledAt: Schema.String,
+		calledAt: Schema.NullOr(Schema.String),
 	},
 	{ key: "id", scope: "sessionId" },
 );

@@ -58,7 +58,8 @@
 		"@antumbra/runner": "workspace:*",
 		"@antumbra/glass-renderer": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/domain-agents": "workspace:*"
+		"@antumbra/domain-agents": "workspace:*",
+		"@electron/asar": "catalog:"
 	},
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "catalog:",

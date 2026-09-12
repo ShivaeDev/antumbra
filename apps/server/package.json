@@ -55,6 +55,7 @@
 		"@antumbra/platform-change-host": "workspace:*",
 		"@antumbra/edge-github": "workspace:*",
 		"sharp": "catalog:",
-		"@antumbra/domain-costs": "workspace:*"
+		"@antumbra/domain-costs": "workspace:*",
+		"@antumbra/domain-holds": "workspace:*"
 	}
 }

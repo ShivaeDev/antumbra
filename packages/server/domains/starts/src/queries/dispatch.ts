@@ -41,11 +41,16 @@ export const dispatch = query("dispatch", {
 				const assigned = new Set(links.filter((link) => link.pieceId === piece.id).map((link) => link.agentId));
 				const living = agents.filter((agent) => assigned.has(agent.id) && ["alive", "spawning"].includes(agent.status));
 				if (living.length === 0) return [{ piece, voyage, root: null }];
-				const root = roots.find((root) => living.some((agent) => agent.currentSessionId === root.id));
+				const assignedAgent = living.toSorted((a, b) => a.id.localeCompare(b.id))[0];
+				const root = roots.find((root) => assignedAgent?.currentSessionId === root.id);
 				if (
 					root === undefined ||
-					root.attached ||
-					operations.some((operation) => operation.sessionId === root.id && ["requested", "held"].includes(operation.status))
+					root.executionStatus !== "idle" ||
+					operations.some(
+						(operation) =>
+							operation.sessionId === root.id &&
+							(operation.status === "requested" || operation.status === "waiting" || operation.status === "ambiguous"),
+					)
 				)
 					return [];
 				return [{ piece, voyage, root }];

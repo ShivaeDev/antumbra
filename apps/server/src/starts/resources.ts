@@ -26,7 +26,7 @@ const prepare = Effect.fn("Starts.prepareResources")(function* (birth: typeof st
 		const registered = yield* live.read(repos, {});
 		const result = yield* runners.execute(runnerId, {
 			type: "Plan",
-			requestId: `${birth.id}:plan`,
+			requestId: `${birth.operationRequestId}:plan`,
 			agentId: birth.agentId,
 			repos: registered.map((repo) => ({ ref: repo.defaultRef, slug: repoSlug(repo.source), source: repo.source })),
 		});

@@ -27,7 +27,7 @@ export const execute = Effect.fn("Starts.execute")(function* (birth: typeof star
 			Stream.runHead,
 			Effect.map(Option.getOrThrow),
 		);
-		const cwd = yield* edge.prepare(birth, runner.runnerId);
+		const cwd = birth.cwd ?? (yield* edge.prepare(birth, runner.runnerId));
 		const result = yield* runners.execute(runner.runnerId, {
 			type: "Start",
 			requestId: birth.operationRequestId,
@@ -38,7 +38,7 @@ export const execute = Effect.fn("Starts.execute")(function* (birth: typeof star
 				model: birth.model,
 				effort: birth.effort,
 				cwd,
-				constrainedPrompt: null,
+				constrainedPrompt: birth.constrainedPrompt,
 				toolSet: { version: birth.toolSetVersion, tools: birth.tools },
 			},
 			charter: { id: `${birth.id}:charter`, parts: [{ type: "text", text: birth.charter }] },

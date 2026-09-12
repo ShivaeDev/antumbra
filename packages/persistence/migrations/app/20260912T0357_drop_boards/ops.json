@@ -1,0 +1,202 @@
+[
+  {
+    "id": "dropTable.board",
+    "label": "Drop table board",
+    "summary": "Drops table board which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "board"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"board\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "board"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"board\"",
+        "sql": "DROP TABLE \"board\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"board\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "board"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.boardEntry",
+    "label": "Drop table boardEntry",
+    "summary": "Drops table boardEntry which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardEntry"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardEntry\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntry"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"boardEntry\"",
+        "sql": "DROP TABLE \"boardEntry\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardEntry\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntry"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.boardEntryDelivery",
+    "label": "Drop table boardEntryDelivery",
+    "summary": "Drops table boardEntryDelivery which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardEntryDelivery"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardEntryDelivery\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntryDelivery"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"boardEntryDelivery\"",
+        "sql": "DROP TABLE \"boardEntryDelivery\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardEntryDelivery\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntryDelivery"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.boardEntryReceipt",
+    "label": "Drop table boardEntryReceipt",
+    "summary": "Drops table boardEntryReceipt which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardEntryReceipt"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardEntryReceipt\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntryReceipt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"boardEntryReceipt\"",
+        "sql": "DROP TABLE \"boardEntryReceipt\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardEntryReceipt\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardEntryReceipt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropTable.boardOwner",
+    "label": "Drop table boardOwner",
+    "summary": "Drops table boardOwner which is not in the contract",
+    "operationClass": "destructive",
+    "target": {
+      "id": "sqlite",
+      "details": {
+        "schema": "main",
+        "objectType": "table",
+        "name": "boardOwner"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"boardOwner\" exists",
+        "sql": "SELECT COUNT(*) > 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardOwner"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop table \"boardOwner\"",
+        "sql": "DROP TABLE \"boardOwner\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"boardOwner\" is gone",
+        "sql": "SELECT COUNT(*) = 0 AS \"result\" FROM \"sqlite_master\" WHERE (\"type\" = ? AND \"name\" = ?)",
+        "params": [
+          "table",
+          "boardOwner"
+        ]
+      }
+    ]
+  }
+]

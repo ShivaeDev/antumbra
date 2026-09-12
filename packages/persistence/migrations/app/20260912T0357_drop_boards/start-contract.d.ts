@@ -16,7 +16,7 @@ import type {
 } from '@prisma-next/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'sha256:df58e2574b68e8fd5aeca61da6860ade5241a99c50ceee0eefb50d73baa14655'>;
+  StorageHashBase<'sha256:a805a7f7ae70bed510e66ab0c3299376f3b901c708119586fae1cc4e642051c0'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'sha256:3cc333ecad9f3f4c7229370a9d2c37e908cdce0f8d2e9fb132d50605b024eff2'>;
@@ -96,6 +96,38 @@ export type FieldOutputTypes = {
       readonly strandedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly Board: {
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly BoardEntry: {
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly boardId: CodecTypes['sqlite/text@1']['output'];
+      readonly seq: CodecTypes['sqlite/integer@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly precedence: CodecTypes['sqlite/text@1']['output'];
+      readonly sourceRef: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly register: CodecTypes['sqlite/text@1']['output'];
+      readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly body: CodecTypes['sqlite/text@1']['output'];
+      readonly level: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly coversFrom: CodecTypes['sqlite/integer@1']['output'] | null;
+      readonly coversTo: CodecTypes['sqlite/integer@1']['output'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly BoardEntryDelivery: {
+      readonly entryId: CodecTypes['sqlite/text@1']['output'];
+      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly BoardEntryReceipt: {
+      readonly entryId: CodecTypes['sqlite/text@1']['output'];
+      readonly readAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly BoardOwner: {
+      readonly boardId: CodecTypes['sqlite/text@1']['output'];
+      readonly ownerKind: CodecTypes['sqlite/text@1']['output'];
+      readonly ownerId: CodecTypes['sqlite/text@1']['output'];
     };
     readonly Change: {
       readonly id: CodecTypes['sqlite/text@1']['output'];
@@ -361,6 +393,38 @@ export type FieldInputTypes = {
       readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
     };
+    readonly Board: {
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly BoardEntry: {
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly boardId: CodecTypes['sqlite/text@1']['input'];
+      readonly seq: CodecTypes['sqlite/integer@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly precedence: CodecTypes['sqlite/text@1']['input'];
+      readonly sourceRef: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly register: CodecTypes['sqlite/text@1']['input'];
+      readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly body: CodecTypes['sqlite/text@1']['input'];
+      readonly level: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly coversFrom: CodecTypes['sqlite/integer@1']['input'] | null;
+      readonly coversTo: CodecTypes['sqlite/integer@1']['input'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly BoardEntryDelivery: {
+      readonly entryId: CodecTypes['sqlite/text@1']['input'];
+      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly BoardEntryReceipt: {
+      readonly entryId: CodecTypes['sqlite/text@1']['input'];
+      readonly readAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly BoardOwner: {
+      readonly boardId: CodecTypes['sqlite/text@1']['input'];
+      readonly ownerKind: CodecTypes['sqlite/text@1']['input'];
+      readonly ownerId: CodecTypes['sqlite/text@1']['input'];
+    };
     readonly Change: {
       readonly id: CodecTypes['sqlite/text@1']['input'];
       readonly repoId: CodecTypes['sqlite/text@1']['input'];
@@ -625,6 +689,38 @@ export type StorageColumnTypes = {
       readonly strandedAt: CodecTypes['sqlite/datetime@1']['output'] | null;
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
     };
+    readonly board: {
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+    };
+    readonly boardEntry: {
+      readonly authorAgentId: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly boardId: CodecTypes['sqlite/text@1']['output'];
+      readonly body: CodecTypes['sqlite/text@1']['output'];
+      readonly coversFrom: CodecTypes['sqlite/integer@1']['output'] | null;
+      readonly coversTo: CodecTypes['sqlite/integer@1']['output'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly id: CodecTypes['sqlite/text@1']['output'];
+      readonly kind: CodecTypes['sqlite/text@1']['output'];
+      readonly level: CodecTypes['sqlite/text@1']['output'] | null;
+      readonly precedence: CodecTypes['sqlite/text@1']['output'];
+      readonly register: CodecTypes['sqlite/text@1']['output'];
+      readonly seq: CodecTypes['sqlite/integer@1']['output'];
+      readonly sourceRef: CodecTypes['sqlite/text@1']['output'] | null;
+    };
+    readonly boardEntryDelivery: {
+      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['output'];
+      readonly entryId: CodecTypes['sqlite/text@1']['output'];
+    };
+    readonly boardEntryReceipt: {
+      readonly entryId: CodecTypes['sqlite/text@1']['output'];
+      readonly readAt: CodecTypes['sqlite/datetime@1']['output'];
+    };
+    readonly boardOwner: {
+      readonly boardId: CodecTypes['sqlite/text@1']['output'];
+      readonly ownerId: CodecTypes['sqlite/text@1']['output'];
+      readonly ownerKind: CodecTypes['sqlite/text@1']['output'];
+    };
     readonly change: {
       readonly activityAt: CodecTypes['sqlite/datetime@1']['output'];
       readonly baseRef: CodecTypes['sqlite/text@1']['output'];
@@ -888,6 +984,38 @@ export type StorageColumnInputTypes = {
       readonly status: CodecTypes['sqlite/text@1']['input'];
       readonly strandedAt: CodecTypes['sqlite/datetime@1']['input'] | null;
       readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly board: {
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+    };
+    readonly boardEntry: {
+      readonly authorAgentId: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly boardId: CodecTypes['sqlite/text@1']['input'];
+      readonly body: CodecTypes['sqlite/text@1']['input'];
+      readonly coversFrom: CodecTypes['sqlite/integer@1']['input'] | null;
+      readonly coversTo: CodecTypes['sqlite/integer@1']['input'] | null;
+      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly id: CodecTypes['sqlite/text@1']['input'];
+      readonly kind: CodecTypes['sqlite/text@1']['input'];
+      readonly level: CodecTypes['sqlite/text@1']['input'] | null;
+      readonly precedence: CodecTypes['sqlite/text@1']['input'];
+      readonly register: CodecTypes['sqlite/text@1']['input'];
+      readonly seq: CodecTypes['sqlite/integer@1']['input'];
+      readonly sourceRef: CodecTypes['sqlite/text@1']['input'] | null;
+    };
+    readonly boardEntryDelivery: {
+      readonly deliveredAt: CodecTypes['sqlite/datetime@1']['input'];
+      readonly entryId: CodecTypes['sqlite/text@1']['input'];
+    };
+    readonly boardEntryReceipt: {
+      readonly entryId: CodecTypes['sqlite/text@1']['input'];
+      readonly readAt: CodecTypes['sqlite/datetime@1']['input'];
+    };
+    readonly boardOwner: {
+      readonly boardId: CodecTypes['sqlite/text@1']['input'];
+      readonly ownerId: CodecTypes['sqlite/text@1']['input'];
+      readonly ownerKind: CodecTypes['sqlite/text@1']['input'];
     };
     readonly change: {
       readonly activityAt: CodecTypes['sqlite/datetime@1']['input'];
@@ -1493,6 +1621,171 @@ type ContractBase = Omit<
                 { readonly columns: readonly ['agentId'] },
                 { readonly columns: readonly ['status'] },
               ];
+              foreignKeys: readonly [];
+            };
+            readonly board: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly boardEntry: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly boardId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly seq: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: false;
+                };
+                readonly kind: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'note'>;
+                  };
+                };
+                readonly precedence: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'sqlite/text@1', 'routine'>;
+                  };
+                };
+                readonly sourceRef: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly register: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly authorAgentId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly body: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly level: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: true;
+                };
+                readonly coversFrom: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: true;
+                };
+                readonly coversTo: {
+                  readonly nativeType: 'integer';
+                  readonly codecId: 'sqlite/integer@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [
+                { readonly columns: readonly ['boardId', 'seq'] },
+                { readonly columns: readonly ['boardId', 'sourceRef'] },
+              ];
+              indexes: readonly [{ readonly columns: readonly ['boardId'] }];
+              foreignKeys: readonly [];
+            };
+            readonly boardEntryDelivery: {
+              columns: {
+                readonly entryId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly deliveredAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['entryId'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly boardEntryReceipt: {
+              columns: {
+                readonly entryId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly readAt: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/datetime@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['entryId'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
+            };
+            readonly boardOwner: {
+              columns: {
+                readonly boardId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly ownerKind: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+                readonly ownerId: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'sqlite/text@1';
+                  readonly nullable: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['boardId'] };
+              uniques: readonly [{ readonly columns: readonly ['ownerKind', 'ownerId'] }];
+              indexes: readonly [];
               foreignKeys: readonly [];
             };
             readonly change: {
@@ -2783,6 +3076,23 @@ type ContractBase = Omit<
       readonly namespace: '__unbound__' & NamespaceId;
       readonly model: 'ChangeVerdict';
     };
+    readonly board: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Board' };
+    readonly boardEntry: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'BoardEntry';
+    };
+    readonly boardEntryDelivery: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'BoardEntryDelivery';
+    };
+    readonly boardEntryReceipt: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'BoardEntryReceipt';
+    };
+    readonly boardOwner: {
+      readonly namespace: '__unbound__' & NamespaceId;
+      readonly model: 'BoardOwner';
+    };
     readonly ruling: { readonly namespace: '__unbound__' & NamespaceId; readonly model: 'Ruling' };
     readonly rulingChoice: {
       readonly namespace: '__unbound__' & NamespaceId;
@@ -3293,6 +3603,171 @@ type ContractBase = Omit<
                 readonly strandedAt: { readonly column: 'strandedAt' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly Board: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'board';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
+          readonly BoardEntry: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly boardId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly seq: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly kind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly precedence: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly sourceRef: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly register: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly authorAgentId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly body: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly level: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly coversFrom: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly coversTo: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/integer@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'boardEntry';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly boardId: { readonly column: 'boardId' };
+                readonly seq: { readonly column: 'seq' };
+                readonly kind: { readonly column: 'kind' };
+                readonly precedence: { readonly column: 'precedence' };
+                readonly sourceRef: { readonly column: 'sourceRef' };
+                readonly register: { readonly column: 'register' };
+                readonly authorAgentId: { readonly column: 'authorAgentId' };
+                readonly body: { readonly column: 'body' };
+                readonly level: { readonly column: 'level' };
+                readonly coversFrom: { readonly column: 'coversFrom' };
+                readonly coversTo: { readonly column: 'coversTo' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
+          readonly BoardEntryDelivery: {
+            readonly fields: {
+              readonly entryId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly deliveredAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'boardEntryDelivery';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly entryId: { readonly column: 'entryId' };
+                readonly deliveredAt: { readonly column: 'deliveredAt' };
+              };
+            };
+          };
+          readonly BoardEntryReceipt: {
+            readonly fields: {
+              readonly entryId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly readAt: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/datetime@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'boardEntryReceipt';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly entryId: { readonly column: 'entryId' };
+                readonly readAt: { readonly column: 'readAt' };
+              };
+            };
+          };
+          readonly BoardOwner: {
+            readonly fields: {
+              readonly boardId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly ownerKind: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+              readonly ownerId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'sqlite/text@1' };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'boardOwner';
+              readonly namespaceId: '__unbound__';
+              readonly fields: {
+                readonly boardId: { readonly column: 'boardId' };
+                readonly ownerKind: { readonly column: 'ownerKind' };
+                readonly ownerId: { readonly column: 'ownerId' };
               };
             };
           };

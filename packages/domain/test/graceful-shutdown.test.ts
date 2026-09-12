@@ -1,4 +1,3 @@
-import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { AgentBackend } from "@antumbra/plugin-api";
@@ -87,20 +86,11 @@ vitest.effect("drains once, rebuilds idle truth, and resumes the same native Ses
 		const prepareShutdown = Effect.gen(function* () {
 			const db = yield* Database;
 			const procedures = yield* VoyageProcedureService;
-			const boards = yield* Boards;
 			const sight = yield* makeSightSessionEvents;
 			const voyage = yield* openReefVoyage;
 			const hailed = yield* procedures.hail(voyage.id);
 			expect(yield* terminalIntent(hailed.intentId)).toBe("succeeded");
 			const live = yield* sessionFor(scripted, hailed.agentId);
-			yield* boards.write(
-				BoardScope.Agent({ agentId: hailed.agentId }),
-				EntryInput.Note({
-					authorAgentId: Option.none(),
-					body: "preserve this board through shutdown",
-					register: "smooth",
-				}),
-			);
 			const session = Option.getOrThrow(Option.fromUndefinedOr((yield* db.AgentSession.where({ agentId: hailed.agentId }).all())[0]));
 			const recorded = yield* sight.sessionEventFeed({ fromSeq: 0, sessionId: session.id }).pipe(Stream.take(2), Stream.runCollect, Effect.forkChild);
 			yield* live.emit({
@@ -122,9 +112,6 @@ vitest.effect("drains once, rebuilds idle truth, and resumes the same native Ses
 			expect(persistedSession.nativeRef).toBe("native-shutdown");
 			const durable = {
 				agent: yield* db.Agent.where({ id: hailed.agentId }).first(),
-				boardEntries: yield* db.BoardEntry.all(),
-				boardOwners: yield* db.BoardOwner.all(),
-				boards: yield* db.Board.all(),
 				events: yield* db.SessionEvent.where({
 					sessionId: session.id,
 				}).all(),
@@ -155,9 +142,6 @@ vitest.effect("drains once, rebuilds idle truth, and resumes the same native Ses
 			});
 			expect(yield* db.Agent.where({ id: before.agentId }).first()).toEqual(before.durable.agent);
 			expect(yield* db.Moorage.where({ agentId: before.agentId }).first()).toEqual(before.durable.moorage);
-			expect(yield* db.Board.all()).toEqual(before.durable.boards);
-			expect(yield* db.BoardEntry.all()).toEqual(before.durable.boardEntries);
-			expect(yield* db.BoardOwner.all()).toEqual(before.durable.boardOwners);
 			expect(yield* db.SessionEvent.where({ sessionId: idle.id }).all()).toEqual(before.durable.events);
 
 			const hailed = yield* procedures.hail(before.voyageId);

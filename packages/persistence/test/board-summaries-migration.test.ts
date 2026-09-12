@@ -8,16 +8,15 @@ import { applyMigrations } from "#adapters/migrator.ts";
 import { freshMigrationDatabase, withSqlite } from "#test/migration-harness.ts";
 import { packagedMigrationsDirectory } from "#testing.ts";
 
-const beforeSummaries: unknown = JSON.parse(
-	readFileSync(join(packagedMigrationsDirectory, "app", "20260905T2256_board_summaries", "start-contract.json"), "utf8"),
-);
+const summaries = (edge: string): unknown =>
+	JSON.parse(readFileSync(join(packagedMigrationsDirectory, "app", "20260905T2256_board_summaries", edge), "utf8"));
 
 const registers = (sqlite: DatabaseSync) => sqlite.prepare('SELECT "id", "register" FROM "boardEntry" ORDER BY "seq"').all();
 
 it.effect("folds the notes an agent wrote into the rough register and leaves the admiral's own alone", () =>
 	Effect.gen(function* () {
 		const database = freshMigrationDatabase();
-		yield* applyMigrations({ contract: beforeSummaries, database, migrationsDirectory: packagedMigrationsDirectory });
+		yield* applyMigrations({ contract: summaries("start-contract.json"), database, migrationsDirectory: packagedMigrationsDirectory });
 		withSqlite(database, (sqlite) => {
 			sqlite.prepare('INSERT INTO "board" ("id") VALUES (?)').run("board-1");
 			const insert = sqlite.prepare(
@@ -30,7 +29,7 @@ it.effect("folds the notes an agent wrote into the rough register and leaves the
 			insert.run("agent-mail", 4, "mail", "smooth", "agent-1");
 		});
 
-		yield* applyMigrations({ database, migrationsDirectory: packagedMigrationsDirectory });
+		yield* applyMigrations({ contract: summaries("end-contract.json"), database, migrationsDirectory: packagedMigrationsDirectory });
 
 		expect(withSqlite(database, registers)).toEqual([
 			{ id: "agent-note", register: "rough" },

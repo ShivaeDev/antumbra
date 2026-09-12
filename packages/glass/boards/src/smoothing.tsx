@@ -1,4 +1,4 @@
-import type { smoothingState } from "@antumbra/domain-boards/smoothing/state.ts";
+import type { smoothingState } from "@antumbra/domain-boards/queries/smoothing-state.ts";
 
 type BoardSmoothing = typeof smoothingState.output.Type;
 

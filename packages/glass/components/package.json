@@ -23,9 +23,7 @@
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/domain-backends": "workspace:*",
-		"react-dom": "catalog:",
-		"@types/react-dom": "catalog:"
+		"@antumbra/domain-backends": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/glass-form": "workspace:*",

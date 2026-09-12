@@ -6,7 +6,7 @@ import { callTool } from "@antumbra/domain-sessions/commands/call-tool.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { request as start } from "@antumbra/domain-starts/commands/request.ts";
-import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
@@ -166,19 +166,6 @@ it.app("asks the blocking requester for context and holds their reply until the 
 
 it.app("waits for a missing flagship captain and delivers the ascent once they are hailed", function* (app) {
 	yield* begin;
-	yield* app.api.voyages.open({
-		requestId: Request.make("flagship"),
-		name: "Flagship",
-		kind: "flagship",
-		context: "Fleet decisions",
-		northStar: "Safe passage",
-		captainBackend: null,
-		captainEffort: null,
-		captainModel: null,
-		crewBackend: null,
-		crewEffort: null,
-		crewModel: null,
-	});
 	yield* app.api.rulings.request({
 		requestId: Request.make("ascent"),
 		requester: { kind: "agent", agentId: context.agentId },
@@ -198,7 +185,7 @@ it.app("waits for a missing flagship captain and delivers the ascent once they a
 		requestId: Request.make("hail"),
 		agentId: AgentId.make("captain"),
 		sessionId: SessionId.make("captain-session"),
-		voyageId: VoyageId.make("flagship"),
+		voyageId: VoyageId.make(FLAGSHIP_REQUEST),
 		pieceId: null,
 		backend: "scripted",
 		model: null,

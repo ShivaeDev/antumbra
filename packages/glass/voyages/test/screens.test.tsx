@@ -31,7 +31,7 @@ it.glass("rejects a blank name", function* ({ api, render }) {
 	yield* until(() => name.getAttribute("aria-invalid") === "true", "the name field to show its validation error");
 	expect(container.textContent).toContain("A voyage needs a name");
 	expect(name.value).toBe("   ");
-	expect(yield* answered(api.voyages.list({}))).toEqual([]);
+	expect(yield* answered(api.voyages.list({}))).toMatchObject([{ kind: "flagship" }]);
 });
 
 it.glass("opens a voyage and resets the form", function* ({ api, render }) {
@@ -49,8 +49,9 @@ it.glass("opens a voyage and resets the form", function* ({ api, render }) {
 	yield* fill(opening, "Open voyage North star", "every shoal is known");
 	yield* fill(opening, "Open voyage Context", "the reef\nis uncharted");
 	yield* submit(container, "Open voyage");
-	const saved = yield* eventually(api.voyages.list({}), (rows) => rows.length > 0);
+	const saved = yield* eventually(api.voyages.list({}), (rows) => rows.length > 1);
 	expect(saved).toMatchObject([
+		{ kind: "flagship" },
 		{
 			context: "the reef\nis uncharted",
 			kind: "voyage",

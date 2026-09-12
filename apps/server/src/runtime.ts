@@ -11,6 +11,7 @@ import { prepareSmoother } from "#smoothing/prepare.ts";
 import { smoothing } from "#smoothing/run.ts";
 import { runtime as starts } from "#starts/runtime.ts";
 import { rulingReconciliation } from "#tools/rulings/reconciliation.ts";
+import { openFlagship } from "#voyages/flagship.ts";
 
 export class ServerRuntime extends Context.Service<ServerRuntime, { readonly await: Effect.Effect<void> }>()("@antumbra/server/Runtime") {}
 
@@ -19,6 +20,7 @@ export const runtime = Layer.effect(
 	Effect.gen(function* () {
 		const runners = yield* RunnerOperations;
 		const reactivity = yield* Reactivity;
+		yield* openFlagship;
 		const workers = yield* Effect.all([starts, sessions(), audit(), resumeCapacity(), resources(), mail(), watchChanges, rulingReconciliation]);
 		const reconnect = reactivity
 			.stream(["runner:connected"], runners.connected)

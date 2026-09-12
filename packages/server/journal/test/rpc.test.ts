@@ -38,10 +38,12 @@ it.app("the client resolves repeated requests without another write", function* 
 
 it.app("commands without request ids apply independently", function* (app) {
 	const database = yield* Database;
+	const before = yield* Effect.orDie(database.write`SELECT * FROM "applied"`);
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 9 });
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 12 });
 	const applied = yield* Effect.orDie(database.write`SELECT * FROM "applied"`);
-	expect(new Set(applied.map((entry) => String(entry.requestId))).size).toBe(2);
+	expect(applied.length).toBe(before.length + 2);
+	expect(new Set(applied.map((entry) => String(entry.requestId))).size).toBe(applied.length);
 	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 12 }));
 });
 
@@ -68,6 +70,6 @@ it.app("RPC refuses a wrong token and accepts the configured token", function* (
 	const call = app.api.settings.setCount({ key: "maxParallelSessions", count: 9 });
 	const refused = yield* Effect.flip(call.pipe(Effect.provideService(ClientToken, { token: "wrong" })));
 	expect(refused).toBeInstanceOf(Unauthorized);
-	expect(yield* call).toBe(1);
+	expect(yield* call).toBeGreaterThan(0);
 	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
 });

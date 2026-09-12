@@ -1,4 +1,5 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Clock } from "effect";
 import { expect } from "vitest";
@@ -9,12 +10,19 @@ import { chartering, noting, opening, reef, soundings, soundingsBoard } from "#t
 it.app("a failed voyage pass still counts today and becomes due on the next local day", function* (app) {
 	yield* app.api.voyages.open(opening);
 	const now = new Date(yield* Clock.currentTimeMillis);
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([{ voyageId: reef, pieceId: null, throughToday: false }]);
+	const flagshipPass = { voyageId: VoyageId.make(FLAGSHIP_REQUEST), pieceId: null, throughToday: false };
+	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([
+		flagshipPass,
+		{ voyageId: reef, pieceId: null, throughToday: false },
+	]);
 	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: false, requestId: Id.Request.make("pass-today") });
 	yield* app.api.boards.finishSmoothing({ id: "pass-today", status: "failed", detail: "the smoother wrote no summary" });
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([]);
+	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([flagshipPass]);
 	now.setDate(now.getDate() + 1);
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([{ voyageId: reef, pieceId: null, throughToday: false }]);
+	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([
+		flagshipPass,
+		{ voyageId: reef, pieceId: null, throughToday: false },
+	]);
 });
 
 it.app("a concluded piece with uncovered notes is attempted once even when that pass fails", function* (app) {

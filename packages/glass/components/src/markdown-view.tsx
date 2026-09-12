@@ -6,6 +6,8 @@ import { renderMermaid } from "#adapters/mermaid.ts";
 import { cn } from "#class-names.ts";
 import { ExternalLink } from "#external-link.tsx";
 
+const WEB_LINK = /^https?:\/\//i;
+
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	const id = `outcome-${useId().replaceAll(":", "")}`;
 	const [rendered, setRendered] = useState<
@@ -35,7 +37,8 @@ export const MarkdownView = ({ className, markdown }: { readonly className?: str
 	<div className={cn("markdown min-w-0 wrap-anywhere", className)}>
 		<Markdown
 			components={{
-				a: ({ children, href }) => (href === undefined || href === "" ? <span>{children}</span> : <ExternalLink url={href}>{children}</ExternalLink>),
+				a: ({ children, href }) =>
+					href !== undefined && WEB_LINK.test(href) ? <ExternalLink url={href}>{children}</ExternalLink> : <span>{children}</span>,
 				code: ({ children, className: codeClass, node: _node, ...props }) => {
 					const source = String(children).replace(/\n$/, "");
 					return codeClass === "language-mermaid" ? (

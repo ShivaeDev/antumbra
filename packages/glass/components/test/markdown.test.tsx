@@ -25,3 +25,9 @@ it.glass("keeps a markdown link in the console while the shell opens its destina
 	expect(click.defaultPrevented).toBe(true);
 	expect(destination).toBe("https://charts.example/reef");
 });
+
+it.glass("writes an ssh remote as text instead of a mail link", function* ({ render }) {
+	const container = yield* render(<MarkdownView markdown={"Clone git@github.com:ShivaeDev/antumbra.git and read the chart."} />);
+	expect(container.querySelector("a")).toBeNull();
+	expect(container.textContent).toContain("git@github.com:ShivaeDev/antumbra.git");
+});

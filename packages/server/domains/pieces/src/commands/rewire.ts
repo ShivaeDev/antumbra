@@ -4,14 +4,14 @@ import { Effect, Schema } from "effect";
 import { DEPENDS_ON, WOULD_CYCLE, wiring } from "#commands/wiring.ts";
 import { pieceRewired } from "#facts/piece-rewired.ts";
 import { PieceId } from "#ids.ts";
-import { byVoyage } from "#queries/by-voyage.ts";
+import { others } from "#queries/others.ts";
 import { piece } from "#rows/piece.ts";
 import { pieceEdge } from "#rows/piece-edge.ts";
 
 export const rewire = command("rewire", {
 	input: {
 		id: PieceId,
-		dependsOn: titled(many(choice(byVoyage, { input: { voyageId: "voyageId" }, label: "title", value: "id" })), { title: "Depends on" }),
+		dependsOn: titled(many(choice(others, { input: { id: "id", voyageId: "voyageId" }, label: "title", value: "id" })), { title: "Depends on" }),
 	},
 	reads: [piece, pieceEdge],
 	emits: pieceRewired,

@@ -25,6 +25,7 @@ import { byVoyage } from "#queries/by-voyage.ts";
 import { dependencies } from "#queries/dependencies.ts";
 import { displayByVoyage } from "#queries/display-by-voyage.ts";
 import { edges } from "#queries/edges.ts";
+import { others } from "#queries/others.ts";
 import { progress } from "#queries/progress.ts";
 import { reach } from "#queries/reach.ts";
 import { ready } from "#queries/ready.ts";
@@ -47,5 +48,5 @@ export const pieces = feature("pieces", {
 		pieceRewiredMaterializer,
 		pieceVerdictLandedMaterializer,
 	],
-	queries: [ready, dependencies, displayByVoyage, reach, progress, byVoyage, byId, edges, all],
+	queries: [ready, dependencies, displayByVoyage, reach, progress, byVoyage, others, byId, edges, all],
 });

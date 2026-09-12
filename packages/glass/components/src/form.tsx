@@ -44,6 +44,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			creating={creating}
 			description={props.description}
 			editables={editables}
+			heading
 			identity={identity}
 			key={JSON.stringify([identity, editables.map(({ name }) => name), creating, cleared])}
 			known={{ ...row, ...fixedValues(fixed) }}

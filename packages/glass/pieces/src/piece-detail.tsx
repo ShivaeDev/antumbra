@@ -1,5 +1,6 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import type { piece as Piece } from "@antumbra/domain-pieces/rows/piece.ts";
+import type { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { ArtifactOutcomes } from "@antumbra/glass-artifacts/artifact-outcomes.tsx";
 import { BoardPanel } from "@antumbra/glass-boards/board.tsx";
 import { ChangeOutcomes } from "@antumbra/glass-changes/change-outcomes.tsx";
@@ -13,6 +14,8 @@ import { PieceActs } from "#piece-acts.tsx";
 import { RewirePiece } from "#rewire-piece.tsx";
 
 type Props = PieceDisplayActions & { readonly api: PiecesDisplayApi; readonly pieceId: string };
+type Progress = typeof pieceProgress.Row.Type;
+const MOVING: readonly Progress["state"][] = ["blocked", "held", "landing"];
 const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }) => {
 	const piece = props.piece;
 	const id = piece.id;
@@ -44,10 +47,14 @@ const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }
 				<ArtifactOutcomes api={props.api} openWindow={props.openArtifact} pieceId={id} read={props.readArtifact} />
 				<ChangeOutcomes api={props.api} pieceId={id} />
 			</div>
-			<div className="flex flex-wrap gap-1.5">
-				<PieceActs api={props.api} piece={piece} />
-				<WorkNow api={props.api} pieceId={id} onWorkNow={props.onWorkNow} />
-			</div>
+			<Live input={{ id }} query={props.api.pieces.progress}>
+				{(progress) => (
+					<div className="flex flex-wrap gap-1.5">
+						<PieceActs api={props.api} concluded={progress?.concluded === true} piece={piece} />
+						<WorkNow onWorkNow={props.onWorkNow} pieceId={id} progress={progress} />
+					</div>
+				)}
+			</Live>
 			<Live input={{ id }} query={props.api.pieces.dependencies}>
 				{(dependencies) => <RewirePiece api={props.api} piece={{ ...piece, dependsOn: dependencies.map((dependency) => dependency.id) }} />}
 			</Live>
@@ -86,17 +93,9 @@ const PieceCrew = (props: { readonly api: PiecesDisplayApi; readonly pieceId: Pi
 	);
 };
 
-const WorkNow = (props: { readonly api: PiecesDisplayApi; readonly pieceId: PieceId; readonly onWorkNow: (pieceId: string) => void }) => {
-	const id = props.pieceId;
-	return (
-		<Live input={{ id }} query={props.api.pieces.progress}>
-			{(progress) =>
-				progress !== null && ["blocked", "done", "held", "landing"].includes(progress.state) ? (
-					<Button onClick={() => props.onWorkNow(id)} size="sm" variant="outline">
-						Work now
-					</Button>
-				) : null
-			}
-		</Live>
-	);
-};
+const WorkNow = (props: { readonly onWorkNow: (pieceId: string) => void; readonly pieceId: PieceId; readonly progress: Progress | null }) =>
+	props.progress !== null && MOVING.includes(props.progress.state) ? (
+		<Button onClick={() => props.onWorkNow(props.pieceId)} size="sm" variant="outline">
+			Work now
+		</Button>
+	) : null;

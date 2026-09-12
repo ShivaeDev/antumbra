@@ -44,6 +44,9 @@ export const DialogContent = ({
 				<DialogPrimitive.Close
 					className="absolute top-3 right-3 rounded-sm text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none [&_svg]:size-3.5"
 					data-slot="dialog-close"
+					onMouseDown={(event) => {
+						event.preventDefault();
+					}}
 				>
 					<XIcon />
 					<span className="sr-only">Close</span>

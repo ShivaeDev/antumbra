@@ -10,7 +10,10 @@ export interface Acting {
 	readonly parkedAt: string | null;
 }
 
-export const PieceActs = (props: { readonly api: PiecesApi; readonly piece: Acting }): ReactNode => {
+export const PieceActs = (props: { readonly api: PiecesApi; readonly concluded: boolean; readonly piece: Acting }): ReactNode => {
+	if (props.concluded) {
+		return null;
+	}
 	const input = { id: PieceId.make(props.piece.id) };
 	return (
 		<span className={ROW}>

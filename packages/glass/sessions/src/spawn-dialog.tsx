@@ -30,6 +30,7 @@ export const SpawnDialog = ({ api }: { readonly api: SessionsApi }) => {
 					creating
 					description={undefined}
 					editables={editables}
+					heading={false}
 					identity={{}}
 					known={{}}
 					label="Spawn agent"

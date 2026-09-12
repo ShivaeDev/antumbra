@@ -22,6 +22,7 @@ export const Row = (props: {
 	readonly creating: boolean;
 	readonly description: string | undefined;
 	readonly editables: readonly Editable[];
+	readonly heading: boolean;
 	readonly identity: Held;
 	readonly known: Held;
 	readonly label: string;
@@ -58,7 +59,7 @@ export const Row = (props: {
 				submit.run();
 			}}
 		>
-			<span className={HEAD}>
+			<span className={props.heading ? HEAD : "sr-only"}>
 				{props.titles ? <Spacer /> : null}
 				<span className={NAME} id={named}>
 					{props.label}

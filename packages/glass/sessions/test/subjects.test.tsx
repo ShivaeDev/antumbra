@@ -6,6 +6,7 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
+import { AgentSession } from "#agent-session.tsx";
 import { FleetPanel } from "#fleet.tsx";
 import { PieceSession } from "#piece-session.tsx";
 
@@ -95,4 +96,12 @@ it.glass("an agent with no open conversation cannot be opened from its card", fu
 	yield* until(() => container.querySelector('[aria-label="hand, Retired"]') !== null, "the card to say the agent is retired");
 	expect(labelled<HTMLButtonElement>(container, "hand, Retired").disabled).toBe(true);
 	expect(container.querySelector('[aria-label="Open hand"]')).toBeNull();
+});
+
+it.glass("an agent opens its own conversation, by its id alone", function* ({ api, render }) {
+	yield* charted(api);
+	yield* api.agents.workNow({ requestId: CREW, pieceId });
+	const container = yield* render(<AgentSession api={api} agentId={identity(CREW).agentId} renderSession={(id) => <output>{id}</output>} />);
+	yield* until(() => container.querySelector("output") !== null, "the agent's conversation to reach the pane");
+	expect(container.querySelector("output")?.textContent).toBe(identity(CREW).sessionId);
 });

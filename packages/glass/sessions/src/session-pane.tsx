@@ -3,7 +3,7 @@ import { Live } from "@antumbra/glass-client/live.tsx";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
-import { XIcon } from "lucide-react";
+import { SquareArrowOutUpRightIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import type { SessionsClient } from "#client.ts";
 import type { SessionsApi } from "#glass.ts";
@@ -21,6 +21,7 @@ export const SessionPane = (props: {
 	readonly sessionId: string;
 	readonly foldToolCalls: boolean;
 	readonly onClose?: (() => void) | undefined;
+	readonly onPopOut?: ((sessionId: string) => void) | undefined;
 	readonly onError: (message: string) => void;
 }) => {
 	const [chosen, setChosen] = useState({ root: props.sessionId, reading: props.sessionId });
@@ -38,6 +39,11 @@ export const SessionPane = (props: {
 					</Live>
 				)}
 				<span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{selected}</span>
+				{props.onPopOut === undefined ? null : (
+					<Button aria-label="Open in a window" onClick={() => props.onPopOut?.(selected)} size="icon" variant="ghost">
+						<SquareArrowOutUpRightIcon />
+					</Button>
+				)}
 				{props.onClose === undefined ? null : (
 					<Button aria-label="Close transcript" onClick={props.onClose} size="icon" variant="ghost">
 						<XIcon />

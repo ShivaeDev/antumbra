@@ -42,6 +42,7 @@ export const ConsoleMain = (
 			sessionId={sessionId}
 			key={sessionId}
 			onClose={onClose}
+			onPopOut={openTranscript}
 			foldToolCalls={props.foldToolCalls}
 			onError={props.onError}
 		/>

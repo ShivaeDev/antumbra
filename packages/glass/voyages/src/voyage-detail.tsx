@@ -15,7 +15,9 @@ type Props = VoyageDisplayActions & {
 	readonly api: VoyagesDisplayApi;
 	readonly voyageId: string;
 	readonly pieceId?: string | undefined;
+	readonly agentId?: string | undefined;
 	readonly onPiece: (voyageId: string, pieceId: string | null) => void;
+	readonly onAgent: (agentId: string) => void;
 };
 const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type }) => {
 	const voyage = props.voyage;
@@ -25,7 +27,7 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 				<div className="flex flex-wrap items-center gap-2">
 					<h1 className="min-w-0 flex-1 text-base">{voyage.name}</h1>
 					<VoyageState api={props.api} voyageId={voyage.id} />
-					<CaptainCall api={props.api} onHail={props.onHail} voyageId={voyage.id} />
+					<CaptainCall agentId={props.agentId} api={props.api} onAgent={props.onAgent} onHail={props.onHail} voyageId={voyage.id} />
 					<FocusToggle api={props.api} focused={voyage.focusedAt !== null} voyageId={voyage.id} />
 				</div>
 				<VoyageRoleSettings api={props.api} voyageId={voyage.id} />
@@ -46,7 +48,7 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 					<PieceList {...props} onSelect={(pieceId) => props.onPiece(voyage.id, pieceId)} selected={props.pieceId} />
 					<div className="flex min-w-0 flex-col gap-6">
 						<VoyageBoard {...props} />
-						<Crew api={props.api} voyageId={voyage.id} />
+						<Crew agentId={props.agentId} api={props.api} onAgent={props.onAgent} voyageId={voyage.id} />
 					</div>
 				</div>
 			</div>

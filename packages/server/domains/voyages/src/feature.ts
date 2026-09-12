@@ -10,12 +10,13 @@ import { byId } from "#queries/by-id.ts";
 import { list } from "#queries/list.ts";
 import { progress } from "#queries/progress.ts";
 import { voyage } from "#rows/voyage.ts";
+import { voyageActivity } from "#rows/voyage-activity.ts";
 import { voyageCaptainWork } from "#rows/voyage-captain-work.ts";
 import { voyagePieceProgress } from "#rows/voyage-piece-progress.ts";
 import { voyageProgress } from "#rows/voyage-progress.ts";
 
 export const voyages = feature("voyages", {
-	rows: [voyagePieceProgress, voyageCaptainWork, voyageProgress, voyage, roleSetting],
+	rows: [voyageActivity, voyagePieceProgress, voyageCaptainWork, voyageProgress, voyage, roleSetting],
 	facts: [voyageOpened, focusSet],
 	commands: [open, setFocus],
 	materializers: [voyageOpenedMaterializer, focusSetMaterializer],

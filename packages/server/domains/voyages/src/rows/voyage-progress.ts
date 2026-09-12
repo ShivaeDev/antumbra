@@ -18,6 +18,7 @@ export const voyageProgress = row(
 			ready: Schema.Number,
 		}),
 		state: Schema.Literals(["quiet", "underWay"]),
+		lastStirredAt: Schema.NullOr(Schema.String),
 		concluded: Schema.Boolean,
 	},
 	{ key: "id" },

@@ -8,6 +8,7 @@ export const voyagePieceProgress = row(
 		id: Schema.String,
 		voyageId: VoyageId,
 		state: Schema.Literals(["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"]),
+		lastStirredAt: Schema.NullOr(Schema.String),
 		concluded: Schema.Boolean,
 	},
 	{ key: "id", scope: "voyageId" },

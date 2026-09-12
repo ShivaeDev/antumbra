@@ -1,3 +1,4 @@
+import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
@@ -34,6 +35,7 @@ it.app("spawn commits identity and resource eligibility before provider executio
 });
 
 it.app("births reserve the global running budget oldest first", function* (app) {
+	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 1, requestId: Id.Request.make("limit") });
 	yield* app.api.agents.spawn(asking("one"));
 	yield* app.clock.advance(1);
@@ -41,7 +43,7 @@ it.app("births reserve the global running budget oldest first", function* (app) 
 	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 1)).map((held) => held.id)).toEqual([born("one").birthId]);
 	expect(
 		yield* Effect.flip(
-			app.api.agents.admit({ id: born("two").birthId, backend: "claude", model: null, effort: null, requestId: Id.Request.make("admit-two") }),
+			app.api.agents.admit({ id: born("two").birthId, backend: "claude", model: "opus", effort: null, requestId: Id.Request.make("admit-two") }),
 		),
 	).toMatchObject({ _tag: "NoSlot", limit: 1 });
 });
@@ -55,12 +57,27 @@ it.app("the admitting reconciler resolves the role settings a request did not ov
 });
 
 it.app("a birth held on a blocked backend is admitted once the role setting moves it", function* (app) {
+	yield* knownModels(app.api, "claude", "opus");
+	yield* knownModels(app.api, "codex", "gpt");
 	yield* app.api.capacity.observe({ ...BLOCKED, requestId: Id.Request.make("blocked") });
 	yield* app.api.agents.spawn({ requestId: Id.Request.make("waiting"), role: "crew", backend: null, model: null, effort: null });
 	const sessionId = born("waiting").sessionId;
 	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ status: "requested" });
 	yield* app.api.roleSettings.choose({ scope: "fleet", role: "crew", backend: "codex", model: null, effort: null });
 	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted")).toMatchObject({ backend: "codex" });
+});
+
+it.app("an unset model is admitted on the model its backend declares", function* (app) {
+	yield* knownModels(app.api, "claude", "opus", "high");
+	yield* app.api.agents.spawn(asking("one"));
+
+	expect(yield* eventually(app.api.agents.birthBySession({ sessionId: born("one").sessionId }), (held) => held?.status === "admitted")).toMatchObject(
+		{
+			backend: "claude",
+			effort: "high",
+			model: "opus",
+		},
+	);
 });
 
 it.app("cancelling an unadmitted birth removes its demand without retiring the identity", function* (app) {
@@ -81,6 +98,7 @@ it.app("retirement preserves the identity and closes resource eligibility", func
 
 it.app("only logged charter acceptance activates the Agent and work reading", function* (app) {
 	const { agentId, sessionId } = born("one");
+	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn(asking("one"));
 	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
@@ -125,6 +143,7 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 
 it.app("failed start waits and explicit retry has a new deduplicated edge request", function* (app) {
 	const { sessionId } = born("one");
+	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn(asking("one"));
 	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });

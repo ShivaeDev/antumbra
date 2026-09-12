@@ -21,6 +21,7 @@ const Spacer = () => (
 export const Row = (props: {
 	readonly creating: boolean;
 	readonly description: string | undefined;
+	readonly captions: Readonly<Record<string, string>>;
 	readonly editables: readonly Editable[];
 	readonly identity: Held;
 	readonly known: Held;
@@ -66,6 +67,7 @@ export const Row = (props: {
 			</span>
 			{props.editables.map((editable) => (
 				<Control
+					caption={props.captions[editable.name]}
 					change={change}
 					editable={editable}
 					form={form}

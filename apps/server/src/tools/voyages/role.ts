@@ -1,3 +1,5 @@
+import type { Resolution } from "@antumbra/domain-role-settings/queries/resolve.ts";
+
 interface Choice {
 	readonly backend: string | null;
 	readonly model: string | null;
@@ -12,3 +14,6 @@ export const rolePart = (role: string, settings: Choice, unnamed: string): strin
 	];
 	return named.length === 0 ? `${role} ${unnamed}` : [role, ...named].join(" ");
 };
+
+export const resolvedPart = (role: string, resolved: Resolution): string =>
+	rolePart(role, { backend: resolved.backend.value, effort: resolved.effort.value, model: resolved.model.value }, "unnamed");

@@ -24,7 +24,7 @@ const session = (constrainedPrompt?: string): OpenSessionOptions => ({
 	constrainedPrompt,
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "gpt-5-codex",
 	resume: Option.none(),
 	sessionId: "session-1",
 	tools: [],

@@ -12,7 +12,7 @@ const CHILD = "thread-child";
 const options = (resume: Option.Option<string>) => ({
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "gpt-5-codex",
 	resume,
 	sessionId: "session-1",
 	tools: [],
@@ -47,6 +47,7 @@ it.live("a woken thread carries the words that woke it into its first turn", () 
 			expect(fake.requests.at(-1)?.params).toEqual({
 				clientUserMessageId: "00000000-0000-4000-8000-000000000001",
 				input: [{ text: "come about", text_elements: [], type: "text" }],
+				model: "gpt-5-codex",
 				threadId: ROOT,
 			});
 		}),

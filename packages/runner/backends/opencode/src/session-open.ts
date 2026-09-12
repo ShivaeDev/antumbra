@@ -29,10 +29,7 @@ export const promptSettings = (options: OpenSessionOptions): Effect.Effect<Promp
 		onNone: (): PromptSettings => constrained,
 		onSome: (effort) => ({ ...constrained, variant: effort }),
 	});
-	return Option.match(options.model, {
-		onNone: () => Effect.succeed(variant),
-		onSome: (model) => Effect.map(namedModel(model), (named) => ({ ...named, ...variant })),
-	});
+	return Effect.map(namedModel(options.model), (named) => ({ ...named, ...variant }));
 };
 
 // opencode reads the last matching rule, so a session that may use nothing but its own tools denies every key and then allows those back.

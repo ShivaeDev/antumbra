@@ -9,7 +9,7 @@ import { makeOpencodeBackend } from "#backends/opencode/backend.ts";
 const session = (name: string): OpenSessionOptions => ({
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "opencode-go/gpt-5.6-luna",
 	resume: Option.none(),
 	sessionId: name,
 	tools: [{ name, description: name, inputSchema: { type: "object" }, call: () => Effect.succeed({ ok: true, text: name }) }],

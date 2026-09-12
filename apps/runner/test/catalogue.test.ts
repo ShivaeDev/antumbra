@@ -9,7 +9,7 @@ it.effect("reads fresh provider choices for each model catalogue request", () =>
 	let revision = 0;
 	const backend = {
 		...makePiBackend({ skills: "/skills" }),
-		listModels: Effect.sync(() => [{ id: `model-${++revision}`, name: "Model", isDefault: true, efforts: ["high"] }]),
+		listModels: Effect.sync(() => [{ defaultEffort: "high", id: `model-${++revision}`, name: "Model", isDefault: true, efforts: ["high"] }]),
 	};
 	return Effect.gen(function* () {
 		const first = yield* listModels({ type: "ListModels", requestId: "first", backend: "pi" });
@@ -17,13 +17,13 @@ it.effect("reads fresh provider choices for each model catalogue request", () =>
 		expect(first).toEqual({
 			type: "ModelsListed",
 			backend: "pi",
-			models: [{ id: "model-1", name: "Model", isDefault: true, efforts: ["high"] }],
+			models: [{ defaultEffort: "high", id: "model-1", name: "Model", isDefault: true, efforts: ["high"] }],
 			failure: null,
 		});
 		expect(second).toEqual({
 			type: "ModelsListed",
 			backend: "pi",
-			models: [{ id: "model-2", name: "Model", isDefault: true, efforts: ["high"] }],
+			models: [{ defaultEffort: "high", id: "model-2", name: "Model", isDefault: true, efforts: ["high"] }],
 			failure: null,
 		});
 	}).pipe(Effect.provideService(BackendRegistry, { backends: new Map([["pi", backend]]) }));
@@ -40,6 +40,21 @@ it.effect("returns provider catalogue failure as a reply", () => {
 			backend: "pi",
 			models: [],
 			failure: "pi: catalogue unavailable",
+		});
+	}).pipe(Effect.provideService(BackendRegistry, { backends: new Map([["pi", backend]]) }));
+});
+
+it.effect("refuses a catalogue that names no default model", () => {
+	const backend = {
+		...makePiBackend({ skills: "/skills" }),
+		listModels: Effect.succeed([{ defaultEffort: null, efforts: [], id: "model", isDefault: false, name: "Model" }]),
+	};
+	return Effect.gen(function* () {
+		expect(yield* listModels({ type: "ListModels", requestId: "request", backend: "pi" })).toEqual({
+			type: "ModelsListed",
+			backend: "pi",
+			models: [],
+			failure: "pi: listed no default model",
 		});
 	}).pipe(Effect.provideService(BackendRegistry, { backends: new Map([["pi", backend]]) }));
 });

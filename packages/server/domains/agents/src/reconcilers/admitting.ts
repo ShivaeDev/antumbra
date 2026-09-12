@@ -14,12 +14,14 @@ export const admitting = reconciler("admitting", {
 		for (const held of rows) {
 			const voyage = held.voyageId === null ? null : yield* reconciling.read(byId, { id: held.voyageId });
 			const settings = yield* reconciling.read(resolve, { voyageId: held.voyageId, role: bornAs(held, voyage) });
+			const model = held.model ?? settings.model.value;
+			if (model === null) continue;
 			yield* reconciling
 				.commit(admit, {
 					id: held.id,
-					backend: held.backend ?? settings.backend,
-					model: held.model ?? settings.model,
-					effort: held.effort ?? settings.effort,
+					backend: held.backend ?? settings.backend.value,
+					model,
+					effort: held.effort ?? settings.effort.value,
 					requestId: Request.make(`admit:${held.operationRequestId}`),
 				})
 				.pipe(

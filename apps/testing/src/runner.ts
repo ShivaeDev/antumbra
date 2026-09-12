@@ -12,6 +12,8 @@ import { ScriptedArtifacts } from "#artifacts.ts";
 
 export type { LogEntry } from "@antumbra/platform-runner/log.ts";
 
+const declaredModel = (backend: string) => ({ defaultEffort: null, efforts: [], id: `${backend}-model`, isDefault: true, name: `${backend} model` });
+
 export const connectRunner = Effect.fn("TestRunner.connect")(function* (registration: Registration) {
 	const calls = yield* RpcTest.makeClient(RunnerRpc, { flatten: true });
 	const operations = yield* RunnerOperations;
@@ -23,7 +25,7 @@ export const connectRunner = Effect.fn("TestRunner.connect")(function* (registra
 				return calls("runner.reply", {
 					runnerId: registration.runnerId,
 					requestId: operation.requestId,
-					result: { type: "ModelsListed", backend: operation.backend, models: [], failure: null },
+					result: { type: "ModelsListed", backend: operation.backend, models: [declaredModel(operation.backend)], failure: null },
 				}).pipe(Effect.as(false));
 			}
 			if (operation.type !== "ReadArtifact") return Effect.succeed(true);

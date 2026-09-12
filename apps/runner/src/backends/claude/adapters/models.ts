@@ -1,14 +1,8 @@
-import { type ModelInfo, query } from "@anthropic-ai/claude-agent-sdk";
+import { query } from "@anthropic-ai/claude-agent-sdk";
 import { InputQueue } from "@antumbra/runner-backends-claude/adapters/input-queue.ts";
+import { modelChoices } from "@antumbra/runner-backends-claude/models.ts";
 import type { ModelChoice } from "@antumbra/runner-ports/backend.ts";
 import { Effect } from "effect";
-
-const choiceOf = (model: ModelInfo): ModelChoice => ({
-	efforts: model.supportedEffortLevels ?? [],
-	id: model.value,
-	isDefault: false,
-	name: model.displayName,
-});
 
 // The catalog is read over a session's control channel, so a session opens with a prompt that never speaks and closes once the answer is back.
 export const listClaudeModels = (executable: string): Effect.Effect<ReadonlyArray<ModelChoice>> =>
@@ -23,4 +17,4 @@ export const listClaudeModels = (executable: string): Effect.Effect<ReadonlyArra
 				input.close();
 				live.close();
 			}),
-	).pipe(Effect.map((models) => models.map(choiceOf)));
+	).pipe(Effect.map(modelChoices));

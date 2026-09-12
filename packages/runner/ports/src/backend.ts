@@ -50,13 +50,14 @@ export interface OpenSessionOptions {
 	readonly constrainedPrompt?: string | undefined;
 	readonly cwd: string;
 	readonly effort: Option.Option<string>;
-	readonly model: Option.Option<string>;
+	readonly model: string;
 	readonly resume: Option.Option<string>;
 	readonly sessionId: string;
 	readonly tools: ReadonlyArray<DirectTool>;
 }
 
 export interface ModelChoice {
+	readonly defaultEffort: string | null;
 	readonly efforts: ReadonlyArray<string>;
 	readonly id: string;
 	readonly isDefault: boolean;

@@ -1,3 +1,4 @@
+import { backendModel } from "@antumbra/domain-backends/rows/backend-model.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceAssignmentWork } from "@antumbra/domain-pieces/rows/piece-assignment-work.ts";
@@ -96,6 +97,7 @@ export const agents = feature("agents", {
 		capacity,
 		voyage,
 		roleSetting,
+		backendModel,
 	],
 	facts: [crewRetired, agentRetired, smoothingRequested, birthRequested, birthAdmitted, birthHeld, birthCancelled, birthRetried],
 	commands: [retireCrew, retire, spawn, hail, workNow, request, admit, hold, cancel, retry, smooth],

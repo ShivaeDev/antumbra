@@ -11,7 +11,7 @@ const base = {
 	cwd: "/moorage/./crew",
 	effort: undefined,
 	executable: "/usr/bin/false",
-	model: undefined,
+	model: "opus",
 	resume: undefined,
 	skills: "/antumbra/skills",
 	store: mirroringSessionStore(() => {}),
@@ -73,7 +73,7 @@ it("resuming names the transcript the provider already has", () => {
 });
 
 it("the voyage's model and effort ride on the session options", () => {
-	const options = sessionOptions({ ...base, effort: "xhigh", model: "opus", tools: Option.none() });
-	expect(options.model).toBe("opus");
+	const options = sessionOptions({ ...base, effort: "xhigh", model: "sonnet", tools: Option.none() });
+	expect(options.model).toBe("sonnet");
 	expect(options.effort).toBe("xhigh");
 });

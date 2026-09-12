@@ -11,7 +11,7 @@ import { BirthId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 export const admit = command("admit", {
-	input: { id: BirthId, backend: Schema.String, model: Schema.NullOr(Schema.String), effort: Schema.NullOr(Schema.String) },
+	input: { id: BirthId, backend: Schema.String, model: Schema.String, effort: Schema.NullOr(Schema.String) },
 	reads: [pieceProgress, birth, agent, session, count, flag, capacity],
 	emits: birthAdmitted,
 	rejections: {

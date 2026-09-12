@@ -6,7 +6,8 @@ it("offers every thinking level for each model pi has credentials for", () => {
 		{
 			efforts: ["off", "minimal", "low", "medium", "high", "xhigh", "max"],
 			id: "anthropic/claude-sonnet-4-5",
-			isDefault: false,
+			defaultEffort: null,
+			isDefault: true,
 			name: "Claude Sonnet 4.5 (anthropic)",
 		},
 	]);

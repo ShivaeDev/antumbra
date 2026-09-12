@@ -23,7 +23,7 @@ export const claudeRuntimeLayer = (options: ClaudeOptions) =>
 						cwd: session.cwd,
 						effort,
 						executable: options.executable,
-						model: Option.getOrUndefined(session.model),
+						model: session.model,
 						observeCapacity,
 						resume: Option.getOrUndefined(session.resume),
 						skills: options.skills,

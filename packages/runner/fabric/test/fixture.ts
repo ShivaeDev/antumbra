@@ -16,7 +16,7 @@ export const start: Extract<Operation, { type: "Start" }> = {
 		agentId: "agent",
 		backend: "scripted",
 		cwd: "/work",
-		model: null,
+		model: "scripted-model",
 		effort: null,
 		constrainedPrompt: null,
 		toolSet: { version: "1", tools: [] },

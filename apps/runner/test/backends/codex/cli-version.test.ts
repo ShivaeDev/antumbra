@@ -29,7 +29,7 @@ const warnings = () => {
 const session = (sessionId: string) => ({
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "gpt-5-codex",
 	resume: Option.none(),
 	sessionId,
 	tools: [],

@@ -47,7 +47,7 @@ const openWithTools = (resume: Option.Option<string> = Option.none()) =>
 		yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
-			model: Option.none(),
+			model: "gpt-5-codex",
 			resume,
 			sessionId: "session-1",
 			tools: [landReport(calls)],
@@ -143,7 +143,7 @@ const openBesideWaiter = Effect.gen(function* () {
 	yield* openThreadSession(server, {
 		cwd: "/moorage",
 		effort: Option.none(),
-		model: Option.none(),
+		model: "gpt-5-codex",
 		resume: Option.none(),
 		sessionId: "session-1",
 		tools: [waitForRuling(started, interrupted)],
@@ -151,7 +151,7 @@ const openBesideWaiter = Effect.gen(function* () {
 	yield* openThreadSession(server, {
 		cwd: "/moorage",
 		effort: Option.none(),
-		model: Option.none(),
+		model: "gpt-5-codex",
 		resume: Option.some("thread-2"),
 		sessionId: "session-2",
 		tools: [landReport(calls)],

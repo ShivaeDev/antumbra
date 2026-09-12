@@ -50,6 +50,7 @@
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/platform-prompts": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/platform-tool-schemas": "workspace:*"
+		"@antumbra/platform-tool-schemas": "workspace:*",
+		"@antumbra/domain-lifecycle": "workspace:*"
 	}
 }

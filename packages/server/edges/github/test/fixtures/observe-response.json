@@ -1,0 +1,124 @@
+{
+	"data": {
+		"r_0": {
+			"pr_0": {
+				"number": 23,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/23",
+				"title": "Voyages hold pieces gated by edges; launched pieces are dispatched to crew",
+				"state": "MERGED",
+				"isDraft": false,
+				"mergeStateStatus": "UNKNOWN",
+				"reviewDecision": null,
+				"headRefOid": "5db93d623f85b559613a71cf767889ae71eca980",
+				"headRefName": "voyages",
+				"baseRefName": "main",
+				"updatedAt": "2026-08-15T20:24:25Z",
+				"mergedAt": "2026-08-15T20:24:24Z",
+				"closedAt": "2026-08-15T20:24:24Z",
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				}
+			},
+			"pr_1": {
+				"number": 24,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/24",
+				"title": "Sessions receive direct tools; crew can land outcomes and stand down on both backends",
+				"state": "MERGED",
+				"isDraft": false,
+				"mergeStateStatus": "UNKNOWN",
+				"reviewDecision": null,
+				"headRefOid": "59a65da6f59f4fa32ea40660abf727441159261f",
+				"headRefName": "tools",
+				"baseRefName": "main",
+				"updatedAt": "2026-08-15T20:39:02Z",
+				"mergedAt": "2026-08-15T20:39:00Z",
+				"closedAt": "2026-08-15T20:39:00Z",
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				}
+			},
+			"pr_2": {
+				"number": 27,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/27",
+				"title": "Voyages are hailed a captain who charters, launches and reads through tools; boards carry word between sessions",
+				"state": "MERGED",
+				"isDraft": false,
+				"mergeStateStatus": "UNKNOWN",
+				"reviewDecision": null,
+				"headRefOid": "e5c6845f80b713b689253d05ce1a994c15ea1e8c",
+				"headRefName": "captain",
+				"baseRefName": "main",
+				"updatedAt": "2026-08-15T20:39:43Z",
+				"mergedAt": "2026-08-15T20:39:41Z",
+				"closedAt": "2026-08-15T20:39:41Z",
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				}
+			},
+			"pr_3": {
+				"number": 32,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/32",
+				"title": "Define durable agent recovery semantics",
+				"state": "OPEN",
+				"isDraft": false,
+				"mergeStateStatus": "CLEAN",
+				"reviewDecision": null,
+				"headRefOid": "5c8c334797806003b5047a148e27818d463a7c4f",
+				"headRefName": "shivae/agent-session-recovery",
+				"baseRefName": "main",
+				"updatedAt": "2026-08-15T21:55:23Z",
+				"mergedAt": null,
+				"closedAt": null,
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				}
+			},
+			"pr_4": null
+		}
+	},
+	"errors": [
+		{
+			"type": "NOT_FOUND",
+			"path": ["r_0", "pr_4"],
+			"locations": [
+				{
+					"line": 1,
+					"column": 985
+				}
+			],
+			"message": "Could not resolve to a PullRequest with the number of 9999."
+		}
+	]
+}

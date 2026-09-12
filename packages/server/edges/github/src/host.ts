@@ -1,0 +1,67 @@
+import { type ChangeHost, type ChangeHostError, ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
+import type { HostRepo } from "@antumbra/platform-change-host/schema.ts";
+import { Effect, Option } from "effect";
+import { type CachedCapability, makeCachedCapability } from "#capability.ts";
+import type { GhError } from "#errors.ts";
+import { observeOne } from "#observe.ts";
+import { observePulls, pullRefsOf } from "#observe-pass.ts";
+import { createPull } from "#open.ts";
+import { GhProcess } from "#process.ts";
+import { type PullRequestRef, parsePullUrl } from "#pull-url.ts";
+import { GITHUB_TAG, toHostError } from "#runtime.ts";
+import { type GitHubRepoName, parseGitHubSource, sameRepo } from "#source.ts";
+
+export const GH_EXECUTABLE = "gh";
+
+export interface GitHubHostOptions {
+	readonly executable: string;
+}
+
+const refused = (detail: string): ChangeHostError => new ChangeHostRefused({ detail, host: GITHUB_TAG });
+
+const namedRepo = (repo: HostRepo): Effect.Effect<GitHubRepoName, ChangeHostError> =>
+	Option.match(parseGitHubSource(repo.source), {
+		onNone: () => refused(`${repo.name} is not a GitHub repository (${repo.source})`),
+		onSome: Effect.succeed,
+	});
+
+const matchingPull = (named: GitHubRepoName, url: string): Effect.Effect<PullRequestRef, ChangeHostError> =>
+	Option.match(parsePullUrl(url), {
+		onNone: () => refused(`${url} is not a GitHub pull request address`),
+		onSome: (pull) =>
+			sameRepo(named, pull) ? Effect.succeed(pull) : refused(`${url} belongs to ${pull.owner}/${pull.name}, not ${named.owner}/${named.name}`),
+	});
+
+// A rejected login invalidates the cached capability immediately.
+const throughGh =
+	(cached: CachedCapability) =>
+	<A>(program: Effect.Effect<A, GhError>): Effect.Effect<A, ChangeHostError> =>
+		program.pipe(
+			Effect.tapError((failure) => (failure._tag === "GhAuthRequired" ? cached.forget : Effect.void)),
+			Effect.mapError(toHostError),
+		);
+
+export const makeGitHubHost = (options: GitHubHostOptions): Effect.Effect<ChangeHost, never, GhProcess> =>
+	Effect.gen(function* () {
+		const process = yield* GhProcess;
+		const cached = yield* makeCachedCapability(options.executable);
+		const asked = <A>(program: Effect.Effect<A, GhError, GhProcess>) => throughGh(cached)(program.pipe(Effect.provideService(GhProcess, process)));
+		return {
+			adopt: (url, repo) =>
+				Effect.gen(function* () {
+					const named = yield* namedRepo(repo);
+					const pull = yield* matchingPull(named, url);
+					return yield* asked(observeOne(options.executable, named, repo.id, pull.number));
+				}),
+			capability: cached.read.pipe(Effect.provideService(GhProcess, process)),
+			observe: (refs) => asked(observePulls(options.executable, pullRefsOf(refs))),
+			open: (request) =>
+				Effect.gen(function* () {
+					const named = yield* namedRepo(request.repo);
+					const number = yield* asked(createPull(options.executable, named, request));
+					return yield* asked(observeOne(options.executable, named, request.repo.id, number));
+				}),
+			supports: (repo) => Option.isSome(parseGitHubSource(repo.source)),
+			tag: GITHUB_TAG,
+		} satisfies ChangeHost;
+	});

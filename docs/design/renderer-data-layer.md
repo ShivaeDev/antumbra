@@ -115,16 +115,18 @@ over an unsubscribe function, machinery in service of nothing.
 Revisit this when two independently mounted views need the same keyed feed at the same time, or when a feed must outlive the component that opened it.
 Neither is true today, and these hooks are the seam to swap behind when one becomes true.
 
-## Drafts are glass state
+## What the glass keeps for itself
 
-The one thing the renderer keeps that a reload does not throw away is an unsent draft. `packages/renderer/src/session-drafts/` stores the message a
-reader is typing to a Session, and the text of an open situation dialog, in `localStorage` under `antumbra:session-draft:v1:<sessionId>/<slot>`;
-`useSessionDraft` reads it through `useSyncExternalStore`, and a send clears it only if the text has not changed since the send captured it. When the
-fleet feed stops listing a Session, its drafts are discarded.
+A reader's unsent draft outlives a reload. `packages/glass/inputs/` holds the message being typed to a Session, and the text of an open situation
+dialog, behind the `Drafts` interface; the shell owns the storage and the renderer reaches it over the bridge. A send clears a draft only if the text
+has not changed since the send captured it.
 
-This is glass state, not domain truth: an unsent draft is not a fact about any Agent, main never sees it, and losing it costs the words in the box and
-nothing else. It is the explicit exception to the axiom that the glass remembers nothing. Nothing else in the renderer reaches `localStorage`; a value
-main should remember goes through the bridge.
+The width of the session pane beside a subject is the one value the renderer stores itself, in `localStorage` through
+`packages/glass/renderer/src/adapters/pane-width.ts`. It is a per-viewer convenience: a browser that refuses storage costs the reader one drag and
+nothing else.
+
+Both are glass state, not domain truth: neither is a fact about any Agent, and losing either costs the words in the box or the width of a pane. They
+are the explicit exceptions to the axiom that the glass remembers nothing; every other value a reader should get back goes through the bridge.
 
 ## Adopting a view
 

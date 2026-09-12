@@ -1,6 +1,5 @@
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { cn } from "@antumbra/glass-components/class-names.ts";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
@@ -11,6 +10,8 @@ import type { SessionsApi } from "#glass.ts";
 import { SessionComposer } from "#session-composer.tsx";
 import { SessionTreePanel } from "#session-tree.tsx";
 import { TranscriptView } from "#transcript.tsx";
+
+export const PaneNote = ({ children }: { readonly children: string }) => <p className="px-4 py-3 text-xs text-muted-foreground">{children}</p>;
 
 export const SessionPane = (props: {
 	readonly api: SessionsApi;
@@ -26,12 +27,7 @@ export const SessionPane = (props: {
 	const selected = chosen.root === props.sessionId ? chosen.reading : props.sessionId;
 	const select = (id: string) => setChosen({ root: props.sessionId, reading: id });
 	return (
-		<section
-			className={cn(
-				"flex min-h-0 flex-col",
-				props.onClose === undefined ? "min-w-0 flex-1" : "w-[38rem] max-w-[55%] shrink-0 border-l border-border",
-			)}
-		>
+		<section className="flex min-h-0 min-w-0 flex-1 flex-col">
 			<header className="flex min-w-0 items-center gap-2 border-b border-border px-4 py-2">
 				<Live query={props.api.agents.bySession} input={{ sessionId: SessionId.make(props.sessionId) }}>
 					{(agent) => <span className="min-w-0 truncate text-xs font-medium">{agent?.role ?? "Agent activity"}</span>}

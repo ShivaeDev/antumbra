@@ -1,5 +1,5 @@
 import { eventually } from "@antumbra/app-testing/answers.ts";
-import { fill, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
+import { click, fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { VoyagesAside } from "#navigation/voyages-aside.tsx";
@@ -27,6 +27,6 @@ it.glass("opens a Voyage from navigation and selects its live list entry", funct
 	expect(charted).toMatchObject({ name: "Chart the reef", northStar: "Every shoal is known" });
 	yield* until(() => document.querySelector('[role="dialog"]') === null, "the successful opening to close its dialog");
 	yield* until(() => container.textContent?.includes("Chart the reef") === true, "the new Voyage to appear in navigation");
-	yield* press(container, "Chart the reef");
+	yield* click(labelled(container, "Open Chart the reef"));
 	expect(selected).toBe(charted?.id);
 });

@@ -1,4 +1,4 @@
-import { press, until } from "@antumbra/app-testing/glass/dom.ts";
+import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
@@ -37,7 +37,11 @@ it.glass("shows live Voyage progress and routes selection and captain actions", 
 		/>,
 	);
 	yield* until(() => container.textContent?.includes("Nothing chartered yet") === true, "the empty voyage progress");
-	yield* press(container, "Reef");
+	const card = labelled<HTMLButtonElement>(container, "Open Reef");
+	expect(card.tagName).toBe("BUTTON");
+	const northStar = [...card.querySelectorAll("span")].find((line) => line.textContent === "Every shoal is known");
+	if (northStar === undefined) return expect.fail("the voyage's north star");
+	yield* click(northStar);
 	expect(selected).toBe("reef");
 	const reefRow = [...container.querySelectorAll("li")].find((row) => row.textContent?.includes("Reef") === true);
 	if (reefRow === undefined) return expect.fail("the Reef row");

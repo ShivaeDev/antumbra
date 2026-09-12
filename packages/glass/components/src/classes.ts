@@ -29,3 +29,6 @@ export const TITLE = "text-2xs leading-4 text-muted-foreground";
 export const ALERT = "text-2xs leading-4 text-destructive";
 
 export const NOTE = "text-xs text-muted-foreground";
+
+export const SUBJECT =
+	"flex min-w-0 flex-col rounded-lg text-left outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring/60";

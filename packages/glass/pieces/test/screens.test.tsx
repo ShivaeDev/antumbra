@@ -1,5 +1,5 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
-import { choose, fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
+import { choose, click, fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
@@ -9,6 +9,7 @@ import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { CharterPiece } from "#charter-piece.tsx";
 import { PieceActs } from "#piece-acts.tsx";
+import { PieceList } from "#piece-list.tsx";
 import { RewirePiece } from "#rewire-piece.tsx";
 
 const REEF = Id.Request.make("voyage:reef");
@@ -119,4 +120,46 @@ it.glass("launches, parks, and unparks a piece", function* ({ api, render }) {
 	yield* press(container, "Unpark");
 	yield* until(() => container.textContent?.includes("Unpark") === false, "Unpark to become Park");
 	expect(yield* answered(api.pieces.byId({ id: soundings }))).toMatchObject({ parkedAt: null });
+});
+
+const listing = (api: Api, selected: string | undefined, onSelect: (pieceId: string | null) => void) => (
+	<PieceList
+		api={api}
+		onRetireCrew={() => undefined}
+		onSelect={onSelect}
+		onWorkNow={() => undefined}
+		openArtifact={() => undefined}
+		readArtifact={() => Effect.die("no artifact")}
+		selected={selected}
+		voyageId={voyageId}
+	/>
+);
+
+it.glass("opens a piece from anywhere on its row and closes it again", function* ({ api, render }) {
+	yield* charted(api);
+	let chosen: string | null | undefined;
+	const container = yield* render(
+		listing(api, undefined, (pieceId) => {
+			chosen = pieceId;
+		}),
+	);
+	yield* until(() => container.querySelector('[aria-label="Open Soundings"]') !== null, "the voyage's pieces to reach the list");
+	const opening = labelled<HTMLButtonElement>(container, "Open Soundings");
+	expect(opening.tagName).toBe("BUTTON");
+	expect(opening.getAttribute("aria-expanded")).toBe("false");
+
+	const preview = [...opening.querySelectorAll("span")].find((line) => line.textContent === "sound Soundings");
+	if (preview === undefined) return yield* Effect.die("Missing the piece's charter preview");
+	yield* click(preview);
+	expect(chosen).toBe(soundings);
+
+	const shown = yield* render(
+		listing(api, soundings, (pieceId) => {
+			chosen = pieceId;
+		}),
+	);
+	yield* until(() => shown.textContent?.includes("Launch") === true, "the open piece to show what it offers");
+	expect(labelled(shown, "Open Soundings").getAttribute("aria-expanded")).toBe("true");
+	yield* click(labelled(shown, "Open Soundings"));
+	expect(chosen).toBeNull();
 });

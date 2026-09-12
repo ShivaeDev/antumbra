@@ -15,7 +15,7 @@ type Props = VoyageDisplayActions & {
 	readonly api: VoyagesDisplayApi;
 	readonly voyageId: string;
 	readonly pieceId?: string | undefined;
-	readonly onPiece: (voyageId: string, pieceId: string) => void;
+	readonly onPiece: (voyageId: string, pieceId: string | null) => void;
 };
 const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type }) => {
 	const voyage = props.voyage;
@@ -43,7 +43,7 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 			</header>
 			<div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto">
 				<div className="grid min-w-0 grid-cols-1 items-start gap-6 px-5 py-4 @4xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] @4xl:gap-8">
-					<PieceList {...props} selected={props.pieceId} />
+					<PieceList {...props} onSelect={(pieceId) => props.onPiece(voyage.id, pieceId)} selected={props.pieceId} />
 					<div className="flex min-w-0 flex-col gap-6">
 						<VoyageBoard {...props} />
 						<Crew api={props.api} voyageId={voyage.id} />

@@ -1,4 +1,4 @@
-import { type CharterFailure, EdgeWouldCycle, type EdgeFailure, PieceIncomplete, PieceNotFound } from "@antumbra/pieces/errors";
+import { type CharterFailure, type EdgeFailure, EdgeWouldCycle, PieceIncomplete, PieceNotFound } from "@antumbra/pieces/errors";
 import { VoyageNotFound } from "@antumbra/voyages/errors";
 import { Effect } from "effect";
 

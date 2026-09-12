@@ -49,7 +49,9 @@ export const it = {
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
 				Layer.provideMerge(
-					scriptedPieces.pipe(Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings))))),
+					scriptedPieces.pipe(
+						Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
+					),
 				),
 			);
 			return { harness, layer };

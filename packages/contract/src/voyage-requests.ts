@@ -35,4 +35,3 @@ export type HailReceipt = typeof HailReceipt.Type;
 
 export const CrewReceipt = Schema.Struct({ agentId: Schema.String });
 export type CrewReceipt = typeof CrewReceipt.Type;
-

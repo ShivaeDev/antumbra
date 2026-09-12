@@ -1,10 +1,10 @@
 import type { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { CommandAct } from "@antumbra/glass-components/act.tsx";
 import { ACT, NOTE } from "@antumbra/glass-components/classes.ts";
 import { useId, useRef } from "react";
 import { AddRepo } from "#add-repo.tsx";
 import type { ReposApi } from "#glass.ts";
+import { ReposList } from "#repos-list.tsx";
 
 const Registry = (props: { readonly api: ReposApi; readonly repos: readonly (typeof repo.Row.Type)[] }) => {
 	const dialog = useRef<HTMLDialogElement>(null);
@@ -30,23 +30,7 @@ const Registry = (props: { readonly api: ReposApi; readonly repos: readonly (typ
 				<p className={NOTE} id={description}>
 					Every agent is moored to all of them, so a repository added here reaches the whole fleet.
 				</p>
-				<div className="my-3 flex max-h-64 flex-col overflow-y-auto">
-					{props.repos.length === 0 ? (
-						<span className={NOTE}>no repositories yet — add one below</span>
-					) : (
-						props.repos.map((registered) => (
-							<div className="flex min-w-0 items-start gap-2 border-b border-border py-2 last:border-b-0" key={registered.id}>
-								<div className="min-w-0 flex-1">
-									<div className="text-xs font-medium wrap-anywhere">
-										{registered.name} <span className="rounded border border-border px-1">{registered.defaultRef}</span>
-									</div>
-									<div className="font-mono text-2xs text-muted-foreground wrap-anywhere">{registered.source}</div>
-								</div>
-								<CommandAct command={props.api.repos.forget} input={{ id: registered.id }} label="Forget" />
-							</div>
-						))
-					)}
-				</div>
+				<ReposList api={props.api} repos={props.repos} />
 				<AddRepo api={props.api} />
 			</dialog>
 		</>

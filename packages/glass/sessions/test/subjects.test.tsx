@@ -85,3 +85,14 @@ it.glass("a piece nobody is working says so where its session would be", functio
 	yield* until(() => container.textContent?.includes("No agent is working this piece yet") === true, "the pane to say the piece has no crew");
 	expect(container.querySelector("output")).toBeNull();
 });
+
+it.glass("an agent with no open conversation cannot be opened from its card", function* ({ api, render }) {
+	yield* charted(api);
+	yield* api.agents.workNow({ requestId: CREW, pieceId });
+	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
+	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
+	yield* api.agents.retire({ id: identity(CREW).agentId });
+	yield* until(() => container.querySelector('[aria-label="hand, Retired"]') !== null, "the card to say the agent is retired");
+	expect(labelled<HTMLButtonElement>(container, "hand, Retired").disabled).toBe(true);
+	expect(container.querySelector('[aria-label="Open hand"]')).toBeNull();
+});

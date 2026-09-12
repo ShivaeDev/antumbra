@@ -24,7 +24,7 @@ const ProgressBar = (props: {
 	readonly withLegend?: boolean | undefined;
 }) => {
 	const progress = props.progress;
-	if (progress.total === 0) return <p className="text-2xs text-muted-foreground">Nothing chartered yet</p>;
+	if (progress.total === 0) return <span className="block text-2xs text-muted-foreground">Nothing chartered yet</span>;
 	const slices = [
 		{ name: "landed", count: progress.counts.done, color: "bg-muted-foreground" },
 		{ name: "active", count: progress.counts.active, color: "bg-success" },
@@ -33,8 +33,8 @@ const ProgressBar = (props: {
 	const legend = props.withLegend ? slices.filter((slice) => slice.name !== "landed" && slice.count > 0) : [];
 	const label = `${progress.counts.done} of ${progress.total} landed`;
 	return (
-		<div className="flex min-w-0 flex-col gap-1.5">
-			<div
+		<span className="flex min-w-0 flex-col gap-1.5">
+			<span
 				aria-label={[
 					label,
 					...slices.filter((slice) => slice.name !== "landed" && slice.count > 0).map((slice) => `${slice.count} ${slice.name}`),
@@ -47,15 +47,15 @@ const ProgressBar = (props: {
 					.map((slice) => (
 						<span className={`h-full ${slice.color}`} key={slice.name} style={{ width: `${(slice.count / progress.total) * 100}%` }} />
 					))}
-			</div>
-			<div className="flex flex-wrap gap-x-3 text-2xs text-muted-foreground">
+			</span>
+			<span className="flex flex-wrap gap-x-3 text-2xs text-muted-foreground">
 				<span className="tabular-nums">{label}</span>
 				{legend.map((slice) => (
 					<span className="tabular-nums" key={slice.name}>
 						{slice.count} {slice.name}
 					</span>
 				))}
-			</div>
-		</div>
+			</span>
+		</span>
 	);
 };

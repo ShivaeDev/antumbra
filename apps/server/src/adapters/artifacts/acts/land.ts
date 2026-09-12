@@ -30,7 +30,7 @@ export const landArtifact = Effect.fn("Artifacts.landArtifact")(function* (input
 			return yield* new land.Rejection.ArtifactProvenanceConflict({ supersededArtifactId: previous.id, successorPieceId: input.pieceId });
 		if (previous.supersededByArtifactId !== null) return yield* new land.Rejection.ArtifactLineageConflict({ artifactId: previous.id });
 	}
-	const source = yield* (yield* ArtifactSource).read({ authorAgentId: input.authorAgentId, path: input.path });
+	const source = yield* (yield* ArtifactSource).read({ requestId: input.requestId, authorAgentId: input.authorAgentId, path: input.path });
 	const stored = yield* (yield* ArtifactFiles).publish(source);
 	yield* (yield* Commit)
 		.commit(land, {

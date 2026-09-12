@@ -1,9 +1,9 @@
 import { contentClient } from "@antumbra/glass-artifacts/content-client.ts";
-import { dialing } from "@antumbra/glass-client/serving.ts";
+import { type Dialing, dialing } from "@antumbra/glass-client/serving.ts";
 import { inputsClient } from "@antumbra/glass-inputs/client.ts";
 import { sessionsClient } from "@antumbra/glass-sessions/client.ts";
 import type { ShellBridge } from "@antumbra/platform-shell/bridge.ts";
-import { Effect } from "effect";
+import { Effect, type Scope } from "effect";
 import type * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -17,13 +17,15 @@ export interface RendererGlass {
 	readonly registry: AtomRegistry.AtomRegistry;
 }
 
-export const mount = (container: HTMLElement, bridge: ShellBridge, glass: RendererGlass) =>
+export type Connecting = Effect.Effect<RendererGlass, never, Dialing | Scope.Scope>;
+
+export const mount = (container: HTMLElement, bridge: ShellBridge, connecting: Connecting) =>
 	Effect.gen(function* () {
-		const reach = reachOf(bridge);
+		const glass = yield* connecting;
 		yield* Effect.addFinalizer(() => Effect.sync(() => glass.registry.dispose()));
-		const inputs = yield* inputsClient(reach);
-		const sessions = yield* sessionsClient(reach);
-		const readArtifact = yield* contentClient.pipe(Effect.provide(dialing(reach)));
+		const inputs = yield* inputsClient;
+		const sessions = yield* sessionsClient;
+		const readArtifact = yield* contentClient;
 		const root = createRoot(container);
 		yield* Effect.addFinalizer(() => Effect.sync(() => root.unmount()));
 		root.render(
@@ -32,4 +34,4 @@ export const mount = (container: HTMLElement, bridge: ShellBridge, glass: Render
 			</glass.Provider>,
 		);
 		return yield* Effect.never;
-	});
+	}).pipe(Effect.provide(dialing(reachOf(bridge))));

@@ -70,6 +70,14 @@ const fleetDefaults = (port: number, token: string) =>
 		dialing(port, token),
 	);
 
+it.live("answers a live query that presents the token it was given", () =>
+	Effect.gen(function* () {
+		const { port } = yield* listening(dataDirectory());
+		const defaults = yield* fleetDefaults(port, TOKEN);
+		expect(Option.isSome(defaults)).toBe(true);
+	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+);
+
 it.live("refuses a live query that presents the wrong token", () =>
 	Effect.gen(function* () {
 		const { port } = yield* listening(dataDirectory());

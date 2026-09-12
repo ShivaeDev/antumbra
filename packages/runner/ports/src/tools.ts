@@ -1,5 +1,5 @@
-import type { ToolDescriptor } from "@antumbra/platform-runner/tools.ts";
 import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
+import type { ToolDescriptor } from "@antumbra/platform-vocabulary/tool-set.ts";
 import type { Effect } from "effect";
 
 export type DirectToolOutcome = ToolAnswer;

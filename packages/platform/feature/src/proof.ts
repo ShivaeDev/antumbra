@@ -1,12 +1,16 @@
 import type { CommandShape } from "#command.ts";
 import type { FactShape } from "#fact.ts";
 import type { MaterializerShape } from "#materializer.ts";
+import type { PortShape } from "#port.ts";
 import type { QueryShape } from "#query.ts";
+import type { ReconcilerShape } from "#reconciler.ts";
 import type { RowShape } from "#row.ts";
 
 type Complaint<Sentence extends string> = { readonly [Text in Sentence]: never };
 
 type Named<Parts extends readonly { readonly name: string }[]> = Parts[number]["name"];
+
+type Ported<Ports extends readonly PortShape[]> = Ports[number]["port"];
 
 type MaterializersFor<Name extends string, Materializers extends readonly MaterializerShape[]> = Materializers extends readonly [
 	infer Head extends MaterializerShape,
@@ -43,9 +47,17 @@ type CommandProof<Command extends CommandShape, Facts extends readonly FactShape
 	? CommandRowsProof<Command, Exclude<Named<Command["reads"]>, Named<Rows>>>
 	: Complaint<`the command "${Command["name"]}" emits the fact "${Command["emits"]["name"]}", which this feature does not declare`>;
 
-type QueryProof<Query extends QueryShape, Undeclared extends string> = [Undeclared] extends [never]
+type QueryPortsProof<Query extends QueryShape, Undeclared extends string> = [Undeclared] extends [never]
 	? Query
-	: Complaint<`the query "${Query["name"]}" reads the row "${Undeclared}", which this feature does not declare`>;
+	: Complaint<`the query "${Query["name"]}" uses the port "${Undeclared}", which this feature does not declare`>;
+
+type QueryProof<Query extends QueryShape, UndeclaredRows extends string, UndeclaredPorts extends string> = [UndeclaredRows] extends [never]
+	? QueryPortsProof<Query, UndeclaredPorts>
+	: Complaint<`the query "${Query["name"]}" reads the row "${UndeclaredRows}", which this feature does not declare`>;
+
+type ReconcilerProof<Reconciler extends ReconcilerShape, Undeclared extends string> = [Undeclared] extends [never]
+	? Reconciler
+	: Complaint<`the reconciler "${Reconciler["name"]}" uses the port "${Undeclared}", which this feature does not declare`>;
 
 export type FactsProof<Facts extends readonly FactShape[], Materializers extends readonly MaterializerShape[]> = {
 	readonly [Index in keyof Facts]: FactProof<Facts[Index], MaterializersFor<Facts[Index]["name"], Materializers>>;
@@ -63,6 +75,14 @@ export type CommandsProof<Commands extends readonly CommandShape[], Facts extend
 	readonly [Index in keyof Commands]: CommandProof<Commands[Index], Facts, Rows>;
 };
 
-export type QueriesProof<Queries extends readonly QueryShape[], Rows extends readonly RowShape[]> = {
-	readonly [Index in keyof Queries]: QueryProof<Queries[Index], Exclude<Named<Queries[Index]["reads"]>, Named<Rows>>>;
+export type QueriesProof<Queries extends readonly QueryShape[], Rows extends readonly RowShape[], Ports extends readonly PortShape[]> = {
+	readonly [Index in keyof Queries]: QueryProof<
+		Queries[Index],
+		Exclude<Named<Queries[Index]["reads"]>, Named<Rows>>,
+		Exclude<Ported<Queries[Index]["ports"]>, Ported<Ports>>
+	>;
+};
+
+export type ReconcilersProof<Reconcilers extends readonly ReconcilerShape[], Ports extends readonly PortShape[]> = {
+	readonly [Index in keyof Reconcilers]: ReconcilerProof<Reconcilers[Index], Exclude<Ported<Reconcilers[Index]["ports"]>, Ported<Ports>>>;
 };

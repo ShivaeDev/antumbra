@@ -26,7 +26,7 @@ it.app("coalesces commits while a query is reading", function* (app) {
 			Effect.gen(function* () {
 				yield* reading.open;
 				yield* release.await;
-				return yield* counts.run(input, rows);
+				return yield* counts.run(input, rows, {});
 			}),
 	};
 	const live = yield* app.live(held, {});

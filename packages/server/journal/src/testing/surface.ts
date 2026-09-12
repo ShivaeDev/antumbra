@@ -1,6 +1,7 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { ReadRows } from "@antumbra/platform-feature/handles.ts";
+import type { PortServices, PortShape } from "@antumbra/platform-feature/port.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { AlreadyDone, RejectedBy } from "@antumbra/platform-feature/rejection.ts";
 import type { RowKey, RowShape, RowValue } from "@antumbra/platform-feature/row.ts";
@@ -33,10 +34,16 @@ export interface Watching {
 export interface TestKit<Features extends readonly FeatureShape[]> {
 	readonly clock: Watching;
 	readonly commit: Commits<Features>;
-	readonly live: <Name extends string, Input extends Fields, Output extends Schema.Top, Watched extends readonly RowShape[]>(
-		query: QueryDefinition<Name, Input, Output, Watched>,
+	readonly live: <
+		Name extends string,
+		Input extends Fields,
+		Output extends Schema.Top,
+		Watched extends readonly RowShape[],
+		Ports extends readonly PortShape[],
+	>(
+		query: QueryDefinition<Name, Input, Output, Watched, Ports>,
 		input: Values<Input>,
-	) => Effect.Effect<Emissions<Output["Type"]>>;
+	) => Effect.Effect<Emissions<Output["Type"]>, never, PortServices<Ports>>;
 	readonly rows: Reads<Features>;
 	readonly settle: () => Effect.Effect<void>;
 }

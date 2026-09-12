@@ -5,6 +5,7 @@ import { packageOf, type WorkspacePackage, workspacePackages } from "#lint/works
 
 interface Scope {
 	readonly allowance: string;
+	readonly entries: RegExp;
 	readonly libraries: readonly string[];
 	readonly name: string;
 }
@@ -14,18 +15,20 @@ const DOMAIN_SOURCE = /^packages\/server\/domains\/[^/]+\/src\//;
 const DOMAIN_TEST = /^packages\/server\/domains\/[^/]+\/test\//;
 const DOMAIN_ROOT = "packages/server/domains/";
 const LIBRARIES = ["effect", "@antumbra/platform-feature", "@antumbra/platform-vocabulary"];
-const DOMAIN_ENTRY = /^(@antumbra\/[^/]+)\/(?:(?:rows|queries)\/[^/]+|ids)\.ts$/;
+const entriesOf = (folders: readonly string[]): RegExp => new RegExp(`^(@antumbra/[^/]+)/(?:(?:${folders.join("|")})/[^/]+|ids)\\.ts$`);
 
 const SOURCES: Scope = {
 	allowance:
-		"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids",
-	libraries: LIBRARIES,
+		"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-prompts, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries, commands, ports and ids",
+	entries: entriesOf(["rows", "queries", "commands", "ports"]),
+	libraries: [...LIBRARIES, "@antumbra/platform-prompts"],
 	name: "sources",
 };
 
 const TESTS: Scope = {
 	allowance:
 		"a domain's tests import effect, vitest, @antumbra/app-testing, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids",
+	entries: entriesOf(["rows", "queries"]),
 	libraries: [...LIBRARIES, "vitest", "@antumbra/app-testing"],
 	name: "tests",
 };
@@ -39,8 +42,8 @@ const scopeOf = (path: string): Scope | undefined => {
 	return DOMAIN_TEST.test(path) ? TESTS : undefined;
 };
 
-const entryOfDomain = (packages: readonly WorkspacePackage[], specifier: string): boolean => {
-	const named = DOMAIN_ENTRY.exec(specifier)?.[1];
+const entryOfDomain = (packages: readonly WorkspacePackage[], scope: Scope, specifier: string): boolean => {
+	const named = scope.entries.exec(specifier)?.[1];
 	return packages.find((candidate) => candidate.name === named)?.root.startsWith(DOMAIN_ROOT) === true;
 };
 
@@ -48,7 +51,7 @@ const allowed = (packages: readonly WorkspacePackage[], owner: WorkspacePackage,
 	specifier.startsWith("#") ||
 	scope.libraries.some((module) => names(specifier, module)) ||
 	names(specifier, owner.name) ||
-	entryOfDomain(packages, specifier);
+	entryOfDomain(packages, scope, specifier);
 
 export const layoutDomainImportViolations = (inventory: Inventory): readonly Violation[] => {
 	const packages = workspacePackages(inventory);

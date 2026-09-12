@@ -1,7 +1,9 @@
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
+import { reconcilers } from "@antumbra/server-journal/reconcilers.ts";
 import { Context, Effect, Fiber, Layer, Stream } from "effect";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import { watchChanges } from "#changes/watch.ts";
+import { features } from "#features.ts";
 import { reconcile as mail } from "#mail/reconcile.ts";
 import { reconcile as resources } from "#resources/reconcile.ts";
 import { audit } from "#sessions/audit.ts";
@@ -21,7 +23,17 @@ export const runtime = Layer.effect(
 		const runners = yield* RunnerOperations;
 		const reactivity = yield* Reactivity;
 		yield* openFlagship;
-		const workers = yield* Effect.all([starts, sessions(), audit(), resumeCapacity(), resources(), mail(), watchChanges, rulingReconciliation]);
+		const workers = yield* Effect.all([
+			starts,
+			sessions(),
+			audit(),
+			resumeCapacity(),
+			resources(),
+			mail(),
+			watchChanges,
+			rulingReconciliation,
+			reconcilers(features),
+		]);
 		const reconnect = reactivity
 			.stream(["runner:connected"], runners.connected)
 			.pipe(Stream.runForEach(() => Effect.forEach(workers, (worker) => worker.refresh, { discard: true })));

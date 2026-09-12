@@ -47,7 +47,7 @@ it.effect("refuses two served features that declare the same row with different 
 it.effect("materializes each fact of every served feature and shares the row they both declare", () =>
 	Effect.gen(function* () {
 		const registry = yield* registryOf(app([pieces, landings]));
-		expect([...registry.materializers.keys()]).toEqual(["PieceChartered", "PieceParked", "PieceLanded"]);
+		expect([...registry.materializers.keys()]).toEqual(["PieceChartered", "PieceLaunched", "PieceParked", "PieceLanded"]);
 		expect(registry.rows).toEqual([piece]);
 	}),
 );

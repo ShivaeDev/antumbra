@@ -22,7 +22,7 @@ export const hail = command("hail", {
 	},
 	run: Effect.fn("Starts.hail")(function* (input, rows, reject) {
 		if (input.voyageId === null || !(yield* rows.voyage.exists(input.voyageId))) return yield* reject.UnknownVoyage({ id: input.voyageId ?? "" });
-		const current = yield* captain.run({ voyageId: input.voyageId }, rows);
+		const current = yield* captain.run({ voyageId: input.voyageId }, rows, {});
 		if (current?.status === "spawning") return yield* reject.CaptainAlreadyHailed({ agentId: current.id });
 		let wakeSessionId: null | typeof session.Row.Type.id = null;
 		if (current?.status === "alive") {

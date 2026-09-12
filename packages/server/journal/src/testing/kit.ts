@@ -1,5 +1,6 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
+import type { PortServices, PortShape } from "@antumbra/platform-feature/port.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Duration, Effect, Schema, Scope, Stream } from "effect";
@@ -22,10 +23,10 @@ const readsOf = (registry: Registry, sql: SqlClient): Record<string, unknown> =>
 
 const liveOf =
 	(live: LiveService, reactivity: Reactive, scope: Scope.Scope, watches: Watch[]) =>
-	<Name extends string, Input extends Fields, Output extends Schema.Top, Watched extends readonly RowShape[]>(
-		query: QueryDefinition<Name, Input, Output, Watched>,
+	<Name extends string, Input extends Fields, Output extends Schema.Top, Watched extends readonly RowShape[], Ports extends readonly PortShape[]>(
+		query: QueryDefinition<Name, Input, Output, Watched, Ports>,
 		input: Values<Input>,
-	): Effect.Effect<Emissions<Output["Type"]>> =>
+	): Effect.Effect<Emissions<Output["Type"]>, never, PortServices<Ports>> =>
 		Effect.gen(function* () {
 			const seen: Output["Type"][] = [];
 			const watch = watching(reactivity, keysOf(query.reads, query.scope?.(input)));
@@ -35,7 +36,8 @@ const liveOf =
 				...query,
 				// The union keeps query field modifiers out of the delivery envelope.
 				output: Schema.Struct({ value: Schema.Union([query.output]), generation: Schema.Number }),
-				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1]) => watch.around(query.run(given, rows)),
+				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1], ports: Parameters<typeof query.run>[2]) =>
+					watch.around(query.run(given, rows, ports)),
 			};
 			yield* Effect.forkScoped(
 				Stream.runForEach(live.live(tracked, input), ({ value, generation }) =>

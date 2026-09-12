@@ -11,7 +11,7 @@ const check = (path: string, specifier: string, ...others: readonly string[]) =>
 	layoutDomainImportViolations(inventoryOf({ sources: [importing(path, specifier), ...others.map(present)] })).map(({ message }) => message);
 
 const SOURCES =
-	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
+	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-prompts, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries, commands, ports and ids";
 
 const TESTS =
 	"a domain's tests import effect, vitest, @antumbra/app-testing, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
@@ -26,19 +26,19 @@ describe("domain-imports rule", () => {
 		expect(check(from, "effect/unstable/schema/Schema")).toEqual([]);
 		expect(check(from, "@antumbra/platform-feature/row.ts")).toEqual([]);
 		expect(check(from, "@antumbra/platform-vocabulary/agent-role.ts")).toEqual([]);
+		expect(check(from, "@antumbra/platform-prompts/charter.ts")).toEqual([]);
 		expect(check(from, "#ids.ts")).toEqual([]);
 		expect(check(from, "@antumbra/domain-role-settings/ids.ts")).toEqual([]);
 	});
 
-	it("lets a domain read another domain's rows, queries and ids and nothing else of it", () => {
+	it("lets a domain read another domain's rows, queries, commands, ports and ids and nothing else of it", () => {
 		expect(check(from, "@antumbra/domain-pieces/rows/piece.ts", "packages/server/domains/pieces")).toEqual([]);
 		expect(check(from, "@antumbra/domain-pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);
+		expect(check(from, "@antumbra/domain-pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([]);
+		expect(check(from, "@antumbra/domain-pieces/ports/dispatch.ts", "packages/server/domains/pieces")).toEqual([]);
 		expect(check(from, "@antumbra/domain-pieces/ids.ts", "packages/server/domains/pieces")).toEqual([]);
 		expect(check(from, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([
 			`@antumbra/domain-role-settings sources may not import @antumbra/domain-pieces/feature.ts: ${SOURCES}.`,
-		]);
-		expect(check(from, "@antumbra/domain-pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([
-			`@antumbra/domain-role-settings sources may not import @antumbra/domain-pieces/commands/rename.ts: ${SOURCES}.`,
 		]);
 		expect(check(from, "@antumbra/server-journal/rows/piece.ts", "packages/server/journal")).toEqual([
 			`@antumbra/domain-role-settings sources may not import @antumbra/server-journal/rows/piece.ts: ${SOURCES}.`,
@@ -71,9 +71,12 @@ describe("domain-imports rule", () => {
 		]);
 	});
 
-	it("keeps another domain's commands out of a domain's tests", () => {
+	it("keeps another domain's commands and ports out of a domain's tests", () => {
 		expect(check(kit, "@antumbra/domain-pieces/commands/rename.ts", "packages/server/domains/pieces")).toEqual([
 			`@antumbra/domain-role-settings tests may not import @antumbra/domain-pieces/commands/rename.ts: ${TESTS}.`,
+		]);
+		expect(check(kit, "@antumbra/domain-pieces/ports/dispatch.ts", "packages/server/domains/pieces")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/domain-pieces/ports/dispatch.ts: ${TESTS}.`,
 		]);
 	});
 

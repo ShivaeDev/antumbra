@@ -8,10 +8,11 @@ const holding = (path: string): SeedFile => ({ content: "export {};\n", path });
 const check = (...paths: readonly string[]) =>
 	layoutFeatureFolderViolations(inventoryOf({ sources: paths.map(holding) })).map(({ message }) => message);
 
-const SHAPE = "a domain holds rows, facts, commands, materializers and queries, one file deep, beside feature.ts and ids.ts, and nothing else";
+const SHAPE =
+	"a domain holds rows, facts, commands, materializers, queries, ports and reconcilers, one file deep, beside feature.ts and ids.ts, and nothing else";
 
 describe("feature-folders rule", () => {
-	it("lets a domain hold the five folders and its two files", () => {
+	it("lets a domain hold the seven folders and its two files", () => {
 		expect(
 			check(
 				"packages/server/domains/pieces/src/feature.ts",
@@ -21,6 +22,8 @@ describe("feature-folders rule", () => {
 				"packages/server/domains/pieces/src/commands/park.ts",
 				"packages/server/domains/pieces/src/materializers/piece-parked.ts",
 				"packages/server/domains/pieces/src/queries/by-voyage.ts",
+				"packages/server/domains/pieces/src/ports/dispatch.ts",
+				"packages/server/domains/pieces/src/reconcilers/admission.ts",
 			),
 		).toEqual([]);
 	});
@@ -29,9 +32,9 @@ describe("feature-folders rule", () => {
 		expect(check("packages/server/domains/pieces/src/shared.ts")).toEqual([`@antumbra/domain-pieces may not hold src/shared.ts: ${SHAPE}.`]);
 	});
 
-	it("refuses another folder and a folder nested inside one of the five", () => {
-		expect(check("packages/server/domains/pieces/src/reconcilers/admission.ts")).toEqual([
-			`@antumbra/domain-pieces may not hold src/reconcilers/admission.ts: ${SHAPE}.`,
+	it("refuses another folder and a folder nested inside one of the seven", () => {
+		expect(check("packages/server/domains/pieces/src/adapters/admission.ts")).toEqual([
+			`@antumbra/domain-pieces may not hold src/adapters/admission.ts: ${SHAPE}.`,
 		]);
 		expect(check("packages/server/domains/pieces/src/rows/nested/piece.ts")).toEqual([
 			`@antumbra/domain-pieces may not hold src/rows/nested/piece.ts: ${SHAPE}.`,

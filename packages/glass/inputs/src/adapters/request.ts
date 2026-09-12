@@ -1,4 +1,4 @@
-import type { Draft } from "@antumbra/domain-inputs/schema.ts";
+import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
 import type { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect, Schema } from "effect";
 import type { DraftImage } from "#session-draft.ts";

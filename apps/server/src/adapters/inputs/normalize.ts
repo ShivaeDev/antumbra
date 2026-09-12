@@ -1,4 +1,4 @@
-import { InvalidInput } from "@antumbra/domain-inputs/errors.ts";
+import { InvalidInput } from "@antumbra/domain-inputs/commands/errors.ts";
 import {
 	MAX_SESSION_IMAGE_EDGE,
 	MAX_SESSION_IMAGE_PIXELS,

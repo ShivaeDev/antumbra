@@ -1,4 +1,4 @@
-import type { InputFailure } from "@antumbra/domain-inputs/errors.ts";
+import type { InputFailure } from "@antumbra/domain-inputs/commands/errors.ts";
 export const inputFailureMessage = (failure: InputFailure): string => {
 	switch (failure._tag) {
 		case "InvalidInput":

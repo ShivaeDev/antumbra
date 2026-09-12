@@ -4,8 +4,8 @@ import { command } from "@antumbra/platform-feature/command.ts";
 import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect, Option, Schema } from "effect";
 import { inputRecorded } from "#facts/recorded.ts";
+import { Prepared } from "#rows/content.ts";
 import { sessionInput } from "#rows/input.ts";
-import { Prepared } from "#schema.ts";
 export const record = command("record", {
 	input: Prepared.fields,
 	reads: [sessionInput, session],

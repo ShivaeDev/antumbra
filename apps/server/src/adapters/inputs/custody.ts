@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { ImageUnavailable } from "@antumbra/domain-inputs/errors.ts";
+import { ImageUnavailable } from "@antumbra/domain-inputs/commands/errors.ts";
 import type { SessionImageMediaType } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 

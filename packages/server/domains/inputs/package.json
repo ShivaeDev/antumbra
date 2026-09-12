@@ -26,10 +26,6 @@
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@antumbra/server-journal": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/platform-runner": "workspace:*",
-		"@antumbra/platform-prompts": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*"
 	}
 }

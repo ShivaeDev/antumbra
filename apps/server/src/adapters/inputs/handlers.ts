@@ -1,9 +1,10 @@
+import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
+import { InputAmbiguous, InputConflict, InputNotFound } from "@antumbra/domain-inputs/commands/errors.ts";
 import { record } from "@antumbra/domain-inputs/commands/record.ts";
-import { InputDelivery } from "@antumbra/domain-inputs/delivery.ts";
-import { InputAmbiguous, InputConflict, InputNotFound } from "@antumbra/domain-inputs/errors.ts";
+import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { reading } from "@antumbra/domain-inputs/queries/reading.ts";
-import { InputsRpc } from "@antumbra/domain-inputs/rpc.ts";
-import type { Draft, ImageRequest, Receipt } from "@antumbra/domain-inputs/schema.ts";
+import type { Draft, ImageRequest, Receipt } from "@antumbra/domain-inputs/rows/content.ts";
+import { Token } from "@antumbra/platform-rpc/token.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
@@ -44,4 +45,4 @@ export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 	});
 	return { "inputs.submit": submit, "inputs.image": image };
 });
-export const servingInputs = (root: string) => InputsRpc.toLayer(handlers(root));
+export const servingInputs = (root: string) => InputsRpc.middleware(Token).toLayer(handlers(root));

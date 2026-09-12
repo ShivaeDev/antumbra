@@ -1,4 +1,4 @@
-import { ImageUnavailable } from "@antumbra/domain-inputs/errors.ts";
+import { ImageUnavailable } from "@antumbra/domain-inputs/commands/errors.ts";
 import { Effect } from "effect";
 import sharp from "sharp";
 

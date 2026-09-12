@@ -1,6 +1,6 @@
+import type { inputObserved } from "@antumbra/domain-inputs/facts/observed.ts";
 import type { FactPayload } from "@antumbra/platform-feature/fact.ts";
 import type { LogEntry } from "@antumbra/platform-runner/log.ts";
-import type { inputObserved } from "#facts/observed.ts";
 export const inputObservation = (entry: LogEntry): FactPayload<typeof inputObserved> | null => {
 	const event = entry.event;
 	switch (event.type) {

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { Draft } from "@antumbra/domain-inputs/schema.ts";
+import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
 
 const field = (hash: ReturnType<typeof createHash>, value: string): void => {
 	const bytes = new TextEncoder().encode(value);

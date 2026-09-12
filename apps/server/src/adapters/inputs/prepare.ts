@@ -1,5 +1,5 @@
-import { type ImageUnavailable, InvalidInput } from "@antumbra/domain-inputs/errors.ts";
-import type { Draft, Prepared } from "@antumbra/domain-inputs/schema.ts";
+import { type ImageUnavailable, InvalidInput } from "@antumbra/domain-inputs/commands/errors.ts";
+import type { Draft, Prepared } from "@antumbra/domain-inputs/rows/content.ts";
 import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { publishImage } from "#adapters/inputs/custody.ts";

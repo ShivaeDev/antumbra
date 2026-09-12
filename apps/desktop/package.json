@@ -66,7 +66,12 @@
 		"vitest": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
 		"@antumbra/domain-pieces": "workspace:*",
-		"@antumbra/pieces": "workspace:*"
+		"@antumbra/pieces": "workspace:*",
+		"@antumbra/glass-client": "workspace:*",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:"
 	},
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "catalog:",

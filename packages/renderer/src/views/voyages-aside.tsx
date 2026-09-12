@@ -2,12 +2,14 @@ import type { VoyageSummary } from "@antumbra/contract";
 import { OpenVoyage } from "@antumbra/glass-voyages/open-voyage.tsx";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { glass } from "#adapters/glass.ts";
+import { useGlass } from "#adapters/glass.ts";
 import { Button } from "#components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
 import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { SectionHeading } from "#views/section.tsx";
 import { VoyagesPanel } from "#views/voyages.tsx";
+
+const Opening = ({ onOpened }: { readonly onOpened: () => void }) => <OpenVoyage api={useGlass()} onOpened={onOpened} />;
 
 const OpenVoyageDialog = () => {
 	const [open, setOpen] = useState(false);
@@ -26,7 +28,7 @@ const OpenVoyageDialog = () => {
 						A voyage needs a name, the north star it steers by, and who sails it. The work itself is chartered later.
 					</DialogDescription>
 				</DialogHeader>
-				<OpenVoyage api={glass.api} onOpened={() => setOpen(false)} />
+				<Opening onOpened={() => setOpen(false)} />
 			</DialogContent>
 		</Dialog>
 	);

@@ -1,6 +1,6 @@
+import type { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import type { FactPayload } from "@antumbra/platform-feature/fact.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
-import type { observed } from "#facts/observed.ts";
 
 type Observation = FactPayload<typeof observed>;
 export const providerObservation = (provider: AgentEvent, base: Omit<Observation, "evidence">): Observation => {

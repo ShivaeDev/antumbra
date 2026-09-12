@@ -1,8 +1,8 @@
+import type { observed } from "@antumbra/domain-sessions/facts/observed.ts";
+import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import type { FactPayload } from "@antumbra/platform-feature/fact.ts";
 import type { LogEntry } from "@antumbra/platform-runner/log.ts";
-import type { observed } from "#facts/observed.ts";
-import { SessionId } from "#ids.ts";
-import { providerObservation } from "#provider-observation.ts";
+import { providerObservation } from "#runner/provider-observation.ts";
 
 export const observation = (entry: LogEntry): FactPayload<typeof observed> | null => {
 	const event = entry.event;

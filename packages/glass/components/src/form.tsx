@@ -1,4 +1,3 @@
-import { useSend } from "@antumbra/glass-client/hooks.ts";
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
 import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { Send } from "@antumbra/platform-rpc/client.ts";
@@ -26,7 +25,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 }): ReactNode => {
 	const command = props.command.command;
 	const [cleared, setCleared] = useState(0);
-	const send = sending(useSend(props.command));
+	const send = sending(props.command);
 	const fixed = props.fixed ?? NOTHING;
 	const names = fixedNames(fixed);
 	const editables = editablesOf(command, names);

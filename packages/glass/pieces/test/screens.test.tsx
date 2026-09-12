@@ -3,6 +3,7 @@ import { choose, fill, labelled, press, renderedForm, submit, until } from "@ant
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { Live } from "@antumbra/glass-client/live.tsx";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
@@ -99,13 +100,23 @@ it.glass("puts a cycle the server refuses on the field that carries what a piece
 	expect(yield* answered(api.pieces.edges({ voyageId }))).toEqual([{ from: soundings, id: `${soundings}/${charts}`, to: charts }]);
 });
 
-it.glass("offers the acts a piece stands ready for and sends the one pressed", function* ({ api, render }) {
+it.glass("launches, parks, and unparks a piece", function* ({ api, render }) {
 	yield* charted(api);
-	const container = yield* render(<PieceActs api={api} piece={{ id: soundings, launchedAt: null, parkedAt: null }} />);
+	const container = yield* render(
+		<Live input={{ id: soundings }} query={api.pieces.byId}>
+			{(piece) => (piece === null ? null : <PieceActs api={api} piece={piece} />)}
+		</Live>,
+	);
+	yield* until(() => container.querySelector("button") !== null, "the piece actions to appear");
 
 	expect([...container.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Launch", "Park"]);
 	yield* press(container, "Launch");
 
 	const launched = yield* eventually(api.pieces.byId({ id: soundings }), (row) => row !== null && row.launchedAt !== null);
 	expect(launched?.parkedAt).toBeNull();
+	yield* press(container, "Park");
+	yield* until(() => container.textContent?.includes("Unpark") === true, "Park to become Unpark");
+	yield* press(container, "Unpark");
+	yield* until(() => container.textContent?.includes("Unpark") === false, "Unpark to become Park");
+	expect(yield* answered(api.pieces.byId({ id: soundings }))).toMatchObject({ parkedAt: null });
 });

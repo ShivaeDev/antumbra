@@ -1,10 +1,12 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { agentBoard } from "@antumbra/domain-boards/ids.ts";
+import { agentBoard, pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
+import { PieceId } from "@antumbra/domain-pieces/ids.ts";
+import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Deferred } from "effect";
 import { expect } from "vitest";
-import { boundSummaryTool, type SummaryWritten } from "#tools/boards/summary.ts";
+import { boundSummaryTool, type SummaryWritten, writeSummaryTool } from "#tools/boards/summary.ts";
 import { markReadTool, readBoardTool, readMailTool, writeBoardTool } from "#tools/boards/tools.ts";
 
 const context: ToolContext = { agentId: "agent-reader", sessionId: "session-reader", callId: "native-call" };
@@ -82,4 +84,59 @@ it.app("binds a summary to its own smoothing session and accepts only the first 
 	expect(yield* Deferred.await(written)).toEqual({ _tag: "written", text: "First summary" });
 	const empty = boundSummaryTool(yield* Deferred.make<SummaryWritten>());
 	expect(yield* empty.invoke(context, { text: " " })).toEqual({ ok: true, text: "the summary was empty" });
+});
+
+it.app("writes a bound piece summary and its voyage handoff once", function* (app) {
+	const voyageId = VoyageId.make("summary-voyage");
+	const pieceId = PieceId.make("summary-piece");
+	yield* app.api.voyages.open({
+		name: "Summary voyage",
+		northStar: "Every shoal known",
+		context: "",
+		kind: "voyage",
+		captainBackend: null,
+		captainModel: null,
+		captainEffort: null,
+		crewBackend: null,
+		crewModel: null,
+		crewEffort: null,
+		requestId: Request.make(voyageId),
+	});
+	yield* app.api.pieces.charter({
+		voyageId,
+		title: "Soundings",
+		charter: "Chart it",
+		expectation: "Soundings recorded",
+		role: "hand",
+		dependsOn: [],
+		requestId: Request.make(pieceId),
+	});
+	const board = pieceBoard(pieceId);
+	yield* app.api.boards.write({
+		board,
+		body: "A shoal was found",
+		register: "rough",
+		author: context.agentId,
+		requestId: Request.make("source-note"),
+	});
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId, throughToday: false, requestId: Request.make("bound-pass") });
+	yield* app.api.boards.bindSmoothingSession({
+		sessionId: context.sessionId,
+		attemptId: "bound-pass",
+		agentId: context.agentId,
+		board,
+		pieceId,
+		title: "Soundings",
+		level: "piece",
+		coversFrom: 1,
+		coversTo: 1,
+	});
+	expect(yield* writeSummaryTool.invoke(context, { text: "The shoal is recorded" })).toEqual({ ok: true, text: "summary written" });
+	yield* writeSummaryTool.invoke(context, { text: "The shoal is recorded" });
+	yield* writeSummaryTool.invoke({ ...context, callId: "second-call" }, { text: "Replace the first" });
+	expect(yield* answered(app.api.boards.digest({ board }))).toMatchObject([{ kind: "summary", body: "The shoal is recorded" }]);
+	expect(yield* answered(app.api.boards.entries({ board: voyageBoard(voyageId) }))).toMatchObject([
+		{ kind: "pieceSummary", pieceId, body: "The shoal is recorded" },
+	]);
+	expect((yield* writeSummaryTool.invoke({ ...context, agentId: "wrong-agent" }, { text: "wrong" })).ok).toBe(false);
 });

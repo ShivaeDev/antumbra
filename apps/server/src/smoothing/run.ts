@@ -1,9 +1,9 @@
-import type { smoothingAttempt } from "@antumbra/domain-boards/smoothing/attempt.ts";
-import { dueSmoothing } from "@antumbra/domain-boards/smoothing/due.ts";
-import { finishSmoothing } from "@antumbra/domain-boards/smoothing/finished.ts";
-import { requestSmoothing } from "@antumbra/domain-boards/smoothing/requested.ts";
-import { localDay } from "@antumbra/domain-boards/smoothing/span.ts";
-import { pendingSmoothing, type SmoothingTarget, smoothingTargets } from "@antumbra/domain-boards/smoothing/targets.ts";
+import { finishSmoothing } from "@antumbra/domain-boards/commands/finish-smoothing.ts";
+import { requestSmoothing } from "@antumbra/domain-boards/commands/request-smoothing.ts";
+import { dueSmoothing } from "@antumbra/domain-boards/queries/due-smoothing.ts";
+import { localDay } from "@antumbra/domain-boards/queries/smoothing-span.ts";
+import { pendingSmoothing, type SmoothingTarget, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
+import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-attempt.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

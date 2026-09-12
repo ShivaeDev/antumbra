@@ -1,7 +1,7 @@
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { smoother } from "@antumbra/domain-agents/queries/smoother.ts";
-import type { smoothingAttempt } from "@antumbra/domain-boards/smoothing/attempt.ts";
-import type { SmoothingTarget } from "@antumbra/domain-boards/smoothing/targets.ts";
+import type { SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
+import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-attempt.ts";
 import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";

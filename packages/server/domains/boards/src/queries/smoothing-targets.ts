@@ -3,9 +3,9 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { BoardId, pieceBoard, voyageBoard } from "#ids.ts";
+import { days, localDay, Span, span } from "#queries/smoothing-span.ts";
 import { boardEntry } from "#rows/board-entry.ts";
-import { smoothingAttempt } from "#smoothing/attempt.ts";
-import { days, localDay, Span, span } from "#smoothing/span.ts";
+import { smoothingAttempt } from "#rows/smoothing-attempt.ts";
 
 export const SmoothingTarget = Schema.Struct({
 	...Span.fields,

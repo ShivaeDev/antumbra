@@ -1,14 +1,10 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
-import { fact } from "@antumbra/platform-feature/fact.ts";
-import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Clock, Effect, Option, Schema } from "effect";
-import { smoothingAttempt } from "#smoothing/attempt.ts";
+import { smoothingRequested } from "#facts/smoothing-requested.ts";
 
-const { voyageId, pieceId, throughToday, requestedAt, id } = smoothingAttempt.fields;
-export const smoothingRequested = fact("BoardSmoothingRequested", { id, voyageId, pieceId, throughToday, requestedAt });
-
+const { voyageId, pieceId, throughToday } = smoothingRequested.payload;
 export const requestSmoothing = command("requestSmoothing", {
 	input: { voyageId, pieceId, throughToday },
 	reads: [voyage, piece],
@@ -27,20 +23,5 @@ export const requestSmoothing = command("requestSmoothing", {
 			throughToday: input.throughToday,
 			requestedAt: new Date(yield* Clock.currentTimeMillis).toISOString(),
 		};
-	}),
-});
-
-export const smoothingRequestedMaterializer = materializer(smoothingRequested, {
-	writes: [smoothingAttempt],
-	run: Effect.fn("boards.SmoothingRequested")(function* (fact, rows) {
-		yield* rows.smoothingAttempt.insert({
-			id: fact.id,
-			voyageId: fact.voyageId,
-			pieceId: fact.pieceId,
-			throughToday: fact.throughToday,
-			requestedAt: fact.requestedAt,
-			status: "requested",
-			detail: null,
-		});
 	}),
 });

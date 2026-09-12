@@ -2,8 +2,8 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Clock } from "effect";
 import { expect } from "vitest";
-import { localDay } from "#smoothing/span.ts";
-import { smoothingState } from "#smoothing/state.ts";
+import { localDay } from "#queries/smoothing-span.ts";
+import { smoothingState } from "#queries/smoothing-state.ts";
 import { chartering, noting, opening, reef, soundings, soundingsBoard } from "#test/kit.ts";
 
 it.app("a failed voyage pass still counts today and becomes due on the next local day", function* (app) {

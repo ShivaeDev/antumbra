@@ -1,7 +1,8 @@
+import { finishSmoothingSession } from "@antumbra/domain-boards/commands/finish-smoothing-session.ts";
 import { summarize } from "@antumbra/domain-boards/commands/summarize.ts";
 import { summarizePiece } from "@antumbra/domain-boards/commands/summarize-piece.ts";
 import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
-import { finishSmoothingSession, smoothingSessionFor } from "@antumbra/domain-boards/smoothing/session.ts";
+import { smoothingSessionFor } from "@antumbra/domain-boards/queries/smoothing-session-for.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";

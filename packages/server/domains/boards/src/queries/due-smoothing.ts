@@ -3,11 +3,11 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
+import { requestSmoothing } from "#commands/request-smoothing.ts";
 import { pieceBoard } from "#ids.ts";
+import { localDay, span } from "#queries/smoothing-span.ts";
 import { boardEntry } from "#rows/board-entry.ts";
-import { smoothingAttempt } from "#smoothing/attempt.ts";
-import { requestSmoothing } from "#smoothing/requested.ts";
-import { localDay, span } from "#smoothing/span.ts";
+import { smoothingAttempt } from "#rows/smoothing-attempt.ts";
 
 const Demand = Schema.Struct(requestSmoothing.input);
 

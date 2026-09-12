@@ -1,5 +1,7 @@
-import { bindSmoothingSession, finishSmoothingSession, smoothingSessionFor } from "@antumbra/domain-boards/smoothing/session.ts";
-import type { SmoothingTarget } from "@antumbra/domain-boards/smoothing/targets.ts";
+import { bindSmoothingSession } from "@antumbra/domain-boards/commands/bind-smoothing-session.ts";
+import { finishSmoothingSession } from "@antumbra/domain-boards/commands/finish-smoothing-session.ts";
+import { smoothingSessionFor } from "@antumbra/domain-boards/queries/smoothing-session-for.ts";
+import type { SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";

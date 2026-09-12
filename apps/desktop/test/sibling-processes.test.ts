@@ -1,9 +1,12 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Queue, Sink, Stream } from "effect";
 import { type ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { vi } from "vitest";
 import { RunnerProcess, RunnerProcessLayer } from "#adapters/runner-process.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import { ShellState } from "#adapters/shell-state.ts";
+
+vi.mock("electron", () => ({ app: { isPackaged: false } }));
 
 it.effect("restarts the server on its chosen endpoint without replacing its sibling runner", () =>
 	Effect.gen(function* () {
@@ -61,7 +64,19 @@ it.effect("restarts the server on its chosen endpoint without replacing its sibl
 				const runner = yield* Queue.take(requests);
 				expect(first).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "0"] });
 				expect(runner).toMatchObject({
-					args: ["/runner.js", "--data", "/data", "--server", "ws://127.0.0.1:49123/rpc", "--runner-id", "runner-id", "--log-id", "log-id"],
+					args: [
+						"/runner.js",
+						"--data",
+						"/data",
+						"--assets",
+						"/",
+						"--server",
+						"ws://127.0.0.1:49123/rpc",
+						"--runner-id",
+						"runner-id",
+						"--log-id",
+						"log-id",
+					],
 				});
 				yield* Deferred.succeed(exit, ChildProcessSpawner.ExitCode(1));
 				expect(yield* Queue.take(requests)).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "49123"] });

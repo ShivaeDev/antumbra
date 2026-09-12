@@ -21,12 +21,8 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 				markdown: "# The chart\n",
 				title: "The chart",
 			}),
-		charterPiece: (request) => Effect.succeed({ pieceId: `piece-for-${request.title}` }),
 		dismissChange: () => Effect.void,
 		hail: () => Effect.succeed({ agentId: "agent-hailed" }),
-		landPieceVerdict: () => Effect.void,
-		launch: () => Effect.void,
-		park: () => Effect.void,
 		quay: Effect.succeed(quayView),
 		quayFeed: feeds.quay,
 		refreshChanges: Effect.void,
@@ -40,11 +36,9 @@ export const voyageFixture = (feeds: FixtureFeeds) =>
 						title: "Soundings",
 					})
 				: new SightFailure({ message: `no such report: ${reportId}` }),
-		rewire: () => Effect.void,
 		setFocus: () => Effect.void,
 		smoothBoard: () => Effect.void,
 		supersedeArtifact: () => Effect.void,
-		unpark: () => Effect.void,
 		voyage: (voyageId) => {
 			const view = views.find((held) => held.id === voyageId);
 			return view === undefined ? noSuchVoyage(voyageId) : Effect.succeed(view);

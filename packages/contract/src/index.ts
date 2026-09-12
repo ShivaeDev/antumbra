@@ -96,13 +96,9 @@ export {
 	ArtifactSupersessionRequest,
 	BoardTarget,
 	BoardWriteRequest,
-	CharterPieceRequest,
-	CharterReceipt,
 	CrewReceipt,
 	DismissChangeRequest,
 	HailReceipt,
-	PieceVerdictRequest,
-	RewireRequest,
 } from "#voyage-requests.ts";
 export {
 	BoardEntryView,

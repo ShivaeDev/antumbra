@@ -36,6 +36,7 @@ const start = Effect.fn(function* (app: App, name: string) {
 		at: 100,
 		requestId: Request.make(`started:${name}`),
 		payload: {
+			live: true,
 			sessionId,
 			nodeRef: null,
 			origin: null,

@@ -1,0 +1,32 @@
+{
+	"name": "@antumbra/runner",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@effect/platform-node": "catalog:",
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"effect": "catalog:",
+		"@antumbra/runner-git": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
+		"@effect/platform-node": "catalog:"
+	}
+}

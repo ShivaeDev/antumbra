@@ -54,6 +54,7 @@
 		"@antumbra/domain-lifecycle": "workspace:*",
 		"@antumbra/platform-change-host": "workspace:*",
 		"@antumbra/edge-github": "workspace:*",
-		"sharp": "catalog:"
+		"sharp": "catalog:",
+		"@antumbra/domain-costs": "workspace:*"
 	}
 }

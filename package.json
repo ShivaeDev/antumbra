@@ -16,11 +16,10 @@
 		"format": "biome check --write . && prettier --write \"**/*.md\"",
 		"lint": "pnpm check && node script/lint.ts && pnpm lint:boundaries",
 		"lint:boundaries": "node script/boundaries.ts",
-		"test": "pnpm test:packages && pnpm test:desktop && pnpm test:runner-local",
+		"test": "pnpm test:packages && pnpm test:desktop && pnpm test:runner && pnpm test:server && pnpm test:app",
 		"test:desktop": "pnpm --filter @antumbra/desktop test",
 		"test:guards": "node script/test.ts --dir script",
 		"test:packages": "node script/test.ts --config script/vitest.workspace.ts",
-		"test:runner-local": "pnpm --filter @antumbra/runner-local test",
 		"test:server": "pnpm --filter @antumbra/server test",
 		"typecheck": "pnpm --recursive --no-sort --if-present typecheck",
 		"typecheck:compat": "pnpm --recursive --no-sort --if-present typecheck:compat",
@@ -29,7 +28,9 @@
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
 		"pr": "node script/pr.ts",
 		"ready": "node script/ready.ts",
-		"wt": "node script/wt.ts"
+		"wt": "node script/wt.ts",
+		"test:runner": "pnpm --filter @antumbra/runner test",
+		"test:app": "pnpm --filter @antumbra/app-testing test"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "catalog:",

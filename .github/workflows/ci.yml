@@ -53,8 +53,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
       - run: pnpm test:desktop
-      - run: pnpm test:runner-local
+      - run: pnpm test:runner
       - run: pnpm test:server
+      - run: pnpm test:app
 
   guards:
     runs-on: ubuntu-latest

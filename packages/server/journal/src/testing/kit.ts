@@ -14,22 +14,11 @@ import { readHandle } from "#read-handle.ts";
 import { commitsOf } from "#testing/commits.ts";
 import type { Emissions, TestKit } from "#testing/surface.ts";
 import { type Watch, watching } from "#testing/watch.ts";
-import { writeHandle } from "#write-handle.ts";
 
 type Reactive = Reactivity["Service"];
 
 const readsOf = (registry: Registry, sql: SqlClient): Record<string, unknown> =>
 	Object.fromEntries(registry.rows.map((row) => [row.name, readHandle(sql, codecOf(registry, row))]));
-
-const seedOne = (registry: Registry, sql: SqlClient, reactivity: Reactive, row: RowShape) => (value: unknown) =>
-	Effect.gen(function* () {
-		const dirty = new Set<string>();
-		yield* writeHandle(sql, codecOf(registry, row), (key) => dirty.add(key)).insert(value);
-		yield* reactivity.invalidate([...dirty]);
-	});
-
-const seedsOf = (registry: Registry, sql: SqlClient, reactivity: Reactive): Record<string, unknown> =>
-	Object.fromEntries(registry.rows.map((row) => [row.name, seedOne(registry, sql, reactivity, row)]));
 
 const liveOf =
 	(live: LiveService, reactivity: Reactive, scope: Scope.Scope, watches: Watch[]) =>
@@ -68,7 +57,6 @@ export function kit(definition: AppDefinition): unknown {
 			commit: commitsOf(definition, commit),
 			live: liveOf(live, reactivity, scope, watches),
 			rows: readsOf(registry, database.read),
-			seed: seedsOf(registry, database.write, reactivity),
 			settle: () => Effect.forEach(watches, (watch) => watch.settled, { discard: true }),
 		};
 	});

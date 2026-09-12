@@ -26,10 +26,6 @@ export type Reads<Features extends readonly FeatureShape[]> = {
 	readonly [Row in Projections<Features> as Row["name"]]: ReadRows<RowValue<Row>, RowKey<Row>>;
 };
 
-export type Seeds<Features extends readonly FeatureShape[]> = {
-	readonly [Row in Projections<Features> as Row["name"]]: (value: RowValue<Row>) => Effect.Effect<void>;
-};
-
 export interface Watching {
 	readonly advance: (millis: number) => Effect.Effect<void>;
 }
@@ -42,7 +38,6 @@ export interface TestKit<Features extends readonly FeatureShape[]> {
 		input: Values<Input>,
 	) => Effect.Effect<Emissions<Output["Type"]>>;
 	readonly rows: Reads<Features>;
-	readonly seed: Seeds<Features>;
 	readonly settle: () => Effect.Effect<void>;
 }
 

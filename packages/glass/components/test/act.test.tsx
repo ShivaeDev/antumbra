@@ -1,4 +1,4 @@
-import { settle, until } from "@antumbra/app-testing/glass/dom.ts";
+import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
@@ -34,7 +34,7 @@ it.glass("holds the action while pending", function* ({ render }) {
 	expect(button()?.textContent).toBe("Launch");
 	expect(button()?.disabled).toBe(false);
 
-	yield* settle(() => button()?.click());
+	yield* press(container, "Launch");
 	yield* until(() => button()?.disabled === true);
 	expect(sent).toEqual([INPUT]);
 
@@ -47,7 +47,7 @@ it.glass("shows an action rejection", function* ({ render }) {
 	const container = yield* render(<CommandAct command={send} input={INPUT} label="Launch" />);
 
 	yield* until(() => container.querySelector("button") !== null);
-	yield* settle(() => container.querySelector("button")?.click());
+	yield* press(container, "Launch");
 
 	yield* until(() => container.querySelector('[role="alert"]') !== null);
 	expect(container.querySelector('[role="alert"]')?.textContent).toBe("No such piece");

@@ -54,6 +54,9 @@ export const write = (control: Writable, value: string): Effect.Effect<void> =>
 export const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
 	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
 
+export const fill = (container: HTMLElement, label: string, value: string): Effect.Effect<void> =>
+	Effect.suspend(() => write(labelled<Writable>(container, label), value));
+
 export const named = (form: HTMLFormElement): string | null | undefined =>
 	document.getElementById(form.getAttribute("aria-labelledby") ?? "")?.textContent;
 
@@ -67,6 +70,15 @@ export const renderedForm = (container: HTMLElement, name: string): Effect.Effec
 	until(() => findForm(container, name) !== undefined, `form "${name}" to render`).pipe(Effect.map(() => form(container, name)));
 
 export const click = (control: HTMLElement): Effect.Effect<void> => settle(() => control.click());
+
+export const press = (container: HTMLElement, text: string): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		const button = [...container.querySelectorAll("button")].find((candidate) => candidate.textContent?.trim() === text);
+		if (button === undefined) {
+			return yield* Effect.die(`no button named "${text}"`);
+		}
+		yield* click(button);
+	});
 
 export const submit = (container: HTMLElement, name: string): Effect.Effect<void> =>
 	Effect.gen(function* () {

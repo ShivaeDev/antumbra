@@ -12,10 +12,11 @@ import { operationRequestedMaterializer } from "#materializers/operation-request
 import { providerEventMaterializer } from "#materializers/provider-event.ts";
 import { operations } from "#queries/operations.ts";
 import { pending } from "#queries/pending.ts";
-import { forAgent, reading, tree } from "#queries/reading.ts";
+import { forAgent, reading } from "#queries/reading.ts";
 import { toolCall } from "#queries/tool-call.ts";
 import { transcriptSources } from "#queries/transcript.ts";
 import { usageAgent } from "#queries/usage.ts";
+import { tree } from "#queries/tree.ts";
 import { session } from "#rows/session.ts";
 import { sessionEvent } from "#rows/session-event.ts";
 import { sessionGap } from "#rows/session-gap.ts";

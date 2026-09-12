@@ -10,14 +10,6 @@ export const reading = query("reading", {
 		return Option.getOrNull(yield* rows.session.find(input.id));
 	}),
 });
-export const tree = query("tree", {
-	input: { rootSessionId: SessionId },
-	output: Schema.Array(session.Row),
-	reads: [session],
-	run: Effect.fn("sessions.tree")(function* (input, rows) {
-		return yield* rows.session.where({ rootSessionId: input.rootSessionId });
-	}),
-});
 export const forAgent = query("forAgent", {
 	input: { agentId: Schema.String },
 	output: Schema.Array(session.Row),

@@ -1,7 +1,9 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { progress as voyageProgress } from "@antumbra/domain-voyages/queries/progress.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
+import { progress } from "#queries/progress.ts";
 import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 it.app("posture and outcome evidence update Piece and Voyage progress together", function* (app) {
@@ -31,4 +33,19 @@ it.app("abandoning a prerequisite releases a Piece in another Voyage", function*
 	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }))).toMatchObject({ state: "ready" });
 	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ concluded: true, counts: { abandoned: 1 } });
 	expect(yield* answered(app.api.voyages.progress({ id: other }))).toMatchObject({ concluded: false, counts: { blocked: 0, ready: 1 } });
+});
+
+it.app("landing a Report updates live Piece and Voyage progress", function* (app) {
+	yield* app.api.voyages.open(opening);
+	yield* app.api.pieces.charter(chartering("soundings"));
+	const id = pieceOf("soundings");
+	const pieceLive = yield* app.live(progress, { id });
+	const voyageLive = yield* app.live(voyageProgress, { id: reef });
+	yield* app.settle();
+	expect((yield* pieceLive.seen).at(-1)).toMatchObject({ state: "held" });
+	yield* app.api.reports.land({ pieceId: id, authorAgentId: null, title: "Survey", body: "Every shoal is charted" });
+	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "done", settledDone: true, concluded: true });
+	yield* app.settle();
+	expect((yield* pieceLive.seen).at(-1)).toMatchObject({ state: "done" });
+	expect((yield* voyageLive.seen).at(-1)).toMatchObject({ counts: { done: 1, held: 0 }, concluded: true });
 });

@@ -29,10 +29,10 @@ const Sender = (props: { readonly api: Api; readonly ready: (send: SendChoice) =
 it.glass("refreshes a live query after a committed choice", function* ({ api, render }) {
 	yield* api.roleSettings.choose({ backend: "claude", effort: null, model: null, role: "flagship", scope: "fleet" });
 	const container = yield* render(<Defaults api={api} />);
-	yield* until(() => container.textContent?.includes("flagship:claude") === true);
+	yield* until(() => container.textContent?.includes("flagship:claude") === true, "the flagship backend to show claude");
 	expect(container.textContent).toContain("crew:-");
 	yield* api.roleSettings.choose({ backend: "codex", effort: null, model: null, role: "crew", scope: "fleet" });
-	yield* until(() => container.textContent?.includes("crew:codex") === true);
+	yield* until(() => container.textContent?.includes("crew:codex") === true, "the crew backend to show codex");
 	expect(container.textContent).toContain("flagship:claude");
 });
 

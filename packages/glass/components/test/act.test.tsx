@@ -28,27 +28,27 @@ it.glass("holds the action while pending", function* ({ render }) {
 		return Deferred.await(answered);
 	});
 	const container = yield* render(<CommandAct command={send} input={INPUT} label="Launch" />);
-	yield* until(() => container.querySelector("button") !== null);
+	yield* until(() => container.querySelector("button") !== null, "the Launch button to appear");
 	const button = () => container.querySelector("button");
 
 	expect(button()?.textContent).toBe("Launch");
 	expect(button()?.disabled).toBe(false);
 
 	yield* press(container, "Launch");
-	yield* until(() => button()?.disabled === true);
+	yield* until(() => button()?.disabled === true, "Launch to become disabled while pending");
 	expect(sent).toEqual([INPUT]);
 
 	yield* Deferred.succeed(answered, 1);
-	yield* until(() => button()?.disabled === false);
+	yield* until(() => button()?.disabled === false, "Launch to become enabled after completion");
 });
 
 it.glass("shows an action rejection", function* ({ render }) {
 	const send = acting(() => Effect.fail(new launch.Rejection.Refused({ message: "No such piece" })));
 	const container = yield* render(<CommandAct command={send} input={INPUT} label="Launch" />);
 
-	yield* until(() => container.querySelector("button") !== null);
+	yield* until(() => container.querySelector("button") !== null, "the Launch button to appear");
 	yield* press(container, "Launch");
 
-	yield* until(() => container.querySelector('[role="alert"]') !== null);
+	yield* until(() => container.querySelector('[role="alert"]') !== null, "the action rejection to appear");
 	expect(container.querySelector('[role="alert"]')?.textContent).toBe("No such piece");
 });

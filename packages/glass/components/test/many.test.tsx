@@ -58,13 +58,13 @@ it.glass("submits several selected models", function* ({ api, render }) {
 
 	expect(control.tagName).toBe("SELECT");
 	expect(control.multiple).toBe(true);
-	yield* until(() => control.options.length === 2);
+	yield* until(() => control.options.length === 2, "both model options to appear");
 	expect([...control.options].map((option) => option.textContent)).toEqual(["GPT", "GPT mini"]);
 
 	yield* choose(control, ["codex/gpt", "codex/gpt-mini"]);
 	yield* submit(container, "Crew");
 
-	yield* until(() => sent.length === 1);
+	yield* until(() => sent.length === 1, "the selected models to be submitted");
 	expect(sent[0]).toEqual({ backend: "codex", models: ["codex/gpt", "codex/gpt-mini"] });
 });
 
@@ -75,12 +75,12 @@ it.glass("replaces the selected models", function* ({ api, render }) {
 	yield* renderedForm(container, "Model selection");
 	const control = labelled<HTMLSelectElement>(container, "Model selection Models");
 
-	yield* until(() => control.options.length === 2);
+	yield* until(() => control.options.length === 2, "both model options to appear");
 	expect(marked(control)).toEqual(["codex/gpt"]);
 
 	yield* choose(control, ["codex/gpt-mini"]);
 	yield* submit(container, "Model selection");
 
-	yield* until(() => sent.length === 1);
+	yield* until(() => sent.length === 1, "the replacement model selection to be submitted");
 	expect(sent[0]).toEqual({ key: "crew", models: ["codex/gpt-mini"] });
 });

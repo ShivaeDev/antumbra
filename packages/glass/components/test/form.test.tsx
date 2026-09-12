@@ -52,10 +52,10 @@ it.glass("clears dependent choices when the backend changes", function* ({ api, 
 	yield* renderedForm(container, "Flagship");
 	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("opus");
 	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("high");
-	yield* until(() => offered(container, "Flagship Model").length === 1);
+	yield* until(() => offered(container, "Flagship Model").length === 1, "the Claude model option to appear");
 	expect(offered(container, "Flagship Model")).toEqual(["opus"]);
 	yield* fill(container, "Flagship Backend", "codex");
-	yield* until(() => offered(container, "Flagship Model").length === 2);
+	yield* until(() => offered(container, "Flagship Model").length === 2, "both Codex model options to appear");
 	expect(offered(container, "Flagship Model")).toEqual(["gpt", "gpt-mini"]);
 	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("");
 	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("");
@@ -83,13 +83,13 @@ it.glass("saves the changed row and settles clean", function* ({ api, render }) 
 	yield* submit(container, "Flagship");
 	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.backend === "claude"));
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "claude", effort: null, model: null, scope: "fleet" });
-	yield* until(() => save()?.disabled === true);
+	yield* until(() => save()?.disabled === true, "Save to become disabled after saving");
 });
 
 it.glass("saves an empty optional choice as null", function* ({ api, render }) {
 	yield* api.roleSettings.choose({ backend: "codex", effort: null, model: "gpt", role: "crew", scope: "fleet" });
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt");
+	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt", "the saved crew model to show gpt");
 	yield* fill(container, "Crew Model", "");
 	yield* submit(container, "Crew");
 	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "crew" && row.model === null));

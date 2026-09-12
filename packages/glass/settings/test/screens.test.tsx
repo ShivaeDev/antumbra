@@ -31,7 +31,7 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 	yield* api.settings.setCount({ count: 9, key: "maxParallelSessions" });
 	const container = yield* render(<Settings api={api} />);
 	const running = yield* renderedForm(container, "Maximum running agents");
-	yield* until(() => labelled<HTMLInputElement>(running, "Maximum running agents Count").value === "9");
+	yield* until(() => labelled<HTMLInputElement>(running, "Maximum running agents Count").value === "9", "the saved running-agent limit to show 9");
 	expect(labelled<HTMLInputElement>(running, "Maximum running agents Count").type).toBe("number");
 	yield* fill(running, "Maximum running agents Count", "12");
 	yield* submit(container, "Maximum running agents");
@@ -47,7 +47,7 @@ it.glass("rejects an out-of-range count", function* ({ api, render }) {
 	const field = labelled<HTMLInputElement>(running, "Maximum running agents Count");
 	yield* write(field, "100");
 	yield* submit(container, "Maximum running agents");
-	yield* until(() => field.getAttribute("aria-invalid") === "true");
+	yield* until(() => field.getAttribute("aria-invalid") === "true", "the count field to show its validation error");
 	expect(container.textContent).toContain("Maximum running agents takes a whole number from 1 to 64");
 });
 
@@ -55,5 +55,8 @@ it.glass("refreshes after a command", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
 	yield* renderedForm(container, "Maximum running agents");
 	yield* api.settings.setCount({ count: 13, key: "maxParallelSessions" });
-	yield* until(() => labelled<HTMLInputElement>(form(container, "Maximum running agents"), "Maximum running agents Count").value === "13");
+	yield* until(
+		() => labelled<HTMLInputElement>(form(container, "Maximum running agents"), "Maximum running agents Count").value === "13",
+		"the running-agent limit to refresh to 13",
+	);
 });

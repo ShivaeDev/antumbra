@@ -1,10 +1,10 @@
+import { settle } from "@antumbra/app-testing/glass/dom.ts";
+import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import type { VoyageView } from "@antumbra/contract";
 import { reefView } from "@antumbra/contract/fixtures";
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { act } from "react";
-import { createRoot } from "react-dom/client";
+import { expect } from "@effect/vitest";
 import { beforeEach, vi } from "vitest";
+import { GlassContext } from "#adapters/glass.ts";
 import { VoyagePanel } from "#views/voyage.tsx";
 
 interface Opened {
@@ -46,48 +46,42 @@ vi.mock("mermaid", () => ({
 
 const named = (name: string): VoyageView => ({ ...reefView, name });
 
-const react = (action: () => void): Effect.Effect<void> =>
-	Effect.promise(() =>
-		act(() => {
-			action();
-			return Promise.resolve();
-		}),
-	);
-
 beforeEach(() => {
 	opened.length = 0;
 });
 
-it.effect("draws a voyage snapshot as its chart, work, and board", () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		const root = createRoot(container);
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-1" />));
+it.glass("draws a voyage snapshot as its chart, work, and board", function* ({ api, render }) {
+	const container = yield* render(
+		<GlassContext value={api}>
+			<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-1" />
+		</GlassContext>,
+	);
 
-		expect(container.textContent).toContain("taking a sight…");
+	expect(container.textContent).toContain("taking a sight…");
 
-		yield* react(() => opened[0]?.onVoyage(reefView));
+	yield* settle(() => opened[0]?.onVoyage(reefView));
 
-		expect(container.textContent).toContain("Chart the reef");
-		expect(container.textContent).toContain("soundings");
-		expect(container.textContent).not.toContain("the reef shifts after a storm");
-		expect(container.innerHTML).toContain('title="Show the board"');
-		yield* react(() => root.unmount());
-	}),
-);
+	expect(container.textContent).toContain("Chart the reef");
+	expect(container.textContent).toContain("soundings");
+	expect(container.textContent).not.toContain("the reef shifts after a storm");
+	expect(container.innerHTML).toContain('title="Show the board"');
+});
 
-it.effect("another voyage is another subscription and another picture", () =>
-	Effect.gen(function* () {
-		const container = document.createElement("div");
-		const root = createRoot(container);
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-1" />));
-		yield* react(() => opened[0]?.onVoyage(named("Chart the reef")));
+it.glass("another voyage is another subscription and another picture", function* ({ api, render }) {
+	const container = yield* render(
+		<GlassContext value={api}>
+			<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-1" />
+		</GlassContext>,
+	);
+	yield* settle(() => opened[0]?.onVoyage(named("Chart the reef")));
 
-		yield* react(() => root.render(<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-2" />));
+	yield* render(
+		<GlassContext value={api}>
+			<VoyagePanel onError={() => undefined} onPiece={() => undefined} piece={undefined} voyageId="voyage-2" />
+		</GlassContext>,
+	);
 
-		expect(opened[1]?.voyageId).toBe("voyage-2");
-		expect(container.textContent).not.toContain("Chart the reef");
-		expect(container.textContent).toContain("taking a sight…");
-		yield* react(() => root.unmount());
-	}),
-);
+	expect(opened[1]?.voyageId).toBe("voyage-2");
+	expect(container.textContent).not.toContain("Chart the reef");
+	expect(container.textContent).toContain("taking a sight…");
+});

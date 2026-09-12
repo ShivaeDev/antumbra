@@ -1,11 +1,11 @@
 import { useDirty, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import { useId, useState } from "react";
+import { useId } from "react";
 import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
 import { type Editable, emptyOf, fedByOf, type Held } from "#fields.ts";
-import { generate, type Sending } from "#generated.ts";
+import { type Sending, useGenerated } from "#generated.ts";
 import { messageOf } from "#refusal.ts";
 
 const NOTHING: readonly Editable[] = [];
@@ -33,7 +33,7 @@ export const Row = (props: {
 	readonly values: Held;
 }) => {
 	const named = useId();
-	const [form] = useState(() => generate(props.editables, props.identity, props.values, props.send, props.sent));
+	const form = useGenerated(props.editables, props.identity, props.values, props.send, props.sent);
 	const values = useAtomRef(form.values);
 	const dirty = useDirty(form);
 	const submit = useSubmit(form);

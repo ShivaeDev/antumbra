@@ -4,14 +4,6 @@ import { nodesByRef } from "#transcript/delegation.ts";
 import { openToolCalls } from "#transcript/tool-calls.ts";
 import type { SessionEvent, SessionTreeNode } from "#transcript/types.ts";
 
-const applyEvent = (state: Derivation, row: SessionEvent): void => {
-	switch (row.event._tag) {
-		case "Known":
-			applyKnownEvent(state, row.event.event, row.seq);
-			return;
-	}
-};
-
 export const deriveTranscript = (events: ReadonlyArray<SessionEvent>, nodes: ReadonlyArray<SessionTreeNode> = []): ReadonlyArray<TranscriptItem> => {
 	const items: TranscriptItem[] = [];
 	const state: Derivation = {
@@ -20,7 +12,7 @@ export const deriveTranscript = (events: ReadonlyArray<SessionEvent>, nodes: Rea
 		tools: openToolCalls(items),
 	};
 	for (const event of events) {
-		applyEvent(state, event);
+		applyKnownEvent(state, event.event, event.seq);
 	}
 	return state.items;
 };

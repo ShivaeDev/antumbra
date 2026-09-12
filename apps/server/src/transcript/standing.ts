@@ -49,8 +49,8 @@ export const sessionStanding = (events: ReadonlyArray<SessionEvent>, node?: Sess
 	const delegate = node !== undefined && node.depth > 0;
 	const fold: Folding = { background: [], open: new Map(), state: undefined, usage: undefined };
 	for (const row of events) {
-		if (row.event._tag === "Known" && belongsToNode(row.event.event, delegate)) {
-			step(fold, row.event.event);
+		if (belongsToNode(row.event, delegate)) {
+			step(fold, row.event);
 		}
 	}
 	return { background: fold.background, open: [...fold.open.values()], state: fold.state, usage: fold.usage };

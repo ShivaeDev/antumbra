@@ -3,7 +3,7 @@ import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/ev
 
 export interface SessionEvent {
 	readonly seq: number;
-	readonly event: { readonly _tag: "Known"; readonly event: AgentEvent };
+	readonly event: AgentEvent;
 }
 export interface SessionTreeNode {
 	readonly id: string;

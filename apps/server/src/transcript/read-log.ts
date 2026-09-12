@@ -16,7 +16,7 @@ export const readLog = Effect.fn("Transcript.readLog")(function* (logId: string,
 	const events: SessionEvent[] = [];
 	for (const reference of references) {
 		const entry = byCursor.get(reference.cursor);
-		if (entry?.event.type === "ProviderEvent") events.push({ seq: reference.sequence, event: { _tag: "Known", event: entry.event.event } });
+		if (entry?.event.type === "ProviderEvent") events.push({ seq: reference.sequence, event: entry.event.event });
 	}
 	const unavailable = references.some((reference) => !byCursor.has(reference.cursor)) ? ["Some earlier provider events are no longer retained."] : [];
 	return { events, unavailable };

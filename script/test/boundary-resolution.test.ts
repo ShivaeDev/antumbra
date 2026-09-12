@@ -12,7 +12,7 @@ const roots: string[] = [];
 const seedBareImport = (importedSubject: string, subjectsOnDisk: readonly string[]) => {
 	const root = realpathSync(mkdtempSync(join(tmpdir(), "antumbra-boundary-")));
 	roots.push(root);
-	const renderer = join(root, "packages/renderer/src/view.ts");
+	const renderer = join(root, "packages/glass/renderer/src/view.ts");
 	const vocabulary = join(root, "packages/platform/vocabulary");
 	mkdirSync(dirname(renderer), { recursive: true });
 	mkdirSync(join(vocabulary, "src"), { recursive: true });
@@ -25,9 +25,9 @@ const seedBareImport = (importedSubject: string, subjectsOnDisk: readonly string
 		mkdirSync(join(vocabulary, "src", subject), { recursive: true });
 		writeFileSync(join(vocabulary, `src/${subject}/leaf.ts`), "export {};\n");
 	}
-	const modules = join(root, "packages/renderer/node_modules/@antumbra");
+	const modules = join(root, "packages/glass/renderer/node_modules/@antumbra");
 	mkdirSync(modules, { recursive: true });
-	symlinkSync("../../../platform/vocabulary", join(modules, "platform-vocabulary"), "dir");
+	symlinkSync("../../../../platform/vocabulary", join(modules, "platform-vocabulary"), "dir");
 	return root;
 };
 
@@ -40,14 +40,6 @@ afterEach(() => {
 });
 
 describe("workspace package resolution", () => {
-	it("catches a forbidden bare workspace import under its exact fence", () => {
-		const result = run(seedBareImport("agent-runtime", ["agent-runtime"]));
-		expect(result.status).toBe(1);
-		expect(result.stderr).toContain(
-			"renderer-uses-session-event-vocabulary: packages/renderer/src/view.ts → packages/platform/vocabulary/src/agent-runtime/leaf.ts",
-		);
-	});
-
 	it("accepts a legal bare workspace import", () => {
 		const result = run(seedBareImport("session-events", ["session-events"]));
 		expect(result.status).toBe(0);
@@ -58,7 +50,7 @@ describe("workspace package resolution", () => {
 		const result = run(seedBareImport("agent-runtime", ["session-events"]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(
-			"dependency-cruiser could not resolve workspace specifier @antumbra/platform-vocabulary/agent-runtime/leaf.ts from packages/renderer/src/view.ts",
+			"dependency-cruiser could not resolve workspace specifier @antumbra/platform-vocabulary/agent-runtime/leaf.ts from packages/glass/renderer/src/view.ts",
 		);
 	});
 });

@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { compileBoundaryPolicy } from "#boundaries/compiler.ts";
 import { boundaryPolicyInventory, compiledBoundaryPolicy } from "#boundaries/config.ts";
-import { anyOf, packages } from "#boundaries/dsl.ts";
+import { anyOf, files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.ts";
 import type { BoundaryRule, ImportSource } from "#boundaries/model.ts";
-import { boundaryPolicy } from "#boundaries/policy.ts";
-import { failPolicy } from "#boundaries/validation.ts";
 
-const vocabularyRule =
-	boundaryPolicy.find((rule): rule is Extract<BoundaryRule, { readonly kind: "vocabulary-access" }> => rule.kind === "vocabulary-access") ??
-	failPolicy("Boundary policy has no vocabulary rule");
+const vocabularyRule = vocabularyAccess("subject-inventory-under-test")
+	.because("The compiler validates vocabulary subjects against the workspace inventory.")
+	.for(packages.named("domain-pieces"))
+	.allowsOnly("id")
+	.demonstratedBy({
+		illegal: importFrom(files.inPackage("server/domains/pieces", "src/ids.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
+		legal: importFrom(files.inPackage("server/domains/pieces", "src/ids.ts")).to(files.inPackage("platform/vocabulary", "src/id.ts")),
+	});
 
 const withConsumers = (consumers: ImportSource): BoundaryRule => ({
 	...vocabularyRule,

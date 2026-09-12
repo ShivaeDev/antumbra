@@ -56,6 +56,17 @@ const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
 	);
 	return observer;
 });
+const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(function* (row: Parameters<typeof publish>[0], error: unknown) {
+	const commit = yield* Commit;
+	yield* commit
+		.commit(failPublication, {
+			requestId: Request.make(make()),
+			changeId: row.id,
+			attemptId: row.publicationRequestId ?? "",
+			message: String(error),
+		})
+		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+});
 export const watchChanges = Effect.gen(function* () {
 	const hosts = yield* ChangeHosts;
 	const observers = yield* Effect.forEach(hosts, watchHost);
@@ -66,19 +77,7 @@ export const watchChanges = Effect.gen(function* () {
 		(row) =>
 			publish(row).pipe(
 				Effect.asVoid,
-				Effect.catch((error) =>
-					Effect.gen(function* () {
-						const commit = yield* Commit;
-						yield* commit
-							.commit(failPublication, {
-								requestId: Request.make(make()),
-								changeId: row.id,
-								attemptId: row.publicationRequestId ?? "",
-								message: String(error),
-							})
-							.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-					}),
-				),
+				Effect.catch((error) => recordPublicationFailure(row, error)),
 			),
 	);
 	const adopter = yield* each(

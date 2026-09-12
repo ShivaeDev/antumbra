@@ -2,7 +2,7 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { land } from "@antumbra/domain-reports/commands/land.ts";
 import { answered, onPiece } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind, defineTool } from "@antumbra/platform-tool-schemas/define.ts";
-import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
+import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect, Schema } from "effect";
 

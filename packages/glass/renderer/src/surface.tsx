@@ -38,7 +38,7 @@ export const Surface = (props: RendererProps) => {
 	const [notice, setNotice] = useState<string>();
 	return (
 		<ExternalLinkContext value={props.shell.openExternal}>
-			<NoticeBar feedErrors={[]} notice={notice} onDismiss={() => setNotice(undefined)} />
+			<NoticeBar notice={notice} onDismiss={() => setNotice(undefined)} />
 			{AsyncResult.match(located, {
 				onInitial: () => <Notice words="taking a sight…" />,
 				onFailure: () => <PlacedSurface {...props} place={undefined} onError={setNotice} />,

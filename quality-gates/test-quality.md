@@ -39,3 +39,7 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
     feature.
 15. Use a short, concrete behavior name for each test. Keep the title on one line and put setup details in the test body. Do not repeat context
     already supplied by the suite or file.
+16. Application tests use the shared interaction and answer helpers: `fill` for labelled fields, `press` for named buttons, `answered` for the first
+    query answer, and `eventually` for the first matching answer. Keep domain actions and expected outcomes visible in the test. Lint catches the
+    equivalent repeated plumbing and local application setup in these consumers; primitive tests and the shared framework retain their own machinery.
+    Ordinary DOM queries and stream operations remain available when they are the behavior under test.

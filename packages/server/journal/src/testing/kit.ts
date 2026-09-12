@@ -2,7 +2,7 @@ import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
-import { Duration, Effect, type Schema, Scope, Stream } from "effect";
+import { Duration, Effect, Schema, Scope, Stream } from "effect";
 import * as TestClock from "effect/testing/TestClock";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
@@ -14,22 +14,11 @@ import { readHandle } from "#read-handle.ts";
 import { commitsOf } from "#testing/commits.ts";
 import type { Emissions, TestKit } from "#testing/surface.ts";
 import { type Watch, watching } from "#testing/watch.ts";
-import { writeHandle } from "#write-handle.ts";
 
 type Reactive = Reactivity["Service"];
 
 const readsOf = (registry: Registry, sql: SqlClient): Record<string, unknown> =>
 	Object.fromEntries(registry.rows.map((row) => [row.name, readHandle(sql, codecOf(registry, row))]));
-
-const seedOne = (registry: Registry, sql: SqlClient, reactivity: Reactive, row: RowShape) => (value: unknown) =>
-	Effect.gen(function* () {
-		const dirty = new Set<string>();
-		yield* writeHandle(sql, codecOf(registry, row), (key) => dirty.add(key)).insert(value);
-		yield* reactivity.invalidate([...dirty]);
-	});
-
-const seedsOf = (registry: Registry, sql: SqlClient, reactivity: Reactive): Record<string, unknown> =>
-	Object.fromEntries(registry.rows.map((row) => [row.name, seedOne(registry, sql, reactivity, row)]));
 
 const liveOf =
 	(live: LiveService, reactivity: Reactive, scope: Scope.Scope, watches: Watch[]) =>
@@ -44,10 +33,18 @@ const liveOf =
 			yield* Effect.addFinalizer(() => Effect.sync(watch.cancel));
 			const tracked = {
 				...query,
-				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1]) =>
-					watch.around(Effect.tap(query.run(given, rows), (value) => Effect.sync(() => seen.push(value)))),
+				// The union keeps query field modifiers out of the delivery envelope.
+				output: Schema.Struct({ value: Schema.Union([query.output]), generation: Schema.Number }),
+				run: (given: Values<Input>, rows: Parameters<typeof query.run>[1]) => watch.around(query.run(given, rows)),
 			};
-			yield* Effect.forkScoped(Stream.runDrain(live.live(tracked, input)));
+			yield* Effect.forkScoped(
+				Stream.runForEach(live.live(tracked, input), ({ value, generation }) =>
+					Effect.sync(() => {
+						seen.push(value);
+						watch.delivered(generation);
+					}),
+				),
+			);
 			return { seen: Effect.sync(() => [...seen]) };
 		}).pipe(Effect.provideService(Scope.Scope, scope));
 
@@ -68,7 +65,6 @@ export function kit(definition: AppDefinition): unknown {
 			commit: commitsOf(definition, commit),
 			live: liveOf(live, reactivity, scope, watches),
 			rows: readsOf(registry, database.read),
-			seed: seedsOf(registry, database.write, reactivity),
 			settle: () => Effect.forEach(watches, (watch) => watch.settled, { discard: true }),
 		};
 	});

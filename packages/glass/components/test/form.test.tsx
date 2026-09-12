@@ -1,8 +1,8 @@
-import { labelled, settle, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { eventually } from "@antumbra/app-testing/answers.ts";
+import { fill, form, labelled, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { expect } from "@effect/vitest";
-import { Option, Stream } from "effect";
 import { CommandForm } from "#form.tsx";
 
 const FIXED = ["role"] as const;
@@ -23,7 +23,7 @@ const offered = (container: HTMLElement, label: string): readonly string[] => {
 
 it.glass("draws the choices allowed by the command schema", function* ({ api, render }) {
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 4);
+	yield* renderedForm(container, "Flagship");
 	expect([...labelled<HTMLSelectElement>(container, "Flagship Backend").options].map((option) => option.value)).toEqual([
 		"",
 		"claude",
@@ -33,7 +33,7 @@ it.glass("draws the choices allowed by the command schema", function* ({ api, re
 	]);
 });
 
-it.glass("offers models from the backend selected in the form", function* ({ api, render }) {
+it.glass("clears dependent choices when the backend changes", function* ({ api, render }) {
 	yield* api.backends.listModels({
 		backend: "claude",
 		failure: null,
@@ -47,59 +47,51 @@ it.glass("offers models from the backend selected in the form", function* ({ api
 			{ model: "gpt-mini", name: "GPT mini", efforts: ["medium", "high"], isDefault: false },
 		],
 	});
+	yield* api.roleSettings.choose({ backend: "claude", model: "opus", effort: "high", role: "flagship", scope: "fleet" });
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 4);
-	yield* settle(() => write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "claude"));
-	yield* until(() => offered(container, "Flagship Model").length === 1);
+	yield* renderedForm(container, "Flagship");
+	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("opus");
+	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("high");
+	yield* until(() => offered(container, "Flagship Model").length === 1, "the Claude model option to appear");
 	expect(offered(container, "Flagship Model")).toEqual(["opus"]);
-	yield* settle(() => write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "codex"));
-	yield* until(() => offered(container, "Flagship Model").length === 2);
+	yield* fill(container, "Flagship Backend", "codex");
+	yield* until(() => offered(container, "Flagship Model").length === 2, "both Codex model options to appear");
 	expect(offered(container, "Flagship Model")).toEqual(["gpt", "gpt-mini"]);
+	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("");
+	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("");
+	yield* submit(container, "Flagship");
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.backend === "codex"));
+	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "codex", model: null, effort: null });
 });
 
 it.glass("saves a model absent from the catalogue", function* ({ api, render }) {
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 4);
-	yield* settle(() => write(labelled<HTMLInputElement>(container, "Captain Model"), "gpt-6-astra"));
-	yield* submit(container, 1);
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "captain" && row.model === "gpt-6-astra")),
-			Stream.runHead,
-		),
-	);
+	yield* renderedForm(container, "Captain");
+	yield* fill(container, "Captain Model", "gpt-6-astra");
+	yield* submit(container, "Captain");
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "captain" && row.model === "gpt-6-astra"));
 	expect(saved.find((row) => row.role === "captain")).toMatchObject({ model: "gpt-6-astra", scope: "fleet" });
 });
 
 it.glass("saves the changed row and settles clean", function* ({ api, render }) {
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelectorAll("form").length === 4);
-	const save = () => container.querySelector("form button");
+	yield* renderedForm(container, "Flagship");
+	const save = () => form(container, "Flagship").querySelector<HTMLButtonElement>('button[type="submit"]');
 	expect(save()).toHaveProperty("disabled", true);
-	yield* settle(() => write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "claude"));
+	yield* fill(container, "Flagship Backend", "claude");
 	expect(save()).toHaveProperty("disabled", false);
-	yield* submit(container, 0);
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "flagship" && row.backend === "claude")),
-			Stream.runHead,
-		),
-	);
+	yield* submit(container, "Flagship");
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.backend === "claude"));
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "claude", effort: null, model: null, scope: "fleet" });
-	yield* until(() => container.querySelector<HTMLButtonElement>("form button")?.disabled === true);
+	yield* until(() => save()?.disabled === true, "Save to become disabled after saving");
 });
 
 it.glass("saves an empty optional choice as null", function* ({ api, render }) {
 	yield* api.roleSettings.choose({ backend: "codex", effort: null, model: "gpt", role: "crew", scope: "fleet" });
 	const container = yield* render(<Board api={api} />);
-	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt");
-	yield* settle(() => write(labelled<HTMLInputElement>(container, "Crew Model"), ""));
-	yield* submit(container, 2);
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "crew" && row.model === null)),
-			Stream.runHead,
-		),
-	);
+	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt", "the saved crew model to show gpt");
+	yield* fill(container, "Crew Model", "");
+	yield* submit(container, "Crew");
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "crew" && row.model === null));
 	expect(saved.find((row) => row.role === "crew")).toMatchObject({ backend: "codex", model: null });
 });

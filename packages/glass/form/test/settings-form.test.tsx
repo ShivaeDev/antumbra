@@ -135,12 +135,22 @@ beforeEach(() => {
 
 afterEach(() => vi.useRealTimers());
 
-it.live("shows a field error for an invalid number", () =>
+it.live("submits only after invalid input is corrected", () =>
 	Effect.gen(function* () {
-		const container = yield* shown(makeForm([]));
+		const submitted: Settings[] = [];
+		const container = yield* shown(makeForm(submitted));
+		yield* typing(container, "name", "  Deployment  ");
+		yield* typing(container, "slug", "staging");
 		yield* typing(container, "retries", "abc");
+		yield* clicking(container, "Save");
 		expect(said(container, "retries")).not.toBe("");
 		expect(said(container, "name")).toBe("");
+		expect(submitted).toEqual([]);
+
+		yield* typing(container, "retries", "12");
+		expect(said(container, "retries")).toBe("");
+		yield* clicking(container, "Save");
+		expect(submitted).toEqual([{ backend: "local", name: "Deployment", retries: 12, slug: "staging" }]);
 	}),
 );
 
@@ -200,28 +210,22 @@ it.live("clears the async check message once the slug is free", () =>
 	}),
 );
 
-it.live("hands decoded values to onSubmit", () =>
+it.live("clears a submit rejection after correction", () =>
 	Effect.gen(function* () {
 		const submitted: Settings[] = [];
 		const container = yield* shown(makeForm(submitted));
-		yield* typing(container, "name", "  Deployment  ");
-		yield* typing(container, "retries", "12");
-		yield* typing(container, "slug", "staging");
-		yield* clicking(container, "Save");
-		expect(submitted).toHaveLength(1);
-		expect(submitted[0]).toEqual({ backend: "local", name: "Deployment", retries: 12, slug: "staging" });
-		expect(typeof submitted[0]?.retries).toBe("number");
-	}),
-);
-
-it.live("puts a tagged submit failure on the field it names", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(makeForm([]));
 		yield* typing(container, "name", "Ops");
 		yield* typing(container, "slug", "root");
 		yield* clicking(container, "Save");
 		expect(said(container, "slug")).toBe(`"root" is already in use`);
 		expect(said(container, "name")).toBe("");
+		expect(submitted).toEqual([]);
+
+		yield* typing(container, "slug", "staging");
+		yield* advance(20);
+		expect(said(container, "slug")).toBe("");
+		yield* clicking(container, "Save");
+		expect(submitted).toEqual([{ backend: "local", name: "Ops", retries: 1, slug: "staging" }]);
 	}),
 );
 

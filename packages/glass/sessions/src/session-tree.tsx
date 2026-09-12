@@ -1,4 +1,5 @@
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import type { tree } from "@antumbra/domain-sessions/queries/tree.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { cn } from "@antumbra/glass-components/class-names.ts";
@@ -25,6 +26,23 @@ const words = (node: typeof session.Row.Type): string => {
 	return node.completeness === "incomplete" ? `${state} · Record incomplete` : state;
 };
 
+const TreeNode = (props: {
+	readonly node: (typeof tree.output.Type)[number];
+	readonly selected: string;
+	readonly onSelect: (id: string) => void;
+}) => (
+	<button
+		type="button"
+		aria-current={props.selected === props.node.id ? "true" : undefined}
+		className={cn("flex gap-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent", props.selected === props.node.id && "bg-secondary")}
+		style={{ paddingLeft: `${0.5 + props.node.depth * 0.75}rem` }}
+		onClick={() => props.onSelect(props.node.id)}
+	>
+		<span className="min-w-0 flex-1 truncate">{props.node.displayName}</span>
+		<span className="text-muted-foreground">{words(props.node)}</span>
+	</button>
+);
+
 export const SessionTreePanel = (props: {
 	readonly api: Pick<SessionsApi, "sessions">;
 	readonly sessionId: string;
@@ -40,21 +58,7 @@ export const SessionTreePanel = (props: {
 						<button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="px-2 py-1 text-left text-xs">
 							Delegated work
 						</button>
-						{open
-							? nodes.map((node) => (
-									<button
-										key={node.id}
-										type="button"
-										aria-current={props.selected === node.id ? "true" : undefined}
-										className={cn("flex gap-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent", props.selected === node.id && "bg-secondary")}
-										style={{ paddingLeft: `${0.5 + node.depth * 0.75}rem` }}
-										onClick={() => props.onSelect(node.id)}
-									>
-										<span className="min-w-0 flex-1 truncate">{node.displayName}</span>
-										<span className="text-muted-foreground">{words(node)}</span>
-									</button>
-								))
-							: null}
+						{open ? nodes.map((node) => <TreeNode node={node} selected={props.selected} onSelect={props.onSelect} key={node.id} />) : null}
 					</section>
 				)
 			}

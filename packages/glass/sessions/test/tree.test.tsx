@@ -43,6 +43,7 @@ it.glass("delegated work appears from runner evidence and opens its transcript",
 			at: 101,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId,
 				event: {
 					type: "subsession.opened",

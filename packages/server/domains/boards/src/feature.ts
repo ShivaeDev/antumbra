@@ -12,6 +12,7 @@ import { noteWrittenMaterializer } from "#materializers/note-written.ts";
 import { pieceSummaryWrittenMaterializer } from "#materializers/piece-summary-written.ts";
 import { summaryWrittenMaterializer } from "#materializers/summary-written.ts";
 import { digest } from "#queries/digest.ts";
+import { display } from "#queries/display.ts";
 import { entries } from "#queries/entries.ts";
 import { under } from "#queries/under.ts";
 import { boardEntry } from "#rows/board-entry.ts";
@@ -45,5 +46,5 @@ export const boards = feature("boards", {
 		smoothingSessionBoundMaterializer,
 		smoothingSessionFinishedMaterializer,
 	],
-	queries: [entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
+	queries: [display, entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
 });

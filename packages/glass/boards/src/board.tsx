@@ -66,15 +66,15 @@ const BoardContents = (props: {
 			: "No summary yet; one is written at the end of each day or when you smooth now";
 	const board = props.board;
 	return (
-		<Live input={{ board }} query={props.api.boards.digest}>
+		<Live input={{ board }} query={props.api.boards.display}>
 			{(entries) =>
 				entries.length === 0 ? (
 					<p className="text-2xs text-muted-foreground">{EMPTY}</p>
 				) : (
 					<>
 						<p className="text-2xs text-muted-foreground">{EXPLAINER}</p>
-						{entries.some((entry) => entry.kind === "summary") ? null : <p className="text-2xs text-muted-foreground">{noSummary}</p>}
-						<BoardNodes api={props.api} board={board} entries={entries} name={props.name} onPiece={props.onPiece} />
+						{entries.some((node) => node.entry.kind === "summary") ? null : <p className="text-2xs text-muted-foreground">{noSummary}</p>}
+						<BoardNodes api={props.api} depth={0} nodes={entries} name={props.name} onPiece={props.onPiece} />
 					</>
 				)
 			}

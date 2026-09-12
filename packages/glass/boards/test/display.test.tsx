@@ -39,7 +39,20 @@ it.glass("keeps rough board evidence behind its live summary", function* ({ api,
 	});
 	yield* until(() => container.textContent?.includes("Use the western approach") === true, "the new summary");
 	expect(container.textContent).not.toContain("The eastern shoal");
-	yield* press(container, "Entries behind this summary");
+	yield* api.boards.summarize({
+		requestId: Id.Request.make("piece-summary"),
+		board,
+		author: "smoother",
+		body: "The reef is charted",
+		coversFrom: 1,
+		coversTo: 2,
+		level: "piece",
+	});
+	yield* until(() => container.textContent?.includes("The reef is charted") === true, "the encompassing summary");
+	expect(container.textContent).not.toContain("Use the western approach");
+	yield* press(container, "1 day · 1 entry");
+	yield* until(() => container.textContent?.includes("Use the western approach") === true, "the nested day summary");
+	yield* press(container, "1 entry");
 	yield* until(() => container.textContent?.includes("The eastern shoal") === true, "the covered evidence");
 	expect(container.textContent).toContain("Smoother");
 });

@@ -45,6 +45,7 @@
 		"@antumbra/glass-voyages": "workspace:*",
 		"@antumbra/platform-shell": "workspace:*",
 		"@antumbra/domain-artifacts": "workspace:*",
-		"react-dom": "catalog:"
+		"react-dom": "catalog:",
+		"@antumbra/domain-voyages": "workspace:*"
 	}
 }

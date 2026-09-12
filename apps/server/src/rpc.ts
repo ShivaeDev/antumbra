@@ -14,5 +14,5 @@ export const rpc = group(features).merge(
 	TranscriptRpc.middleware(Token),
 	LifecycleRpc,
 	RunnerRpc,
-	StartsRpc,
+	StartsRpc.middleware(Token),
 );

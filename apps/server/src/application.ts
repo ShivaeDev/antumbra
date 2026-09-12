@@ -16,7 +16,6 @@ import { runtime } from "#runtime.ts";
 import { execution } from "#sessions/execution/service.ts";
 import { servingStarts } from "#starts/handlers.ts";
 import { resources } from "#starts/resources.ts";
-import { rulingReconciliation } from "#tools/rulings/reconciliation.ts";
 import { transcriptLayer } from "#transcript/route.ts";
 
 export const definition = app(features, projections);
@@ -34,7 +33,6 @@ const delivery = Layer.mergeAll(inputDeliveryLayer, execution, resources, artifa
 
 export const application = Layer.mergeAll(
 	runtime,
-	rulingReconciliation,
 	servingStarts,
 	serving(definition.features),
 	artifactContentHandlers,

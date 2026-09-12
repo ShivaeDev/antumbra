@@ -28,7 +28,7 @@ it.glass("rejects a blank name", function* ({ api, render }) {
 	const name = labelled<HTMLInputElement>(opening, "Open voyage Name");
 	yield* write(name, "   ");
 	yield* submit(container, "Open voyage");
-	yield* until(() => name.getAttribute("aria-invalid") === "true");
+	yield* until(() => name.getAttribute("aria-invalid") === "true", "the name field to show its validation error");
 	expect(container.textContent).toContain("A voyage needs a name");
 	expect(name.value).toBe("   ");
 	expect(yield* answered(api.voyages.list({}))).toEqual([]);
@@ -58,7 +58,10 @@ it.glass("opens a voyage and resets the form", function* ({ api, render }) {
 			northStar: "every shoal is known",
 		},
 	]);
-	yield* until(() => labelled<HTMLInputElement>(form(container, "Open voyage"), "Open voyage Name").value === "");
+	yield* until(
+		() => labelled<HTMLInputElement>(form(container, "Open voyage"), "Open voyage Name").value === "",
+		"the voyage name to clear after opening",
+	);
 	expect(labelled<HTMLTextAreaElement>(form(container, "Open voyage"), "Open voyage Context").value).toBe("");
 	expect(opened).toBe(1);
 });

@@ -24,7 +24,7 @@ export const mount = () =>
 		return { container, root };
 	});
 
-export const until = (ready: () => boolean, description = "the glass to settle"): Effect.Effect<void> =>
+export const until = (ready: () => boolean, description: string): Effect.Effect<void> =>
 	Effect.gen(function* () {
 		for (let attempt = 0; attempt < 200; attempt += 1) {
 			yield* settle(() => undefined);

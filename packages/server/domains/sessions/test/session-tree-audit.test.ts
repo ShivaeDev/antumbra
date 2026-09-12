@@ -18,28 +18,29 @@ const opened = (subsessionRef: string, parentRef = "native-root"): AgentEvent =>
 	raw,
 });
 const provider = (event: AgentEvent, observation: "live" | "audit" = "live"): LogEvent => ({ type: "ProviderEvent", sessionId, observation, event });
-const connect = Effect.gen(function* () {
-	const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["codex", "claude"], imageInputBackends: [] });
-	let cursor = 0;
-	const append = (events: readonly LogEvent[]) => runner.append(events.map((event) => ({ logId: "log", at: 100, cursor: cursor++, event })));
-	yield* append([
-		{
-			type: "SessionStarted",
-			sessionId,
-			requestId: "start",
-			agentId: "agent",
-			backend: "codex",
-			cwd: "/berth",
-			nativeRef: "native-root",
-			runnerId: "runner",
-			toolSetVersion: "tools",
-		},
-	]);
-	return append;
-});
+const connect = (backend = "codex") =>
+	Effect.gen(function* () {
+		const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: [backend], imageInputBackends: [] });
+		let cursor = 0;
+		const append = (events: readonly LogEvent[]) => runner.append(events.map((event) => ({ logId: "log", at: 100, cursor: cursor++, event })));
+		yield* append([
+			{
+				type: "SessionStarted",
+				sessionId,
+				requestId: "start",
+				agentId: "agent",
+				backend,
+				cwd: "/berth",
+				nativeRef: "native-root",
+				runnerId: "runner",
+				toolSetVersion: "tools",
+			},
+		]);
+		return append;
+	});
 
 it.app("a census admits the missing nested child once and preserves its parent and gap", function* (app) {
-	const append = yield* connect;
+	const append = yield* connect();
 	yield* append([provider(opened("branch"))]);
 	const sweep = [
 		{ threadId: "branch", parentThreadId: "native-root", agentNickname: undefined, agentPath: undefined, agentRole: undefined, working: false },
@@ -71,7 +72,7 @@ it.app("a census admits the missing nested child once and preserves its parent a
 });
 
 it.app("an unreadable census records uncertainty without inventing a child", function* (app) {
-	const append = yield* connect;
+	const append = yield* connect();
 	const census = censusUnreadable("native-root", "provider unavailable");
 	yield* append([...census.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: census.nodes }]);
 	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }))).toHaveLength(1);
@@ -80,7 +81,7 @@ it.app("an unreadable census records uncertainty without inventing a child", fun
 });
 
 it.app("node audit completion preserves a missing transcript line and does not restart closed work", function* (app) {
-	const append = yield* connect;
+	const append = yield* connect("claude");
 	yield* append([
 		provider(opened("complete")),
 		provider(opened("gapped")),
@@ -117,4 +118,24 @@ it.app("node audit completion preserves a missing transcript line and does not r
 	]);
 	expect(yield* app.rows.sessionEvent.where({ sessionId: gapped.id })).toHaveLength(2);
 	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native-root", executionStatus: "idle" });
+});
+
+it.app("a late announcement reparents an already recorded child without moving its words to the root", function* (app) {
+	const append = yield* connect();
+	yield* append([
+		provider({ type: "message", role: "agent", text: "reading the ledger", origin: { node: "leaf", spawnedBy: "leaf-call" }, raw }),
+		provider(opened("branch")),
+		provider({ type: "subsession.opened", subsessionRef: "leaf", spawnedBy: "leaf-call", parentRef: "branch", kind: "auditor", raw }),
+		provider({ type: "subsession.ended", subsessionRef: "leaf", outcome: "interrupted", raw }),
+	]);
+	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const branch = tree.find((node) => node.nativeRef === "branch");
+	const leaf = tree.find((node) => node.nativeRef === "leaf");
+	if (branch === undefined || leaf === undefined) return yield* Effect.die("delegated nodes missing");
+	expect(tree).toHaveLength(3);
+	expect(leaf).toMatchObject({ parentSessionId: branch.id, kind: "auditor", completeness: "incomplete", status: "closed", outcome: "interrupted" });
+	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toMatchObject([{ kind: "adopted-late" }]);
+	expect(yield* app.rows.sessionEvent.where({ sessionId: leaf.id })).toMatchObject([{ cursor: 1 }]);
+	expect((yield* app.rows.sessionEvent.where({ sessionId })).map((event) => event.cursor)).toEqual([2, 3, 4]);
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native-root" });
 });

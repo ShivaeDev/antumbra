@@ -164,38 +164,6 @@ model SessionInputPart {
   @@index([attachmentId])
 }
 
-model Piece {
-  id          String    @id
-  title       String
-  charter     String
-  expectation String
-  role        String
-  launchedAt  DateTime?
-  parkedAt    DateTime?
-  createdAt   DateTime  @default(now())
-  reports     PieceReport[]
-  artifacts   Artifact[]
-  rulingSubjects RulingSubject[]
-  rulingGates RulingGate[]
-}
-
-model VoyagePiece {
-  voyageId  String
-  pieceId   String
-  createdAt DateTime @default(now())
-
-  @@id([voyageId, pieceId])
-  @@index([pieceId])
-}
-
-model PieceEdge {
-  fromPieceId String
-  toPieceId   String
-
-  @@id([fromPieceId, toPieceId])
-  @@index([toPieceId])
-}
-
 model PieceAgent {
   pieceId    String
   agentId    String
@@ -233,7 +201,6 @@ model Artifact {
   byteSize               Int
   basename               String
   createdAt              DateTime @default(now())
-  piece                  Piece     @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   supersededBy           Artifact? @relation("ArtifactSupersession", fields: [supersededByArtifactId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   supersedes             Artifact[] @relation("ArtifactSupersession")
 
@@ -243,7 +210,6 @@ model Artifact {
 model PieceReport {
   pieceId  String
   reportId String
-  piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   report   Report @relation(fields: [reportId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@id([pieceId, reportId])
@@ -308,12 +274,6 @@ model PieceChange {
 
 model ChangeVerdict {
   changeId String   @id
-  verdict  String
-  landedAt DateTime @default(now())
-}
-
-model PieceVerdict {
-  pieceId  String   @id
   verdict  String
   landedAt DateTime @default(now())
 }
@@ -425,7 +385,6 @@ model RulingSubject {
   tag      String?
   ruling   Ruling  @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   repo     Repo?   @relation(fields: [repoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  piece    Piece?  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   agent    Agent?  @relation(fields: [agentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([tag])
@@ -436,7 +395,6 @@ model RulingGate {
   rulingId String
   pieceId  String
   ruling   Ruling @relation(fields: [rulingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  piece    Piece  @relation(fields: [pieceId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@unique([rulingId, pieceId])
 }

@@ -68,6 +68,10 @@
       "model": "Moorage",
       "namespace": "__unbound__"
     },
+    "piece": {
+      "model": "Piece",
+      "namespace": "__unbound__"
+    },
     "pieceAgent": {
       "model": "PieceAgent",
       "namespace": "__unbound__"
@@ -76,8 +80,16 @@
       "model": "PieceChange",
       "namespace": "__unbound__"
     },
+    "pieceEdge": {
+      "model": "PieceEdge",
+      "namespace": "__unbound__"
+    },
     "pieceReport": {
       "model": "PieceReport",
+      "namespace": "__unbound__"
+    },
+    "pieceVerdict": {
+      "model": "PieceVerdict",
       "namespace": "__unbound__"
     },
     "repo": {
@@ -130,6 +142,10 @@
     },
     "voyageAgent": {
       "model": "VoyageAgent",
+      "namespace": "__unbound__"
+    },
+    "voyagePiece": {
+      "model": "VoyagePiece",
       "namespace": "__unbound__"
     }
   },
@@ -654,6 +670,21 @@
               }
             },
             "relations": {
+              "piece": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pieceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Piece",
+                  "namespace": "__unbound__"
+                }
+              },
               "supersededBy": {
                 "cardinality": "N:1",
                 "on": {
@@ -1811,6 +1842,158 @@
               "table": "moorage"
             }
           },
+          "Piece": {
+            "fields": {
+              "charter": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "expectation": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "launchedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "parkedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "role": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "artifacts": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "pieceId"
+                  ]
+                },
+                "to": {
+                  "model": "Artifact",
+                  "namespace": "__unbound__"
+                }
+              },
+              "reports": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "pieceId"
+                  ]
+                },
+                "to": {
+                  "model": "PieceReport",
+                  "namespace": "__unbound__"
+                }
+              },
+              "rulingGates": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "pieceId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingGate",
+                  "namespace": "__unbound__"
+                }
+              },
+              "rulingSubjects": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "pieceId"
+                  ]
+                },
+                "to": {
+                  "model": "RulingSubject",
+                  "namespace": "__unbound__"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "charter": {
+                  "column": "charter"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "expectation": {
+                  "column": "expectation"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "launchedAt": {
+                  "column": "launchedAt"
+                },
+                "parkedAt": {
+                  "column": "parkedAt"
+                },
+                "role": {
+                  "column": "role"
+                },
+                "title": {
+                  "column": "title"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "piece"
+            }
+          },
           "PieceAgent": {
             "fields": {
               "agentId": {
@@ -1893,6 +2076,37 @@
               "table": "pieceChange"
             }
           },
+          "PieceEdge": {
+            "fields": {
+              "fromPieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "toPieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "fromPieceId": {
+                  "column": "fromPieceId"
+                },
+                "toPieceId": {
+                  "column": "toPieceId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "pieceEdge"
+            }
+          },
           "PieceReport": {
             "fields": {
               "pieceId": {
@@ -1911,6 +2125,21 @@
               }
             },
             "relations": {
+              "piece": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pieceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Piece",
+                  "namespace": "__unbound__"
+                }
+              },
               "report": {
                 "cardinality": "N:1",
                 "on": {
@@ -1938,6 +2167,47 @@
               },
               "namespaceId": "__unbound__",
               "table": "pieceReport"
+            }
+          },
+          "PieceVerdict": {
+            "fields": {
+              "landedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "pieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "verdict": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "landedAt": {
+                  "column": "landedAt"
+                },
+                "pieceId": {
+                  "column": "pieceId"
+                },
+                "verdict": {
+                  "column": "verdict"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "pieceVerdict"
             }
           },
           "Repo": {
@@ -2715,6 +2985,21 @@
               }
             },
             "relations": {
+              "piece": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pieceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Piece",
+                  "namespace": "__unbound__"
+                }
+              },
               "ruling": {
                 "cardinality": "N:1",
                 "on": {
@@ -2941,6 +3226,21 @@
                 },
                 "to": {
                   "model": "Agent",
+                  "namespace": "__unbound__"
+                }
+              },
+              "piece": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pieceId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Piece",
                   "namespace": "__unbound__"
                 }
               },
@@ -3414,6 +3714,47 @@
               "namespaceId": "__unbound__",
               "table": "voyageAgent"
             }
+          },
+          "VoyagePiece": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/datetime@1",
+                  "kind": "scalar"
+                }
+              },
+              "pieceId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "voyageId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sqlite/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "pieceId": {
+                  "column": "pieceId"
+                },
+                "voyageId": {
+                  "column": "voyageId"
+                }
+              },
+              "namespaceId": "__unbound__",
+              "table": "voyagePiece"
+            }
           }
         }
       }
@@ -3736,6 +4077,26 @@
                 }
               },
               "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "pieceId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "artifact"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "piece"
+                  }
+                },
                 {
                   "constraint": true,
                   "index": true,
@@ -4542,6 +4903,62 @@
               },
               "uniques": []
             },
+            "piece": {
+              "columns": {
+                "charter": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "expectation": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "launchedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "parkedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "role": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "title": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "pieceAgent": {
               "columns": {
                 "agentId": {
@@ -4618,6 +5035,35 @@
               },
               "uniques": []
             },
+            "pieceEdge": {
+              "columns": {
+                "fromPieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "toPieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "toPieceId"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "fromPieceId",
+                  "toPieceId"
+                ]
+              },
+              "uniques": []
+            },
             "pieceReport": {
               "columns": {
                 "pieceId": {
@@ -4632,6 +5078,26 @@
                 }
               },
               "foreignKeys": [
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "pieceId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "pieceReport"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "piece"
+                  }
+                },
                 {
                   "constraint": true,
                   "index": true,
@@ -4658,6 +5124,37 @@
                 "columns": [
                   "pieceId",
                   "reportId"
+                ]
+              },
+              "uniques": []
+            },
+            "pieceVerdict": {
+              "columns": {
+                "landedAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "pieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "verdict": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "pieceId"
                 ]
               },
               "uniques": []
@@ -5170,6 +5667,26 @@
                     "namespaceId": "__unbound__",
                     "tableName": "ruling"
                   }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "pieceId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingGate"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "piece"
+                  }
                 }
               ],
               "indexes": [],
@@ -5368,6 +5885,26 @@
                     ],
                     "namespaceId": "__unbound__",
                     "tableName": "repo"
+                  }
+                },
+                {
+                  "constraint": true,
+                  "index": true,
+                  "onDelete": "restrict",
+                  "onUpdate": "restrict",
+                  "source": {
+                    "columns": [
+                      "pieceId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "rulingSubject"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "piece"
                   }
                 },
                 {
@@ -5717,13 +6254,51 @@
                 ]
               },
               "uniques": []
+            },
+            "voyagePiece": {
+              "columns": {
+                "createdAt": {
+                  "codecId": "sqlite/datetime@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "pieceId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "voyageId": {
+                  "codecId": "sqlite/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "pieceId"
+                  ]
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "voyageId",
+                  "pieceId"
+                ]
+              },
+              "uniques": []
             }
           }
         },
         "id": "__unbound__"
       }
     },
-    "storageHash": "sha256:a805a7f7ae70bed510e66ab0c3299376f3b901c708119586fae1cc4e642051c0"
+    "storageHash": "sha256:fac8d7d31549a4940e0f7805db77f625520a6dc8e87efdc9801a830190133d91"
   },
   "capabilities": {
     "sql": {

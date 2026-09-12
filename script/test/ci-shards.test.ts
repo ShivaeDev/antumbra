@@ -13,6 +13,8 @@ const RootManifest = Schema.Struct({
 const TestScripts = Schema.Struct({
 	"test:desktop": Schema.String,
 	"test:packages": Schema.String,
+	"test:runner": Schema.String,
+	"test:app": Schema.String,
 	"test:server": Schema.String,
 });
 
@@ -33,16 +35,20 @@ describe("CI test shards", () => {
 		const scripts = Schema.decodeUnknownSync(TestScripts)({
 			"test:desktop": manifest.scripts["test:desktop"],
 			"test:packages": manifest.scripts["test:packages"],
+			"test:runner": manifest.scripts["test:runner"],
+			"test:app": manifest.scripts["test:app"],
 			"test:server": manifest.scripts["test:server"],
 		});
 		const workflow = readFileSync(join(repoRoot, ".github/workflows/ci.yml"), "utf8");
 		expect(scripts["test:packages"]).toContain("script/vitest.workspace.ts");
 		expect(scripts["test:desktop"]).toContain("@antumbra/desktop");
 		expect(scripts["test:server"]).toContain("@antumbra/server");
-		expect(workspacePackageNames).toEqual(packageDirectories().filter((name) => name !== "runner-local"));
-		expect(workspacePackageNames).toContain("renderer");
+		expect(scripts["test:runner"]).toContain("@antumbra/runner");
+		expect(scripts["test:app"]).toContain("@antumbra/app-testing");
+		expect(workspacePackageNames).toEqual(packageDirectories());
+		expect(workspacePackageNames).toContain("glass/renderer");
 		expect(workspacePackageNames).toContain("platform/vocabulary");
-		expect(workspacePackageNames).toContain("git");
+		expect(workspacePackageNames).toContain("runner/git");
 		expect(workspacePackageNames).toContain("glass/role-settings");
 		expect(workspacePackageNames).toContain("server/domains/role-settings");
 		expect(workspacePackageNames).not.toContain("platform");
@@ -52,8 +58,9 @@ describe("CI test shards", () => {
 		expect(workflow).toContain("script/vitest.workspace.ts");
 		expect(workflow).toContain("matrix.shard");
 		expect(workflow).toContain("pnpm test:desktop");
-		expect(workflow).toContain("pnpm test:runner-local");
+		expect(workflow).toContain("pnpm test:runner");
 		expect(workflow).toContain("pnpm test:server");
+		expect(workflow).toContain("pnpm test:app");
 		expect(workflow).toContain("shard: [1, 2, 3, 4, 5, 6, 7, 8]");
 	});
 });

@@ -15,6 +15,8 @@ export interface LocalChangeInput {
 	readonly repo: string;
 }
 export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: LocalChangeInput) {
+	const prior = (yield* readWorld).changes.find((row) => row.id === `${input.callId}:prepare`);
+	if (prior !== undefined) return prior;
 	const repository = yield* namedRepo(input.repo);
 	const host = yield* claimingHost(repository);
 	const snapshot = yield* readWorld;

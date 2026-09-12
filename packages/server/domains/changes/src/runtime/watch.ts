@@ -4,6 +4,7 @@ import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { run } from "@antumbra/server-journal/reconcile.ts";
 import { Clock, Effect, Ref } from "effect";
+import { observeHostCapability } from "#commands/host-capability.ts";
 import { failPublication } from "#commands/publication-failed.ts";
 import { adoptions } from "#queries/adoptions.ts";
 import { publishing } from "#queries/publishing.ts";
@@ -20,6 +21,11 @@ const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
 	const failures = yield* Ref.make(0);
 	const observer = yield* run(world, {}, (snapshot) =>
 		Effect.gen(function* () {
+			const capability = yield* host.capability;
+			const commit = yield* Commit;
+			yield* commit
+				.commit(observeHostCapability, { requestId: Request.make(make()), host: host.tag, ...capability })
+				.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 			const changes = snapshot.changes.filter((row) => row.host === host.tag && row.stage === "open");
 			const repos = new Map(snapshot.repos.map((row) => [row.id, row]));
 			const refs = changes.flatMap((row) => {

@@ -15,7 +15,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"dependencies": {
-		"@antumbra/platform-runner": "workspace:*",
 		"effect": "catalog:",
 		"@antumbra/platform-vocabulary": "workspace:*"
 	},

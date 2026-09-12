@@ -5,8 +5,8 @@ import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
 import { callWhileOpen } from "@antumbra/runner-ports/tool-call.ts";
 import { type Cause, Deferred, Effect, Layer, Option, Queue, Scope, Stream } from "effect";
 import { layer } from "#fabric.ts";
-import { file } from "#log.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity, ServerTools } from "#ports.ts";
+import { file } from "#test/database.ts";
 
 export const start: Extract<Operation, { type: "Start" }> = {
 	type: "Start",

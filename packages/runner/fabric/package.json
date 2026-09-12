@@ -20,12 +20,12 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@effect/sql-sqlite-node": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:",
 		"@antumbra/runner-ports": "workspace:*",
 		"@antumbra/runner-tools": "workspace:*",

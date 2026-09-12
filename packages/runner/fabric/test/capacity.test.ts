@@ -3,8 +3,9 @@ import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
 import { layer } from "#capacity.ts";
-import { file, RunnerLog } from "#log.ts";
+import { RunnerLog } from "#log.ts";
 import { BackendRegistry } from "#ports.ts";
+import { file } from "#test/database.ts";
 
 it.effect("appends provider capacity evidence from the registered source", () =>
 	Effect.gen(function* () {

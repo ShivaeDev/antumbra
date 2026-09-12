@@ -28,4 +28,4 @@ export const initialize = Effect.fn("RunnerFabric.initialize")(function* () {
 })();
 export const accepted: OperationResult = { type: "Accepted" };
 export const refusal = (reason: string): OperationResult => ({ type: "Refused", reason });
-export const attached = Effect.fn("RunnerFabric.attached")((state: State) => Effect.sync(() => new Set(state.attachments.keys())));
+export const attached = (state: State) => () => Effect.sync(() => new Set(state.attachments.keys()));

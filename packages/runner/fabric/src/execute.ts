@@ -4,7 +4,9 @@ import { RunnerLog } from "#log.ts";
 import { run } from "#operation.ts";
 import { accepted, type State } from "#state.ts";
 
-export const execute = Effect.fn("RunnerFabric.execute")(function* (state: State, operation: Operation) {
+export const executing = (state: State) => (operation: Operation) => execute(state, operation);
+
+const execute = Effect.fn("RunnerFabric.execute")(function* (state: State, operation: Operation) {
 	const log = yield* RunnerLog;
 	const history = yield* log.request(operation.requestId);
 	const done = history.some(

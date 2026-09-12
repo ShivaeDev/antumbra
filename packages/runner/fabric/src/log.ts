@@ -1,7 +1,5 @@
 import { LogEntry, type LogEvent } from "@antumbra/platform-runner/log.ts";
-import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
-import { Clock, Context, Effect, Layer, PubSub, Schema, Stream } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { Clock, Context, Effect, PubSub, Schema, Stream } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 
 export interface Log {
@@ -72,12 +70,3 @@ export const makeLog = Effect.fn("RunnerLog.make")(function* (logId: string) {
 		);
 	return { append, read, request, tool, events } satisfies Log;
 });
-
-export const file = (options: { readonly filename: string; readonly logId: string }) =>
-	Layer.effect(RunnerLog)(
-		Effect.gen(function* () {
-			const sql = yield* SqliteClient.make({ filename: options.filename });
-			yield* Effect.orDie(sql`PRAGMA synchronous = NORMAL`);
-			return yield* makeLog(options.logId).pipe(Effect.provideService(LogDatabase, sql));
-		}),
-	).pipe(Layer.provide(reactivityLayer));

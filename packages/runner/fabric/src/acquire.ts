@@ -72,18 +72,14 @@ export const acquire = Effect.fn("RunnerFabric.acquire")(function* (state: State
 			Effect.forkIn(scope),
 		);
 	});
+	const failed = (exit: Exit.Exit<void, BackendFailure>) =>
+		Effect.gen(function* () {
+			if (Exit.isSuccess(exit)) return;
+			yield* Scope.close(scope, Exit.void);
+			if (state.attachments.get(sessionId) === entry) state.attachments.delete(sessionId);
+		});
 	return yield* started.pipe(
-		Effect.onExit((exit) =>
-			Exit.isFailure(exit)
-				? Scope.close(scope, Exit.void).pipe(
-						Effect.andThen(
-							Effect.sync(() => {
-								if (state.attachments.get(sessionId) === entry) state.attachments.delete(sessionId);
-							}),
-						),
-					)
-				: Effect.void,
-		),
+		Effect.onExit(failed),
 		Effect.matchEffect({
 			onSuccess: () => Effect.succeed(accepted),
 			onFailure: (error) => log.append({ type: "SessionFailed", requestId, sessionId, reason: error.detail }).pipe(Effect.as(refusal(error.detail))),

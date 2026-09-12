@@ -2,7 +2,9 @@ import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Stream } from "effect";
 import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
-import { LogDatabase, makeLog } from "#log.ts";
+import { LogDatabase, makeLog, RunnerLog } from "#log.ts";
+import { recover } from "#recover.ts";
+import { file } from "#test/database.ts";
 
 it.effect("keeps one ordered log across sessions and reopens stored request evidence", () =>
 	Effect.scoped(
@@ -37,4 +39,18 @@ it.effect("streams stored entries followed by new committed entries", () =>
 			expect((yield* Fiber.join(reading)).map(({ cursor }) => cursor)).toEqual([0, 1]);
 		}),
 	).pipe(Effect.provide(reactivityLayer)),
+);
+
+it.effect("cold recovery detaches interrupted acquisitions once without ending identity", () =>
+	Effect.gen(function* () {
+		const log = yield* RunnerLog;
+		yield* log.append({ type: "SessionWoke", requestId: "wake", sessionId: "interrupted", runnerId: "runner" });
+		yield* log.append({ type: "SessionWoke", requestId: "wake-slept", sessionId: "sleeping", runnerId: "runner" });
+		yield* log.append({ type: "SessionSlept", requestId: "sleep", sessionId: "sleeping" });
+		yield* recover();
+		yield* recover();
+		expect((yield* log.read(-1)).filter(({ event }) => event.type === "SessionDetached").map(({ event }) => event)).toEqual([
+			{ type: "SessionDetached", sessionId: "interrupted" },
+		]);
+	}).pipe(Effect.provide(file({ filename: ":memory:", logId: "log" }))),
 );

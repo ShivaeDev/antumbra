@@ -1,6 +1,7 @@
 import type { CommandInput } from "@antumbra/platform-feature/command.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import { projection } from "@antumbra/platform-feature/projection.ts";
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect } from "effect";
@@ -36,3 +37,13 @@ export const declaredRejectionReachesTheCaller: Refused = new park.Rejection.Pie
 
 // @ts-expect-error a repeated request resolves to the sequence number it already produced, so AlreadyDone never reaches the caller.
 export const alreadyDoneNeverReachesTheCaller: Refused = new AlreadyDone({ requestId: "request-1", seq: 1 });
+
+export const projectionReadsCannotWrite = projection("read-only", {
+	reads: [piece],
+	writes: [],
+	run: (reads) => {
+		// @ts-expect-error declared projection inputs provide read handles only.
+		reads.piece.update(PieceId.make("piece-1"), { title: "changed" });
+		return Effect.void;
+	},
+});

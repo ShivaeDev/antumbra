@@ -5,7 +5,6 @@ import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import { type AppDefinition, registryOf } from "#app.ts";
 import { Commit, commitService } from "#commit.ts";
 import { type Clients, Database, DataDirectory } from "#database.ts";
-import type { TableShapeChanged } from "#errors.ts";
 import { Live, liveService } from "#live.ts";
 import { start } from "#startup.ts";
 
@@ -30,7 +29,7 @@ export const memory = (): Layer.Layer<Database | Reactivity> => Layer.provideMer
 export const file = (): Layer.Layer<Database | Reactivity, never, DataDirectory> =>
 	Layer.provideMerge(Layer.effect(Database, onDisk()), reactivityLayer);
 
-export const layer = (definition: AppDefinition): Layer.Layer<Commit | Live, TableShapeChanged, Database | Reactivity> =>
+export const layer = (definition: AppDefinition): Layer.Layer<Commit | Live, never, Database | Reactivity> =>
 	Layer.effectContext(
 		Effect.gen(function* () {
 			const database = yield* Database;

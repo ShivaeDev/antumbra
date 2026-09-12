@@ -1,7 +1,7 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { ProjectionShape } from "@antumbra/platform-feature/projection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
-import { Effect } from "effect";
+import { Effect, type Schema } from "effect";
 import { codecFor, type RowCodec } from "#codec.ts";
 import { shapeOf } from "#table.ts";
 
@@ -11,6 +11,7 @@ export interface AppDefinition<Features extends readonly FeatureShape[] = readon
 }
 
 export interface RunnableMaterializer {
+	readonly fact: { readonly Payload: Schema.ConstraintCodec<Record<string, unknown>, unknown> };
 	readonly run: (fact: Record<string, unknown>, rows: Record<string, unknown>) => Effect.Effect<void, unknown>;
 	readonly writes: readonly RowShape[];
 }

@@ -6,6 +6,7 @@ import { callTool } from "@antumbra/domain-sessions/commands/call-tool.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { request as start } from "@antumbra/domain-starts/commands/request.ts";
+import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
@@ -159,5 +160,55 @@ it.app("asks the blocking requester for context and holds their reply until the 
 	yield* eventually(app.api.rulings.byId({ id: rulingId }), (found) => Option.isSome(found) && found.value.contexts.length === 2);
 	yield* app.api.rulings.answer({ rulingId, answer: "Take the north", choiceId: null, by: "admiral", byAgentId: null });
 	expect(yield* Fiber.join(reply)).toMatchObject({ ok: true, text: expect.stringContaining("your hold is over") });
+	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+});
+
+it.app("waits for a missing flagship captain and delivers the ascent once they are hailed", function* (app) {
+	yield* begin;
+	yield* app.api.voyages.open({
+		requestId: Request.make("flagship"),
+		name: "Flagship",
+		kind: "flagship",
+		context: "Fleet decisions",
+		northStar: "Safe passage",
+		captainBackend: null,
+		captainEffort: null,
+		captainModel: null,
+		crewBackend: null,
+		crewEffort: null,
+		crewModel: null,
+	});
+	yield* app.api.rulings.request({
+		requestId: Request.make("ascent"),
+		requester: { kind: "agent", agentId: context.agentId },
+		rung: "flagship",
+		question: "Which passage?",
+		context: "The north is deeper",
+		radius: "voyage",
+		urgency: "pressing",
+		choices: [],
+		subjects: [],
+		gates: [],
+		recommendation: null,
+	});
+	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	yield* rulingReconciliation;
+	yield* (yield* Commit).commit(start, {
+		requestId: Request.make("hail"),
+		agentId: AgentId.make("captain"),
+		sessionId: SessionId.make("captain-session"),
+		voyageId: VoyageId.make("flagship"),
+		pieceId: null,
+		backend: "scripted",
+		model: null,
+		effort: null,
+		role: "captain",
+		charter: "Lead the fleet",
+		source: "direct",
+		toolSetVersion: "tools",
+		tools: [],
+	});
+	yield* eventually(app.api.mail.mailbox({ agentId: "captain" }), (messages) => messages.length === 1);
+	expect(yield* app.rows.message.where({ toAgentId: "captain" })).toMatchObject([{ id: "ruling-ascent:ascent:captain", precedence: "priority" }]);
 	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
 });

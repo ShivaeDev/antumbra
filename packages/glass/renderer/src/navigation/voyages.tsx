@@ -2,10 +2,10 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { VoyageSpend } from "@antumbra/glass-sessions/spend.tsx";
 import { VoyageDetail } from "@antumbra/glass-voyages/voyage-detail.tsx";
-import { VoyageList } from "@antumbra/glass-voyages/voyage-list.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Cause, Effect } from "effect";
+import { VoyagesAside } from "#navigation/voyages-aside.tsx";
 import type { RendererProps } from "#props.ts";
 
 export const VoyagesPage = (
@@ -22,7 +22,7 @@ export const VoyagesPage = (
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className="flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3">
-				<VoyageList
+				<VoyagesAside
 					onHail={hail}
 					api={props.api}
 					selected={props.place.voyageId ?? undefined}

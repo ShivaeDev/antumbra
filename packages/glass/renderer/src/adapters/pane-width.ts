@@ -1,4 +1,4 @@
-const KEY = "antumbra:session-pane-width:v1";
+export const KEY = "antumbra:session-pane-width:v1";
 
 export const rememberedPaneWidth = (): number | undefined => {
 	try {

@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/domain-capacity",
+	"name": "@antumbra/glass-capacity",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -7,25 +7,29 @@
 		"./*": "./src/*"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../../../script/test.ts",
+		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
 		"@types/node": "catalog:",
+		"@types/react": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
+		"@effect/vitest": "catalog:",
 		"vitest": "catalog:",
+		"happy-dom": "catalog:",
 		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
-		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
+		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/domain-backends": "workspace:*"
+		"react": "catalog:",
+		"@antumbra/domain-capacity": "workspace:*"
 	}
 }

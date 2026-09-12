@@ -5,12 +5,22 @@ const opus = { efforts: ["high"], isDefault: true, model: "opus", name: "Opus" }
 
 const sonnet = { efforts: [], isDefault: false, model: "sonnet", name: "Sonnet" };
 
-it.app("replaces the model listing", function* (app) {
+it.app("refreshes one backend without changing another", function* (app) {
 	const catalogue = app.api.backends;
+	yield* catalogue.listModels({ backend: "codex", failure: null, models: [{ model: "gpt", name: "GPT", efforts: ["medium"], isDefault: true }] });
 	yield* catalogue.listModels({ backend: "claude", failure: null, models: [opus, sonnet] });
-	yield* catalogue.listModels({ backend: "claude", failure: null, models: [sonnet] });
+	yield* catalogue.listModels({
+		backend: "claude",
+		failure: null,
+		models: [{ ...sonnet, name: "Sonnet updated", efforts: ["low", "high"], isDefault: true }],
+	});
 
 	expect(yield* answered(catalogue.models({ backend: "claude" }))).toEqual([
-		{ backend: "claude", efforts: [], id: "claude/sonnet", isDefault: false, model: "sonnet", name: "Sonnet" },
+		{ backend: "claude", efforts: ["low", "high"], id: "claude/sonnet", isDefault: true, model: "sonnet", name: "Sonnet updated" },
+	]);
+	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "sonnet" }))).toEqual(["low", "high"]);
+	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "opus" }))).toEqual([]);
+	expect(yield* answered(catalogue.models({ backend: "codex" }))).toEqual([
+		{ backend: "codex", efforts: ["medium"], id: "codex/gpt", isDefault: true, model: "gpt", name: "GPT" },
 	]);
 });

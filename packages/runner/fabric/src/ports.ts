@@ -1,5 +1,6 @@
 import type { Input } from "@antumbra/platform-runner/input.ts";
-import type { ToolAnswer, ToolCall } from "@antumbra/platform-runner/tools.ts";
+import type { ToolCall } from "@antumbra/platform-runner/tools.ts";
+import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import type { AgentBackend, SessionInput } from "@antumbra/runner-ports/backend.ts";
 import { Context, type Effect } from "effect";
 

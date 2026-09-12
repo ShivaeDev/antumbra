@@ -1,10 +1,11 @@
 import { Token } from "@antumbra/platform-rpc/token.ts";
+import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Schema } from "effect";
 import * as Rpc from "effect/unstable/rpc/Rpc";
 import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
 import { LogEntry, Registration } from "#log.ts";
 import { Operation, Reply } from "#operations.ts";
-import { ToolAnswer, ToolCall } from "#tools.ts";
+import { ToolCall } from "#tools.ts";
 
 export const RunnerRpc = RpcGroup.make(
 	Rpc.make("runner.operations", { payload: Registration, success: Operation, stream: true }),

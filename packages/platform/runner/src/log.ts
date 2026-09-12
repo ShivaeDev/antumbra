@@ -1,7 +1,8 @@
 import { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Schema } from "effect";
 import { ChangeEvidence, Moorage } from "#resources.ts";
-import { ToolAnswer, ToolCall } from "#tools.ts";
+import { ToolCall } from "#tools.ts";
 
 const session = { requestId: Schema.String, sessionId: Schema.String };
 const input = { ...session, inputId: Schema.String };

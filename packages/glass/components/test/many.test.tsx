@@ -1,4 +1,4 @@
-import { choose, labelled, settle, submit, until } from "@antumbra/app-testing/glass/dom.ts";
+import { choose, labelled, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { models } from "@antumbra/domain-backends/queries/models.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
@@ -53,7 +53,7 @@ it.glass("submits several selected models", function* ({ api, render }) {
 	yield* api.backends.listModels({ backend: "codex", failure: null, models: MODELS });
 	const sent: Record<string, unknown>[] = [];
 	const container = yield* render(<CommandForm command={answering(sent, crew)} fixed={FIXED} submit="Crew" />);
-	yield* until(() => container.querySelector("form") !== null);
+	yield* renderedForm(container, "Crew");
 	const control = labelled<HTMLSelectElement>(container, "Crew Models");
 
 	expect(control.tagName).toBe("SELECT");
@@ -61,8 +61,8 @@ it.glass("submits several selected models", function* ({ api, render }) {
 	yield* until(() => control.options.length === 2);
 	expect([...control.options].map((option) => option.textContent)).toEqual(["GPT", "GPT mini"]);
 
-	yield* settle(() => choose(control, ["codex/gpt", "codex/gpt-mini"]));
-	yield* submit(container, 0);
+	yield* choose(control, ["codex/gpt", "codex/gpt-mini"]);
+	yield* submit(container, "Crew");
 
 	yield* until(() => sent.length === 1);
 	expect(sent[0]).toEqual({ backend: "codex", models: ["codex/gpt", "codex/gpt-mini"] });
@@ -71,15 +71,15 @@ it.glass("submits several selected models", function* ({ api, render }) {
 it.glass("replaces the selected models", function* ({ api, render }) {
 	yield* api.backends.listModels({ backend: "codex", failure: null, models: MODELS });
 	const sent: Record<string, unknown>[] = [];
-	const container = yield* render(<CommandForm command={answering(sent, rewire)} row={ROW} />);
-	yield* until(() => container.querySelector("form") !== null);
-	const control = labelled<HTMLSelectElement>(container, "Models");
+	const container = yield* render(<CommandForm command={answering(sent, rewire)} label="Model selection" row={ROW} />);
+	yield* renderedForm(container, "Model selection");
+	const control = labelled<HTMLSelectElement>(container, "Model selection Models");
 
 	yield* until(() => control.options.length === 2);
 	expect(marked(control)).toEqual(["codex/gpt"]);
 
-	yield* settle(() => choose(control, ["codex/gpt-mini"]));
-	yield* submit(container, 0);
+	yield* choose(control, ["codex/gpt-mini"]);
+	yield* submit(container, "Model selection");
 
 	yield* until(() => sent.length === 1);
 	expect(sent[0]).toEqual({ key: "crew", models: ["codex/gpt-mini"] });

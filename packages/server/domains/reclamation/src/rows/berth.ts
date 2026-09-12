@@ -1,5 +1,6 @@
 import { row } from "@antumbra/platform-feature/row.ts";
 import { BerthStatusSchema, ResourceReclaimStateSchema } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
+import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Schema } from "effect";
 import { BerthId } from "#ids.ts";
 
@@ -15,6 +16,7 @@ export const berth = row(
 		branch: Schema.String,
 		path: Schema.String,
 		status: BerthStatusSchema,
+		reclaimRequestId: Schema.NullOr(Request),
 		reclaimState: Schema.NullOr(ResourceReclaimStateSchema),
 		strandedAt: Schema.NullOr(Schema.Number),
 	},

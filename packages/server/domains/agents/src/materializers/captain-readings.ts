@@ -20,7 +20,7 @@ export const captainReadings = projection("captainReadings", {
 				status: captain?.status ?? null,
 				standing: captain?.standing ?? "Not hailed",
 				atWork: captain?.atWork ?? false,
-				canHail: captain?.status !== "spawning",
+				canHail: captain?.status !== "spawning" && captain?.atWork !== true,
 			};
 			if (yield* writes.captainReading.exists(held.id)) yield* writes.captainReading.update(held.id, value);
 			else yield* writes.captainReading.insert(value);

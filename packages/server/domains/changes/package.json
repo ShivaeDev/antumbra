@@ -32,6 +32,8 @@
 		"effect": "catalog:",
 		"@antumbra/domain-reclamation": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*"
 	}
 }

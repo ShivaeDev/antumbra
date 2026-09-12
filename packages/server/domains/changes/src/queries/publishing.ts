@@ -6,6 +6,8 @@ export const publishing = query("publishing", {
 	output: Schema.Array(change.Row),
 	reads: [change],
 	run: Effect.fn("changes.publishing")(function* (_input, rows) {
-		return (yield* rows.change.where({ stage: "prepared" })).filter((row) => row.proposalFrozenAt !== null);
+		return (yield* rows.change.where({ stage: "prepared" })).filter(
+			(row) => row.proposalFrozenAt !== null && row.publicationRequestId !== null && row.publicationError === null,
+		);
 	}),
 });

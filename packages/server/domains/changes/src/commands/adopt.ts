@@ -15,6 +15,7 @@ import { type ChangeRow, change } from "#rows/change.ts";
 import { changeTransition } from "#rows/change-transition.ts";
 export const adopt = command("adopt", {
 	input: {
+		adoptionId: Schema.optionalKey(Schema.String),
 		pieceId: PieceId,
 		repoId: RepoId,
 		agentId: Schema.NullOr(Schema.String),
@@ -63,6 +64,8 @@ export const adopt = command("adopt", {
 			headSha: null,
 			preparedHeadRef: null,
 			preparedHeadSha: null,
+			publicationRequestId: null,
+			publicationError: null,
 			proposalFrozenAt: null,
 			worktreePath: null,
 			workingDiff: null,
@@ -90,6 +93,7 @@ export const adopt = command("adopt", {
 				: yield* observeRow(selected.row, seen, now, rows);
 		const held = observed.change ?? selected.row ?? candidate;
 		return {
+			adoptionId: input.adoptionId ?? null,
 			change: held,
 			transition: observed.transition,
 			link: { id: pieceChangeId(input.pieceId, held.id), pieceId: input.pieceId, changeId: held.id, purpose: "produces" as const },

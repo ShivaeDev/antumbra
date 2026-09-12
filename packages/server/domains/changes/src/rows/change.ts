@@ -16,6 +16,8 @@ export const change = row(
 		headSha: Schema.NullOr(Schema.String),
 		preparedHeadRef: Schema.NullOr(Schema.String),
 		preparedHeadSha: Schema.NullOr(Schema.String),
+		publicationRequestId: Schema.NullOr(Schema.String),
+		publicationError: Schema.NullOr(Schema.String),
 		proposalFrozenAt: Schema.NullOr(Schema.String),
 		worktreePath: Schema.NullOr(Schema.String),
 		workingDiff: Schema.NullOr(Schema.String),

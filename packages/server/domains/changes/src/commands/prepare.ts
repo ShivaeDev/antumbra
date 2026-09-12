@@ -50,6 +50,8 @@ export const prepare = command("prepare", {
 			headSha: input.headSha,
 			preparedHeadRef: input.branch,
 			preparedHeadSha: input.headSha,
+			publicationRequestId: null,
+			publicationError: null,
 			proposalFrozenAt: null,
 			worktreePath: input.worktreePath,
 			workingDiff: input.workingDiff,

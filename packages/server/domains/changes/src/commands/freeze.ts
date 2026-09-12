@@ -29,18 +29,17 @@ export const freeze = command("freeze", {
 		const repository = yield* rows.repo.get(held.repoId);
 		if (yield* claimed(rows, held.openedByAgentId, repository.source, held.headRef))
 			return yield* reject.ResourceClaimed({ agentId: held.openedByAgentId ?? "" });
-		return {
-			change:
-				held.proposalFrozenAt !== null || held.stage !== "prepared"
-					? held
-					: {
-							...held,
-							title: input.title,
-							body: input.body,
-							baseRef: input.base ?? repository.defaultRef,
-							draftAt: input.draft ? input.at : null,
-							proposalFrozenAt: input.at,
-						},
-		};
+		const frozen =
+			held.proposalFrozenAt !== null || held.stage !== "prepared"
+				? held
+				: {
+						...held,
+						title: input.title,
+						body: input.body,
+						baseRef: input.base ?? repository.defaultRef,
+						draftAt: input.draft ? input.at : null,
+						proposalFrozenAt: input.at,
+					};
+		return { change: frozen.stage !== "prepared" ? frozen : { ...frozen, publicationRequestId: input.requestId, publicationError: null } };
 	}),
 });

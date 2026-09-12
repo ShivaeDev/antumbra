@@ -1,13 +1,13 @@
+import { claim } from "@antumbra/domain-reclamation/commands/claim.ts";
+import { candidates } from "@antumbra/domain-reclamation/queries/candidates.ts";
+import { claims } from "@antumbra/domain-reclamation/queries/claims.ts";
+import { retryable } from "@antumbra/domain-reclamation/queries/retryable.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { each, run } from "@antumbra/server-journal/reconcile.ts";
 import { Effect } from "effect";
-import { claim } from "#commands/claim.ts";
-import { candidates } from "#queries/candidates.ts";
-import { claims } from "#queries/claims.ts";
-import { retryable } from "#queries/retryable.ts";
 
 const requestClaim = Effect.fn("Reclamation.requestClaim")(function* (agentId: string) {
 	const commit = yield* Commit;

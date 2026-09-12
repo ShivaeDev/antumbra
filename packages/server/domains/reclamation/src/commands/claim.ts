@@ -1,7 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
-import { canReclaim } from "#eligibility.ts";
 import { resourcesClaimed } from "#facts/resources-claimed.ts";
+import { canReclaim } from "#queries/eligibility.ts";
 import { berth } from "#rows/berth.ts";
 import { heldResource } from "#rows/held-resource.ts";
 import { moorage } from "#rows/moorage.ts";

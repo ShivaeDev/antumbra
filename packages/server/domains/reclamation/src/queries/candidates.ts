@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
-import { canReclaim } from "#eligibility.ts";
+import { canReclaim } from "#queries/eligibility.ts";
 import { berth } from "#rows/berth.ts";
 import { heldResource } from "#rows/held-resource.ts";
 import { moorage } from "#rows/moorage.ts";

@@ -9,9 +9,12 @@ import { voyageOpenedMaterializer } from "#materializers/voyage-opened.ts";
 import { byId } from "#queries/by-id.ts";
 import { list } from "#queries/list.ts";
 import { voyage } from "#rows/voyage.ts";
+import { voyageCaptainWork } from "#rows/voyage-captain-work.ts";
+import { voyagePieceProgress } from "#rows/voyage-piece-progress.ts";
+import { voyageProgress } from "#rows/voyage-progress.ts";
 
 export const voyages = feature("voyages", {
-	rows: [voyage, roleSetting],
+	rows: [voyagePieceProgress, voyageCaptainWork, voyageProgress, voyage, roleSetting],
 	facts: [voyageOpened, focusSet],
 	commands: [open, setFocus],
 	materializers: [voyageOpenedMaterializer, focusSetMaterializer],

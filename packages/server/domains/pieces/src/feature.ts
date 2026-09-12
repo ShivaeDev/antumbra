@@ -23,10 +23,14 @@ import { byId } from "#queries/by-id.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
 import { edges } from "#queries/edges.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceAssignmentWork } from "#rows/piece-assignment-work.ts";
 import { pieceEdge } from "#rows/piece-edge.ts";
+import { pieceOutcome } from "#rows/piece-outcome.ts";
+import { pieceProgress } from "#rows/piece-progress.ts";
+import { pieceRulingGate } from "#rows/piece-ruling-gate.ts";
 
 export const pieces = feature("pieces", {
-	rows: [piece, pieceEdge, voyage],
+	rows: [pieceOutcome, pieceAssignmentWork, pieceRulingGate, pieceProgress, piece, pieceEdge, voyage],
 	facts: [pieceChartered, pieceLaunched, pieceParked, pieceUnparked, pieceRewired, pieceVerdictLanded],
 	commands: [charter, launch, park, unpark, rewire, landVerdict],
 	materializers: [

@@ -9,11 +9,16 @@ export const observation = (entry: LogEntry): FactPayload<typeof observed> | nul
 	if (!("sessionId" in event)) return null;
 	const base = {
 		sessionId: SessionId.make(event.sessionId),
+		live: event.type === "ProviderEvent" ? event.observation === "live" : event.type !== "SessionNodeAudited" && event.type !== "SessionCensus",
 		nodeRef: null,
 		origin: null,
 		operationId: "requestId" in event ? event.requestId : null,
 	};
 	switch (event.type) {
+		case "SessionNodeAudited":
+			return { ...base, evidence: { type: "node-audited", nativeRef: event.nodeRef } };
+		case "SessionCensus":
+			return { ...base, evidence: { type: "census", nodes: event.nodes.map((node) => ({ nativeRef: node.nodeRef, working: node.working })) } };
 		case "SessionStarted":
 			return {
 				...base,
@@ -48,7 +53,7 @@ export const observation = (entry: LogEntry): FactPayload<typeof observed> | nul
 		case "ToolCalled":
 			return { ...base, evidence: { type: "tool-called", callId: event.callId, name: event.name, input: JSON.stringify(event.input) } };
 		case "ToolAnswered":
-			return { ...base, evidence: { type: "tool-answered", callId: event.callId } };
+			return { ...base, evidence: { type: "tool-answered", callId: event.callId, answer: event.answer } };
 		case "ProviderEvent":
 			return providerObservation(event.event, base);
 		default:

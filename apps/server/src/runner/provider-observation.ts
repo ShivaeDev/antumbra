@@ -37,7 +37,7 @@ export const providerObservation = (provider: AgentEvent, base: Omit<Observation
 		case "tool.started":
 			return { ...node, evidence: { type: "tool-called", callId: provider.toolId, name: provider.name, input: provider.input } };
 		case "tool.completed":
-			return { ...node, evidence: { type: "tool-answered", callId: provider.toolId } };
+			return { ...node, evidence: { type: "tool-answered", callId: provider.toolId, answer: null } };
 		default:
 			return { ...node, evidence: { type: "node-seen" } };
 	}

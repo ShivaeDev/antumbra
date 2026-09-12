@@ -1,6 +1,5 @@
-import type { BoardEntryRow } from "@antumbra/boards";
+import type { MailRow } from "@antumbra/boards";
 
-const mailLine = (entry: BoardEntryRow): string =>
-	[entry.id, `[${entry.precedence}]`, entry.createdAt.toISOString(), `— ${entry.body}`, `(${entry.sourceRef})`].join(" ");
+const mailLine = (held: MailRow): string => [held.id, `[${held.precedence}]`, held.sentAt.toISOString(), `— ${held.body}`].join(" ");
 
-export const renderMail = (entries: ReadonlyArray<BoardEntryRow>): string => (entries.length === 0 ? "No mail." : entries.map(mailLine).join("\n"));
+export const renderMail = (held: ReadonlyArray<MailRow>): string => (held.length === 0 ? "No mail." : held.map(mailLine).join("\n"));

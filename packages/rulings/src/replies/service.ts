@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Effect } from "effect";
 import { RulingHolds } from "#holds/service.ts";
@@ -10,5 +10,5 @@ export const RulingReplies = defineService({
 	id: "@antumbra/rulings/RulingReplies",
 	initialize: Effect.void,
 	methods: () => ({ askMore, park }),
-	requires: [Boards, RulingHolds, Rulings],
+	requires: [Mail, RulingHolds, Rulings],
 });

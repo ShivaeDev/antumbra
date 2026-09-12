@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { rulingAnswerMail } from "#delivery/answer-mail.ts";
@@ -13,7 +13,7 @@ const deliverOne = Effect.fnUntraced(function* (ruling: Ruling) {
 		return;
 	}
 	const db = yield* Database;
-	const boards = yield* Boards;
+	const mail = yield* Mail;
 	const holds = yield* RulingHolds;
 	const rulings = yield* Rulings;
 	const row = yield* db.Ruling.where({ id: ruling.id }).first();
@@ -23,11 +23,11 @@ const deliverOne = Effect.fnUntraced(function* (ruling: Ruling) {
 	if (yield* holds.isHeld(ruling.id)) {
 		return;
 	}
-	yield* boards.mail({
-		authorAgentId: Option.none(),
+	yield* mail.send({
+		authorAgentId: null,
 		body: rulingAnswerMail(ruling, answer.value),
 		precedence: "priority",
-		sourceRef: `ruling:${ruling.id}`,
+		requestId: `ruling:${ruling.id}`,
 		toAgentId: requester.agentId,
 	});
 	yield* rulings.markDelivered(ruling.id);

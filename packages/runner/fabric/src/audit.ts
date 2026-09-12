@@ -20,8 +20,12 @@ export const audit = Effect.fn("RunnerFabric.audit")(function* (entry: Attachmen
 		const recorded = new Set(stored.map((event) => event.raw.payload));
 		const appendFresh = (events: ReadonlyArray<AgentEvent>) =>
 			Effect.forEach(
-				events.filter((event) => !recorded.has(event.raw.payload)),
-				(event) => record(entry, opening.sessionId, event),
+				events,
+				(event) => {
+					if (recorded.has(event.raw.payload)) return Effect.void;
+					recorded.add(event.raw.payload);
+					return record(entry, opening.sessionId, event);
+				},
 				{ discard: true },
 			);
 		if (nodeRef !== undefined)

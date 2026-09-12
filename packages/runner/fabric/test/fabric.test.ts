@@ -31,13 +31,14 @@ const fixture = Effect.gen(function* () {
 	const releaseDelivery = yield* Deferred.make<void>();
 	let blocked = false;
 	const steered: SessionInput[] = [];
+	const auditEvents: AgentEvent[] = [];
 	const acquisitions: OpenSessionOptions[] = [];
 	const forwarded = yield* Deferred.make<void>();
 	const answer = yield* Deferred.make<{ ok: boolean; text: string }>();
 	let opens = 0;
 	const backend: AgentBackend = {
 		tag: "scripted",
-		audit: noSessionAudit,
+		audit: { ...noSessionAudit, census: () => Effect.succeed({ events: auditEvents, nodes: [] }) },
 		capabilities: { imageInput: true },
 		listModels: Effect.succeed([]),
 		openSession: (options) =>
@@ -73,6 +74,7 @@ const fixture = Effect.gen(function* () {
 		events,
 		queued,
 		steered,
+		auditEvents,
 		acquisitions,
 		forwarded,
 		answer,
@@ -202,6 +204,27 @@ it.effect("an explicit stop cuts an outstanding charter delivery", () =>
 			expect(Exit.isFailure(yield* Fiber.await(starting))).toBe(true);
 			expect(test.queued).toEqual([]);
 			expect((yield* log.request("start")).map(({ event }) => event.type)).toEqual(["SessionStarted", "InputAmbiguous"]);
+		}).pipe(Effect.provide(test.live));
+	}),
+);
+
+it.effect("keeps repeated native audit findings on one event path", () =>
+	Effect.gen(function* () {
+		const test = yield* fixture;
+		const event: AgentEvent = { type: "raw", raw: { source: "scripted", kind: "audit", payload: "finding" } };
+		test.auditEvents.push(event, event);
+		yield* Effect.gen(function* () {
+			const fabric = yield* RunnerFabric;
+			const log = yield* RunnerLog;
+			yield* fabric.execute({
+				type: "Wake",
+				requestId: "wake",
+				sessionId: "session",
+				options: start.options,
+				nativeRef: "existing-native",
+				instruction: { id: "wake-input", parts: [{ type: "text", text: "continue" }] },
+			});
+			expect((yield* log.read(-1)).filter(({ event }) => event.type === "ProviderEvent" && event.event.raw.payload === "finding")).toHaveLength(1);
 		}).pipe(Effect.provide(test.live));
 	}),
 );

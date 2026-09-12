@@ -25,11 +25,16 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
    reconstruction or durable recovery is the behavior under test. Request live time only when the boundary requires it.
 9. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
    only rename them, and never hide clocks, barriers, and black-box polling behind one universal waiting helper.
-10. Tests of the new architecture exercise real features through the shared test kit. Compose every feature needed to prove the behavior. Send
-    commands and observe public queries or rendered results; replace only external dependencies. Do not reimplement domain behavior in test fixtures.
-11. A test lives with the feature that owns the behavior it proves. A workflow that crosses features with no single owner is an application test under
-    `apps/`.
+10. Tests of the new application use its complete production composition through the fixed `it.app` and `it.glass` entries. Both entries use the same
+    application layer as production. Tests never select features, assemble a smaller application, or reimplement domain behavior. Only external
+    boundaries such as storage and transport are replaced for the test environment.
+11. Application behavior tests live under `apps/`, grouped by the behavior they prove. Package unit tests exercise their own primitives directly; they
+    do not construct substitute applications.
 12. Public queries are the default assertion boundary. Assert rows directly only when storage or materialization is itself the subject, and never let
     a row assertion stand in for a cross-feature behavioral proof.
-13. A new screen test uses real features through a shared harness and fakes only the external dependencies the harness cannot run.
-14. A platform guarantee — idempotent requests, one materializer per fact, shape checks — is tested once in the kit, not repeated in every feature.
+13. Screen tests use `it.glass`, which owns the complete application, glass client, provider, mounting, and cleanup. The test runner configures the
+    browser environment centrally; individual screen tests do not repeat environment directives or setup.
+14. A platform guarantee — idempotent requests, one materializer per fact, shape checks — is tested at its owning boundary, not repeated in every
+    feature.
+15. Use a short, concrete behavior name for each test. Keep the title on one line and put setup details in the test body. Do not repeat context
+    already supplied by the suite or file.

@@ -14,7 +14,7 @@ const SOURCES =
 	"a domain's sources import effect, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const TESTS =
-	"a domain's tests import effect, vitest, the journal's test kit, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries, ids and feature.ts";
+	"a domain's tests import effect, vitest, @antumbra/platform-feature, @antumbra/platform-vocabulary, its own subpaths, and another domain's rows, queries and ids";
 
 const from = "packages/server/domains/role-settings/src/rows/role-setting.ts";
 
@@ -54,16 +54,20 @@ describe("domain-imports rule", () => {
 		expect(check(from, "vitest")).toEqual([`@antumbra/domain-role-settings sources may not import vitest: ${SOURCES}.`]);
 	});
 
-	it("lets a domain's tests read the journal's test kit, vitest and another domain's queries", () => {
-		expect(check(kit, "@antumbra/server-journal/testing/entry.ts")).toEqual([]);
+	it("allows test primitives and public domain readings", () => {
 		expect(check(kit, "vitest")).toEqual([]);
 		expect(check(kit, "effect")).toEqual([]);
 		expect(check(kit, "#test/kit.ts")).toEqual([]);
 		expect(check(kit, "@antumbra/domain-pieces/queries/by-voyage.ts", "packages/server/domains/pieces")).toEqual([]);
 	});
 
-	it("lets a domain's tests compose another domain's feature", () => {
-		expect(check(kit, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([]);
+	it("keeps application composition out of domain unit tests", () => {
+		expect(check(kit, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/domain-pieces/feature.ts: ${TESTS}.`,
+		]);
+		expect(check(kit, "@antumbra/server-journal/testing/kit.ts")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/server-journal/testing/kit.ts: ${TESTS}.`,
+		]);
 	});
 
 	it("keeps another domain's commands out of a domain's tests", () => {

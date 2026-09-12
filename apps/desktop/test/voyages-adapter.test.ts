@@ -1,14 +1,11 @@
 import { DomainFeeds, DomainFeedsLive } from "@antumbra/domain-feeds";
-import { voyages } from "@antumbra/domain-voyages/feature.ts";
 import { FLAGSHIP_REQUEST } from "@antumbra/domain-voyages/ids.ts";
 import { Database } from "@antumbra/persistence";
 import { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
-import { testing } from "@antumbra/server-journal/testing/entry.ts";
+import { it } from "@antumbra/server/testing/entry.ts";
 import { Effect, Layer, Option, PubSub } from "effect";
 import { expect } from "vitest";
 import { voyagesOver } from "#adapters/voyages.ts";
-
-const it = testing([voyages]);
 
 const reef = {
 	context: "the reef is uncharted",

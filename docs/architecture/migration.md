@@ -18,8 +18,11 @@ something updates this file in the same change. A status here is one of three wo
   selects. `domain` gets no successor; the server's composition is thin and holds no view.
 - **A feature owns its wire shape.** Its Schema classes, RPC group, and rejections are files of the feature with no runtime dependency
   (`@antumbra/pieces/feature.ts`, `@antumbra/pieces/rows/piece.ts`). The glass and other features import those files directly and nothing else of the
-  feature. A domain's sources reach another domain only through its rows, queries and ids, and a domain's tests also through its `feature.ts`, so a
-  test can compose that feature in the test kit; a materializer that writes a neighbour's row uses that neighbour's id rule.
+  feature. A domain's sources reach another domain only through its rows, queries and ids; a materializer that writes a neighbour's row uses that
+  neighbour's id rule.
+- **Application tests run the whole production application.** Backend tests use `it.app` and screen tests use `it.glass`, both over the application
+  layer production uses. The entries own setup and cleanup and accept no feature list. Application tests live under `apps/`, grouped by the behavior
+  they prove; only external boundaries are replaced for the test environment.
 - **Rejections are Schema errors; everything else is a defect.** A command declares its rejections beside it as Schema classes with structured fields,
   and they cross the wire as they are. A row that does not decode, a missing table, an SDK that throws: defects, never mapped.
 - **The issuer mints the id; the commit stamps the time.** An id is part of the command's input, made by one helper in the vocabulary. The commit
@@ -69,11 +72,10 @@ packages/
 ```
 
 A lint rule reads the path and holds the direction: `platform` imports only `platform`; a process group imports `platform` and itself; across process
-groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, of which a domain's tests
-reach only the test kit, composing through it the other features a test needs, and an edge imports `platform` only; old packages import old packages
-and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that `domain` can read a moved feature until it
-is deleted and the old renderer can mount a glass island until the renderer moves (`@antumbra/renderer` reaching `@antumbra/glass-role-settings` and
-`@antumbra/glass-settings`); every entry is removed with the package that needed it.
+groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, and an edge imports `platform`
+only; old packages import old packages and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that
+`domain` can read a moved feature until it is deleted and the old renderer can mount a glass island until the renderer moves (`@antumbra/renderer`
+reaching `@antumbra/glass-role-settings` and `@antumbra/glass-settings`); every entry is removed with the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/platform-vocabulary/board.ts`), and an asset a package

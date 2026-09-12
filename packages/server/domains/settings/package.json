@@ -7,20 +7,16 @@
 		"./*": "./src/*"
 	},
 	"imports": {
-		"#test/*": "./test/*",
 		"#*": "./src/*"
 	},
 	"scripts": {
-		"test": "node ../../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/server-journal": "workspace:*",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"typescript": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",

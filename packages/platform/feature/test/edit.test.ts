@@ -1,4 +1,4 @@
-import { choice, editing, optional, titled } from "@antumbra/platform-feature/edit.ts";
+import { choice, editing, many, optional, titled } from "@antumbra/platform-feature/edit.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Effect, Schema } from "effect";
@@ -28,6 +28,15 @@ it("reads the query a choice field takes its values from", () => {
 
 	expect(editing(field).choice).toEqual({ free: false, input: { backend: "backend" }, label: "name", query: models, value: "id" });
 	expect(editing(field).title).toBe("Model");
+});
+
+it("reads a field that takes many of one query's values", () => {
+	const field = titled(many(choice(models, { input: { backend: "backend" }, label: "name", value: "id" })), { title: "Models" });
+
+	expect(editing(field)).toMatchObject({ many: true, title: "Models" });
+	expect(editing(field).choice).toEqual({ free: false, input: { backend: "backend" }, label: "name", query: models, value: "id" });
+	expect(Schema.decodeUnknownSync(field)(["opus", "gpt"])).toEqual(["opus", "gpt"]);
+	expect(editing(choice(models, { input: { backend: "backend" } })).many).toBe(false);
 });
 
 it("reads a choice that lets a value outside the list through", () => {

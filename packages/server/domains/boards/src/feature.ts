@@ -29,6 +29,7 @@ import {
 	smoothingSessionFinishedMaterializer,
 	smoothingSessionFor,
 } from "#smoothing/session.ts";
+import { smoothingState } from "#smoothing/state.ts";
 import { pendingSmoothing, smoothingTargets } from "#smoothing/targets.ts";
 
 export const boards = feature("boards", {
@@ -44,5 +45,5 @@ export const boards = feature("boards", {
 		smoothingSessionBoundMaterializer,
 		smoothingSessionFinishedMaterializer,
 	],
-	queries: [entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor],
+	queries: [entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
 });

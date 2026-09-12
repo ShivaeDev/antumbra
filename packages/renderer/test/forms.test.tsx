@@ -3,7 +3,6 @@ import { Deferred, Effect, Schema } from "effect";
 import { useState } from "react";
 import { beforeEach, vi } from "vitest";
 import { useRequestForm } from "#adapters/form.ts";
-import { RendererRequestError } from "#adapters/request-error.ts";
 import { RequestForm } from "#forms/view.tsx";
 import { mount, settle, write } from "#test/dom.ts";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";

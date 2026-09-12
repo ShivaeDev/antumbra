@@ -1,5 +1,7 @@
+import { Pieces } from "@antumbra/pieces";
 import type { ChangeHost, ChangeObservation, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { Changes } from "#index.ts";
@@ -72,21 +74,25 @@ it.effectApp.withProviders(
 	),
 	function* ({ db }, scripted) {
 		const changes = yield* Changes;
+		const sailing = yield* Voyages;
+		const voyage = yield* sailing.open({ context: "the reef is uncharted", name: "Chart the reef", northStar: "every shoal is known" });
+		const pieces = yield* Pieces;
+		yield* pieces.charter({
+			charter: "sound the reef",
+			dependsOn: [],
+			expectation: "the change lands",
+			id: "piece-reef",
+			role: "crew",
+			title: "Reef",
+			voyageId: voyage.id,
+		});
+		yield* pieces.launch("piece-reef");
 		yield* Effect.all([
 			db.Agent.create({
 				charter: "chart the reef",
 				id: "crew",
 				role: "crew",
 				status: "alive",
-			}),
-			db.Piece.create({
-				charter: "sound the reef",
-				expectation: "the change lands",
-				id: "piece-reef",
-				launchedAt: new Date(1_780_000_000_000),
-				parkedAt: null,
-				role: "crew",
-				title: "Reef",
 			}),
 			db.Repo.create({
 				defaultRef: "main",

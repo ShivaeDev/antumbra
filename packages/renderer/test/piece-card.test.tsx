@@ -55,7 +55,7 @@ const chart: PieceView = {
 
 const pieces = [soundings, chart];
 
-const card = (piece: PieceView): React.ReactElement => <PieceCard onError={() => undefined} piece={piece} pieces={pieces} />;
+const card = (piece: PieceView): React.ReactElement => <PieceCard onError={() => undefined} piece={piece} pieces={pieces} voyageId="voyage-reef" />;
 
 const mount = (): { container: HTMLElement; root: Root } => {
 	const container = document.createElement("div");

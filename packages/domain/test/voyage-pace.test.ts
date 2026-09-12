@@ -1,5 +1,6 @@
 import { SettingsSource } from "@antumbra/contract";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
@@ -12,11 +13,7 @@ const HOME = ["held", "waiting", "parked", "running", "abandoned", "done", "pend
 const openVoyage = (id: string) => Effect.flatMap(Voyages, (sailing) => sailing.open({ context: id, id, name: id, northStar: id }));
 
 const charterOn = (voyageId: string, id: string) =>
-	Effect.flatMap(Database, (db) =>
-		db.Piece.create({ id, title: id, charter: id, expectation: id, role: "hand" }).pipe(
-			Effect.andThen(db.VoyagePiece.create({ pieceId: id, voyageId })),
-		),
-	);
+	Effect.flatMap(Pieces, (pieces) => pieces.charter({ charter: id, dependsOn: [], expectation: id, id, role: "hand", title: id, voyageId }));
 
 const seedHome = Effect.gen(function* () {
 	const db = yield* Database;
@@ -24,12 +21,13 @@ const seedHome = Effect.gen(function* () {
 	yield* openVoyage("other");
 	yield* Effect.forEach(HOME, (id) => charterOn("home", id));
 	yield* charterOn("other", "foreign");
-	yield* Effect.forEach(["waiting", "running"], (id) => db.Piece.where({ id }).update({ launchedAt: new Date(1) }));
-	yield* db.Piece.where({ id: "parked" }).update({ parkedAt: new Date(1) });
+	const pieces = yield* Pieces;
+	yield* Effect.forEach(["waiting", "running"], (id) => pieces.launch(id));
+	yield* pieces.park("parked", true);
 	yield* db.Agent.create({ id: "worker", role: "hand", charter: "running", status: "spawning" });
 	yield* db.PieceAgent.create({ pieceId: "running", agentId: "worker" });
-	yield* db.PieceVerdict.create({ pieceId: "abandoned", verdict: "abandoned" });
-	yield* Effect.forEach(["done", "pending"], (pieceId) => db.PieceVerdict.create({ pieceId, verdict: "delivered" }));
+	yield* pieces.landVerdict("abandoned", "abandoned");
+	yield* Effect.forEach(["done", "pending"], (pieceId) => pieces.landVerdict(pieceId, "delivered"));
 	yield* db.Repo.create({ id: "repo", name: "repo", source: "repo", defaultRef: "main" });
 	yield* db.Change.create(changeOf({ id: "change", headRef: "work", repoId: "repo", stage: "open" }));
 	yield* db.PieceChange.create({ pieceId: "pending", changeId: "change" });

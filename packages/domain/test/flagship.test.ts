@@ -1,7 +1,7 @@
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
-import { PiecesLive } from "@antumbra/pieces";
+import { scriptedPieces } from "@antumbra/pieces/testing";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { scriptedRoleSettings, scriptedVoyages } from "@antumbra/testing-runtime";
@@ -15,9 +15,9 @@ import { summarySeen } from "#voyage-projection.ts";
 const layer = FlagshipLive.pipe(
 	Layer.provideMerge(VoyageSummaries.layer),
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
-	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(ReposLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(scriptedPieces),
 	Layer.provideMerge(scriptedVoyages),
 	Layer.provideMerge(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),

@@ -1,4 +1,5 @@
 import { type SightFailure, VoyageSource, type VoyageView } from "@antumbra/contract";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Stream } from "effect";
@@ -23,6 +24,10 @@ const summaryOf = (voyageId: string) =>
 		}
 		return yield* Effect.die(new Error(`no summary for voyage ${voyageId}`));
 	});
+
+const chartered = (voyageId: string) => Effect.flatMap(Pieces, (pieces) => pieces.charter(soundings(voyageId)));
+
+const launched = (pieceId: string) => Effect.flatMap(Pieces, (pieces) => pieces.launch(pieceId));
 
 const anyReady = (view: VoyageView) => view.pieces.some((piece) => piece.state === "ready");
 
@@ -49,8 +54,8 @@ it.effectApp("the list and the read carry the state the domain derived", functio
 	const quiet = yield* summaryOf(opened.id);
 	expect(quiet.state).toBe("quiet");
 	expect(quiet.captain).toBeNull();
-	const piece = yield* source.charterPiece(soundings(opened.id));
-	yield* source.launch(piece.pieceId);
+	const piece = yield* chartered(opened.id);
+	yield* launched(piece.id);
 	expect((yield* summaryOf(opened.id)).counts).toEqual({ active: 0, done: 0, pieces: 1, ready: 1 });
 	const view = yield* source.voyage(opened.id);
 	expect(view.context).toBe(opened.context);
@@ -83,11 +88,11 @@ it.effectApp("a board entry the window writes carries no author agent", function
 it.effectApp("a voyage read carries each piece's own log", function* () {
 	const source = yield* VoyageSource;
 	const opened = yield* openReefVoyage;
-	const piece = yield* source.charterPiece(soundings(opened.id));
+	const piece = yield* chartered(opened.id);
 	yield* source.writeBoard({
 		body: "## Sounding\n\nThe edge is **shallow**.",
 		register: "smooth",
-		scope: { kind: "piece", pieceId: piece.pieceId },
+		scope: { kind: "piece", pieceId: piece.id },
 	});
 
 	const view = yield* source.voyage(opened.id);
@@ -121,11 +126,11 @@ it.effectApp("a hail puts a captain and a crew row on what the window reads", { 
 it.effectApp("the feed shows the piece as ready once it is launched", function* () {
 	const source = yield* VoyageSource;
 	const opened = yield* openReefVoyage;
-	const piece = yield* source.charterPiece(soundings(opened.id));
+	const piece = yield* chartered(opened.id);
 	const watcher = yield* watchUntil(source.voyageFeed(opened.id), anyReady);
-	yield* source.launch(piece.pieceId);
+	yield* launched(piece.id);
 	const seen = yield* Fiber.join(watcher);
-	expect(seen[0]?.pieces.map((row) => row.id)).toEqual([piece.pieceId]);
+	expect(seen[0]?.pieces.map((row) => row.id)).toEqual([piece.id]);
 });
 
 // Retirement changes Agent status without writing Voyage; this proves the Voyage feed also reacts to fleet refreshes.

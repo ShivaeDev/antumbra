@@ -1,9 +1,11 @@
 import { dirname, join } from "node:path";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { ChangeWatcher } from "@antumbra/changes/watch/observer";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { intentDemandLayer } from "@antumbra/intent-demand";
 import { KernelLive, type KernelOptions } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { type ScriptedChart, scriptedChart, scriptedPiecesOn } from "@antumbra/pieces/testing";
 import { AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
 import type { ResourceReconcileOptions } from "@antumbra/resource-reclamation";
@@ -41,6 +43,18 @@ const fleetVoyages = (temporary: TemporaryPersistence) => {
 	return scriptedVoyagesOn(opened);
 };
 
+const chartedByFleet = new WeakMap<TemporaryPersistence, ScriptedChart>();
+
+const fleetPieces = (temporary: TemporaryPersistence) => {
+	const known = chartedByFleet.get(temporary);
+	if (known !== undefined) {
+		return scriptedPiecesOn(known);
+	}
+	const chartered = scriptedChart();
+	chartedByFleet.set(temporary, chartered);
+	return scriptedPiecesOn(chartered);
+};
+
 const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
 const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
@@ -66,9 +80,11 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 				Layer.provide(NodeServices.layer),
 			),
 		),
+		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
+		Layer.provideMerge(DomainFeedsLive),
 		Layer.provideMerge(temporary.layer),
 	);
 
@@ -116,9 +132,11 @@ export const domainKernelServices = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
+		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
+		Layer.provideMerge(DomainFeedsLive),
 	);
 
 export const domainKernelLayer = (...args: Parameters<typeof domainKernelServices>) =>

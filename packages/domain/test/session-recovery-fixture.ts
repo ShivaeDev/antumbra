@@ -1,9 +1,11 @@
 import { type IntentStatus, isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { Pieces } from "@antumbra/pieces";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { type AgentBackend, BackendFailure, type Runner } from "@antumbra/plugin-api";
 import { Repos } from "@antumbra/repos";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option, Ref, Schedule, Stream } from "effect";
 import { AgentDomain } from "#domain.ts";
@@ -95,15 +97,20 @@ export const seedResumableAgent = (temporary: TemporaryPersistence, backend: Age
 		const kernel = yield* Kernel;
 		const domain = yield* AgentDomain;
 		const repos = yield* Repos;
-		yield* db.Piece.create({
+		const sailing = yield* Voyages;
+		const voyage = yield* sailing.open({ context: "the piece outlives the session", name: "Resume the work", northStar: "the work carries on" });
+		const pieces = yield* Pieces;
+		const pieceId = payload.pieceId ?? "";
+		yield* pieces.charter({
 			charter: "keep going",
+			dependsOn: [],
 			expectation: "durable progress",
-			id: payload.pieceId ?? "",
-			launchedAt: new Date(1),
-			parkedAt: null,
+			id: pieceId,
 			role: payload.role,
 			title: "resume a session",
+			voyageId: voyage.id,
 		});
+		yield* pieces.launch(pieceId);
 		yield* repos.register({
 			defaultRef: "main",
 			source: "/somewhere/session-resume",

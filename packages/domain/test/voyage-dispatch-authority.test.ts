@@ -44,7 +44,7 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			const boards = yield* Boards;
 			const voyageRecords = yield* Voyages;
 			const sight = yield* makeSightSessionEvents;
-			const { alpha, voyage } = yield* chain;
+			const { voyage } = yield* chain;
 			const decoy = yield* voyageRecords.open({
 				context: "the southern reef is unrelated",
 				name: "Chart the southern reef",
@@ -52,10 +52,6 @@ it.live("dispatched crew keeps its selected Voyage authority across rebuild", ()
 			});
 			const assignment = yield* eventually(firstAssignedCrew);
 			const live = yield* eventually(sessionFor(scripted, assignment.agentId));
-			yield* db.VoyagePiece.create({ pieceId: alpha.id, voyageId: decoy.id });
-			expect(new Set((yield* db.VoyagePiece.where({ pieceId: alpha.id }).all()).map((membership) => membership.voyageId))).toEqual(
-				new Set([voyage.id, decoy.id]),
-			);
 			const session = Option.getOrThrow(
 				Option.fromUndefinedOr(
 					(yield* db.AgentSession.where({

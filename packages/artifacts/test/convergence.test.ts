@@ -2,12 +2,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Context, Effect, Layer } from "effect";
+import { chartered, charting } from "#test/charting.ts";
 
 const root = mkdtempSync(join(tmpdir(), "antumbra-convergence-"));
 const moorage = join(root, "moorage");
@@ -16,7 +16,7 @@ mkdirSync(moorage);
 mkdirSync(published);
 it.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
-const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
+const layer = artifactsLayer(published).pipe(Layer.provideMerge(charting), Layer.provide(NodeServices.layer));
 
 const land = (artifacts: Context.Service.Shape<typeof Artifacts>, title: string) =>
 	Effect.sync(() => writeFileSync(join(moorage, `${title}.md`), `# ${title}\n`)).pipe(
@@ -32,15 +32,7 @@ const land = (artifacts: Context.Service.Shape<typeof Artifacts>, title: string)
 
 const seed = Effect.gen(function* () {
 	const db = yield* Database;
-	yield* db.Piece.create({
-		charter: "draw the reef",
-		expectation: "a chart lands",
-		id: "piece-chart",
-		launchedAt: null,
-		parkedAt: null,
-		role: "cartographer",
-		title: "Chart",
-	});
+	yield* chartered("piece-chart", "Chart");
 	yield* db.Agent.create({
 		charter: "draw the reef",
 		id: "agent-chart",
@@ -57,7 +49,7 @@ const seed = Effect.gen(function* () {
 });
 
 it.effectDB("refuses two predecessors for one successor", function* (db) {
-	yield* seed;
+	yield* Effect.provide(seed, layer);
 	const artifacts = yield* Artifacts.pipe(Effect.provide(layer));
 	const first = yield* land(artifacts, "first");
 	const second = yield* land(artifacts, "second");

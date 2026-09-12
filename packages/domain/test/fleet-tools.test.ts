@@ -3,7 +3,7 @@ import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Option } from "effect";
+import { Effect, Option } from "effect";
 import { flagshipCaptain, hailedCaptain, toolNames } from "#test/flagship-fixtures.ts";
 import { callTool } from "#test/harness.ts";
 import { openReefVoyage } from "#test/voyage-fixtures.ts";
@@ -134,7 +134,6 @@ it.effectApp("the flagship's captain charters a piece on a voyage it names", fun
 
 it.effectApp("a piece chartered onto a voyage the fleet has not got is refused", function* ({ scripted }) {
 	const { captain } = yield* flagshipCaptain(scripted);
-	const db = yield* Database;
 
 	const refusal = yield* callTool(captain, "charter_piece_on_voyage", {
 		charter: "sound the eastern shoal",
@@ -146,7 +145,7 @@ it.effectApp("a piece chartered onto a voyage the fleet has not got is refused",
 
 	expect(refusal.ok).toBe(false);
 	expect(refusal.text).toContain("charter_piece_on_voyage");
-	expect(yield* db.Piece.all()).toEqual([]);
+	expect(yield* Effect.flatMap(Pieces, (pieces) => pieces.list())).toEqual([]);
 });
 
 it.effectApp("a rule the flagship proclaims stands for the fleet at once", function* ({ scripted }) {

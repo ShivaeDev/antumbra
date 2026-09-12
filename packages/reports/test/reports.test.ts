@@ -1,24 +1,30 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
+import { Pieces } from "@antumbra/pieces";
 import { Reports } from "@antumbra/reports";
 import { it } from "@antumbra/testing";
+import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
 import { Effect, PubSub } from "effect";
 
-const piece = {
-	charter: "sound the shallows",
-	expectation: "the soundings land",
-	id: "piece-soundings",
-	launchedAt: null,
-	parkedAt: null,
-	role: "surveyor",
-	title: "Soundings",
-};
+const chartered = Effect.fnUntraced(function* () {
+	const sailing = yield* Voyages;
+	const voyage = yield* sailing.open({ context: "the shallows are unsounded", name: "Sound the shallows", northStar: "every depth is known" });
+	const pieces = yield* Pieces;
+	return yield* pieces.charter({
+		charter: "sound the shallows",
+		dependsOn: [],
+		expectation: "the soundings land",
+		role: "surveyor",
+		title: "Soundings",
+		voyageId: voyage.id,
+	});
+});
 
 it.effectApp("lands a report with its piece link and publishes a voyage refresh", function* ({ db }) {
 	const feeds = yield* DomainFeeds;
 	const reports = yield* Reports;
+	const piece = yield* chartered();
 	const notices = yield* feeds.subscribeVoyageRefresh();
-	yield* db.Piece.create(piece);
 
 	const report = yield* reports.land({
 		authorAgentId: "agent-surveyor",

@@ -3,7 +3,8 @@ import { changesLayer } from "@antumbra/changes";
 import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { PiecesLive } from "@antumbra/pieces";
+import { Pieces } from "@antumbra/pieces";
+import { scriptedPieces } from "@antumbra/pieces/testing";
 import { RulingsLive } from "@antumbra/rulings";
 import { RulingHoldsLive } from "@antumbra/rulings/holds/service";
 import { RulingReplies } from "@antumbra/rulings/replies/service";
@@ -16,10 +17,10 @@ import { RulingSourceLive } from "#ruling-source.ts";
 export const layer = RulingSourceLive.pipe(
 	Layer.provide(RulingReplies.layer),
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
-	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(RulingHoldsLive),
 	Layer.provideMerge(BoardsLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(scriptedPieces),
 	Layer.provideMerge(scriptedVoyages),
 	Layer.provide(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),
@@ -44,14 +45,17 @@ export const seedFleet = Effect.gen(function* () {
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
-	yield* db.Piece.create({
-		charter: "plot a course over the shoal",
-		expectation: "a course is plotted",
-		id: pieceId,
-		role: "navigator",
-		title: "Plot the course",
-	});
-	yield* db.VoyagePiece.create({ pieceId, voyageId });
+	yield* Effect.flatMap(Pieces, (pieces) =>
+		pieces.charter({
+			charter: "plot a course over the shoal",
+			dependsOn: [],
+			expectation: "a course is plotted",
+			id: pieceId,
+			role: "navigator",
+			title: "Plot the course",
+			voyageId,
+		}),
+	);
 	yield* db.VoyageAgent.create({
 		agentId: requesterId,
 		role: "hand",

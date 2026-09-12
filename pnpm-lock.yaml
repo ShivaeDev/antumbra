@@ -510,6 +510,12 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../settings
+      '@antumbra/voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
@@ -1851,6 +1857,9 @@ importers:
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
+      '@antumbra/voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))

@@ -2,15 +2,7 @@ import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 
-const piece = {
-	charter: "sound the shallows",
-	expectation: "the soundings land",
-	id: "piece-soundings",
-	launchedAt: null,
-	parkedAt: null,
-	role: "surveyor",
-	title: "Soundings",
-};
+const pieceId = "piece-soundings";
 const report = {
 	authorAgentId: null,
 	body: "depths measured",
@@ -23,29 +15,17 @@ const artifact = {
 	byteSize: 6,
 	digest: "0".repeat(64),
 	id: "artifact-chart",
-	pieceId: piece.id,
+	pieceId,
 	title: "Reef chart",
 };
 
-it.effectDB("rejects every orphan Piece outcome relation", function* (db) {
-	yield* db.Piece.create(piece);
+it.effectDB("rejects an outcome relation to a report nothing wrote and takes a piece no table holds", function* (db) {
 	yield* db.Report.create(report);
 	yield* db.Artifact.create(artifact);
 
-	const failures = yield* Effect.all([
-		Effect.flip(db.PieceReport.create({ pieceId: "missing-piece", reportId: report.id })),
-		Effect.flip(db.PieceReport.create({ pieceId: piece.id, reportId: "missing-report" })),
-		Effect.flip(
-			db.Artifact.create({
-				...artifact,
-				id: "artifact-orphan",
-				pieceId: "missing-piece",
-			}),
-		),
-	]);
-	for (const failure of failures) {
-		expect(failure._tag).toBe("PrismaError");
-	}
+	const orphan = yield* Effect.flip(db.PieceReport.create({ pieceId, reportId: "missing-report" }));
+
+	expect(orphan._tag).toBe("PrismaError");
 	expect(yield* db.PieceReport.all()).toEqual([]);
 	expect(yield* db.Artifact.all()).toEqual([expect.objectContaining(artifact)]);
 });

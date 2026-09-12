@@ -23,13 +23,12 @@ const soleReefPiece = Effect.gen(function* () {
 
 it.effectApp("a delivered verdict is an outcome and the ladder reads done", function* () {
 	const pieces = yield* Pieces;
-	const db = yield* Database;
 	const { piece, voyage } = yield* soleReefPiece;
 	expect(yield* stateOf(voyage.id, piece.id)).toBe("ready");
 
 	yield* pieces.landVerdict(piece.id, "delivered");
 
-	expect(yield* db.PieceVerdict.all()).toMatchObject([{ pieceId: piece.id, verdict: "delivered" }]);
+	expect(yield* pieces.verdicts([piece.id])).toEqual(new Map([[piece.id, "delivered"]]));
 	expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 });
 
@@ -48,13 +47,12 @@ it.effectApp("an abandoned piece says so rather than passing for landed work", f
 
 it.effectApp("a corrected verdict replaces the one standing, never joins it", function* () {
 	const pieces = yield* Pieces;
-	const db = yield* Database;
 	const { piece, voyage } = yield* soleReefPiece;
 
 	yield* pieces.landVerdict(piece.id, "abandoned");
 	yield* pieces.landVerdict(piece.id, "delivered");
 
-	expect(yield* db.PieceVerdict.all()).toHaveLength(1);
+	expect(yield* pieces.verdicts([piece.id])).toEqual(new Map([[piece.id, "delivered"]]));
 	expect(yield* stateOf(voyage.id, piece.id)).toBe("done");
 	expect(yield* Effect.flip(pieces.landVerdict("no-such-piece", "delivered"))).toMatchObject({ _tag: "PieceNotFound" });
 });

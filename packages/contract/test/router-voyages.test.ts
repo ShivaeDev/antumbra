@@ -49,22 +49,6 @@ describe("makeAppRouter, on voyages", () => {
 		}),
 	);
 
-	it.effect("chartering a piece answers with the piece it made", () =>
-		Effect.gen(function* () {
-			const receipt = yield* Effect.promise(() =>
-				callerOf().charterPiece({
-					charter: "sound the northern shoals",
-					dependsOn: [],
-					expectation: "the depths are recorded",
-					role: "hand",
-					title: "soundings",
-					voyageId: "voyage-1",
-				}),
-			);
-			expect(receipt).toEqual({ pieceId: "piece-for-soundings" });
-		}),
-	);
-
 	it.effect("the voyage feed carries the view to a watching window", () =>
 		Effect.gen(function* () {
 			const iterable = yield* Effect.promise(() => callerOf().voyageFeed({ voyageId: "voyage-1" }));

@@ -2,12 +2,12 @@ import { lstatSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { NodeCrypto, NodeFileSystem, NodePath } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Crypto, Effect, FileSystem, Layer, type Path, PlatformError } from "effect";
+import { chartered, charting } from "#test/charting.ts";
 
 interface Fixture {
 	readonly moorage: string;
@@ -27,15 +27,7 @@ const makeFixture = (): Fixture => {
 
 const seed = (db: DatabaseService, moorage: string) =>
 	Effect.gen(function* () {
-		yield* db.Piece.create({
-			charter: "draw the reef",
-			expectation: "a chart lands",
-			id: "piece-chart",
-			launchedAt: null,
-			parkedAt: null,
-			role: "cartographer",
-			title: "Chart",
-		});
+		yield* chartered("piece-chart", "Chart");
 		yield* db.Agent.create({
 			charter: "draw the reef",
 			id: "agent-chart",
@@ -78,7 +70,7 @@ const platformWith = (make: (fs: FileSystem.FileSystem) => FileSystem.FileSystem
 };
 
 const artifactLayer = (published: string, platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>) =>
-	artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
+	artifactsLayer(published).pipe(Layer.provideMerge(charting), Layer.provide(platform));
 
 const syncEvidenceFile = (
 	file: FileSystem.File,
@@ -118,7 +110,7 @@ it.effectDB("refuses completion until file and directory sync finish", function*
 		module: "FileSystem",
 	});
 	const platform = durabilityPlatform(fixture, events, syncFailure);
-	yield* seed(db, fixture.moorage);
+	yield* seed(db, fixture.moorage).pipe(Effect.provide(charting));
 	const failure = yield* Effect.gen(function* () {
 		const artifacts = yield* Artifacts;
 		return yield* Effect.flip(artifacts.land(input));

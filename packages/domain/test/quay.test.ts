@@ -17,6 +17,8 @@ const piece = (id: string): PieceRow => ({
 	parkedAt: null,
 	role: "hand",
 	title: id,
+	verdict: null,
+	voyageId: "voyage-reef",
 });
 
 const change = (id: string, over: Partial<ChangeRow> = {}): ChangeRow => ({

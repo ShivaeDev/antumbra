@@ -2,23 +2,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { Effect, Layer } from "effect";
+import { chartered, charting } from "#test/charting.ts";
 
 const markdownLimit = 1_048_576;
-const piece = {
-	charter: "draw the reef",
-	expectation: "a chart lands",
-	id: "piece-chart",
-	launchedAt: null,
-	parkedAt: null,
-	role: "cartographer",
-	title: "Chart",
-};
+const piece = { id: "piece-chart", title: "Chart" };
 const agent = {
 	charter: "draw the reef",
 	id: "agent-chart",
@@ -33,7 +25,7 @@ const withArtifacts = <A, E, R>(use: (moorage: string, published: string) => Eff
 		const published = join(root, "published");
 		mkdirSync(moorage);
 		mkdirSync(published);
-		const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
+		const layer = artifactsLayer(published).pipe(Layer.provideMerge(charting), Layer.provide(NodeServices.layer));
 		return yield* use(moorage, published).pipe(
 			Effect.provide(layer),
 			Effect.ensuring(Effect.sync(() => rmSync(root, { force: true, recursive: true }))),
@@ -42,7 +34,7 @@ const withArtifacts = <A, E, R>(use: (moorage: string, published: string) => Eff
 
 const seed = (db: DatabaseService, root: string) =>
 	Effect.gen(function* () {
-		yield* db.Piece.create(piece);
+		yield* chartered(piece.id, piece.title);
 		yield* db.Agent.create(agent);
 		yield* db.Moorage.create({
 			agentId: agent.id,

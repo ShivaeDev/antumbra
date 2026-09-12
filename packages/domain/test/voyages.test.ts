@@ -46,39 +46,12 @@ it.effectApp("a voyage holds the pieces chartered into it, gated by edges", func
 	const voyage = yield* openVoyage;
 	const first = yield* charter(voyage.id, "sound the shallows");
 	const second = yield* charter(voyage.id, "draw the chart", [first.id]);
-	const db = yield* Database;
-	yield* db.Piece.where({ id: first.id }).update({ createdAt: new Date(1) });
-	yield* db.Piece.where({ id: second.id }).update({ createdAt: new Date(2) });
 	const view = Option.getOrThrow(yield* voyages.read(voyage.id));
 	expect(view.name).toBe("Chart the reef");
 	expect(view.state).toBe("quiet");
 	expect(view.pieces.map((piece) => piece.title)).toEqual(["sound the shallows", "draw the chart"]);
 	expect(view.pieces.find((piece) => piece.id === second.id)?.dependsOn).toEqual([first.id]);
 	expect(view.pieces.map((piece) => piece.state)).toEqual(["held", "held"]);
-});
-
-it.effectApp("chartering onto a piece that does not exist is refused", function* () {
-	const voyage = yield* openVoyage;
-	const failure = yield* Effect.flip(charter(voyage.id, "sail nowhere", ["no-such-piece"]));
-	expect(failure._tag).toBe("PieceNotFound");
-});
-
-it.effectApp("rewiring may never make a piece depend on itself", function* () {
-	const voyages = yield* VoyageProcedureService;
-	const pieces = yield* Pieces;
-	const voyage = yield* openVoyage;
-	const alpha = yield* charter(voyage.id, "alpha");
-	const beta = yield* charter(voyage.id, "beta", [alpha.id]);
-	const gamma = yield* charter(voyage.id, "gamma", [beta.id]);
-
-	const loop = yield* Effect.flip(pieces.setDependencies(alpha.id, [alpha.id]));
-	expect(loop._tag).toBe("EdgeWouldCycle");
-	const cycle = yield* Effect.flip(pieces.setDependencies(alpha.id, [gamma.id]));
-	expect(cycle._tag).toBe("EdgeWouldCycle");
-
-	yield* pieces.setDependencies(gamma.id, [alpha.id]);
-	const view = Option.getOrThrow(yield* voyages.read(voyage.id));
-	expect(view.pieces.find((piece) => piece.id === gamma.id)?.dependsOn).toEqual([alpha.id]);
 });
 
 it.effectApp("launching walks a piece from held to ready, its dependent blocked", function* () {

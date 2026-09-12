@@ -1,5 +1,6 @@
 import { RulingSource } from "@antumbra/contract";
 import { it } from "@antumbra/persistence/testing";
+import { Pieces } from "@antumbra/pieces";
 import { Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
 import { Effect, Fiber, Option } from "effect";
@@ -93,7 +94,8 @@ it.effectDB("standing rulings stay fresh during work and conclude after abandonm
 		const rulings = yield* Rulings;
 		const requested = yield* rulings.request({ ...asked, subjects: [{ kind: "piece", id: pieceId }] });
 		yield* source.rule({ answer: "survey first", rulingId: requested.id });
-		yield* db.PieceVerdict.create({ pieceId, verdict: "delivered" });
+		const pieces = yield* Pieces;
+		yield* pieces.landVerdict(pieceId, "delivered");
 		yield* db.PieceAgent.create({ pieceId, agentId: requesterId });
 		yield* db.AgentSession.create({
 			id: "root",
@@ -107,23 +109,23 @@ it.effectDB("standing rulings stay fresh during work and conclude after abandonm
 		yield* db.AgentSession.where({ id: "root" }).update({ executionStatus: "idle" });
 		expect((yield* source.standing).rulings[0]?.stale).toBe(true);
 		yield* db.AgentSession.where({ id: "root" }).update({ executionStatus: "active" });
-		yield* db.PieceVerdict.where({ pieceId }).update({ verdict: "abandoned" });
+		yield* pieces.landVerdict(pieceId, "abandoned");
 		expect((yield* source.standing).rulings[0]?.stale).toBe(true);
 	}).pipe(Effect.provide(layer));
 });
 
-it.effectDB("a standing voyage ruling concludes only after all its pieces", function* (db) {
+it.effectDB("a standing voyage ruling concludes only after all its pieces", function* () {
 	yield* Effect.gen(function* () {
 		yield* seedFleet;
 		const source = yield* RulingSource;
 		const rulings = yield* Rulings;
 		const requested = yield* rulings.request({ ...asked, subjects: [{ kind: "voyage", id: voyageId }] });
 		yield* source.rule({ answer: "survey first", rulingId: requested.id });
-		yield* db.Piece.create({ id: "second", title: "Second", charter: "second", expectation: "second", role: "hand" });
-		yield* db.VoyagePiece.create({ pieceId: "second", voyageId });
-		yield* db.PieceVerdict.create({ pieceId, verdict: "delivered" });
+		const pieces = yield* Pieces;
+		yield* pieces.charter({ charter: "second", dependsOn: [], expectation: "second", id: "second", role: "hand", title: "Second", voyageId });
+		yield* pieces.landVerdict(pieceId, "delivered");
 		expect((yield* source.standing).rulings[0]?.stale).toBe(false);
-		yield* db.PieceVerdict.create({ pieceId: "second", verdict: "delivered" });
+		yield* pieces.landVerdict("second", "delivered");
 		expect((yield* source.standing).rulings[0]?.stale).toBe(true);
 	}).pipe(Effect.provide(layer));
 });

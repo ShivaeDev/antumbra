@@ -3,7 +3,7 @@ import type { TraceDatabase } from "#adapters/database.ts";
 import type { LogRow } from "#log-row.ts";
 import { type SpanRow, spanRowOf } from "#span-row.ts";
 
-const ORM_SPAN_PREFIX = "prisma.";
+const QUERY_SPAN_PREFIX = "sql.";
 
 export interface Recorder {
 	readonly flush: Effect.Effect<void>;
@@ -11,7 +11,7 @@ export interface Recorder {
 	readonly recordSpan: (span: Tracer.Span) => void;
 }
 
-const recordable = (span: Tracer.Span): boolean => span.sampled && !span.name.startsWith(ORM_SPAN_PREFIX);
+const recordable = (span: Tracer.Span): boolean => span.sampled && !span.name.startsWith(QUERY_SPAN_PREFIX);
 
 const rowsOf = (span: Tracer.Span): readonly SpanRow[] => {
 	const row = spanRowOf(span);

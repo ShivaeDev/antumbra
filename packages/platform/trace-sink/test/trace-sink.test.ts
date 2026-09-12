@@ -30,10 +30,10 @@ const attachment = (sessionId: string) =>
 		Effect.annotateSpans({ sessionId }),
 	);
 
-const readThroughOrm = (sessionId: string) =>
+const readThroughSql = (sessionId: string) =>
 	Effect.void.pipe(
-		Effect.withSpan("prisma.Intent.all", {
-			attributes: { "db.system": "postgresql" },
+		Effect.withSpan("sql.execute", {
+			attributes: { "db.system": "sqlite" },
 		}),
 		Effect.withSpan("fabric.openAttachment"),
 		Effect.annotateSpans({ sessionId }),
@@ -84,10 +84,10 @@ describe("dev trace sink", () => {
 		}),
 	);
 
-	it.effect("records the domain's spans and not the ORM's query spans", () =>
+	it.effect("records the domain's spans and not the SQL client's query spans", () =>
 		Effect.gen(function* () {
 			const directory = yield* temporaryDirectory;
-			yield* wholeRun(directory, readThroughOrm("session-d"));
+			yield* wholeRun(directory, readThroughSql("session-d"));
 			const rows = readRows(directory, "SELECT name, session_id FROM spans ORDER BY name", []);
 			expect(rows.map((row) => row.name)).toEqual(["fabric.openAttachment"]);
 			expect(rows[0]?.session_id).toBe("session-d");

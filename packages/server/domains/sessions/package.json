@@ -20,9 +20,7 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/runner-backends-codex": "workspace:*",
-		"@antumbra/runner-backends-claude": "workspace:*"
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",

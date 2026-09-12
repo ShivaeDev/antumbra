@@ -19,7 +19,9 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"@antumbra/runner-backends-codex": "workspace:*",
+		"@antumbra/runner-backends-claude": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-agents": "workspace:*",

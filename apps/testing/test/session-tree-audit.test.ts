@@ -1,12 +1,12 @@
-import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { connectRunner } from "@antumbra/app-testing/runner.ts";
+import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import type { LogEvent } from "@antumbra/platform-runner/log.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { transcriptFindings } from "@antumbra/runner-backends-claude/subsession-audit.ts";
 import { censusOf, censusUnreadable } from "@antumbra/runner-backends-codex/thread-census.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { SessionId } from "#ids.ts";
+import { answered, it } from "#entry.ts";
+import { connectRunner } from "#runner.ts";
 
 const sessionId = SessionId.make("root");
 const raw = { source: "provider", kind: "record", payload: "{}" };

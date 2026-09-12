@@ -1,5 +1,5 @@
 import { eventually } from "@antumbra/app-testing/answers.ts";
-import { labelled, named, renderedForm, submit, write } from "@antumbra/app-testing/glass/dom.ts";
+import { fill, labelled, named, renderedForm, submit } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { RoleDefaults } from "#defaults.tsx";
@@ -16,7 +16,7 @@ it.glass("renders fleet roles", function* ({ api, render }) {
 it.glass("saves a fleet choice", function* ({ api, render }) {
 	const container = yield* render(<RoleDefaults api={api} />);
 	const flagship = yield* renderedForm(container, "Flagship");
-	yield* write(labelled<HTMLInputElement>(flagship, "Flagship Model"), "opus");
+	yield* fill(flagship, "Flagship Model", "opus");
 	yield* submit(container, "Flagship");
 	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.model === "opus"));
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({
@@ -35,7 +35,7 @@ it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, r
 	const crew = yield* renderedForm(container, "Crew");
 	expect(labelled<HTMLInputElement>(captain, "Captain Model").placeholder).toBe("gpt");
 	expect([...labelled<HTMLSelectElement>(captain, "Captain Backend").options].map((option) => option.text)).toContain("Fleet default (codex)");
-	yield* write(labelled<HTMLSelectElement>(crew, "Crew Backend"), "claude");
+	yield* fill(crew, "Crew Backend", "claude");
 	yield* submit(container, "Crew");
 	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
 		rows.some((row) => row.role === "crew" && row.backend === "claude"),

@@ -1,5 +1,5 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
-import { click, form, labelled, named, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { click, fill, form, labelled, named, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Settings } from "#settings.tsx";
@@ -33,7 +33,7 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 	const running = yield* renderedForm(container, "Maximum running agents");
 	yield* until(() => labelled<HTMLInputElement>(running, "Maximum running agents Count").value === "9");
 	expect(labelled<HTMLInputElement>(running, "Maximum running agents Count").type).toBe("number");
-	yield* write(labelled<HTMLInputElement>(running, "Maximum running agents Count"), "12");
+	yield* fill(running, "Maximum running agents Count", "12");
 	yield* submit(container, "Maximum running agents");
 	const saved = yield* eventually(api.settings.counts({}), (counts) =>
 		counts.some((count) => count.key === "maxParallelSessions" && count.count === 12),

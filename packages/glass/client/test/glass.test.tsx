@@ -1,7 +1,8 @@
+import { answered } from "@antumbra/app-testing/answers.ts";
 import { until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
-import { Deferred, Effect, Option, Stream } from "effect";
+import { Deferred, Effect, Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useLive, useSend } from "#hooks.ts";
 
@@ -43,6 +44,6 @@ it.glass("returns committed sequences from the command hook", function* ({ api, 
 	const first = yield* send(choice);
 	const second = yield* send({ ...choice, backend: "claude" });
 	expect(second).toBeGreaterThan(first);
-	const saved = Option.getOrThrow(yield* api.roleSettings.defaults({}).pipe(Stream.runHead));
+	const saved = yield* answered(api.roleSettings.defaults({}));
 	expect(saved.find((row) => row.role === "captain")).toMatchObject({ backend: "claude", model: "gpt", effort: "high" });
 });

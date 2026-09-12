@@ -1,9 +1,12 @@
 import { outcomeId } from "@antumbra/domain-pieces/ids.ts";
+import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceOutcome } from "@antumbra/domain-pieces/rows/piece-outcome.ts";
 import { heldResourceId } from "@antumbra/domain-reclamation/ids.ts";
 import { berth } from "@antumbra/domain-reclamation/rows/berth.ts";
 import { heldResource } from "@antumbra/domain-reclamation/rows/held-resource.ts";
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
+import { activityId } from "@antumbra/domain-voyages/ids.ts";
+import { voyageActivity } from "@antumbra/domain-voyages/rows/voyage-activity.ts";
 import type { ReadHandles, WriteHandles } from "@antumbra/platform-feature/handles.ts";
 import { projection } from "@antumbra/platform-feature/projection.ts";
 import { Effect } from "effect";
@@ -12,8 +15,8 @@ import { change } from "#rows/change.ts";
 import { changeVerdict } from "#rows/change-verdict.ts";
 import { pieceChange } from "#rows/piece-change.ts";
 
-const sources = [change, pieceChange, changeVerdict, repo, berth, pieceOutcome, heldResource] as const;
-const targets = [pieceOutcome, heldResource] as const;
+const sources = [piece, voyageActivity, change, pieceChange, changeVerdict, repo, berth, pieceOutcome, heldResource] as const;
+const targets = [voyageActivity, pieceOutcome, heldResource] as const;
 type Reads = ReadHandles<typeof sources>;
 type Writes = WriteHandles<typeof targets>;
 type World = { changes: readonly (typeof change.Row.Type)[]; links: readonly (typeof pieceChange.Row.Type)[]; dismissed: ReadonlySet<string> };
@@ -61,6 +64,26 @@ const syncHolds = Effect.fn("changes.syncHolds")(function* (reads: Reads, writes
 	for (const held of yield* reads.heldResource.where({})) if (!holdIds.has(held.id)) yield* writes.heldResource.delete(held.id);
 	for (const held of holds) if (!(yield* reads.heldResource.exists(held.id))) yield* writes.heldResource.insert(held);
 });
+const syncActivity = Effect.fn("changes.syncActivity")(function* (reads: Reads, writes: Writes, { changes, links }: World) {
+	const pieces = new Map((yield* reads.piece.where({})).map((row) => [row.id, row]));
+	const byChange = Map.groupBy(links, (link) => link.changeId);
+	const desired = new Map<string, typeof voyageActivity.Row.Type>();
+	for (const change of changes)
+		for (const link of byChange.get(change.id) ?? []) {
+			const piece = pieces.get(link.pieceId);
+			if (piece !== undefined) {
+				const id = activityId("change", change.id, piece.voyageId);
+				desired.set(id, { id, voyageId: piece.voyageId, sourceKind: "change", sourceId: change.id, at: change.activityAt });
+			}
+		}
+	const existing = yield* reads.voyageActivity.where({ sourceKind: "change" });
+	for (const held of existing) if (!desired.has(held.id)) yield* writes.voyageActivity.delete(held.id);
+	for (const row of desired.values()) {
+		const held = existing.find((candidate) => candidate.id === row.id);
+		if (held === undefined) yield* writes.voyageActivity.insert(row);
+		else if (held.at !== row.at) yield* writes.voyageActivity.update(row.id, { at: row.at });
+	}
+});
 export const outcomes = projection("changeOutcomes", {
 	reads: sources,
 	writes: targets,
@@ -72,5 +95,6 @@ export const outcomes = projection("changeOutcomes", {
 		};
 		yield* syncOutcomes(reads, writes, desiredOutcomes(world));
 		yield* syncHolds(reads, writes, world);
+		yield* syncActivity(reads, writes, world);
 	}),
 });

@@ -5,7 +5,7 @@ import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Clock, Effect } from "effect";
-import { claimingHost } from "#changes/host.ts";
+import { supportingHost } from "#changes/host.ts";
 import { namedRepo, readWorld } from "#changes/read.ts";
 export interface LocalChangeInput {
 	readonly callId: string;
@@ -18,7 +18,7 @@ export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: 
 	const prior = (yield* readWorld).changes.find((row) => row.id === `${input.callId}:prepare`);
 	if (prior !== undefined) return prior;
 	const repository = yield* namedRepo(input.repo);
-	const host = yield* claimingHost(repository);
+	const host = yield* supportingHost(repository);
 	const snapshot = yield* readWorld;
 	const key = submissionKey(input.agentId, repository.id);
 	const existing = snapshot.changes.find((row) => row.submissionKey === key);

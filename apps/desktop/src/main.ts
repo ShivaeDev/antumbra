@@ -60,7 +60,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 				Effect.promise(() => runtime.runPromise(lifecycle("abandonRestart"))),
 			);
 			yield* whenReady;
-			yield* Effect.promise(() => registerShellBridge(runtime, shell.registry, () => runtime.runPromise(restart)));
+			yield* registerShellBridge(shell.registry, () => runtime.runPromise(restart));
 			yield* Effect.sync(registerOpenExternal);
 			yield* quitWhenAllWindowsClosed;
 			yield* lifecycle("honorRestart");

@@ -36,11 +36,11 @@ const wire = (opening: WindowOpening, window: BrowserWindow, record: OwnedWindow
 	const authority = holdAuthority(opening.registry, record);
 	window.on("focus", () => opening.registry.noteFocus(record.id));
 	const recover = () => {
-		window.webContents.once("did-finish-load", () => {
-			if (adopt(authority.place()) === undefined) {
-				report("bridge: a reloaded window could not reclaim its place");
-			}
-		});
+		if (adopt(authority.place()) === undefined) {
+			report("bridge: a reloaded window could not reclaim its place");
+			window.close();
+			return;
+		}
 		window.webContents.reload();
 	};
 	attachWindowLifecycle(

@@ -1,27 +1,14 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { berthId, reclaimRequestId } from "#ids.ts";
 
 it.app("reclaims retired resources without removing the Agent", function* (app) {
-	const agentId = AgentId.make(Id.make());
-	yield* app.api.starts.request({
-		agentId,
-		sessionId: SessionId.make(Id.make()),
-		voyageId: null,
-		pieceId: null,
-		backend: "claude",
-		model: null,
-		effort: null,
-		role: "worker",
-		source: "direct",
-		charter: "Inspect the repository",
-		toolSetVersion: "1",
-		tools: [],
-	});
+	const requestId = Id.Request.make(Id.make());
+	const { agentId } = identity(requestId);
+	yield* app.api.agents.spawn({ requestId, role: "worker", backend: "claude", model: null, effort: null });
 	yield* app.api.reclamation.plan({
 		agentId,
 		runner: "local",
@@ -42,21 +29,9 @@ it.app("reclaims retired resources without removing the Agent", function* (app) 
 });
 
 it.app("keeps dirty resources claimed and rejects an obsolete result", function* (app) {
-	const agentId = AgentId.make(Id.make());
-	yield* app.api.starts.request({
-		agentId,
-		sessionId: SessionId.make(Id.make()),
-		voyageId: null,
-		pieceId: null,
-		backend: "claude",
-		model: null,
-		effort: null,
-		role: "worker",
-		source: "direct",
-		charter: "Inspect the repository",
-		toolSetVersion: "1",
-		tools: [],
-	});
+	const requestId = Id.Request.make(Id.make());
+	const { agentId } = identity(requestId);
+	yield* app.api.agents.spawn({ requestId, role: "worker", backend: "claude", model: null, effort: null });
 	yield* app.api.reclamation.plan({
 		agentId,
 		runner: "local",

@@ -1,6 +1,5 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
@@ -13,24 +12,9 @@ import { RunnerClient } from "#connection.ts";
 import { serverTools } from "#tools.ts";
 
 it.app("acknowledges the first session and tool log before invoking its bound tool", function* (app) {
-	const sessionId = SessionId.make("first-session");
-	const agentId = AgentId.make("first-agent");
-	const requestId = Request.make("first-start");
-	yield* app.api.starts.request({
-		requestId,
-		agentId,
-		sessionId,
-		source: "direct",
-		voyageId: null,
-		pieceId: null,
-		backend: "claude",
-		model: null,
-		effort: null,
-		role: "hand",
-		charter: "Record the sounding",
-		toolSetVersion: "crew-v1",
-		tools: [{ name: "write_board", description: "Write a board", inputSchema: {} }],
-	});
+	const requestId = Request.make("first-agent");
+	const { agentId, sessionId } = identity(requestId);
+	yield* app.api.agents.spawn({ requestId, role: "hand", backend: "claude", model: null, effort: null });
 	const calls = yield* RpcTest.makeClient(RunnerRpc);
 	const local = Layer.merge(file({ filename: ":memory:", seed: "first-log" }), Layer.succeed(RunnerClient, { calls, connected: Effect.void }));
 	yield* Effect.gen(function* () {

@@ -18,7 +18,7 @@ export const FleetPanel = (props: {
 		<div className="flex flex-wrap items-center gap-2">
 			<h2 className="min-w-0 flex-1 text-base">Fleet</h2>
 			<ReposDialog api={props.api} />
-			<SpawnDialog sessions={props.sessions} />
+			<SpawnDialog api={props.api} />
 		</div>
 		<Live query={props.api.agents.roster} input={{}} waiting="Reading the fleet…">
 			{(agents) =>

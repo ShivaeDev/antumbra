@@ -11,9 +11,9 @@ native menus, tray, windows, links, and requested restart. Repeat launches reach
 drafts are shell state; losing a window does not lose domain work. Preload exposes the narrow shell bridge from `packages/platform/shell`.
 
 The server in `apps/server` owns the journal, command execution, materialized rows, live queries, and reconciliation. Its application definition
-assembles feature declarations and projection stages; its runtime supervises starts, Session operations, capacity release, resource reclamation, mail
-delivery, Change observation, Ruling reconciliation, and smoothing. App Layers supply filesystem custody, GitHub processes, and runner connections.
-The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner transport.
+assembles feature declarations and projection stages; its runtime supervises the reconcilers features declare, Session operations, capacity release,
+resource reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. App Layers supply filesystem custody, GitHub processes,
+and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner transport.
 
 The runner in `apps/runner` owns provider processes, live attachments, tool forwarding, Git work, and its durable event log. Its entry assembles the
 Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuration remain adapter concerns. Restarting a server does not transfer
@@ -43,9 +43,9 @@ bridge. Reloading a window has no effect on an Agent or its runner attachment.
 | `packages/runner/git`      | Git semantics over app-supplied machine capabilities                                                                          |
 | `packages/glass`           | Client, forms, shared components, feature screens, renderer, and harness                                                      |
 
-Server domains include Agents, Sessions, starts, lifecycle, settings, role settings, backend catalog, Voyages, Pieces, Boards, mail, Rulings,
-repositories, Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants: every invariant
-has a feature owner and every runtime effect has an app owner.
+Server domains include Agents, Sessions, lifecycle, settings, role settings, backend catalog, Voyages, Pieces, Boards, mail, Rulings, repositories,
+Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants: every invariant has a feature
+owner and every runtime effect has an app owner.
 
 ## Dependencies and effects
 

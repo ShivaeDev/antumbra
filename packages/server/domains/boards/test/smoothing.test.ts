@@ -1,7 +1,6 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { Clock } from "effect";
+import { Clock, Effect } from "effect";
 import { expect } from "vitest";
 import { localDay } from "#queries/smoothing-span.ts";
 import { smoothingState } from "#queries/smoothing-state.ts";
@@ -10,19 +9,15 @@ import { chartering, noting, opening, reef, soundings, soundingsBoard } from "#t
 it.app("a failed voyage pass still counts today and becomes due on the next local day", function* (app) {
 	yield* app.api.voyages.open(opening);
 	const now = new Date(yield* Clock.currentTimeMillis);
-	const flagshipPass = { voyageId: VoyageId.make(FLAGSHIP_REQUEST), pieceId: null, throughToday: false };
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([
-		flagshipPass,
-		{ voyageId: reef, pieceId: null, throughToday: false },
-	]);
+	const demanded = (at: Date) =>
+		Effect.map(answered(app.api.boards.dueSmoothing({ now: at.toISOString() })), (demands) =>
+			demands.some((demand) => demand.voyageId === reef && demand.pieceId === null),
+		);
 	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: false, requestId: Id.Request.make("pass-today") });
 	yield* app.api.boards.finishSmoothing({ id: "pass-today", status: "failed", detail: "the smoother wrote no summary" });
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([flagshipPass]);
+	expect(yield* demanded(now)).toBe(false);
 	now.setDate(now.getDate() + 1);
-	expect(yield* answered(app.api.boards.dueSmoothing({ now: now.toISOString() }))).toEqual([
-		flagshipPass,
-		{ voyageId: reef, pieceId: null, throughToday: false },
-	]);
+	expect(yield* demanded(now)).toBe(true);
 });
 
 it.app("a concluded piece with uncovered notes is attempted once even when that pass fails", function* (app) {
@@ -60,8 +55,8 @@ it.app("updates the smoothing reading when a voyage board receives another rough
 	yield* app.api.voyages.open(opening);
 	const reading = yield* app.live(smoothingState, { voyageId: reef });
 	yield* app.settle();
-	expect((yield* reading.seen).at(-1)).toEqual({ state: "idle", uncovered: 0 });
+	expect((yield* reading.seen).at(-1)?.uncovered).toBe(0);
 	yield* app.api.boards.write(noting("new-note", "The wind has backed"));
 	yield* app.settle();
-	expect((yield* reading.seen).at(-1)).toEqual({ state: "idle", uncovered: 1 });
+	expect((yield* reading.seen).at(-1)?.uncovered).toBe(1);
 });

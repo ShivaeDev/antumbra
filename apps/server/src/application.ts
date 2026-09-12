@@ -6,6 +6,10 @@ import { artifactContentHandlers } from "#adapters/artifacts/content-layer.ts";
 import { artifactSource } from "#adapters/artifacts/source.ts";
 import { inputDeliveryLayer } from "#adapters/inputs/delivery.ts";
 import { servingInputs } from "#adapters/inputs/handlers.ts";
+import { charters } from "#agents/charter.ts";
+import { provisioning } from "#agents/provisioning.ts";
+import { runnerOperations } from "#agents/runner-operations.ts";
+import { toolCatalog } from "#agents/tool-catalog.ts";
 import { features } from "#features.ts";
 import { Files } from "#files.ts";
 import { lifecycleHandlers } from "#lifecycle/handlers.ts";
@@ -14,8 +18,6 @@ import { layer as connections } from "#runner/connections.ts";
 import { layer as runnerHandlers } from "#runner/rpc.ts";
 import { runtime } from "#runtime.ts";
 import { execution } from "#sessions/execution/service.ts";
-import { servingStarts } from "#starts/handlers.ts";
-import { resources } from "#starts/resources.ts";
 import { transcriptLayer } from "#transcript/route.ts";
 
 export const definition = app(features, projections);
@@ -29,11 +31,11 @@ const inputs = Layer.unwrap(
 );
 const journal = Journal.layer(definition);
 const services = connections.pipe(Layer.provideMerge(journal));
-const delivery = Layer.mergeAll(inputDeliveryLayer, execution, resources, artifactSource).pipe(Layer.provideMerge(services));
+const ports = Layer.mergeAll(charters, provisioning, runnerOperations, toolCatalog).pipe(Layer.provideMerge(services));
+const delivery = Layer.mergeAll(inputDeliveryLayer, execution, artifactSource).pipe(Layer.provideMerge(ports));
 
 export const application = Layer.mergeAll(
 	runtime,
-	servingStarts,
 	serving(definition.features),
 	artifactContentHandlers,
 	inputs,

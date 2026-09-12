@@ -31,7 +31,7 @@ it.app("runs a constrained summary pass through its bound domain tool and closes
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
 	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("runtime-pass") });
 	const live = yield* Live;
-	const attempt = (yield* live.read(pendingSmoothing, {}))[0];
+	const attempt = (yield* live.read(pendingSmoothing, {})).find((pending) => pending.id === "runtime-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
 	let stopped = false;
 	yield* smoothAttempt(attempt, () =>
@@ -57,7 +57,7 @@ it.app("records an empty answer as a failed pass and leaves source notes standin
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
 	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("empty-pass") });
-	const attempt = (yield* (yield* Live).read(pendingSmoothing, {}))[0];
+	const attempt = (yield* (yield* Live).read(pendingSmoothing, {})).find((pending) => pending.id === "empty-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
 	yield* smoothAttempt(attempt, () =>
 		Effect.succeed({

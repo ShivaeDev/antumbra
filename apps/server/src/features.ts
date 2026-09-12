@@ -17,7 +17,6 @@ import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
 import { rulings } from "@antumbra/domain-rulings/feature.ts";
 import { sessions } from "@antumbra/domain-sessions/feature.ts";
 import { settings } from "@antumbra/domain-settings/feature.ts";
-import { starts } from "@antumbra/domain-starts/feature.ts";
 import { voyages } from "@antumbra/domain-voyages/feature.ts";
 
 export const features = [
@@ -37,7 +36,6 @@ export const features = [
 	sessions,
 	agents,
 	inputs,
-	starts,
 	changes,
 	rulings,
 	lifecycle,

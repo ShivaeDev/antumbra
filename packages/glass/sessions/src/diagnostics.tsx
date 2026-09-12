@@ -7,10 +7,10 @@ import { CommandAct } from "@antumbra/glass-components/act.tsx";
 import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { SessionsApi } from "#glass.ts";
 
-type Api = Pick<SessionsApi, "starts" | "sessions">;
+type Api = Pick<SessionsApi, "agents" | "sessions">;
 
 const BirthDiagnostic = ({ api, sessionId }: { readonly api: Api; readonly sessionId: string }) => (
-	<Live query={api.starts.bySession} input={{ sessionId: SessionId.make(sessionId) }}>
+	<Live query={api.agents.birthBySession} input={{ sessionId: SessionId.make(sessionId) }}>
 		{(birth) =>
 			birth === null || birth.status === "running" || birth.status === "ended" || birth.status === "cancelled" ? null : (
 				<span className="flex items-center gap-1 text-xs">

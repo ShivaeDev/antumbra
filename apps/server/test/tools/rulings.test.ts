@@ -1,11 +1,11 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
+import { hail } from "@antumbra/domain-agents/commands/hail.ts";
+import { spawn } from "@antumbra/domain-agents/commands/spawn.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { RulingId } from "@antumbra/domain-rulings/ids.ts";
 import { answerTool } from "@antumbra/domain-sessions/commands/answer-tool.ts";
 import { callTool } from "@antumbra/domain-sessions/commands/call-tool.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
-import { request as start } from "@antumbra/domain-starts/commands/request.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
@@ -15,8 +15,9 @@ import { expect } from "vitest";
 import { rulingReconciliation } from "#tools/rulings/reconciliation.ts";
 import { commonRulingTools } from "#tools/rulings/tools.ts";
 
-const context = { sessionId: "asker-session", callId: "question", agentId: "asker" };
-const sessionId = SessionId.make(context.sessionId);
+const asked = Request.make("asker");
+const { agentId, sessionId } = identity(asked);
+const context = { sessionId, callId: "question", agentId };
 const input = {
 	question: "Which passage?",
 	context: "The north is deeper",
@@ -26,21 +27,7 @@ const input = {
 };
 const begin = Effect.gen(function* () {
 	const commit = yield* Commit;
-	yield* commit.commit(start, {
-		requestId: Request.make("agent"),
-		agentId: AgentId.make(context.agentId),
-		sessionId,
-		voyageId: null,
-		pieceId: null,
-		backend: "scripted",
-		model: null,
-		effort: null,
-		role: "hand",
-		charter: "Sound the channel",
-		source: "direct",
-		toolSetVersion: "tools",
-		tools: [],
-	});
+	yield* commit.commit(spawn, { requestId: asked, role: "hand", backend: "claude", model: null, effort: null });
 	yield* commit.observe(observed, {
 		logId: "runner",
 		cursor: 0,
@@ -181,22 +168,12 @@ it.app("waits for a missing flagship captain and delivers the ascent once they a
 	});
 	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
 	yield* rulingReconciliation;
-	yield* (yield* Commit).commit(start, {
-		requestId: Request.make("hail"),
-		agentId: AgentId.make("captain"),
-		sessionId: SessionId.make("captain-session"),
-		voyageId: VoyageId.make(FLAGSHIP_REQUEST),
-		pieceId: null,
-		backend: "scripted",
-		model: null,
-		effort: null,
-		role: "captain",
-		charter: "Lead the fleet",
-		source: "direct",
-		toolSetVersion: "tools",
-		tools: [],
-	});
-	yield* eventually(app.api.mail.mailbox({ agentId: "captain" }), (messages) => messages.length === 1);
-	expect(yield* app.rows.message.where({ toAgentId: "captain" })).toMatchObject([{ id: "ruling-ascent:ascent:captain", precedence: "priority" }]);
+	const captain = Request.make("captain");
+	yield* (yield* Commit).commit(hail, { requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	const captainId = identity(captain).agentId;
+	yield* eventually(app.api.mail.mailbox({ agentId: captainId }), (messages) => messages.length === 1);
+	expect(yield* app.rows.message.where({ toAgentId: captainId })).toMatchObject([
+		{ id: `ruling-ascent:ascent:${captainId}`, precedence: "priority" },
+	]);
 	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
 });

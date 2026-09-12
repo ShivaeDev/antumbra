@@ -1,8 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
@@ -11,27 +10,13 @@ import * as RpcTest from "effect/unstable/rpc/RpcTest";
 import { expect } from "vitest";
 
 it.app("an offline hail wakes the existing native conversation after cold runner catchup", function* ({ api, clock }) {
-	const sessionId = SessionId.make("offline-session");
-	const agentId = AgentId.make("offline-agent");
+	const birth = Request.make("offline-agent");
+	const { agentId, sessionId } = identity(birth);
 	const registration = { runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] };
 	yield* Effect.scoped(
 		Effect.gen(function* () {
 			const runner = yield* connectRunner(registration);
-			yield* api.starts.request({
-				requestId: Request.make("birth"),
-				agentId,
-				sessionId,
-				voyageId: null,
-				pieceId: null,
-				source: "direct",
-				backend: "claude",
-				model: null,
-				effort: null,
-				role: "crew",
-				charter: "Survey",
-				toolSetVersion: "tools",
-				tools: [],
-			});
+			yield* api.agents.spawn({ requestId: birth, role: "crew", backend: "claude", model: null, effort: null });
 			const plan = yield* runner.next;
 			expect(plan.type).toBe("Plan");
 			yield* runner.reply(plan.requestId, { type: "MooragePlanned", plan: { root: "/berth", berths: [] } });

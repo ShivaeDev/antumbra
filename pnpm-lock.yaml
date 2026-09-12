@@ -519,9 +519,6 @@ importers:
       '@antumbra/domain-settings':
         specifier: workspace:*
         version: link:../../packages/server/domains/settings
-      '@antumbra/domain-starts':
-        specifier: workspace:*
-        version: link:../../packages/server/domains/starts
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../../packages/server/domains/voyages
@@ -1602,9 +1599,6 @@ importers:
       '@antumbra/domain-sessions':
         specifier: workspace:*
         version: link:../../server/domains/sessions
-      '@antumbra/domain-starts':
-        specifier: workspace:*
-        version: link:../../server/domains/starts
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../../server/domains/voyages
@@ -2286,12 +2280,18 @@ importers:
 
   packages/server/domains/agents:
     dependencies:
+      '@antumbra/domain-capacity':
+        specifier: workspace:*
+        version: link:../capacity
       '@antumbra/domain-pieces':
         specifier: workspace:*
         version: link:../pieces
       '@antumbra/domain-reclamation':
         specifier: workspace:*
         version: link:../reclamation
+      '@antumbra/domain-role-settings':
+        specifier: workspace:*
+        version: link:../role-settings
       '@antumbra/domain-sessions':
         specifier: workspace:*
         version: link:../sessions
@@ -2712,9 +2712,6 @@ importers:
       '@antumbra/domain-sessions':
         specifier: workspace:*
         version: link:../sessions
-      '@antumbra/domain-starts':
-        specifier: workspace:*
-        version: link:../starts
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -2943,55 +2940,6 @@ importers:
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature
-      effect:
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112
-    devDependencies:
-      '@antumbra/app-testing':
-        specifier: workspace:*
-        version: link:../../../../apps/testing
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.10.1
-      '@typescript/native':
-        specifier: 'catalog:'
-        version: typescript@7.0.2
-      typescript:
-        specifier: 'catalog:'
-        version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
-
-  packages/server/domains/starts:
-    dependencies:
-      '@antumbra/domain-agents':
-        specifier: workspace:*
-        version: link:../agents
-      '@antumbra/domain-capacity':
-        specifier: workspace:*
-        version: link:../capacity
-      '@antumbra/domain-pieces':
-        specifier: workspace:*
-        version: link:../pieces
-      '@antumbra/domain-reclamation':
-        specifier: workspace:*
-        version: link:../reclamation
-      '@antumbra/domain-sessions':
-        specifier: workspace:*
-        version: link:../sessions
-      '@antumbra/domain-settings':
-        specifier: workspace:*
-        version: link:../settings
-      '@antumbra/domain-voyages':
-        specifier: workspace:*
-        version: link:../voyages
-      '@antumbra/platform-feature':
-        specifier: workspace:*
-        version: link:../../../platform/feature
-      '@antumbra/platform-vocabulary':
-        specifier: workspace:*
-        version: link:../../../platform/vocabulary
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112

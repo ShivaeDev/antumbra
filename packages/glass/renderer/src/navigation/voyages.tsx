@@ -3,7 +3,6 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { VoyageSpend } from "@antumbra/glass-sessions/spend.tsx";
 import { VoyageDetail } from "@antumbra/glass-voyages/voyage-detail.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
-import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Cause, Effect } from "effect";
 import { VoyagesAside } from "#navigation/voyages-aside.tsx";
 import type { RendererProps } from "#props.ts";
@@ -18,7 +17,7 @@ export const VoyagesPage = (
 	const run = (action: Effect.Effect<unknown, unknown>) => {
 		Effect.runFork(action.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))));
 	};
-	const hail = (voyageId: string) => run(props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId: VoyageId.make(voyageId) }));
+	const hail = (voyageId: string) => run(props.api.agents.hail({ voyageId: VoyageId.make(voyageId) }));
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1">
 			<aside className="flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3">
@@ -39,7 +38,7 @@ export const VoyagesPage = (
 					onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, voyageId, pieceId })}
 					readArtifact={props.readArtifact}
 					onHail={hail}
-					onWorkNow={(pieceId) => run(props.sessions["starts.workNow"]({ requestId: Id.Request.make(Id.make()), pieceId: PieceId.make(pieceId) }))}
+					onWorkNow={(pieceId) => run(props.api.agents.workNow({ pieceId: PieceId.make(pieceId) }))}
 					onRetireCrew={(pieceId) => run(props.api.agents.retireCrew({ pieceId: PieceId.make(pieceId) }))}
 					onSmooth={(voyageId) => run(props.api.boards.requestSmoothing({ voyageId: VoyageId.make(voyageId), pieceId: null, throughToday: true }))}
 					renderSpend={(voyageId) => <VoyageSpend api={props.api} voyageId={voyageId} />}

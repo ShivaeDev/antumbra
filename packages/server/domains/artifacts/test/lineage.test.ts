@@ -12,7 +12,7 @@ const edge = { supersededArtifactId: old, successorArtifactId: next, actorAgentI
 it.app("correcting a replacement restores both artifacts", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" });
+	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing(old, "old.md");
@@ -28,7 +28,7 @@ it.app("correcting a replacement restores both artifacts", function* (app) {
 it.app("refuses a cycle and an unrelated author's correction", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" });
+	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing(old, "old.md");

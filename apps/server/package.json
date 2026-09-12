@@ -44,7 +44,6 @@
 		"@antumbra/domain-sessions": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/domain-inputs": "workspace:*",
-		"@antumbra/domain-starts": "workspace:*",
 		"@antumbra/domain-changes": "workspace:*",
 		"@antumbra/domain-rulings": "workspace:*",
 		"@antumbra/platform-runner": "workspace:*",

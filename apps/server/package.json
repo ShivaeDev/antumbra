@@ -51,6 +51,9 @@
 		"@antumbra/platform-prompts": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/platform-tool-schemas": "workspace:*",
-		"@antumbra/domain-lifecycle": "workspace:*"
+		"@antumbra/domain-lifecycle": "workspace:*",
+		"@antumbra/platform-change-host": "workspace:*",
+		"@antumbra/edge-github": "workspace:*",
+		"sharp": "catalog:"
 	}
 }

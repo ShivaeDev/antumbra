@@ -1,5 +1,6 @@
 import { ChangeEvidence, Moorage } from "@antumbra/platform-vocabulary/resources.ts";
 import { Schema } from "effect";
+import { ListModels, ModelsListed } from "#catalog.ts";
 import { DeliveryAct, Input } from "#input.ts";
 import { LogEntry } from "#log.ts";
 import { CaptureChange, Plan, Provision, PushChange, Reclaim, Scrap } from "#resources.ts";
@@ -38,6 +39,7 @@ export const ReadArtifact = Schema.Struct({
 	relativePath: Schema.String,
 });
 export const Operation = Schema.Union([
+	ListModels,
 	Start,
 	Wake,
 	Deliver,
@@ -56,6 +58,7 @@ export const Operation = Schema.Union([
 ]);
 export type Operation = typeof Operation.Type;
 export const OperationResult = Schema.Union([
+	ModelsListed,
 	Schema.Struct({ type: Schema.Literal("Accepted") }),
 	Schema.Struct({ type: Schema.Literal("MooragePlanned"), plan: Moorage }),
 	Schema.Struct({ type: Schema.Literal("LogRead"), entries: Schema.Array(LogEntry) }),

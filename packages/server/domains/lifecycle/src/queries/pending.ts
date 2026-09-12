@@ -5,10 +5,10 @@ import { RESTART } from "#ids.ts";
 import { restart } from "#rows/restart.ts";
 export const pending = query("pending", {
 	input: {},
-	output: Schema.Array(SessionId),
+	output: Schema.NullOr(Schema.Array(SessionId)),
 	reads: [restart],
 	run: Effect.fn("Lifecycle.pending")(function* (_input, rows) {
 		const held = yield* rows.restart.find(RESTART);
-		return Option.isSome(held) ? held.value.sessionIds : [];
+		return Option.isSome(held) ? held.value.sessionIds : null;
 	}),
 });

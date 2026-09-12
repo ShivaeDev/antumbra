@@ -12,7 +12,7 @@ export const honorRestart = Effect.fn("Lifecycle.honorRestart")(function* ({ req
 	const commit = yield* Commit;
 	const live = yield* Live;
 	const sessions = yield* live.read(pending, {});
-	if (sessions.length === 0) return;
+	if (sessions === null) return;
 	const consumed = yield* commit.commit(clear, { requestId: Request.make(requestId) }).pipe(
 		Effect.as(true),
 		Effect.catchTag("AlreadyDone", () => Effect.succeed(false)),

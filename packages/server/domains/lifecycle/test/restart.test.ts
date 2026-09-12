@@ -44,5 +44,5 @@ it.app("records only running roots on connected runners and clears the requested
 	yield* commit.commit(record, { requestId: Request.make("record"), runnerIds: ["runner"] });
 	expect(yield* live.read(pending, {})).toEqual(["active"]);
 	yield* commit.commit(clear, { requestId: Request.make("consume") });
-	expect(yield* live.read(pending, {})).toEqual([]);
+	expect(yield* live.read(pending, {})).toBeNull();
 });

@@ -47,6 +47,7 @@ const begin = Effect.gen(function* () {
 		at: 100,
 		requestId: Request.make("start"),
 		payload: {
+			live: true,
 			sessionId,
 			nodeRef: null,
 			origin: null,

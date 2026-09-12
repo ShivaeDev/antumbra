@@ -5,6 +5,7 @@ import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { SessionMessage } from "@antumbra/glass-inputs/session-message.tsx";
 import type { SessionsApi } from "#glass.ts";
+import { presenceNote } from "#presence.ts";
 import { SessionActs } from "#session-acts.tsx";
 import { AgentSpend } from "#spend.tsx";
 
@@ -43,7 +44,7 @@ export const SessionComposer = (props: {
 								canSend={agent.canSend}
 								canAttachImages={support.imageInput}
 								backend={agent.backend ?? ""}
-								standing={agent.standing}
+								standing={agent.presence === null ? agent.standing : presenceNote[agent.presence]}
 								onError={props.onError}
 							/>
 						)}

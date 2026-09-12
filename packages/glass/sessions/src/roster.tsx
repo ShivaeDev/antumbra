@@ -12,7 +12,7 @@ export const Roster = (props: Omit<ComponentProps<typeof AgentCard>, "agent"> & 
 		.map(([standing, agents]) => (
 			<section key={standing} className="flex min-w-0 flex-col gap-2">
 				<header className="flex items-center gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">{standing}</h3>
+					<h3 className="text-xs font-medium text-muted-foreground">{standing === "Idle" ? "listening" : standing}</h3>
 					<span className="text-xs text-muted-foreground">{agents.length}</span>
 					<Separator className="min-w-0 flex-1" />
 				</header>

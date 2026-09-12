@@ -5,6 +5,7 @@ import { AgentBerths } from "#agent-berths.tsx";
 import { AgentSessions } from "#agent-sessions.tsx";
 import { AgentWork } from "#agent-work.tsx";
 import type { SessionsApi } from "#glass.ts";
+import { presenceWords } from "#presence.ts";
 
 export const AgentCard = (props: {
 	readonly api: SessionsApi;
@@ -26,7 +27,9 @@ export const AgentCard = (props: {
 			/>
 			<div className="flex items-center gap-2">
 				<span className="min-w-0 flex-1 text-sm font-medium">{props.agent.role}</span>
-				<span className="text-xs text-muted-foreground">{props.agent.standing}</span>
+				<span className="text-xs text-muted-foreground">
+					{props.agent.presence === null ? props.agent.standing : presenceWords[props.agent.presence]}
+				</span>
 				{props.agent.canRetire ? <CommandAct command={props.api.agents.retire} input={{ id: props.agent.id }} label="Retire" /> : null}
 			</div>
 		</CardHeader>

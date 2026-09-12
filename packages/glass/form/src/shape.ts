@@ -40,6 +40,7 @@ export interface Form<F extends Fields, A, E, ER> {
 	readonly dirty: Atom.Atom<boolean>;
 	readonly error: (name: Name<F>) => Atom.Atom<string | undefined>;
 	readonly field: <K extends Name<F>>(name: K) => AtomRef.AtomRef<Encoded<F>[K]>;
+	readonly receive: (values: Encoded<F>) => void;
 	readonly submit: Atom.AtomResultFn<void, A, E | ER | FieldFailure | Invalid>;
 	readonly submitting: Atom.Atom<boolean>;
 	readonly values: AtomRef.AtomRef<Encoded<F>>;

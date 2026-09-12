@@ -1,4 +1,5 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { MigrationBody } from "@antumbra/platform-feature/migration.ts";
 import type { ProjectionShape } from "@antumbra/platform-feature/projection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Effect, type Schema } from "effect";
@@ -16,6 +17,13 @@ export interface RunnableMaterializer {
 	readonly writes: readonly RowShape[];
 }
 
+export interface RunnableMigration {
+	readonly feature: string;
+	readonly number: number;
+	readonly fact: string;
+	readonly rewrite: MigrationBody;
+}
+
 export interface RunnableProjection {
 	readonly reads: readonly RowShape[];
 	readonly writes: readonly RowShape[];
@@ -26,6 +34,7 @@ export interface Registry {
 	readonly projections: readonly RunnableProjection[];
 	readonly codecs: ReadonlyMap<string, RowCodec>;
 	readonly materializers: ReadonlyMap<string, RunnableMaterializer>;
+	readonly migrations: readonly RunnableMigration[];
 	readonly rows: readonly RowShape[];
 }
 
@@ -59,19 +68,32 @@ const addMaterializers = (materializers: Map<string, unknown>, owners: Map<strin
 	return undefined;
 };
 
+const addMigrations = (migrations: RunnableMigration[], feature: FeatureShape): string | undefined => {
+	const declared: number[] = [];
+	const contiguous: number[] = [];
+	for (const migration of feature.migrations) {
+		declared.push(migration.number);
+		contiguous.push(contiguous.length + 1);
+		migrations.push({ fact: migration.fact, feature: feature.name, number: migration.number, rewrite: migration.rewrite });
+	}
+	if (declared.join(", ") === contiguous.join(", ")) return undefined;
+	return `the feature "${feature.name}" declares fact migrations numbered ${declared.join(", ")}; they must be numbered ${contiguous.join(", ")}`;
+};
+
 export function registryOf(definition: AppDefinition): Effect.Effect<Registry>;
 export function registryOf(definition: AppDefinition): unknown {
 	return Effect.gen(function* () {
 		const codecs = new Map<string, RowCodec>();
 		const materializers = new Map<string, unknown>();
+		const migrations: RunnableMigration[] = [];
 		const rowOwners = new Map<string, string>();
 		const factOwners = new Map<string, string>();
 		for (const feature of definition.features) {
-			const clash = addRows(codecs, rowOwners, feature) ?? addMaterializers(materializers, factOwners, feature);
+			const clash = addRows(codecs, rowOwners, feature) ?? addMaterializers(materializers, factOwners, feature) ?? addMigrations(migrations, feature);
 			if (clash !== undefined) return yield* Effect.die(new Error(clash));
 		}
 		const projections: readonly unknown[] = definition.projections;
-		return { codecs, materializers, projections, rows: [...codecs.values()].map((codec) => codec.row) };
+		return { codecs, materializers, migrations, projections, rows: [...codecs.values()].map((codec) => codec.row) };
 	});
 }
 

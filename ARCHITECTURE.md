@@ -73,9 +73,15 @@ The server journal is SQLite at `server/journal.db` under the selected data dire
 its fact and runs materializers and derived projection stages in one transaction. Commands are serialized. Commit marks reactivity keys dirty only
 with the committed change. Tables and wire shapes derive from the feature schemas.
 
-Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts; fact migrations handle
-supported historical payloads. An existing journal is backed up before an actual rebuild. This is not a promise to retain or prune a fixed number of
-backups.
+Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts. An existing journal is
+backed up before an actual rebuild. This is not a promise to retain or prune a fixed number of backups.
+
+A fact migration is a numbered one-shot rewrite of stored facts. A feature declares its migrations beside its facts, numbered from one, and startup
+applies every declared migration the `fact_migration` table does not already record, feature by feature and in each feature's declared order, after
+the journal is opened and before the shape comparison and any replay. A migration reads one stored fact as data and returns the fact to keep or
+nothing to drop it, so it may rewrite a payload, rename a fact, or drop the fact, and the sequence number stays. A pending migration makes replay
+follow whether or not a row shape changed, and takes the same backup a rebuild takes. A migration that fails rewrites nothing, records nothing, and
+stops startup.
 
 The old Prisma `antumbra.db` has no importer in this cutover. The shell refuses an unsupported legacy installation before launching the new runtime;
 it neither deletes that database nor silently treats it as a new journal. See the [data policy](docs/architecture/migration.md#data-compatibility).

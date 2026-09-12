@@ -1,3 +1,4 @@
+import { prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
 import { landArtifact, readArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { click, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
@@ -39,6 +40,7 @@ it.glass("revisions update the current artifact and keep readable history", func
 		role: "hand",
 		dependsOn: [],
 	});
+	yield* run(prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" }));
 	artifacts.source.set("old.md", "# First sounding");
 	artifacts.source.set("new.md", "# Latest sounding");
 	yield* run(landArtifact({ ...landing, requestId: Id.Request.make(old) }));

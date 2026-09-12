@@ -6,6 +6,7 @@ import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { adopt } from "#commands/adopt.ts";
+import { adoptionFailed, adoptionFailedMaterializer, failAdoption } from "#commands/adoption-failed.ts";
 import { claimRows } from "#commands/claims.ts";
 import { dismiss } from "#commands/dismiss.ts";
 import { freeze } from "#commands/freeze.ts";
@@ -21,6 +22,7 @@ import { prepare } from "#commands/prepare.ts";
 import { failPublication, publicationFailed, publicationFailedMaterializer } from "#commands/publication-failed.ts";
 import { changeRefresh, refresh, refreshRequested, refreshRequestedMaterializer } from "#commands/refresh.ts";
 import { adoptionRequested, adoptionRequestedMaterializer, requestAdoption } from "#commands/request-adoption.ts";
+import { adoptionRetried, adoptionRetriedMaterializer, retryAdoption } from "#commands/retry-adoption.ts";
 import { changeAdopted } from "#facts/change-adopted.ts";
 import { changeDismissed } from "#facts/change-dismissed.ts";
 import { changeObserved } from "#facts/change-observed.ts";
@@ -70,6 +72,8 @@ export const changes = feature("changes", {
 		heldResource,
 	],
 	facts: [
+		adoptionFailed,
+		adoptionRetried,
 		hostCapabilityObserved,
 		publicationFailed,
 		refreshRequested,
@@ -80,8 +84,10 @@ export const changes = feature("changes", {
 		changeDismissed,
 		proposalFrozen,
 	],
-	commands: [observeHostCapability, failPublication, refresh, requestAdoption, prepare, freeze, observe, adopt, dismiss],
+	commands: [failAdoption, retryAdoption, observeHostCapability, failPublication, refresh, requestAdoption, prepare, freeze, observe, adopt, dismiss],
 	materializers: [
+		adoptionFailedMaterializer,
+		adoptionRetriedMaterializer,
 		hostCapabilityMaterializer,
 		publicationFailedMaterializer,
 		refreshRequestedMaterializer,

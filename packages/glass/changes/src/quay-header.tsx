@@ -2,6 +2,7 @@ import { Live } from "@antumbra/glass-client/live.tsx";
 import { CommandAct } from "@antumbra/glass-components/act.tsx";
 import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { AdoptChangeDialog } from "#adopt-change-dialog.tsx";
+import { AdoptionRequests } from "#adoption-requests.tsx";
 import type { ChangesApi } from "#glass.ts";
 import { whenLabel } from "#time.ts";
 export const QuayHeader = ({ api, sightedAt }: { readonly api: ChangesApi; readonly sightedAt: string | null }) => (
@@ -33,5 +34,6 @@ export const QuayHeader = ({ api, sightedAt }: { readonly api: ChangesApi; reado
 				)
 			}
 		</Live>
+		<AdoptionRequests api={api} />
 	</header>
 );

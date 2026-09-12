@@ -8,6 +8,7 @@ import type { ChangesApi, QuayChange } from "#glass.ts";
 import { changeNumber } from "#marks.ts";
 import { QuayDescription } from "#quay-description.tsx";
 import { QuayDismiss } from "#quay-dismiss.tsx";
+import { QuayPublication } from "#quay-publication.tsx";
 import { QuayStatus } from "#quay-status.tsx";
 import { QuayWork } from "#quay-work.tsx";
 import { whenLabel } from "#time.ts";
@@ -72,6 +73,7 @@ export const QuayDetail = ({
 			</Button>
 			<DetailHeader item={item} api={api} />
 			<QuayStatus item={item} />
+			<QuayPublication api={api} item={item} />
 			<QuayDescription item={item} />
 			<section className="flex flex-col gap-2">
 				<SectionHeading title="Branch" />

@@ -1,11 +1,12 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import { titled } from "@antumbra/platform-feature/edit.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect, Schema } from "effect";
 import { adoptionRequest } from "#rows/adoption-request.ts";
 export const adoptionRetried = fact("ChangeAdoptionRetried", { id: Schema.String, url: Schema.String });
 export const retryAdoption = command("retryAdoption", {
-	input: adoptionRetried.payload,
+	input: { id: Schema.String, url: titled(Schema.String, { title: "Pull request URL" }) },
 	reads: [adoptionRequest],
 	emits: adoptionRetried,
 	rejections: { UnknownRequest: { id: Schema.String } },

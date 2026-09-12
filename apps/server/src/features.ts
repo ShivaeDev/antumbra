@@ -5,6 +5,7 @@ import { boards } from "@antumbra/domain-boards/feature.ts";
 import { capacity } from "@antumbra/domain-capacity/feature.ts";
 import { changes } from "@antumbra/domain-changes/feature.ts";
 import { costs } from "@antumbra/domain-costs/feature.ts";
+import { holds } from "@antumbra/domain-holds/feature.ts";
 import { inputs } from "@antumbra/domain-inputs/feature.ts";
 import { lifecycle } from "@antumbra/domain-lifecycle/feature.ts";
 import { mail } from "@antumbra/domain-mail/feature.ts";
@@ -20,6 +21,7 @@ import { starts } from "@antumbra/domain-starts/feature.ts";
 import { voyages } from "@antumbra/domain-voyages/feature.ts";
 
 export const features = [
+	holds,
 	roleSettings,
 	backends,
 	settings,

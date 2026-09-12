@@ -16,7 +16,14 @@ const allowShutdownRetry = (cause: unknown, allow: () => void) =>
 	Effect.logError("graceful shutdown failed", cause).pipe(Effect.andThen(Effect.sync(allow)));
 
 export const requestRestart = <R>(restarting: Ref.Ref<boolean>, record: Effect.Effect<void, never, R>, quit: () => void) =>
-	Effect.flatMap(Ref.getAndSet(restarting, true), (already) => (already ? Effect.void : record.pipe(Effect.andThen(Effect.sync(quit)))));
+	Effect.flatMap(Ref.getAndSet(restarting, true), (already) =>
+		already
+			? Effect.void
+			: record.pipe(
+					Effect.onError(() => Ref.set(restarting, false)),
+					Effect.andThen(Effect.sync(quit)),
+				),
+	);
 
 const abandonRequestedRestart = (restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>
 	Effect.flatMap(Ref.getAndSet(restarting, false), (wasRestart) =>

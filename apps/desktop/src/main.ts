@@ -67,7 +67,13 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 			yield* Effect.sync(() => shell.registry.onChanged(() => runtime.runFork(writer.note)));
 			const api = yield* ShellLifecycle;
 			yield* Effect.sync(() =>
-				runtime.runFork(fleetTray(api["agents.workingCount"]({}), focusOrOpenConsole(shell.registry, openConsole(shell)), restart)),
+				runtime.runFork(
+					fleetTray(
+						api["agents.workingCount"]({}),
+						focusOrOpenConsole(shell.registry, openConsole(shell)),
+						restart.pipe(Effect.provideService(ShellLifecycle, api)),
+					),
+				),
 			);
 			yield* Effect.logInfo("shell: console open");
 		});

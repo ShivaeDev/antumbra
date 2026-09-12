@@ -24,8 +24,8 @@ export const ShellDraftsLayer = (directory: string) =>
 			const read = (ref: DraftRef): DraftSnapshot => drafts.get(key(ref)) ?? { text: "", revision: "" };
 			const write = (ref: DraftRef, text: string): DraftSnapshot => {
 				const snapshot = { text, revision: crypto.randomUUID() };
+				writeFileSync(path, JSON.stringify(Object.fromEntries(new Map(drafts).set(key(ref), snapshot))));
 				drafts.set(key(ref), snapshot);
-				writeFileSync(path, JSON.stringify(Object.fromEntries(drafts)));
 				for (const listener of listeners) listener(ref, snapshot);
 				return snapshot;
 			};

@@ -8,7 +8,6 @@ export const agent = row(
 	{
 		id: AgentId,
 		role: Schema.String,
-		charter: Schema.String,
 		status: AgentStatusSchema,
 		currentSessionId: Schema.NullOr(Schema.String),
 		createdAt: Schema.String,

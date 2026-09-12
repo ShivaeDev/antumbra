@@ -41,7 +41,6 @@
 		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/domain-repos": "workspace:*",
 		"@antumbra/glass-repos": "workspace:*",
-		"@antumbra/domain-starts": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/domain-reclamation": "workspace:*",
 		"@antumbra/domain-changes": "workspace:*",

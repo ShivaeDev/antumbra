@@ -20,7 +20,7 @@ it.app("artifact storage keeps published bytes after their source is removed", f
 		Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-artifact-"))),
 		(path) => Effect.sync(() => rmSync(path, { recursive: true, force: true })),
 	);
-	yield* prepareArtifactSource({ agentId: "agent:chart", sessionId: "session:chart" });
+	yield* prepareArtifactSource({ agentId: "agent:chart" });
 	app.artifacts.source.set("reef.md", "# Reef\n");
 	const files = artifactFiles.pipe(
 		Layer.provide(NodeServices.layer),

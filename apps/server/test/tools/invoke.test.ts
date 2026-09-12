@@ -1,34 +1,17 @@
 import { type App, answered, it } from "@antumbra/app-testing/entry.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { agentBoard } from "@antumbra/domain-boards/ids.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { freeze } from "#tools/freeze.ts";
 import { invoke } from "#tools/invoke.ts";
 
 const start = Effect.fn(function* (app: App, name: string) {
-	const agentId = AgentId.make(name);
-	const sessionId = SessionId.make(`session:${name}`);
-	const tools = yield* freeze({ agentId, sessionId, role: "hand" });
-	yield* app.api.starts.request({
-		requestId: Request.make(`birth:${name}`),
-		source: "direct",
-		agentId,
-		sessionId,
-		voyageId: null,
-		pieceId: null,
-		backend: "scripted",
-		model: null,
-		effort: null,
-		role: "hand",
-		charter: "Record the sounding",
-		toolSetVersion: tools.version,
-		tools: tools.tools,
-	});
+	const requested = Request.make(`birth:${name}`);
+	const { agentId, sessionId } = identity(requested);
+	yield* app.api.agents.spawn({ requestId: requested, role: "hand", backend: "claude", model: null, effort: null });
 	const commit = yield* Commit;
 	yield* commit.observe(observed, {
 		logId: `log:${name}`,
@@ -41,7 +24,7 @@ const start = Effect.fn(function* (app: App, name: string) {
 			nodeRef: null,
 			origin: null,
 			operationId: `birth:${name}`,
-			evidence: { type: "started", agentId, backend: "scripted", cwd: "/berth", nativeRef: name, runnerId: "runner", toolSetVersion: tools.version },
+			evidence: { type: "started", agentId, backend: "scripted", cwd: "/berth", nativeRef: name, runnerId: "runner", toolSetVersion: "crew-v1" },
 		},
 	});
 	return { agentId, sessionId };

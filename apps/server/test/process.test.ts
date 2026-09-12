@@ -1,11 +1,15 @@
 import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { agents } from "@antumbra/domain-agents/feature.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { client } from "@antumbra/platform-rpc/client.ts";
 import { serialization } from "@antumbra/platform-rpc/serialization.ts";
 import { ClientToken, Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import { transport } from "@antumbra/platform-rpc/transport.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
@@ -22,6 +26,10 @@ const TOKEN = "app-level-test-token";
 const PATIENCE = "5 seconds";
 
 const Readiness = Schema.fromJsonString(Schema.Struct({ port: Schema.Int }));
+
+const FLAGSHIP = VoyageId.make(FLAGSHIP_REQUEST);
+const HAIL = Id.Request.make("process-hail");
+const { sessionId } = identity(HAIL);
 
 const dataDirectory = (): string => mkdtempSync(join(temp, "antumbra-server-"));
 
@@ -91,6 +99,22 @@ it.live("answers the fleet's role settings to a client that presents the token i
 		const { port } = yield* listening(dataDirectory());
 		const answered = yield* fleetDefaults(port, TOKEN);
 		expect(Option.map(answered, (rows) => rows.map((row) => row.role))).toEqual(Option.some(["flagship", "captain", "crew", "smoother"]));
+	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+);
+
+const hailing = (port: number, token: string) =>
+	Effect.provide(
+		Effect.flatMap(client([agents]), (reach) =>
+			Effect.andThen(reach.agents.hail({ requestId: HAIL, voyageId: FLAGSHIP }), Stream.runHead(reach.agents.birthBySession({ sessionId }))),
+		),
+		dialing(port, token),
+	);
+
+it.live("hails the flagship captain over the socket through the derived client", () =>
+	Effect.gen(function* () {
+		const { port } = yield* listening(dataDirectory());
+		const born = yield* hailing(port, TOKEN);
+		expect(Option.getOrNull(born)).toMatchObject({ role: "captain", voyageId: FLAGSHIP });
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 

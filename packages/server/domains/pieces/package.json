@@ -23,8 +23,7 @@
 		"@antumbra/app-testing": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/domain-repos": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/domain-starts": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-voyages": "workspace:*",

@@ -7,7 +7,6 @@ import { FleetPanel } from "@antumbra/glass-sessions/fleet.tsx";
 import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
 import { Flagship } from "@antumbra/glass-voyages/flagship.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
-import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Cause, Effect } from "effect";
 import { VoyagesPage } from "#navigation/voyages.tsx";
 import type { RendererProps } from "#props.ts";
@@ -23,9 +22,9 @@ export const ConsoleMain = (
 ) => {
 	const hail = (voyageId: string) => {
 		Effect.runFork(
-			props.sessions["starts.hail"]({ requestId: Id.Request.make(Id.make()), voyageId: VoyageId.make(voyageId) }).pipe(
-				Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause)))),
-			),
+			props.api.agents
+				.hail({ voyageId: VoyageId.make(voyageId) })
+				.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))),
 		);
 	};
 	const openTranscript = (sessionId: string) => {

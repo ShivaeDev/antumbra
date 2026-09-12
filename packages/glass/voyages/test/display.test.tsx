@@ -1,10 +1,10 @@
 import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
+import { Effect } from "effect";
 import { Flagship } from "#flagship.tsx";
 import { VoyageList } from "#voyage-list.tsx";
 
@@ -73,24 +73,19 @@ it.glass("offers to hail the Flagship captain before a session exists", function
 it.glass("opens the Flagship captain conversation after hail", function* ({ api, render }) {
 	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
-	yield* api.starts.hail({
-		requestId: Id.Request.make("hail"),
-		agentId: AgentId.make("captain"),
-		sessionId: SessionId.make("conversation"),
-		voyageId: VoyageId.make(FLAGSHIP_REQUEST),
-		pieceId: null,
-		backend: "test",
-		model: null,
-		effort: null,
-		role: "captain",
-		charter: "Guide the fleet",
-		source: "direct",
-		toolSetVersion: "test-tools",
-		tools: [],
-	});
-	yield* until(() => container.textContent?.includes("Conversation conversation") === true, "the captain conversation");
+	const hail = Id.Request.make("hail");
+	yield* api.agents.hail({ requestId: hail, voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	yield* until(() => container.textContent?.includes(`Conversation ${identity(hail).sessionId}`) === true, "the captain conversation");
 	expect(container.textContent).not.toContain("Hail a captain");
 	yield* render(<VoyageList api={api} onSelect={() => undefined} onHail={() => undefined} />);
 	yield* until(() => container.textContent?.includes("Captain") === true, "the working captain marker");
 	expect(container.textContent).not.toContain("Hail a captain");
+});
+
+it.glass("refuses a second hail of a captain already on the way with its typed rejection", function* ({ api, render }) {
+	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
+	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
+	yield* api.agents.hail({ requestId: Id.Request.make("first-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	const refusal = yield* Effect.flip(api.agents.hail({ requestId: Id.Request.make("second-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) }));
+	expect(refusal).toMatchObject({ _tag: "CaptainAlreadyHailed", agentId: identity(Id.Request.make("first-hail")).agentId });
 });

@@ -1,33 +1,20 @@
-import { Spawn } from "@antumbra/domain-starts/commands/submit.ts";
-import { type Editable, valuesOf } from "@antumbra/glass-components/fields.ts";
+import { type Editable, editablesOf, valuesOf } from "@antumbra/glass-components/fields.ts";
+import { sending } from "@antumbra/glass-components/generated.ts";
 import { Row } from "@antumbra/glass-components/row.tsx";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
 import { DialogDescription, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
-import { editing } from "@antumbra/platform-feature/edit.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect, Schema } from "effect";
 import { useMemo, useState } from "react";
-import type { SessionsClient } from "#client.ts";
+import type { SessionsApi } from "#glass.ts";
 
-const editables: readonly Editable[] = Object.entries(Spawn.fields).flatMap(([name, schema]) => {
-	const shape = editing(schema);
-	return shape.title === undefined ? [] : [{ name, editing: shape }];
-});
-const blank = valuesOf(editables, {});
+const PLACEHOLDERS = { role: "navigator" };
 
-export const SpawnDialog = ({ sessions }: { readonly sessions: SessionsClient }) => {
+export const SpawnDialog = ({ api }: { readonly api: SessionsApi }) => {
 	const [open, setOpen] = useState(false);
 	const [revision, setRevision] = useState(0);
-	const send = useMemo(
-		() => (value: Readonly<Record<string, unknown>>) =>
-			Effect.gen(function* () {
-				const input = yield* Schema.decodeUnknownEffect(Spawn)({ ...value, requestId: Request.make(crypto.randomUUID()) });
-				yield* sessions["starts.spawn"](input);
-				return 0;
-			}),
-		[sessions],
-	);
+	const editables: readonly Editable[] = useMemo(() => editablesOf(api.agents.spawn.command, []), [api]);
+	const blank = useMemo(() => valuesOf(editables, {}), [editables]);
+	const send = useMemo(() => sending(api.agents.spawn), [api]);
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
@@ -36,7 +23,7 @@ export const SpawnDialog = ({ sessions }: { readonly sessions: SessionsClient })
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Spawn an agent</DialogTitle>
-					<DialogDescription>A role to answer for and a charter to work from, on one of the backends this host registered.</DialogDescription>
+					<DialogDescription>A role to answer for, on one of the backends this host registered.</DialogDescription>
 				</DialogHeader>
 				<Row
 					key={revision}
@@ -46,7 +33,7 @@ export const SpawnDialog = ({ sessions }: { readonly sessions: SessionsClient })
 					identity={{}}
 					known={{}}
 					label="Spawn agent"
-					placeholders={{ role: "navigator", charter: "what this agent is for" }}
+					placeholders={PLACEHOLDERS}
 					send={send}
 					sent={() => {
 						setOpen(false);

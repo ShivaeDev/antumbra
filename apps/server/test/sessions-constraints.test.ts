@@ -1,8 +1,10 @@
 import { it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
+import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
@@ -25,22 +27,23 @@ it.app("waking a smoother retains its constraint and resolves the current smooth
 		crewModel: null,
 		crewEffort: null,
 	});
-	yield* api.starts.smooth({
-		requestId: Request.make("smooth"),
+	yield* api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("constrained-pass") });
+	yield* api.boards.bindSmoothingSession({
+		requestId: Request.make("constrained-binding"),
+		attemptId: "constrained-pass",
 		agentId,
 		sessionId,
-		voyageId,
-		backend: "claude",
-		model: "original",
-		effort: null,
-		charter: "Summarize",
-		toolSetVersion: "limited",
-		tools: [],
-		constrainedPrompt: "Only write a summary",
-		cwd: "/berth",
+		board: voyageBoard(voyageId),
+		pieceId: null,
+		title: "2026-01-01",
+		level: "day",
+		coversFrom: 0,
+		coversTo: 0,
 	});
+	yield* api.agents.smooth({ requestId: Request.make("smooth"), agentId, sessionId, voyageId, cwd: "/berth" });
 	const start = yield* runner.next;
 	if (start.type !== "Start") return yield* Effect.die(`Expected Start, received ${start.type}`);
+	expect(start.options).toMatchObject({ constrainedPrompt: smootherWords, toolSet: { version: "smoothing-v1" } });
 	yield* runner.append([
 		{
 			logId: "log",
@@ -55,7 +58,7 @@ it.app("waking a smoother retains its constraint and resolves the current smooth
 				cwd: "/berth",
 				nativeRef: "native",
 				runnerId: "runner",
-				toolSetVersion: "limited",
+				toolSetVersion: "smoothing-v1",
 			},
 		},
 		{ logId: "log", cursor: 1, at: 0, event: { type: "InputAccepted", requestId: start.requestId, sessionId, inputId: start.charter.id } },
@@ -76,7 +79,7 @@ it.app("waking a smoother retains its constraint and resolves the current smooth
 	expect(wake).toMatchObject({
 		type: "Wake",
 		nativeRef: "native",
-		options: { constrainedPrompt: "Only write a summary", model: "current-smoother", effort: "high", toolSet: { version: "limited", tools: [] } },
+		options: { constrainedPrompt: smootherWords, model: "current-smoother", effort: "high", toolSet: { version: "smoothing-v1" } },
 	});
 	yield* runner.reply(wake.requestId, { type: "Accepted" });
 });

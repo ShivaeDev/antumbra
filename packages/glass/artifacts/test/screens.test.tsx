@@ -40,7 +40,7 @@ it.glass("revisions update the current artifact and keep readable history", func
 		role: "hand",
 		dependsOn: [],
 	});
-	yield* run(prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" }));
+	yield* run(prepareArtifactSource({ agentId: "agent:cartographer" }));
 	artifacts.source.set("old.md", "# First sounding");
 	artifacts.source.set("new.md", "# Latest sounding");
 	yield* run(landArtifact({ ...landing, requestId: Id.Request.make(old) }));

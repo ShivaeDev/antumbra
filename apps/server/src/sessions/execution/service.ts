@@ -1,3 +1,4 @@
+import { ToolCatalog } from "@antumbra/domain-agents/ports/tool-catalog.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
 import type { Input } from "@antumbra/platform-runner/input.ts";
 import type { SessionOptions } from "@antumbra/platform-runner/operations.ts";
@@ -17,8 +18,9 @@ export const execution = Layer.effect(
 	SessionExecution,
 	Effect.gen(function* () {
 		const live = yield* Live;
+		const catalog = yield* ToolCatalog;
 		return {
-			options: (root) => options(root).pipe(Effect.provideService(Live, live)),
+			options: (root) => options(root).pipe(Effect.provideService(Live, live), Effect.provideService(ToolCatalog, catalog)),
 			input: (inputId, sessionId) => input(inputId, sessionId).pipe(Effect.provideService(Live, live)),
 		};
 	}),

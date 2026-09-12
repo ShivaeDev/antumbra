@@ -1,30 +1,15 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { identity } from "@antumbra/domain-agents/ids.ts";
 import { expect } from "vitest";
 import { ChangeId } from "#ids.ts";
 import { chartering, opening, pieceId, registration, repoId, request, seen } from "#test/kit.ts";
 
-const agentId = AgentId.make("agent:reef");
-const birth = {
-	source: "direct" as const,
-	requestId: request("start:reef"),
-	agentId,
-	sessionId: SessionId.make("session:reef"),
-	voyageId: null,
-	pieceId: null,
-	backend: "claude",
-	model: null,
-	effort: null,
-	role: "hand",
-	charter: "Sound the reef",
-	toolSetVersion: "1",
-	tools: [],
-};
+const asking = { requestId: request("agent:reef"), role: "hand", backend: "claude", model: null, effort: null } as const;
+const { agentId, sessionId } = identity(asking.requestId);
 const preparation = {
 	requestId: request("prepared:reef"),
 	agentId,
-	sessionId: "session:reef",
+	sessionId,
 	pieceId,
 	repoId,
 	host: "github",
@@ -40,7 +25,7 @@ it.app("attaches host evidence only to the exact prepared branch and head", func
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.repos.register(registration);
-	yield* app.api.starts.request(birth);
+	yield* app.api.agents.spawn(asking);
 	yield* app.api.changes.prepare(preparation);
 	yield* app.api.changes.observe({
 		requestId: request("observe:wrong-head"),
@@ -65,7 +50,7 @@ it.app("keeps a publication failure actionable and retries the same frozen propo
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.repos.register(registration);
-	yield* app.api.starts.request(birth);
+	yield* app.api.agents.spawn(asking);
 	yield* app.api.changes.prepare(preparation);
 	const changeId = ChangeId.make(preparation.requestId);
 	const proposal = {

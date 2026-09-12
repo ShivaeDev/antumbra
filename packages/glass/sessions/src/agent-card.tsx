@@ -43,10 +43,6 @@ export const AgentCard = (props: {
 				onOpenTranscript={props.onOpenTranscript}
 			/>
 			<AgentBerths api={props.api} agentId={props.agent.id} />
-			<details className="border-t border-border pt-1.5">
-				<summary className="cursor-pointer text-xs text-muted-foreground">charter</summary>
-				<p className="pt-1.5 text-xs wrap-anywhere">{props.agent.charter}</p>
-			</details>
 			<Diagnostics api={props.api} agent={props.agent} />
 		</CardContent>
 	</Card>

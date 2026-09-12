@@ -37,10 +37,10 @@ import { removeArtifactSupersessionTool, supersedeArtifactTool } from "#tools/ar
 it.app("artifact tools bind authors and keep replacement corrections", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" });
+	const source = yield* prepareArtifactSource({ agentId: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
-	const context = { agentId: "agent:cartographer", sessionId: "session:chart", callId: "artifact:old", pieceId };
+	const context = { agentId: source.agentId, sessionId: source.sessionId, callId: "artifact:old", pieceId };
 	const first = { path: "old.md", title: "Old chart" };
 	expect(yield* landArtifactTool.invoke(context, first)).toMatchObject({ ok: true });
 	expect(yield* landArtifactTool.invoke({ ...context, callId: "artifact:new" }, { path: "new.md", title: "New chart" })).toMatchObject({ ok: true });
@@ -56,10 +56,10 @@ it.app("artifact tools bind authors and keep replacement corrections", function*
 it.app("a repeated landing can answer after its source is gone", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer", sessionId: "session:chart" });
+	const source = yield* prepareArtifactSource({ agentId: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
-	const context = { agentId: "agent:cartographer", sessionId: "session:chart", callId: "artifact:chart", pieceId };
+	const context = { agentId: source.agentId, sessionId: source.sessionId, callId: "artifact:chart", pieceId };
 	const input = { path: "old.md", title: "Chart" };
 	const first = yield* landArtifactTool.invoke(context, input);
 	app.artifacts.source.clear();

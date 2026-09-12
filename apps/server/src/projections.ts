@@ -2,6 +2,7 @@ import { assignments } from "@antumbra/domain-agents/materializers/assignments.t
 import { captainReadings } from "@antumbra/domain-agents/materializers/captain-readings.ts";
 import { captains } from "@antumbra/domain-agents/materializers/captains.ts";
 import { roster } from "@antumbra/domain-agents/materializers/roster.ts";
+import { running } from "@antumbra/domain-agents/materializers/running.ts";
 import { sessionActivity } from "@antumbra/domain-agents/materializers/session-activity.ts";
 import { agentWork } from "@antumbra/domain-agents/materializers/work.ts";
 import { outcomes } from "@antumbra/domain-changes/materializers/outcomes.ts";
@@ -11,7 +12,6 @@ import { repositoryCleanup } from "@antumbra/domain-changes/materializers/reposi
 import { sessionSituationsProjection } from "@antumbra/domain-changes/materializers/session-situations.ts";
 import { pieceProgressProjection } from "@antumbra/domain-pieces/materializers/progress.ts";
 import { rulingDisplayProjection } from "@antumbra/domain-rulings/materializers/display.ts";
-import { running } from "@antumbra/domain-starts/materializers/running.ts";
 import { voyageProgressProjection } from "@antumbra/domain-voyages/materializers/progress.ts";
 
 export const projections = [

@@ -1,23 +1,26 @@
+import { ToolCatalog } from "@antumbra/domain-agents/ports/tool-catalog.ts";
+import { birthBySession } from "@antumbra/domain-agents/queries/birth-by-session.ts";
 import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
-import { bySession } from "@antumbra/domain-starts/queries/by-session.ts";
 import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
 import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect } from "effect";
+import { constrainedPrompt } from "#agents/charter.ts";
 export const options = Effect.fn("Sessions.options")(function* (root: typeof session.Row.Type) {
 	const live = yield* Live;
-	const start = yield* live.read(bySession, { sessionId: root.id });
-	if (start === null) return yield* Effect.die(new Error(`Session ${root.id} has no committed start`));
+	const catalog = yield* ToolCatalog;
+	const held = yield* live.read(birthBySession, { sessionId: root.id });
+	if (held === null) return yield* Effect.die(new Error(`Session ${root.id} has no committed birth`));
 	let model: string | null = null;
 	let effort: string | null = null;
-	if (start.voyageId !== null) {
-		let role: AgentRole = start.role === "smoother" ? "smoother" : "crew";
-		if (start.role === "captain" && start.pieceId === null) {
-			const voyage = yield* live.read(byId, { id: start.voyageId });
+	if (held.voyageId !== null) {
+		let role: AgentRole = held.role === "smoother" ? "smoother" : "crew";
+		if (held.role === "captain" && held.pieceId === null) {
+			const voyage = yield* live.read(byId, { id: held.voyageId });
 			role = voyage?.kind === "flagship" ? "flagship" : "captain";
 		}
-		const chosen = yield* live.read(resolve, { voyageId: start.voyageId, role });
+		const chosen = yield* live.read(resolve, { voyageId: held.voyageId, role });
 		model = chosen.model;
 		effort = chosen.effort;
 	}
@@ -27,7 +30,7 @@ export const options = Effect.fn("Sessions.options")(function* (root: typeof ses
 		cwd: root.cwd,
 		model,
 		effort,
-		constrainedPrompt: start.constrainedPrompt,
-		toolSet: { version: start.toolSetVersion, tools: start.tools },
+		constrainedPrompt: yield* constrainedPrompt(held),
+		toolSet: { version: root.toolSetVersion, tools: yield* catalog.byVersion(root.toolSetVersion) },
 	};
 });

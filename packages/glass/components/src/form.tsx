@@ -46,6 +46,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			editables={editables}
 			identity={{ ...identityOf(command, row), ...fixedValues(fixed) }}
 			key={`${signatureOf(editables, row)}/${cleared}`}
+			known={{ ...row, ...fixedValues(fixed) }}
 			label={props.label ?? (creating ? submit : labelOf(names, row))}
 			placeholders={props.placeholders ?? {}}
 			send={send}

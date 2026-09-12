@@ -2,6 +2,7 @@ import { Schema } from "effect";
 import type { QueryShape } from "#query.ts";
 
 const CHOICE = "antumbra/choice";
+const MANY = "antumbra/many";
 const MULTILINE = "antumbra/multiline";
 const OPTIONAL = "antumbra/optional";
 
@@ -29,6 +30,7 @@ export interface Editing {
 	readonly flag: boolean;
 	readonly inner: Schema.Top;
 	readonly literals: readonly string[] | undefined;
+	readonly many: boolean;
 	readonly multiline: boolean;
 	readonly number: boolean;
 	readonly optional: boolean;
@@ -65,6 +67,9 @@ export const choice = <Query extends QueryShape>(query: Query, of: ChoiceOf<Quer
 		[CHOICE]: { free: of.free === true, input: of.input, label: of.label, query, value: of.value },
 	});
 
+export const many = (field: typeof Schema.String): Schema.$Array<typeof Schema.String> =>
+	Schema.Array(field).annotate({ [CHOICE]: Schema.resolveAnnotations(field)?.[CHOICE], [MANY]: true });
+
 export const optional = <S extends Schema.Constraint>(schema: S, options: { readonly title: string }): Schema.NullOr<S> =>
 	Schema.NullOr(schema).annotate({ [OPTIONAL]: true, title: options.title });
 
@@ -95,6 +100,7 @@ export const editing = (field: Schema.Constraint): Editing => {
 		flag: inner.ast._tag === "Boolean",
 		inner,
 		literals: wordsOf(shaped(inner).literals),
+		many: annotations?.[MANY] === true,
 		multiline: annotations?.[MULTILINE] === true,
 		number: inner.ast._tag === "Number",
 		optional: optionally,

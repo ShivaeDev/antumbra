@@ -56,11 +56,20 @@ export const schemaOf = (editables: readonly Editable[]): Schema.Struct<Drawn> =
 	return Schema.Struct(fields);
 };
 
+const NOTHING: readonly string[] = [];
+
+export const emptyOf = (shape: Editing): unknown => {
+	if (shape.many) {
+		return NOTHING;
+	}
+	return shape.flag ? false : "";
+};
+
 export const valuesOf = (editables: readonly Editable[], row: Held): Held => {
 	const values: Record<string, unknown> = {};
 	for (const editable of editables) {
 		const held = row[editable.name];
-		values[editable.name] = held ?? (editable.editing.flag ? false : "");
+		values[editable.name] = held ?? emptyOf(editable.editing);
 	}
 	return values;
 };
@@ -92,12 +101,12 @@ export const labelOf = (fixed: readonly string[], row: Held): string => {
 
 export const signatureOf = (editables: readonly Editable[], row: Held): string => JSON.stringify(editables.map(({ name }) => row[name] ?? null));
 
-export const fedByOf = (editables: readonly Editable[]): ReadonlyMap<string, readonly string[]> => {
-	const fed = new Map<string, string[]>();
+export const fedByOf = (editables: readonly Editable[]): ReadonlyMap<string, readonly Editable[]> => {
+	const fed = new Map<string, Editable[]>();
 	for (const editable of editables) {
 		for (const feeder of Object.values(editable.editing.choice?.input ?? {})) {
 			const known = fed.get(feeder) ?? [];
-			known.push(editable.name);
+			known.push(editable);
 			fed.set(feeder, known);
 		}
 	}

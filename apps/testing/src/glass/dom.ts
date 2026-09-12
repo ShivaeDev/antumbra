@@ -58,3 +58,9 @@ export const named = (form: HTMLFormElement): string | null | undefined =>
 
 export const submit = (container: HTMLElement, place: number) =>
 	settle(() => [...container.querySelectorAll("form")][place]?.querySelector("button")?.click());
+export const choose = (control: HTMLSelectElement, values: readonly string[]): void => {
+	for (const option of control.options) {
+		option.selected = values.includes(option.value);
+	}
+	control.dispatchEvent(new Event("change", { bubbles: true }));
+};

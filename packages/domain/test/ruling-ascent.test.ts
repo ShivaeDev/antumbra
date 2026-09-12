@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { isTerminalIntentStatus, Kernel } from "@antumbra/kernel";
 import { Database } from "@antumbra/persistence";
@@ -65,7 +65,7 @@ const ask = (question: string, rung: Rung, radius: "fleet" | "voyage" = "voyage"
 const mailbox = (agentId: string) =>
 	Effect.gen(function* () {
 		const boards = yield* Boards;
-		return yield* boards.read(BoardScope.Agent({ agentId }));
+		return yield* boards.unread(agentId);
 	});
 
 const carried = (agentId: string, count: number) =>

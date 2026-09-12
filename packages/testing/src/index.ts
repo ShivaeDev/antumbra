@@ -9,6 +9,7 @@ import {
 	makeEffectApp,
 	makeScriptedBackend,
 	passiveRunner,
+	scriptedBoards,
 	scriptedPieces,
 	scriptedRoleSettings,
 	scriptedSettings,
@@ -16,6 +17,14 @@ import {
 } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
+
+const scriptedFleet = scriptedBoards.pipe(
+	Layer.provideMerge(
+		scriptedPieces.pipe(
+			Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
+		),
+	),
+);
 
 interface Providers {
 	readonly backends?: ReadonlyMap<string, AgentBackend>;
@@ -48,11 +57,7 @@ export const it = {
 						join(directory, "session-inputs"),
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
-				Layer.provideMerge(
-					scriptedPieces.pipe(
-						Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
-					),
-				),
+				Layer.provideMerge(scriptedFleet),
 			);
 			return { harness, layer };
 		}),

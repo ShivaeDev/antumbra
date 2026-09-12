@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Rulings } from "@antumbra/rulings";
@@ -47,7 +47,7 @@ const askedAndRuled = (question: string, answer: string) =>
 
 const mailbox = Effect.gen(function* () {
 	const boards = yield* Boards;
-	return yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
+	return yield* boards.unread(ASKER);
 });
 
 const deliveredMail = (count: number) =>

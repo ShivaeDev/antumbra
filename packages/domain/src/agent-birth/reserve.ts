@@ -1,4 +1,3 @@
-import { BoardScope, Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
@@ -7,7 +6,6 @@ import type { SpawnFields } from "#spawn-fields.ts";
 
 export const reserve = Effect.fn("AgentBirth.reserve")(function* (payload: SpawnFields) {
 	const db = yield* Database;
-	const boards = yield* Boards;
 	const feeds = yield* DomainFeeds;
 	const stored = yield* db.Agent.where({ id: payload.agentId }).first();
 	if (Option.isSome(stored)) {
@@ -29,7 +27,6 @@ export const reserve = Effect.fn("AgentBirth.reserve")(function* (payload: Spawn
 			status: "spawning",
 		});
 	}
-	yield* boards.ensure(BoardScope.Agent({ agentId: payload.agentId }));
 	yield* feeds.publishFleetRefresh();
 	yield* feeds.publishVoyageRefresh();
 });

@@ -1,4 +1,3 @@
-import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { Pieces } from "@antumbra/pieces";
@@ -17,7 +16,7 @@ import { settleFailure } from "#agent-birth/settle-failure.ts";
 
 export const AgentBirth = defineService({
 	id: "@antumbra/domain/AgentBirth",
-	requires: [Database, Boards, DomainFeeds, SessionFabric, Repos, Pieces, Voyages],
+	requires: [Database, DomainFeeds, SessionFabric, Repos, Pieces, Voyages],
 	initialize: Effect.void,
 	methods: () => ({ register, activate, settleFailure, isActivated, deliverCharter, prepareMoorage, markMoorageReady }),
 });

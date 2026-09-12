@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Rulings } from "@antumbra/rulings";
@@ -54,7 +54,7 @@ const ruleOn = (rulingId: string) =>
 
 const mailbox = Effect.gen(function* () {
 	const boards = yield* Boards;
-	return yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
+	return yield* boards.unread(ASKER);
 });
 
 it.effectApp("a blocking request holds until ruled and returns the answer", { clock: "live" }, function* () {

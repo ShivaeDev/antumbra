@@ -1,4 +1,5 @@
 import { dirname, join } from "node:path";
+import { type ScriptedLog, scriptedBoardsOn, scriptedLog } from "@antumbra/boards/testing";
 import type { ObserveCadenceOptions } from "@antumbra/changes/watch/cadence";
 import { ChangeWatcher } from "@antumbra/changes/watch/observer";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -55,6 +56,18 @@ const fleetPieces = (temporary: TemporaryPersistence) => {
 	return scriptedPiecesOn(chartered);
 };
 
+const keptByFleet = new WeakMap<TemporaryPersistence, ScriptedLog>();
+
+const fleetBoards = (temporary: TemporaryPersistence) => {
+	const known = keptByFleet.get(temporary);
+	if (known !== undefined) {
+		return scriptedBoardsOn(known);
+	}
+	const kept = scriptedLog();
+	keptByFleet.set(temporary, kept);
+	return scriptedBoardsOn(kept);
+};
+
 const artifactsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "artifacts");
 
 const sessionInputsDirectory = (temporary: TemporaryPersistence) => join(dirname(temporary.database), "session-inputs");
@@ -80,6 +93,7 @@ export const domainCapabilityLayer = (temporary: TemporaryPersistence, reach: Ke
 				Layer.provide(NodeServices.layer),
 			),
 		),
+		Layer.provideMerge(fleetBoards(temporary)),
 		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),
@@ -132,6 +146,7 @@ export const domainKernelServices = (
 				reclaim,
 			).pipe(Layer.provide(NodeServices.layer)),
 		),
+		Layer.provideMerge(fleetBoards(temporary)),
 		Layer.provideMerge(fleetPieces(temporary)),
 		Layer.provideMerge(fleetVoyages(temporary)),
 		Layer.provideMerge(scriptedRoleSettings),

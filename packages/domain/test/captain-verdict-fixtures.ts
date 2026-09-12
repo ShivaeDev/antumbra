@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Boards } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { type Ruling, Rulings } from "@antumbra/rulings";
 import { expect } from "@effect/vitest";
@@ -18,7 +18,6 @@ export interface Ladder {
 
 const seedAsker = (voyageId: string) =>
 	Effect.gen(function* () {
-		const boards = yield* Boards;
 		const db = yield* Database;
 		yield* db.Agent.create({
 			charter: "sound the shallows",
@@ -27,7 +26,6 @@ const seedAsker = (voyageId: string) =>
 			status: "alive",
 		});
 		yield* db.VoyageAgent.create({ agentId: ASKER, role: "hand", voyageId });
-		yield* boards.ensure(BoardScope.Agent({ agentId: ASKER }));
 	});
 
 export const ask = (radius: "fleet" | "voyage", rung: "captain" | "flagship") =>
@@ -83,7 +81,7 @@ export const delivered = (rulingId: string) =>
 	eventually(
 		Effect.gen(function* () {
 			const boards = yield* Boards;
-			const entries = yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
+			const entries = yield* boards.unread(ASKER);
 			expect(entries.map((entry) => entry.sourceRef)).toContain(`ruling:${rulingId}`);
 			return entries;
 		}),

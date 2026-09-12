@@ -11,7 +11,7 @@ export const observed = materializer(capacityObserved, {
 		const current = yield* rows.capacity.find(fact.backend);
 		if (Option.isSome(current)) {
 			const prior = current.value;
-			const comparison = (prior.observedAt ?? 0) - fact.observedAt;
+			const comparison = prior.observedAt - fact.observedAt;
 			if (comparison > 0 || (comparison === 0 && severity[prior.status] >= severity[fact.status])) return;
 			if (prior.status === "blocked" && fact.status !== "blocked") return;
 		}
@@ -34,7 +34,7 @@ export const released = materializer(capacityReleased, {
 	writes: [capacity],
 	run: Effect.fn("capacity.released")(function* (fact, rows) {
 		const current = yield* rows.capacity.find(fact.backend);
-		if (Option.isSome(current) && (current.value.observedAt ?? 0) > fact.at) return;
+		if (Option.isSome(current) && current.value.observedAt > fact.at) return;
 		const value = {
 			backend: fact.backend,
 			status: "available" as const,

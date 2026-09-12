@@ -1,5 +1,5 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { ToolAnswer } from "@antumbra/platform-runner/tools.ts";
+import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
 

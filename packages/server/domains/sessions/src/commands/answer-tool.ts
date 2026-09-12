@@ -1,7 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
-import { ToolAnswer } from "@antumbra/platform-runner/tools.ts";
+import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Effect, Schema } from "effect";
 import { SessionId } from "#ids.ts";
 import { sessionToolCall } from "#rows/session-tool-call.ts";

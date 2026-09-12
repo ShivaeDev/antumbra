@@ -26,7 +26,6 @@
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@antumbra/platform-runner": "workspace:*",
-		"@antumbra/server-journal": "workspace:*"
+		"@antumbra/platform-runner": "workspace:*"
 	}
 }

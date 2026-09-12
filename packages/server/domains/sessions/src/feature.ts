@@ -1,5 +1,6 @@
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { toolAnswered, toolAnsweredMaterializer } from "#commands/answer-tool.ts";
+import { toolCalled, toolCalledMaterializer } from "#commands/call-tool.ts";
 import { operationHeld, operationHeldMaterializer } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
 import { operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
@@ -18,9 +19,10 @@ import { sessionStartResult } from "#rows/session-start-result.ts";
 import { sessionToolCall } from "#rows/session-tool-call.ts";
 export const sessions = feature("sessions", {
 	rows: [session, sessionOperation, sessionToolCall, sessionStartResult, sessionNode, sessionGap],
-	facts: [operationRetried, toolAnswered, observed, operationRequested, operationHeld],
+	facts: [toolCalled, operationRetried, toolAnswered, observed, operationRequested, operationHeld],
 	commands: [request, retry],
 	materializers: [
+		toolCalledMaterializer,
 		operationRetriedMaterializer,
 		toolAnsweredMaterializer,
 		observedMaterializer,

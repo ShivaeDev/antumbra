@@ -44,30 +44,30 @@ export const layer = Layer.effectContext(
 			if (connection !== undefined) yield* Queue.offer(connection.queue, operation);
 			return yield* Deferred.await(answer);
 		});
+		const connect = Effect.fn("RunnerConnections.connect")(function* (connection: Connected) {
+			const runnerId = connection.registration.runnerId;
+			const previous = connections.get(runnerId);
+			connections.set(runnerId, connection);
+			if (previous !== undefined) yield* Queue.shutdown(previous.queue);
+			yield* Queue.offerAll(
+				connection.queue,
+				[...waiting(runnerId).values()].map((entry) => entry.operation),
+			);
+			yield* reactivity.invalidate(["runner:connected"]);
+		});
+		const disconnect = Effect.fn("RunnerConnections.disconnect")(function* (connection: Connected) {
+			const runnerId = connection.registration.runnerId;
+			if (connections.get(runnerId) === connection) {
+				connections.delete(runnerId);
+				yield* reactivity.invalidate(["runner:connected"]);
+			}
+			yield* Queue.shutdown(connection.queue);
+		});
 		const operations = (registration: Registration): Stream.Stream<Operation> =>
 			Stream.unwrap(
 				Effect.gen(function* () {
 					const connection = { registration, queue: yield* Queue.make<Operation>() };
-					yield* Effect.acquireRelease(
-						Effect.gen(function* () {
-							const previous = connections.get(registration.runnerId);
-							connections.set(registration.runnerId, connection);
-							if (previous !== undefined) yield* Queue.shutdown(previous.queue);
-							yield* Queue.offerAll(
-								connection.queue,
-								[...waiting(registration.runnerId).values()].map((entry) => entry.operation),
-							);
-							yield* reactivity.invalidate(["runner:connected"]);
-						}),
-						() =>
-							Effect.gen(function* () {
-								if (connections.get(registration.runnerId) === connection) {
-									connections.delete(registration.runnerId);
-									yield* reactivity.invalidate(["runner:connected"]);
-								}
-								yield* Queue.shutdown(connection.queue);
-							}),
-					);
+					yield* Effect.acquireRelease(connect(connection), () => disconnect(connection));
 					return Stream.fromQueue(connection.queue);
 				}),
 			);

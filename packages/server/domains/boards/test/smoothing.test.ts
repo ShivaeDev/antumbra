@@ -3,6 +3,7 @@ import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Clock } from "effect";
 import { expect } from "vitest";
 import { localDay } from "#smoothing/span.ts";
+import { smoothingState } from "#smoothing/state.ts";
 import { chartering, noting, opening, reef, soundings, soundingsBoard } from "#test/kit.ts";
 
 it.app("a failed voyage pass still counts today and becomes due on the next local day", function* (app) {
@@ -45,4 +46,14 @@ it.app("a manual voyage pass includes concluded pieces then today's uncovered vo
 		{ pieceId: soundings, level: "piece", coversFrom: 1, coversTo: 1 },
 		{ pieceId: null, level: "day", title: localDay(now), entries: [{ body: "voyage detail" }] },
 	]);
+});
+
+it.app("updates the smoothing reading when a voyage board receives another rough note", function* (app) {
+	yield* app.api.voyages.open(opening);
+	const reading = yield* app.live(smoothingState, { voyageId: reef });
+	yield* app.settle();
+	expect((yield* reading.seen).at(-1)).toEqual({ state: "idle", uncovered: 0 });
+	yield* app.api.boards.write(noting("new-note", "The wind has backed"));
+	yield* app.settle();
+	expect((yield* reading.seen).at(-1)).toEqual({ state: "idle", uncovered: 1 });
 });

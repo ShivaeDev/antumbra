@@ -4,9 +4,8 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Deferred } from "effect";
 import { expect } from "vitest";
-import { boundSummaryTool, type SummaryWritten, writeSummaryTool } from "#tools/boards/summary.ts";
+import { writeSummaryTool } from "#tools/boards/summary.ts";
 import { markReadTool, readBoardTool, readMailTool, writeBoardTool } from "#tools/boards/tools.ts";
 
 const context: ToolContext = { agentId: "agent-reader", sessionId: "session-reader", callId: "native-call" };
@@ -74,16 +73,6 @@ it.app("reads only the actor's mail without marking it, then marks only addresse
 	expect(yield* markReadTool.invoke(context, { entryIds: ["mail-own"] })).toEqual({ ok: true, text: "marked read" });
 	expect(yield* markReadTool.invoke(context, { entryIds: ["mail-own"] })).toEqual({ ok: true, text: "marked read" });
 	expect(yield* readMailTool.invoke(context, {})).toEqual({ ok: true, text: "No mail." });
-});
-
-it.app("binds a summary to its own smoothing session and accepts only the first result", function* () {
-	const written = yield* Deferred.make<SummaryWritten>();
-	const tool = boundSummaryTool(written);
-	expect(yield* tool.invoke(context, { text: "First summary" })).toEqual({ ok: true, text: "summary written" });
-	yield* tool.invoke(context, { text: "Later summary" });
-	expect(yield* Deferred.await(written)).toEqual({ _tag: "written", text: "First summary" });
-	const empty = boundSummaryTool(yield* Deferred.make<SummaryWritten>());
-	expect(yield* empty.invoke(context, { text: " " })).toEqual({ ok: true, text: "the summary was empty" });
 });
 
 it.app("writes a bound piece summary and its voyage handoff once", function* (app) {

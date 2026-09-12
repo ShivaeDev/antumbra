@@ -7,7 +7,7 @@ import { Clock, Effect, Option, Schema } from "effect";
 import { smoothingAttempt } from "#smoothing/attempt.ts";
 
 const { voyageId, pieceId, throughToday, requestedAt, id } = smoothingAttempt.fields;
-export const smoothingRequested = fact("SmoothingRequested", { id, voyageId, pieceId, throughToday, requestedAt });
+export const smoothingRequested = fact("BoardSmoothingRequested", { id, voyageId, pieceId, throughToday, requestedAt });
 
 export const requestSmoothing = command("requestSmoothing", {
 	input: { voyageId, pieceId, throughToday },

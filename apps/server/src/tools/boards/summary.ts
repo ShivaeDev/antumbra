@@ -7,17 +7,8 @@ import { bind } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
-import { Deferred, Effect } from "effect";
+import { Effect } from "effect";
 import { writeSummarySpec } from "#tools/boards/specs.ts";
-
-export type SummaryWritten = { readonly _tag: "silent" } | { readonly _tag: "timedOut" } | { readonly _tag: "written"; readonly text: string };
-
-export const boundSummaryTool = (written: Deferred.Deferred<SummaryWritten>) =>
-	bind(writeSummarySpec, (_context, { text }) =>
-		Deferred.succeed(written, { _tag: "written", text } as const).pipe(
-			Effect.as({ ok: true, text: text.trim() === "" ? "the summary was empty" : "summary written" }),
-		),
-	);
 
 export const writeSummaryTool = bind(writeSummarySpec, (context, { text }) =>
 	answered(

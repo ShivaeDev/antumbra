@@ -11,7 +11,6 @@ export const smoothingState = query("smoothingState", {
 	input: { voyageId: VoyageId },
 	output: Schema.Struct({ state: Schema.Literals(["idle", "running", "failed"]), uncovered: Schema.Number }),
 	reads: [smoothingAttempt, boardEntry, pieceProgress],
-	scope: (input) => input.voyageId,
 	run: Effect.fn("boards.smoothingState")(function* (input, rows) {
 		const attempts = (yield* rows.smoothingAttempt.where({ voyageId: input.voyageId })).toSorted((left, right) =>
 			right.requestedAt.localeCompare(left.requestedAt),

@@ -1,6 +1,5 @@
 import { Schema } from "effect";
 import { ArtifactId } from "#ids.ts";
-export const MAX_ARTIFACT_MARKDOWN_BYTES = 1_048_576;
 export const ArtifactMarkdown = Schema.Struct({
 	artifactId: ArtifactId,
 	title: Schema.String,

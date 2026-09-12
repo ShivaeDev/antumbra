@@ -5,8 +5,8 @@ import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Clock, Effect, Schema } from "effect";
 import { MessageId } from "#ids.ts";
+import { dueMail, MailBatch } from "#queries/due-mail.ts";
 import { message } from "#rows/message.ts";
-import { dueMail, MailBatch } from "#wakes/due.ts";
 
 export const DueWake = Schema.Struct({
 	agentId: agent.fields.id,

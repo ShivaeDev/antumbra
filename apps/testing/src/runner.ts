@@ -19,6 +19,13 @@ export const connectRunner = Effect.fn("TestRunner.connect")(function* (registra
 	const { source } = yield* ScriptedArtifacts;
 	const incoming = yield* calls("runner.operations", registration).pipe(
 		Stream.filterEffect((operation) => {
+			if (operation.type === "ListModels") {
+				return calls("runner.reply", {
+					runnerId: registration.runnerId,
+					requestId: operation.requestId,
+					result: { type: "ModelsListed", backend: operation.backend, models: [], failure: null },
+				}).pipe(Effect.as(false));
+			}
 			if (operation.type !== "ReadArtifact") return Effect.succeed(true);
 			const content = source.get(operation.relativePath);
 			return calls("runner.reply", {

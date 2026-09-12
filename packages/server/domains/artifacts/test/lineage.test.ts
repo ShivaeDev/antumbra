@@ -1,0 +1,40 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { Effect } from "effect";
+import { expect } from "vitest";
+import { ArtifactId } from "#ids.ts";
+import { chartering, custody, landing, opening, pieceId } from "#test/kit.ts";
+
+const old = ArtifactId.make("old");
+const next = ArtifactId.make("next");
+const edge = { supersededArtifactId: old, successorArtifactId: next, actorAgentId: "agent:cartographer" };
+
+it.app("correcting a replacement restores both artifacts", function* (app) {
+	yield* app.api.voyages.open(opening);
+	yield* app.api.pieces.charter(chartering);
+	const files = custody();
+	yield* landing(old, "old.md").pipe(Effect.provide(files.layer));
+	yield* landing(next, "new.md").pipe(Effect.provide(files.layer));
+	yield* app.api.artifacts.supersede(edge);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ id: old }]);
+	yield* app.api.artifacts.removeSupersession(edge);
+	const current = yield* answered(app.api.artifacts.byPiece({ pieceId }));
+	expect(current.current).toHaveLength(2);
+	expect(current.history).toEqual([]);
+});
+
+it.app("refuses a cycle and an unrelated author's correction", function* (app) {
+	yield* app.api.voyages.open(opening);
+	yield* app.api.pieces.charter(chartering);
+	const files = custody();
+	yield* landing(old, "old.md").pipe(Effect.provide(files.layer));
+	yield* landing(next, "new.md").pipe(Effect.provide(files.layer));
+	yield* app.api.artifacts.supersede(edge);
+	expect(yield* Effect.flip(app.api.artifacts.supersede({ ...edge, supersededArtifactId: next, successorArtifactId: old }))).toMatchObject({
+		_tag: "ArtifactLineageConflict",
+		conflict: "cycle",
+	});
+	expect(yield* Effect.flip(app.api.artifacts.removeSupersession({ ...edge, actorAgentId: "agent:other" }))).toMatchObject({
+		_tag: "ArtifactSupersessionUnauthorized",
+	});
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ id: old, supersededByArtifactId: next }]);
+});

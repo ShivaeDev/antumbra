@@ -10,6 +10,7 @@ export const start = row(
 	"start",
 	{
 		id: StartId,
+		operationRequestId: Schema.String,
 		agentId: AgentId,
 		sessionId: SessionId,
 		voyageId: Schema.NullOr(VoyageId),

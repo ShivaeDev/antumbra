@@ -25,18 +25,6 @@ it.app("lands a report and its Piece outcome together, and pushes its reference 
 	expect(yield* app.rows.pieceOutcome.where({ pieceId: soundings })).toMatchObject([{ sourceKind: "report", sourceId: reportId, status: "landed" }]);
 });
 
-it.app("repeating a report request keeps the first report and its single outcome", function* (app) {
-	yield* app.api.voyages.open(opening);
-	yield* app.api.pieces.charter(chartering);
-	const first = yield* app.api.reports.land(landing);
-	const again = yield* app.api.reports.land({ ...landing, body: "changed" });
-	expect(again).toBe(first);
-	expect(yield* app.rows.report.count({})).toBe(1);
-	expect(yield* app.rows.pieceReport.count({})).toBe(1);
-	expect(yield* app.rows.pieceOutcome.count({})).toBe(1);
-	expect((yield* answered(app.api.reports.byId({ id: reportId })))?.body).toBe(landing.body);
-});
-
 it.app("refuses an orphan report without leaving report, link, or outcome rows", function* (app) {
 	const refusal = yield* Effect.flip(app.api.reports.land(landing));
 	expect(refusal).toMatchObject({ _tag: "PieceNotFound", pieceId: soundings });

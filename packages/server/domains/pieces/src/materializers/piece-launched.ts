@@ -1,0 +1,11 @@
+import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { Effect } from "effect";
+import { pieceLaunched } from "#facts/piece-launched.ts";
+import { piece } from "#rows/piece.ts";
+
+export const pieceLaunchedMaterializer = materializer(pieceLaunched, {
+	writes: [piece],
+	run: Effect.fn("pieces.PieceLaunched")(function* (fact, rows) {
+		yield* rows.piece.update(fact.id, { launchedAt: fact.launchedAt });
+	}),
+});

@@ -29,6 +29,8 @@
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
 		"@antumbra/domain-repos": "workspace:*",
-		"@antumbra/domain-agents": "workspace:*"
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-mail": "workspace:*"
 	}
 }

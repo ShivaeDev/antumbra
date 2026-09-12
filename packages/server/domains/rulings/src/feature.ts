@@ -45,6 +45,7 @@ import { awaitingDelivery } from "#queries/awaiting-delivery.ts";
 import { binding } from "#queries/binding.ts";
 import { byId } from "#queries/by-id.ts";
 import { choices } from "#queries/choices.ts";
+import { delivery } from "#queries/delivery.ts";
 import { display } from "#queries/display.ts";
 import { frontier } from "#queries/frontier.ts";
 import { open } from "#queries/open.ts";
@@ -54,7 +55,7 @@ import { standing } from "#queries/standing.ts";
 import { rulingDisplay } from "#rows/display.ts";
 import { rulingNoticeReceipt } from "#rows/notice-receipt.ts";
 export const rulings = feature("rulings", {
-	rows: [rulingNoticeReceipt, ...subjectRows, ...requestWrites, rulingDisplay, voyageAgent, pieceProgress, voyageProgress],
+	rows: [...delivery.reads, rulingNoticeReceipt, ...subjectRows, ...requestWrites, rulingDisplay, voyageAgent, pieceProgress, voyageProgress],
 	facts: [
 		rulingNoticeDelivered,
 		rulingAnswered,
@@ -84,5 +85,19 @@ export const rulings = feature("rulings", {
 		rulingSupersededMaterializer,
 		rulingWithdrawnMaterializer,
 	],
-	queries: [authority, choices, replacements, display, awaitingAscent, awaitingDelivery, binding, byId, frontier, openGates, open, standing],
+	queries: [
+		delivery,
+		authority,
+		choices,
+		replacements,
+		display,
+		awaitingAscent,
+		awaitingDelivery,
+		binding,
+		byId,
+		frontier,
+		openGates,
+		open,
+		standing,
+	],
 });

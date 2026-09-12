@@ -6,10 +6,11 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 export default defineConfig({
 	test: {
 		projects: [
-			{ test: { root, name: "app-testing/app", include: ["test/**/*.test.ts"] } },
+			{ root, test: { name: "app-testing/app", include: ["test/**/*.test.ts"] } },
 			{
+				root,
 				extends: fileURLToPath(new URL("./src/glass/config.ts", import.meta.url)),
-				test: { root, name: "app-testing/glass", include: ["test/**/*.test.tsx"] },
+				test: { name: "app-testing/glass", include: ["test/**/*.test.tsx"] },
 			},
 		],
 	},

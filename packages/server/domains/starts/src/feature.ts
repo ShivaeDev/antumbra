@@ -31,6 +31,7 @@ import { startRetriedMaterializer } from "#materializers/start-retried.ts";
 import { admitted } from "#queries/admitted.ts";
 import { all } from "#queries/all.ts";
 import { bySession } from "#queries/by-session.ts";
+import { dispatch } from "#queries/dispatch.ts";
 import { pending } from "#queries/pending.ts";
 import { start } from "#rows/start.ts";
 export const starts = feature("starts", {
@@ -53,5 +54,5 @@ export const starts = feature("starts", {
 	facts: [startHeld, startRequested, startAdmitted, startCancelled, startRetried],
 	commands: [hold, request, hail, admit, cancel, retry],
 	materializers: [startHeldMaterializer, startRequestedMaterializer, startAdmittedMaterializer, startCancelledMaterializer, startRetriedMaterializer],
-	queries: [all, pending, admitted, bySession],
+	queries: [dispatch, all, pending, admitted, bySession],
 });

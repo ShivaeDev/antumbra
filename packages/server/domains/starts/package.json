@@ -34,6 +34,7 @@
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-capacity": "workspace:*",
 		"@antumbra/domain-reclamation": "workspace:*",
-		"@antumbra/platform-runner": "workspace:*"
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*"
 	}
 }

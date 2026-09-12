@@ -1,9 +1,9 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
-import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
+import { TranscriptReading, TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
-import { Effect, Stream } from "effect";
+import { Effect, Schema, Stream } from "effect";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
 import { expect } from "vitest";
 
@@ -88,6 +88,11 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 	const initial = yield* eventually(Stream.fromQueue(updates), (reading) =>
 		reading.items.some((item) => item.kind === "tool" && item.result === "/berth"),
 	);
+	const json = JSON.stringify(Schema.encodeSync(TranscriptReading)(initial));
+	expect(Schema.decodeUnknownSync(TranscriptReading)(JSON.parse(json))).toMatchObject({
+		items: expect.arrayContaining([expect.objectContaining({ kind: "message", text: "Hello" })]),
+		activity: { live: initial.activity.live },
+	});
 	expect(initial.items.filter((item) => item.kind === "tool")).toHaveLength(1);
 	expect(initial.items).toContainEqual(expect.objectContaining({ kind: "message", text: "Hello" }));
 	const future: LogEntry = {

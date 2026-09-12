@@ -38,9 +38,8 @@ const settlements = (evidence: Evidence): Settlement => {
 	return { done, abandoned, landing };
 };
 
-const stateOf = (piece: Piece, evidence: Evidence, settled: Settlement, working: ReadonlySet<PieceId>): RowValue<typeof pieceProgress>["state"] => {
+const stateOf = (piece: Piece, evidence: Evidence, settled: Settlement): RowValue<typeof pieceProgress>["state"] => {
 	if (settled.abandoned.has(piece.id)) return "abandoned";
-	if (working.has(piece.id)) return "active";
 	if (settled.done.has(piece.id)) return "done";
 	if (piece.parkedAt !== null) return "parked";
 	if (piece.launchedAt === null) return "held";
@@ -53,11 +52,13 @@ export const progressOf = (evidence: Evidence): readonly RowValue<typeof piecePr
 	const settled = settlements(evidence);
 	const working = new Set(evidence.assignments.filter((assignment) => assignment.working).map((assignment) => assignment.pieceId));
 	return evidence.pieces.map((piece) => {
-		const state = stateOf(piece, evidence, settled, working);
+		const resting = stateOf(piece, evidence, settled);
+		const state = resting !== "abandoned" && working.has(piece.id) ? "active" : resting;
 		return {
 			id: piece.id,
 			voyageId: piece.voyageId,
 			state,
+			eligible: resting === "ready",
 			settledDone: settled.done.has(piece.id),
 			abandoned: settled.abandoned.has(piece.id),
 			concluded: state === "abandoned" || state === "done",

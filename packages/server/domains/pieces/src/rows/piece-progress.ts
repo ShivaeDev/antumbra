@@ -9,6 +9,7 @@ export const pieceProgress = row(
 		id: PieceId,
 		voyageId: voyagePieceProgress.fields.voyageId,
 		state: voyagePieceProgress.fields.state,
+		eligible: Schema.Boolean,
 		settledDone: Schema.Boolean,
 		abandoned: Schema.Boolean,
 		concluded: Schema.Boolean,

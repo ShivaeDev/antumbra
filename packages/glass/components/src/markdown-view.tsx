@@ -3,8 +3,8 @@ import { useEffect, useId, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { renderMermaid } from "#adapters/mermaid.ts";
-import { cn } from "#lib/utils.ts";
-import { ExternalLink } from "#views/external-link.tsx";
+import { cn } from "#class-names.ts";
+import { ExternalLink } from "#external-link.tsx";
 
 const MermaidDiagram = ({ source }: { readonly source: string }) => {
 	const id = `outcome-${useId().replaceAll(":", "")}`;

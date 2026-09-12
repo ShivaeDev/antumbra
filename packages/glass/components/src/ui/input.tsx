@@ -1,4 +1,4 @@
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 export const Input = ({ className, type, ...props }: React.ComponentProps<"input">) => (
 	<input

@@ -1,7 +1,7 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { ChevronDownIcon } from "lucide-react";
-import { SelectScrollDownButton, SelectScrollUpButton } from "#components/ui/select-parts.tsx";
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
+import { SelectScrollDownButton, SelectScrollUpButton } from "#ui/select-parts.tsx";
 
 export const Select = (props: React.ComponentProps<typeof SelectPrimitive.Root>) => <SelectPrimitive.Root data-slot="select" {...props} />;
 

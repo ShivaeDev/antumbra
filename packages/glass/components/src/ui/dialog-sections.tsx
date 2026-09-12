@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 export const DialogHeader = ({ className, ...props }: React.ComponentProps<"div">) => (
 	<div className={cn("flex flex-col gap-1", className)} data-slot="dialog-header" {...props} />

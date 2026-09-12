@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { plainLine } from "#views/markdown-plain.ts";
+import { plainLine } from "#markdown-plain.ts";
 
 describe("plainLine", () => {
 	it("reads a heading as the words in it", () => {

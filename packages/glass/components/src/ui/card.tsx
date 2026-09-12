@@ -1,4 +1,4 @@
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 export const Card = ({ className, ...props }: React.ComponentProps<"div">) => (
 	<div

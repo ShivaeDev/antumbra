@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 export const SectionHeading = ({ action, count, title }: { readonly action?: ReactNode; readonly count?: number; readonly title: string }) => (
 	<div className="flex min-w-0 items-center gap-2 border-b border-border pb-1.5">

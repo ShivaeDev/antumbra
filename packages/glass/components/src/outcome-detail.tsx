@@ -1,8 +1,8 @@
 import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { Button } from "#components/ui/button.tsx";
-import { OutcomeMarkdownView } from "#views/outcome-markdown.tsx";
-import type { OutcomeDetail, OutcomeRef } from "#views/outcome-read.ts";
+import { OutcomeMarkdownView } from "#outcome-markdown.tsx";
+import type { OutcomeDetail, OutcomeRef } from "#outcome-read.ts";
+import { Button } from "#ui/button.tsx";
 
 export const OutcomeChips = ({
 	disabled,

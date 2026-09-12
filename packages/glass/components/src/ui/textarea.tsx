@@ -1,4 +1,4 @@
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 export const Textarea = ({ className, ...props }: React.ComponentProps<"textarea">) => (
 	<textarea

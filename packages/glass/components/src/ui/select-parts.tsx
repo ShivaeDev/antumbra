@@ -1,6 +1,6 @@
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { cn } from "#lib/utils.ts";
+import { cn } from "#class-names.ts";
 
 const scrollButton = "flex cursor-default items-center justify-center py-0.5 text-muted-foreground [&_svg]:size-3.5";
 

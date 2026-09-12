@@ -10,7 +10,4 @@
 @import "./prose.css";
 @import "./motion.css";
 
-@source "../";
-@source "../../../glass/components/src";
-@source "../../../glass/role-settings/src";
-@source "../../../../apps/desktop/index.html";
+@source "../../../";

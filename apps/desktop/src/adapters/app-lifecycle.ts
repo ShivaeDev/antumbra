@@ -1,4 +1,5 @@
 import { agents } from "@antumbra/domain-agents/feature.ts";
+import { loopback } from "@antumbra/platform-rpc/endpoint.ts";
 import { group } from "@antumbra/platform-rpc/group.ts";
 import { ClientToken } from "@antumbra/platform-rpc/token.ts";
 import { transport } from "@antumbra/platform-rpc/transport.ts";
@@ -16,7 +17,7 @@ export const ShellLifecycleLayer = Layer.unwrap(
 		const { port, token } = yield* serving;
 		return Layer.effect(ShellLifecycle)(connecting).pipe(
 			Layer.provide(transport),
-			Layer.provide(Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token }))),
+			Layer.provide(Layer.merge(NodeSocket.layerWebSocket(loopback(port)), Layer.succeed(ClientToken, { token }))),
 		);
 	}),
 );

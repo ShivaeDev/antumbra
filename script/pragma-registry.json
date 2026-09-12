@@ -2,6 +2,6 @@
 	{
 		"file": "packages/server/journal/test/compile.typecheck.ts",
 		"pragma": "@ts-expect-error",
-		"reason": "Compile-time proof of the three guarantees the journal kit's types carry: a command's rows handle is read-only, a feature's every fact has exactly one materializer, and AlreadyDone is not in the error type the rpc client hands a caller. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
+		"reason": "Compile-time proof of the guarantees the journal kit's types carry: a command's rows handle is read-only, a feature's every fact has exactly one materializer, AlreadyDone is not in the error type the rpc client hands a caller, a reconciler reaches only the ports it lists, commit refuses an input that does not match the command, and serving a feature that lists a port needs that port's Layer. Every pragma goes unused, and the build fails, if any guarantee is ever relaxed."
 	}
 ]

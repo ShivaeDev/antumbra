@@ -1,4 +1,5 @@
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
+import type { PortServices, PortShape } from "@antumbra/platform-feature/port.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Cause, Deferred, Effect, Exit, Fiber, Queue, type Schema, type Scope, Stream } from "effect";
@@ -11,11 +12,11 @@ export interface Reconciler {
 
 type Fail = (cause: Cause.Cause<never>) => Effect.Effect<unknown>;
 
-const watching = <Value, R>(
-	values: Stream.Stream<Value>,
-	snapshot: Effect.Effect<Value>,
+const watching = <Value, Needs, R>(
+	values: Stream.Stream<Value, never, Needs>,
+	snapshot: Effect.Effect<Value, never, Needs>,
 	act: (value: Value, fail: Fail) => Effect.Effect<void, never, R>,
-): Effect.Effect<Reconciler, never, R | Scope.Scope> =>
+): Effect.Effect<Reconciler, never, Needs | R | Scope.Scope> =>
 	Effect.gen(function* () {
 		const pending = yield* Queue.sliding<void>(1);
 		const failed = yield* Deferred.make<never>();
@@ -35,11 +36,18 @@ const watching = <Value, R>(
 		};
 	});
 
-export const run = <Name extends string, Input extends Fields, Output extends Schema.Top, Reads extends readonly RowShape[], R>(
-	query: QueryDefinition<Name, Input, Output, Reads>,
+export const run = <
+	Name extends string,
+	Input extends Fields,
+	Output extends Schema.Top,
+	Reads extends readonly RowShape[],
+	Ports extends readonly PortShape[],
+	R,
+>(
+	query: QueryDefinition<Name, Input, Output, Reads, Ports>,
 	input: Values<Input>,
 	act: (rows: Output["Type"]) => Effect.Effect<void, never, R>,
-): Effect.Effect<Reconciler, never, Live | Scope.Scope | R> =>
+): Effect.Effect<Reconciler, never, Live | PortServices<Ports> | Scope.Scope | R> =>
 	Effect.gen(function* () {
 		const live = yield* Live;
 		return yield* watching(live.live(query, input), live.read(query, input), act);
@@ -50,14 +58,15 @@ export const each = <
 	Input extends Fields,
 	Output extends Schema.Top & { readonly Type: readonly unknown[] },
 	Reads extends readonly RowShape[],
+	Ports extends readonly PortShape[],
 	Key,
 	R,
 >(
-	query: QueryDefinition<Name, Input, Output, Reads>,
+	query: QueryDefinition<Name, Input, Output, Reads, Ports>,
 	input: Values<Input>,
 	keyOf: (row: Output["Type"][number]) => Key,
 	act: (row: Output["Type"][number]) => Effect.Effect<void, never, R>,
-): Effect.Effect<Reconciler, never, Live | Scope.Scope | R> =>
+): Effect.Effect<Reconciler, never, Live | PortServices<Ports> | Scope.Scope | R> =>
 	Effect.gen(function* () {
 		const live = yield* Live;
 		const claims = new Map<Key, { fiber?: Fiber.Fiber<void> }>();

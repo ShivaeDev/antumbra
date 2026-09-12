@@ -10,7 +10,7 @@ const eligible = query("eligible", {
 	output: counts.output,
 	reads: counts.reads,
 	run: (input, rows) =>
-		Effect.map(counts.run(input, rows), (values) => values.filter((value) => value.key === "maxParallelSessions" && value.count >= 5)),
+		Effect.map(counts.run(input, rows, {}), (values) => values.filter((value) => value.key === "maxParallelSessions" && value.count >= 5)),
 });
 
 it.app("reconcilers run at boot and keep only the latest pending reading", function* (app) {

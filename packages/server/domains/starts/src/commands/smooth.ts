@@ -23,7 +23,7 @@ export const smooth = command("smooth", {
 	},
 	run: Effect.fn("Starts.smooth")(function* (input, rows, reject) {
 		if (!(yield* rows.voyage.exists(input.voyageId))) return yield* reject.UnknownVoyage({ id: input.voyageId });
-		const selected = yield* smoother.run({ voyageId: input.voyageId }, rows);
+		const selected = yield* smoother.run({ voyageId: input.voyageId }, rows, {});
 		const existing = yield* rows.agent.find(input.agentId);
 		if ((selected !== null && selected.id !== input.agentId) || (selected === null && Option.isSome(existing)))
 			return yield* reject.WrongAgent({ id: input.agentId });

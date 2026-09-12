@@ -33,7 +33,7 @@ export const queues = query("queues", {
 		const held = (key: "holdEverything" | "holdPieceDispatch" | "holdWakes") => flags.find((flag) => flag.key === key)?.on ?? FLAGS[key].fallback;
 		const everything = held("holdEverything");
 		const now = yield* Clock.currentTimeMillis;
-		const dispatch = (yield* ready.run({}, rows)).map(({ piece, voyage }) => ({
+		const dispatch = (yield* ready.run({}, rows, {})).map(({ piece, voyage }) => ({
 			id: piece.id,
 			title: piece.title,
 			voyage: voyage.name,
@@ -49,7 +49,7 @@ export const queues = query("queues", {
 				return name === undefined ? [] : [[String(crew.agentId), name] as const];
 			}),
 		);
-		const wakes = [...(yield* dueWakes.run({}, rows))]
+		const wakes = [...(yield* dueWakes.run({}, rows, {}))]
 			.sort((a, b) => b.waitedMillis - a.waitedMillis)
 			.map((wake) => ({
 				id: wake.sessionId,

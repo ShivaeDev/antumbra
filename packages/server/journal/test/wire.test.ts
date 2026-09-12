@@ -15,7 +15,14 @@ const through = <Value>(schema: Schema.Codec<Value, unknown>, value: Value): Eff
 	}).pipe(Effect.orDie);
 
 it("the wire tags name the feature and the command or query they derive from", () => {
-	expect([...group([pieces]).requests.keys()].toSorted()).toEqual(["pieces.byVoyage", "pieces.park"]);
+	expect([...group([pieces]).requests.keys()].toSorted()).toEqual([
+		"pieces.atWork",
+		"pieces.byVoyage",
+		"pieces.charter",
+		"pieces.chartered",
+		"pieces.launch",
+		"pieces.park",
+	]);
 });
 
 it.effect("a rejection crosses json as the class the command declared", () =>

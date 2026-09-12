@@ -1,5 +1,5 @@
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
-import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { FeaturePorts, FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
 import { layerServer, type ServerToken, type Token } from "@antumbra/platform-rpc/token.ts";
@@ -47,7 +47,7 @@ const handlersOf = (features: readonly FeatureShape[], commit: LooseCommit, live
 
 export function serving<const Features extends readonly FeatureShape[]>(
 	features: Features,
-): Layer.Layer<Rpc.ToHandler<Rpcs<Features>> | Token, never, Commit | Live | ServerToken>;
+): Layer.Layer<Rpc.ToHandler<Rpcs<Features>> | Token, never, Commit | FeaturePorts<Features> | Live | ServerToken>;
 export function serving(features: readonly FeatureShape[]): unknown {
 	const handlers = Effect.gen(function* () {
 		const commit = looseCommit(yield* Commit);

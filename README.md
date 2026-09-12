@@ -21,6 +21,8 @@ Electron shell starts a separate server and runner; its windows read the server 
 - [Design guides](docs/design/README.md) — the relationships, acts, and rationale behind that language.
 - [Branding](docs/branding.md) — the wordmark, the dark palette, the type scale, and the copy register.
 
+- [Dev journal](docs/contributing/dev-journal.md) — the durable fact store, its commands, and when a reset is the right move.
+- [Dev tracing](docs/contributing/dev-tracing.md) — the trace database, what it records, and the queries to start from.
 - [Running tests](docs/contributing/tests.md) — test commands and local worktree coordination.
 
 ## License

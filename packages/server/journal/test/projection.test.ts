@@ -98,6 +98,20 @@ it.effect("runner cursors acknowledge each record once and keep operation identi
 	}).pipe(Effect.provide(Journal.memory())),
 );
 
+it.effect("a renewed runner log carries its own cursor instead of the retired log's", () =>
+	Effect.gen(function* () {
+		const { database, commit } = yield* setup;
+		const retired = { logId: "runner:1", at: 120, requestId: Request.make("operation") };
+		yield* commit.observe(added, { ...retired, cursor: 0, payload: { id: "one", value: 3 } });
+		yield* commit.observe(added, { ...retired, cursor: 1, payload: { id: "two", value: 4 } });
+		expect(yield* commit.cursor("runner:2")).toBe(-1);
+		yield* commit.observe(added, { logId: "runner:2", cursor: 0, at: 130, requestId: Request.make("renewed"), payload: { id: "three", value: 5 } });
+		expect(yield* commit.cursor("runner:1")).toBe(1);
+		expect(yield* commit.cursor("runner:2")).toBe(0);
+		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 24 }]);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
 it.effect("shape changes replay all projections with original fact provenance", () =>
 	Effect.gen(function* () {
 		const { database, commit } = yield* setup;

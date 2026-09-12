@@ -81,7 +81,7 @@ export const fixture = Effect.gen(function* () {
 			}),
 	};
 	const dependencies = Layer.mergeAll(
-		file({ filename: ":memory:", logId: "log" }),
+		file({ filename: ":memory:", seed: "log" }),
 		Layer.succeed(BackendRegistry, { backends: new Map([["scripted", backend]]) }),
 		Layer.succeed(InputResolver, { resolve: (input) => Effect.succeed({ id: input.id, parts: [{ type: "text", text: "resolved input" }] }) }),
 		Layer.succeed(RunnerIdentity, { runnerId: "runner" }),

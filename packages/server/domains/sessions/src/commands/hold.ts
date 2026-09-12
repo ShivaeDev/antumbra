@@ -30,6 +30,8 @@ export const holdCapacity = command("holdCapacity", {
 export const operationHeldMaterializer = materializer(operationHeld, {
 	writes: [sessionOperation, sessionCapacityWait],
 	run: Effect.fn("Sessions.operationHeld")(function* (fact, rows) {
+		const operation = yield* rows.sessionOperation.get(fact.id);
+		if (operation.status !== "requested" && operation.status !== "waiting") return;
 		yield* rows.sessionOperation.update(fact.id, { status: "waiting", detail: fact.detail });
 		if (fact.backend !== null) yield* rows.sessionCapacityWait.insert({ id: fact.id, backend: fact.backend });
 	}),

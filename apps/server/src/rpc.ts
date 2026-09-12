@@ -1,18 +1,19 @@
 import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
-import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
+import { SessionInputRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { StartsRpc } from "@antumbra/domain-starts/commands/submit.ts";
-import { group } from "@antumbra/platform-rpc/group.ts";
+import { AdmiralRpc } from "@antumbra/domain-starts/commands/submit.ts";
+import { assemble } from "@antumbra/platform-rpc/group.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
-import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
+import { RestartRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { features } from "#features.ts";
 
-export const rpc = group(features).merge(
+export const rpc = assemble(
+	features,
 	artifactContent.middleware(Token),
-	InputsRpc.middleware(Token),
+	SessionInputRpc.middleware(Token),
 	TranscriptRpc.middleware(Token),
-	LifecycleRpc,
+	RestartRpc,
 	RunnerRpc,
-	StartsRpc.middleware(Token),
+	AdmiralRpc.middleware(Token),
 );

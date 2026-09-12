@@ -18,4 +18,4 @@ export const transcript = (input: { readonly id: SessionId }) =>
 		}),
 	);
 
-export const transcriptLayer = TranscriptRpc.middleware(Token).toLayer({ "sessions.transcript": transcript });
+export const transcriptLayer = TranscriptRpc.middleware(Token).toLayer({ "transcript.follow": transcript });

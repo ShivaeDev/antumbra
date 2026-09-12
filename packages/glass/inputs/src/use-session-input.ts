@@ -33,7 +33,7 @@ export const useSessionInput = (api: InputsClient, drafts: Drafts, sessionId: st
 			Effect.gen(function* () {
 				const sent = yield* captured;
 				const request = yield* inputRequest(sessionId, id, images.images, text);
-				const receipt = yield* api["inputs.submit"](request);
+				const receipt = yield* api["sessionInput.submit"](request);
 				images.clear();
 				yield* words.clear(sent);
 				setInputId(undefined);

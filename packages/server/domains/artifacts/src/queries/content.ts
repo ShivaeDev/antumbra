@@ -17,7 +17,7 @@ export class StoredArtifactContentInvalid extends Schema.TaggedError<StoredArtif
 }) {}
 
 export const artifactContent = RpcGroup.make(
-	Rpc.make("artifacts.read", {
+	Rpc.make("content.read", {
 		payload: { artifactId: ArtifactId },
 		success: ArtifactMarkdown,
 		error: Schema.Union([land.Rejection.ArtifactNotFound, StoredArtifactContentInvalid]),

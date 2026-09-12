@@ -1,5 +1,5 @@
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
-import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { DistinctNames, FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import type { AlreadyDone, RejectedBy, RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
 import { Schema } from "effect";
@@ -65,4 +65,36 @@ const rpcsOf = (feature: FeatureShape): readonly Rpc.Any[] => [
 export function group<const Features extends readonly FeatureShape[]>(features: Features): RpcGroup.RpcGroup<Rpcs<Features>>;
 export function group(features: readonly FeatureShape[]): unknown {
 	return RpcGroup.make(...features.flatMap(rpcsOf)).middleware(Token);
+}
+
+type TagsOf<Group> = RpcGroup.Rpcs<Group>["_tag"];
+
+type Claimed<Features extends readonly FeatureShape[]> = `${Features[number]["name"]}.${string}`;
+
+type Trespassing<Groups extends readonly RpcGroup.Any[], Features extends readonly FeatureShape[]> = {
+	[Index in keyof Groups]: Extract<TagsOf<Groups[Index]>, Claimed<Features>>;
+}[number];
+
+type OtherTags<Groups extends readonly RpcGroup.Any[], Index> = {
+	[Other in keyof Groups]: Other extends Index ? never : TagsOf<Groups[Other]>;
+}[number];
+
+type Repeated<Groups extends readonly RpcGroup.Any[]> = {
+	[Index in keyof Groups]: Extract<TagsOf<Groups[Index]>, OtherTags<Groups, Index>>;
+}[number];
+
+export type Disjoint<Features extends readonly FeatureShape[], Groups extends readonly RpcGroup.Any[]> = [Trespassing<Groups, Features>] extends [
+	never,
+]
+	? [Repeated<Groups>] extends [never]
+		? unknown
+		: { readonly "two groups serve this tag": Repeated<Groups> }
+	: { readonly "this tag sits inside a feature's namespace": Trespassing<Groups, Features> };
+
+export function assemble<const Features extends readonly FeatureShape[], const Groups extends readonly RpcGroup.Any[]>(
+	features: Features & DistinctNames<NoInfer<Features>>,
+	...groups: Groups & Disjoint<NoInfer<Features>, NoInfer<Groups>>
+): RpcGroup.RpcGroup<Rpcs<Features> | RpcGroup.Rpcs<Groups[number]>>;
+export function assemble(features: readonly FeatureShape[], ...groups: readonly RpcGroup.Any[]): unknown {
+	return group(features).merge(...groups);
 }

@@ -16,6 +16,18 @@ export interface FeatureShape {
 	readonly queries: readonly QueryShape[];
 }
 
+type OtherNames<Features extends readonly FeatureShape[], Index> = {
+	[Other in keyof Features]: Other extends Index ? never : Features[Other]["name"];
+}[number];
+
+type Twice<Features extends readonly FeatureShape[]> = {
+	[Index in keyof Features]: Features[Index]["name"] extends OtherNames<Features, Index> ? Features[Index]["name"] : never;
+}[number];
+
+export type DistinctNames<Features extends readonly FeatureShape[]> = [Twice<Features>] extends [never]
+	? unknown
+	: { readonly "two features carry this name": Twice<Features> };
+
 export interface FeatureDefinition<
 	Name extends string,
 	Rows extends readonly RowShape[],

@@ -1,4 +1,4 @@
-import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { DistinctNames, FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { MigrationBody } from "@antumbra/platform-feature/migration.ts";
 import type { ProjectionShape } from "@antumbra/platform-feature/projection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
@@ -39,7 +39,7 @@ export interface Registry {
 }
 
 export const app = <const Features extends readonly FeatureShape[]>(
-	features: Features,
+	features: Features & DistinctNames<NoInfer<Features>>,
 	projections: readonly ProjectionShape[] = [],
 ): AppDefinition<Features> => ({ features, projections });
 

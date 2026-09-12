@@ -19,8 +19,8 @@ export const Spawn = Schema.Struct({
 export type Spawn = typeof Spawn.Type;
 export class StartFailure extends Schema.TaggedError<StartFailure>()("StartFailure", { message: Schema.String }) {}
 export const BirthReceipt = Schema.Struct({ requestId: Request, agentId: AgentId });
-export const StartsRpc = RpcGroup.make(
-	Rpc.make("starts.spawn", { payload: Spawn, success: BirthReceipt, error: StartFailure }),
-	Rpc.make("starts.hail", { payload: { requestId: Request, voyageId: VoyageId }, success: BirthReceipt, error: StartFailure }),
-	Rpc.make("starts.workNow", { payload: { requestId: Request, pieceId: PieceId }, success: BirthReceipt, error: StartFailure }),
+export const AdmiralRpc = RpcGroup.make(
+	Rpc.make("admiral.spawn", { payload: Spawn, success: BirthReceipt, error: StartFailure }),
+	Rpc.make("admiral.hail", { payload: { requestId: Request, voyageId: VoyageId }, success: BirthReceipt, error: StartFailure }),
+	Rpc.make("admiral.workNow", { payload: { requestId: Request, pieceId: PieceId }, success: BirthReceipt, error: StartFailure }),
 );

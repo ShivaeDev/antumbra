@@ -3,13 +3,13 @@ import { loopback } from "@antumbra/platform-rpc/endpoint.ts";
 import { group } from "@antumbra/platform-rpc/group.ts";
 import { ClientToken } from "@antumbra/platform-rpc/token.ts";
 import { transport } from "@antumbra/platform-rpc/transport.ts";
-import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
+import { RestartRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Layer } from "effect";
 import * as RpcClient from "effect/unstable/rpc/RpcClient";
 import { ServerProcess } from "#adapters/server-process.ts";
 
-const connecting = RpcClient.make(LifecycleRpc.merge(group([agents])));
+const connecting = RpcClient.make(RestartRpc.merge(group([agents])));
 export class ShellLifecycle extends Context.Service<ShellLifecycle, Effect.Success<typeof connecting>>()("@antumbra/desktop/ShellLifecycle") {}
 export const ShellLifecycleLayer = Layer.unwrap(
 	Effect.gen(function* () {
@@ -22,5 +22,5 @@ export const ShellLifecycleLayer = Layer.unwrap(
 	}),
 );
 
-export const lifecycle = (method: "drain" | "recordRestart" | "honorRestart" | "abandonRestart") =>
-	ShellLifecycle.use((api) => Effect.suspend(() => api[`lifecycle.${method}`]({ requestId: crypto.randomUUID() })));
+export const lifecycle = (order: "drain" | "record" | "honor" | "abandon") =>
+	ShellLifecycle.use((api) => Effect.suspend(() => api[`restart.${order}`]({ requestId: crypto.randomUUID() })));

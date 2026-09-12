@@ -2,14 +2,18 @@ import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
+import { AdmiralRpc } from "@antumbra/domain-starts/commands/submit.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { client } from "@antumbra/platform-rpc/client.ts";
 import { serialization } from "@antumbra/platform-rpc/serialization.ts";
-import { ClientToken, Unauthorized } from "@antumbra/platform-rpc/token.ts";
+import { ClientToken, Token, Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import { transport } from "@antumbra/platform-rpc/transport.ts";
+import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
 import { ChildProcess } from "effect/unstable/process";
+import * as RpcClient from "effect/unstable/rpc/RpcClient";
 import * as RpcMessage from "effect/unstable/rpc/RpcMessage";
 import * as RpcSerialization from "effect/unstable/rpc/RpcSerialization";
 import * as Socket from "effect/unstable/socket/Socket";
@@ -91,6 +95,22 @@ it.live("answers the fleet's role settings to a client that presents the token i
 		const { port } = yield* listening(dataDirectory());
 		const answered = yield* fleetDefaults(port, TOKEN);
 		expect(Option.map(answered, (rows) => rows.map((row) => row.role))).toEqual(Option.some(["flagship", "captain", "crew", "smoother"]));
+	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+);
+
+const hailing = (port: number) =>
+	Effect.provide(
+		Effect.flatMap(RpcClient.make(AdmiralRpc.middleware(Token)), (admiral) =>
+			admiral["admiral.hail"]({ requestId: Request.make("hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) }),
+		),
+		dialing(port, TOKEN),
+	);
+
+it.live("hails the flagship captain over the socket it serves", () =>
+	Effect.gen(function* () {
+		const { port } = yield* listening(dataDirectory());
+		const receipt = yield* hailing(port);
+		expect(receipt).toEqual({ requestId: "hail", agentId: "hail" });
 	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
 );
 

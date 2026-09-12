@@ -23,7 +23,7 @@ export const SpawnDialog = ({ sessions }: { readonly sessions: SessionsClient })
 		() => (value: Readonly<Record<string, unknown>>) =>
 			Effect.gen(function* () {
 				const input = yield* Schema.decodeUnknownEffect(Spawn)({ ...value, requestId: Request.make(crypto.randomUUID()) });
-				yield* sessions["starts.spawn"](input);
+				yield* sessions["admiral.spawn"](input);
 				return 0;
 			}),
 		[sessions],

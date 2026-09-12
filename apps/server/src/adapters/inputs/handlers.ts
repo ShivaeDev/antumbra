@@ -2,7 +2,7 @@ import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts
 import { InputAmbiguous, InputConflict, InputNotFound } from "@antumbra/domain-inputs/commands/errors.ts";
 import { record } from "@antumbra/domain-inputs/commands/record.ts";
 import { retry } from "@antumbra/domain-inputs/commands/retry.ts";
-import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
+import { SessionInputRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { reading } from "@antumbra/domain-inputs/queries/reading.ts";
 import type { Draft, ImageRequest, Receipt } from "@antumbra/domain-inputs/rows/content.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
@@ -28,7 +28,7 @@ export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 		const recorded = yield* current(draft.sessionId, draft.id);
 		if (recorded === null || recorded.requestDigest !== digest) return yield* new InputConflict({ inputId: draft.id });
 	});
-	const submit = Effect.fn("inputs.submit")(function* (draft: Draft) {
+	const submit = Effect.fn("sessionInput.submit")(function* (draft: Draft) {
 		yield* delivery.admit(draft);
 		const held = yield* current(draft.sessionId, draft.id);
 		const digest = digestRequest(draft.sessionId, draft.parts);
@@ -44,13 +44,13 @@ export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 		if (held === null) yield* recordNew(draft, digest);
 		return { id: draft.id, status: yield* delivery.deliver({ sessionId: draft.sessionId, inputId: draft.id }) } satisfies Receipt;
 	});
-	const image = Effect.fn("inputs.image")(function* (request: ImageRequest) {
+	const image = Effect.fn("sessionInput.image")(function* (request: ImageRequest) {
 		const held = yield* current(request.sessionId, request.inputId);
 		const part = held?.parts[request.position];
 		if (part === undefined || part.type !== "image") return yield* new InputNotFound({ inputId: request.inputId });
 		const bytes = yield* readImage(root, part.attachment.digest, part.attachment.mediaType);
 		return { bytes: yield* transcriptThumbnail(bytes), mediaType: "image/webp" as const, name: part.name };
 	});
-	return { "inputs.submit": submit, "inputs.image": image };
+	return { "sessionInput.submit": submit, "sessionInput.image": image };
 });
-export const servingInputs = (root: string) => InputsRpc.middleware(Token).toLayer(handlers(root));
+export const servingInputs = (root: string) => SessionInputRpc.middleware(Token).toLayer(handlers(root));

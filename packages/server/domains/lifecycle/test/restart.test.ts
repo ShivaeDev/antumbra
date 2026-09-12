@@ -49,16 +49,16 @@ it.app("records running roots on connected runners and abandons the requested wa
 			]);
 		}),
 	);
-	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
+	yield* lifecycle("restart.record", { requestId: "record" });
 	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual(["active"]);
-	yield* lifecycle("lifecycle.abandonRestart", { requestId: "abandon" });
+	yield* lifecycle("restart.abandon", { requestId: "abandon" });
 	expect(yield* answered(app.api.lifecycle.pending({}))).toBeNull();
 });
 
 it.app("ordinary shutdown waits for the runner to acknowledge drain", function* () {
 	const runner = yield* connectRunner(registration);
 	const lifecycle = yield* lifecycleClient;
-	const drained = yield* Effect.forkChild(lifecycle("lifecycle.drain", { requestId: "quit" }));
+	const drained = yield* Effect.forkChild(lifecycle("restart.drain", { requestId: "quit" }));
 	const operation = yield* runner.next;
 	expect(operation).toEqual({ type: "Drain", requestId: "quit:runner" });
 	expect(drained.pollUnsafe()).toBeUndefined();

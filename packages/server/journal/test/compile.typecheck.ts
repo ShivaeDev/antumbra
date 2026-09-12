@@ -5,9 +5,10 @@ import { projection } from "@antumbra/platform-feature/projection.ts";
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect } from "effect";
+import { app } from "#app.ts";
 import { park } from "#example/commands/park.ts";
 import { pieceParked } from "#example/facts/piece-parked.ts";
-import type { pieces } from "#example/feature.ts";
+import { pieces } from "#example/feature.ts";
 import { PieceId } from "#example/ids.ts";
 import { piece } from "#example/rows/piece.ts";
 import { observation } from "#observe.ts";
@@ -51,3 +52,8 @@ export const projectionReadsCannotWrite = projection("read-only", {
 
 // @ts-expect-error observation payloads must match the selected fact schema.
 export const wrongObservation = observation(pieceParked, { pieceId: PieceId.make("piece-1"), reason: 3 });
+
+const piecesAgain = feature("pieces", { rows: [], facts: [], commands: [], materializers: [], queries: [] });
+
+// @ts-expect-error two features never carry the same name.
+export const twice = app([pieces, piecesAgain]);

@@ -6,9 +6,9 @@ import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
 export class LifecycleRefused extends Schema.TaggedError<LifecycleRefused>()("LifecycleRefused", { message: Schema.String }) {}
 
 const request = { payload: Schema.Struct({ requestId: Schema.String }), success: Schema.Void, error: LifecycleRefused };
-export const LifecycleRpc = RpcGroup.make(
-	Rpc.make("lifecycle.drain", request),
-	Rpc.make("lifecycle.recordRestart", request),
-	Rpc.make("lifecycle.honorRestart", request),
-	Rpc.make("lifecycle.abandonRestart", request),
+export const RestartRpc = RpcGroup.make(
+	Rpc.make("restart.drain", request),
+	Rpc.make("restart.record", request),
+	Rpc.make("restart.honor", request),
+	Rpc.make("restart.abandon", request),
 ).middleware(Token);

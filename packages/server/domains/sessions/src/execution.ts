@@ -1,5 +1,6 @@
 import type { Input } from "@antumbra/platform-runner/input.ts";
 import type { Operation, OperationResult, SessionOptions } from "@antumbra/platform-runner/operations.ts";
+import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Context, Effect, Option, Stream } from "effect";
@@ -44,7 +45,11 @@ export const execute = Effect.fn("sessions.execute")(function* (operation: typeo
 			else {
 				if (root.nativeRef === null) {
 					yield* commit
-						.commit(hold, { requestId: `${operation.id}:held`, id: operation.id, detail: "The provider conversation has no native resume reference" })
+						.commit(hold, {
+							requestId: Request.make(`${operation.id}:held`),
+							id: operation.id,
+							detail: "The provider conversation has no native resume reference",
+						})
 						.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 					return;
 				}
@@ -56,6 +61,6 @@ export const execute = Effect.fn("sessions.execute")(function* (operation: typeo
 	const result = yield* edge.execute(wire);
 	if (result.type === "Refused")
 		yield* commit
-			.commit(hold, { requestId: `${operation.id}:held`, id: operation.id, detail: result.reason })
+			.commit(hold, { requestId: Request.make(`${operation.id}:held`), id: operation.id, detail: result.reason })
 			.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 });

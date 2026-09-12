@@ -1,4 +1,5 @@
 import { backends } from "@antumbra/domain-backends/feature.ts";
+import { pieces } from "@antumbra/domain-pieces/feature.ts";
 import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
 import { settings } from "@antumbra/domain-settings/feature.ts";
 import { voyages } from "@antumbra/domain-voyages/feature.ts";
@@ -9,7 +10,7 @@ import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Layer, Option, Stream } from "effect";
 import { ServerProcess, type Serving } from "#adapters/server-process.ts";
 
-const connecting = client([roleSettings, backends, settings, voyages]);
+const connecting = client([roleSettings, backends, settings, voyages, pieces]);
 
 export class ServerReach extends Context.Service<ServerReach, Effect.Success<typeof connecting>>()("@antumbra/desktop/ServerReach") {}
 

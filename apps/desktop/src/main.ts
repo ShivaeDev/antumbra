@@ -31,6 +31,7 @@ import {
 import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
+import { PiecesOverRpc } from "#adapters/pieces.ts";
 import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
 import { VoyagesOverRpc } from "#adapters/voyages.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
@@ -48,7 +49,7 @@ const layoutStore = Effect.provide(
 const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
 	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
 	const reach = Layer.provide(ServerReachLive, serverProcess);
-	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc).pipe(
+	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc, PiecesOverRpc).pipe(
 		Layer.provideMerge(reach),
 		Layer.provide(DomainFeedsLive),
 		Layer.provide(persistence),

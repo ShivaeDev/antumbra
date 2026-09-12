@@ -1,4 +1,3 @@
-import type { PrismaError } from "@antumbra/persistence";
 import type { VoyageNotFound } from "@antumbra/voyages/errors";
 import { Data } from "effect";
 
@@ -11,14 +10,11 @@ export class EdgeWouldCycle extends Data.TaggedError("EdgeWouldCycle")<{
 	readonly toPieceId: string;
 }> {}
 
-export class StoredPieceVerdictInvalid extends Data.TaggedError("StoredPieceVerdictInvalid")<{
-	readonly detail: string;
-	readonly pieceId: string;
-}> {
-	override get message(): string {
-		return `stored verdict on Piece ${this.pieceId} is invalid: ${this.detail}`;
-	}
-}
+export class PieceIncomplete extends Data.TaggedError("PieceIncomplete")<{
+	readonly field: string;
+	readonly message: string;
+}> {}
 
-type EdgeFailure = EdgeWouldCycle | PieceNotFound | PrismaError;
-export type CharterFailure = EdgeFailure | VoyageNotFound;
+export type EdgeFailure = EdgeWouldCycle | PieceNotFound;
+
+export type CharterFailure = EdgeFailure | PieceIncomplete | VoyageNotFound;

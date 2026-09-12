@@ -1468,9 +1468,6 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
-      '@antumbra/platform-service-definition':
-        specifier: workspace:*
-        version: link:../platform/service-definition
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -1481,15 +1478,6 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
-      '@antumbra/testing':
-        specifier: workspace:*
-        version: link:../testing
-      '@antumbra/testing-runtime':
-        specifier: workspace:*
-        version: link:../testing-runtime
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -1499,9 +1487,6 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/platform/feature:
     dependencies:

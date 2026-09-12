@@ -1,4 +1,4 @@
-import { form, labelled, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { fill, form, labelled, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { expect } from "@effect/vitest";
@@ -54,7 +54,7 @@ it.glass("clears dependent choices when the backend changes", function* ({ api, 
 	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("high");
 	yield* until(() => offered(container, "Flagship Model").length === 1);
 	expect(offered(container, "Flagship Model")).toEqual(["opus"]);
-	yield* write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "codex");
+	yield* fill(container, "Flagship Backend", "codex");
 	yield* until(() => offered(container, "Flagship Model").length === 2);
 	expect(offered(container, "Flagship Model")).toEqual(["gpt", "gpt-mini"]);
 	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("");
@@ -72,7 +72,7 @@ it.glass("clears dependent choices when the backend changes", function* ({ api, 
 it.glass("saves a model absent from the catalogue", function* ({ api, render }) {
 	const container = yield* render(<Board api={api} />);
 	yield* renderedForm(container, "Captain");
-	yield* write(labelled<HTMLInputElement>(container, "Captain Model"), "gpt-6-astra");
+	yield* fill(container, "Captain Model", "gpt-6-astra");
 	yield* submit(container, "Captain");
 	const saved = Option.getOrThrow(
 		yield* api.roleSettings.defaults({}).pipe(
@@ -88,7 +88,7 @@ it.glass("saves the changed row and settles clean", function* ({ api, render }) 
 	yield* renderedForm(container, "Flagship");
 	const save = () => form(container, "Flagship").querySelector<HTMLButtonElement>('button[type="submit"]');
 	expect(save()).toHaveProperty("disabled", true);
-	yield* write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "claude");
+	yield* fill(container, "Flagship Backend", "claude");
 	expect(save()).toHaveProperty("disabled", false);
 	yield* submit(container, "Flagship");
 	const saved = Option.getOrThrow(
@@ -105,7 +105,7 @@ it.glass("saves an empty optional choice as null", function* ({ api, render }) {
 	yield* api.roleSettings.choose({ backend: "codex", effort: null, model: "gpt", role: "crew", scope: "fleet" });
 	const container = yield* render(<Board api={api} />);
 	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt");
-	yield* write(labelled<HTMLInputElement>(container, "Crew Model"), "");
+	yield* fill(container, "Crew Model", "");
 	yield* submit(container, "Crew");
 	const saved = Option.getOrThrow(
 		yield* api.roleSettings.defaults({}).pipe(

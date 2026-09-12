@@ -1,4 +1,5 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
+import type { ProjectionShape } from "@antumbra/platform-feature/projection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Effect } from "effect";
 import { codecFor, type RowCodec } from "#codec.ts";
@@ -6,6 +7,7 @@ import { shapeOf } from "#table.ts";
 
 export interface AppDefinition<Features extends readonly FeatureShape[] = readonly FeatureShape[]> {
 	readonly features: Features;
+	readonly projections: readonly ProjectionShape[];
 }
 
 export interface RunnableMaterializer {
@@ -13,13 +15,23 @@ export interface RunnableMaterializer {
 	readonly writes: readonly RowShape[];
 }
 
+export interface RunnableProjection {
+	readonly reads: readonly RowShape[];
+	readonly writes: readonly RowShape[];
+	readonly run: (reads: Record<string, unknown>, writes: Record<string, unknown>) => Effect.Effect<void>;
+}
+
 export interface Registry {
+	readonly projections: readonly RunnableProjection[];
 	readonly codecs: ReadonlyMap<string, RowCodec>;
 	readonly materializers: ReadonlyMap<string, RunnableMaterializer>;
 	readonly rows: readonly RowShape[];
 }
 
-export const app = <const Features extends readonly FeatureShape[]>(features: Features): AppDefinition<Features> => ({ features });
+export const app = <const Features extends readonly FeatureShape[]>(
+	features: Features,
+	projections: readonly ProjectionShape[] = [],
+): AppDefinition<Features> => ({ features, projections });
 
 const addRows = (codecs: Map<string, RowCodec>, owners: Map<string, string>, feature: FeatureShape): string | undefined => {
 	for (const row of feature.rows) {
@@ -57,7 +69,8 @@ export function registryOf(definition: AppDefinition): unknown {
 			const clash = addRows(codecs, rowOwners, feature) ?? addMaterializers(materializers, factOwners, feature);
 			if (clash !== undefined) return yield* Effect.die(new Error(clash));
 		}
-		return { codecs, materializers, rows: [...codecs.values()].map((codec) => codec.row) };
+		const projections: readonly unknown[] = definition.projections;
+		return { codecs, materializers, projections, rows: [...codecs.values()].map((codec) => codec.row) };
 	});
 }
 

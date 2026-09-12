@@ -1,3 +1,4 @@
+import { CapacityObservationFields } from "@antumbra/platform-vocabulary/capacity.ts";
 import { ChangeEvidence, Moorage } from "@antumbra/platform-vocabulary/resources.ts";
 import { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
@@ -6,15 +7,6 @@ import { ToolCall } from "#tools.ts";
 
 const session = { requestId: Schema.String, sessionId: Schema.String };
 const input = { ...session, inputId: Schema.String };
-export const CapacityObservationFields = {
-	backend: Schema.String,
-	status: Schema.Literals(["available", "blocked", "warning"]),
-	reason: Schema.NullOr(Schema.Literal("usage-limit")),
-	detail: Schema.NullOr(Schema.String),
-	observedAt: Schema.Number,
-	resetsAt: Schema.NullOr(Schema.Number),
-	utilization: Schema.NullOr(Schema.Number),
-};
 
 export const LogEvent = Schema.Union([
 	Schema.Struct({

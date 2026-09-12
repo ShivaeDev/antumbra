@@ -159,7 +159,7 @@ it.effect("exposes the piece log through the same collapsed Markdown control", (
 
 		expect(container.innerHTML).toContain("<h2>Log entry</h2>");
 		expect(container.innerHTML).toContain("<strong>two</strong>");
-		expect(container.textContent).toContain("Write to the board");
+		expect(container.textContent).toContain("Register");
 		yield* drop(root);
 	}),
 );

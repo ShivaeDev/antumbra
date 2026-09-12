@@ -78,14 +78,14 @@ it.effect("keeps a log collapsed until asked, then reads its entries as Markdown
 
 		expect(container.innerHTML).toContain('aria-expanded="false"');
 		expect(container.innerHTML).not.toContain("<h1>");
-		expect(container.textContent).not.toContain("Write to the board");
+		expect(container.textContent).not.toContain("Register");
 
 		yield* clickHeading(container);
 
 		expect(container.innerHTML).toContain('aria-expanded="true"');
 		expect(container.innerHTML).toContain("<h1>Soundings</h1>");
 		expect(container.innerHTML).toContain("<strong>shallow</strong>");
-		expect(container.textContent).toContain("Write to the board");
+		expect(container.textContent).toContain("Register");
 
 		yield* clickHeading(container);
 		expect(container.innerHTML).not.toContain("<h1>");

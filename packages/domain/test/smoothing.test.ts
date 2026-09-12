@@ -84,7 +84,7 @@ it.effectApp("a pass writes one summary over the day it was given, and the tail 
 
 	const smoother = Option.getOrThrow(yield* db.VoyageAgent.where({ role: "smoother", voyageId: voyage.id }).first());
 	expect(Option.getOrThrow(yield* db.Agent.where({ id: smoother.agentId }).first())).toMatchObject({ role: "smoother" });
-	expect(Option.getOrThrow(yield* db.BoardEntry.where({ kind: "summary" }).first()).authorAgentId).toBe(smoother.agentId);
+	expect((yield* boards.read(scope)).find((entry) => entry.kind === "summary")?.authorAgentId).toBe(smoother.agentId);
 });
 
 it.effectApp("the smoother sails on Antumbra's own prompt with write_summary and nothing else", function* ({ scripted }) {

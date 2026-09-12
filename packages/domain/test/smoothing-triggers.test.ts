@@ -42,7 +42,7 @@ it.effectApp("a finished Piece is smoothed onto its own board and again onto the
 		{ body: PIECE_SUMMARY, coversFrom: 1, coversTo: 1, kind: "summary", level: "piece", register: "smooth", seq: 2 },
 	]);
 	expect(yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toMatchObject([
-		{ body: PIECE_SUMMARY, kind: "pieceSummary", register: "rough", sourceRef: piece.id },
+		{ body: PIECE_SUMMARY, kind: "pieceSummary", pieceId: piece.id, register: "rough" },
 	]);
 	expect(yield* boards.uncovered(BoardScope.Piece({ pieceId: piece.id }))).toEqual([]);
 });
@@ -139,7 +139,7 @@ it.effectApp("a Piece pass that writes nothing is asked again by the next Voyage
 
 	expect(yield* boards.uncovered(BoardScope.Piece({ pieceId: piece.id }))).toEqual([]);
 	expect(yield* boards.read(BoardScope.Voyage({ voyageId: voyage.id }))).toMatchObject([
-		{ body: PIECE_SUMMARY, kind: "pieceSummary", register: "rough", sourceRef: piece.id },
+		{ body: PIECE_SUMMARY, kind: "pieceSummary", pieceId: piece.id, register: "rough" },
 		{ body: DAY_SUMMARY, kind: "summary", level: "day", register: "smooth" },
 	]);
 });

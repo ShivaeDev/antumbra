@@ -24,3 +24,5 @@ export const PushChange = Schema.Struct({
 	berth: Berth,
 	headSha: Schema.String,
 });
+
+export const Plan = Schema.Struct({ type: Schema.Literal("Plan"), requestId: Schema.String, agentId: Schema.String, repos: Schema.Array(Repo) });

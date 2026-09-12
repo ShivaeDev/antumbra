@@ -5,7 +5,27 @@ import { ToolAnswer, ToolCall } from "#tools.ts";
 
 const session = { requestId: Schema.String, sessionId: Schema.String };
 const input = { ...session, inputId: Schema.String };
+export const CapacityObservationFields = {
+	backend: Schema.String,
+	status: Schema.Literals(["available", "blocked", "warning"]),
+	reason: Schema.NullOr(Schema.Literal("usage-limit")),
+	detail: Schema.NullOr(Schema.String),
+	observedAt: Schema.Number,
+	resetsAt: Schema.NullOr(Schema.Number),
+	utilization: Schema.NullOr(Schema.Number),
+};
+
 export const LogEvent = Schema.Union([
+	Schema.Struct({ type: Schema.Literal("SessionInterrupted"), ...session }),
+	Schema.Struct({ type: Schema.Literal("SessionDetached"), sessionId: Schema.String }),
+	Schema.Struct({
+		type: Schema.Literal("ChangePushed"),
+		requestId: Schema.String,
+		agentId: Schema.String,
+		branch: Schema.String,
+		headSha: Schema.String,
+	}),
+	Schema.Struct({ type: Schema.Literal("CapacityObserved"), ...CapacityObservationFields }),
 	Schema.Struct({
 		type: Schema.Literal("SessionStarted"),
 		...session,

@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 import { DeliveryAct, Input } from "#input.ts";
 import { LogEntry } from "#log.ts";
-import { CaptureChange, ChangeEvidence, Provision, PushChange, Reclaim, Scrap } from "#resources.ts";
+import { CaptureChange, ChangeEvidence, Moorage, Plan, Provision, PushChange, Reclaim, Scrap } from "#resources.ts";
 import { ToolSet } from "#tools.ts";
 
 const identity = { requestId: Schema.String, sessionId: Schema.String };
@@ -46,6 +46,7 @@ export const Operation = Schema.Union([
 	Drain,
 	ReadLog,
 	ReadArtifact,
+	Plan,
 	Provision,
 	Reclaim,
 	Scrap,
@@ -55,6 +56,7 @@ export const Operation = Schema.Union([
 export type Operation = typeof Operation.Type;
 export const OperationResult = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("Accepted") }),
+	Schema.Struct({ type: Schema.Literal("MooragePlanned"), plan: Moorage }),
 	Schema.Struct({ type: Schema.Literal("LogRead"), entries: Schema.Array(LogEntry) }),
 	Schema.Struct({ type: Schema.Literal("Refused"), reason: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("ChangeCaptured"), evidence: ChangeEvidence }),

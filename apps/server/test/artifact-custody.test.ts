@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
+import { artifactAuthor, prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
 import { it } from "@antumbra/app-testing/entry.ts";
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
@@ -20,7 +20,7 @@ it.app("artifact storage keeps published bytes after their source is removed", f
 		Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-artifact-"))),
 		(path) => Effect.sync(() => rmSync(path, { recursive: true, force: true })),
 	);
-	yield* prepareArtifactSource({ agentId: "agent:chart" });
+	yield* prepareArtifactSource({ seed: "agent:chart" });
 	app.artifacts.source.set("reef.md", "# Reef\n");
 	const files = artifactFiles.pipe(
 		Layer.provide(NodeServices.layer),
@@ -53,7 +53,7 @@ it.app("artifact storage keeps published bytes after their source is removed", f
 	yield* landArtifact({
 		requestId: Id.Request.make("artifact:reef"),
 		pieceId,
-		authorAgentId: "agent:chart",
+		authorAgentId: artifactAuthor("agent:chart"),
 		path: "reef.md",
 		title: "Reef chart",
 		supersedesArtifactId: null,

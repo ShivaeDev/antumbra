@@ -5,10 +5,12 @@ import { Effect } from "effect";
 import { definition } from "#app.ts";
 import { connectRunner } from "#runner.ts";
 
-export const prepareArtifactSource = Effect.fn("TestArtifacts.prepareSource")(function* (asked: { readonly agentId: string }) {
-	const runner = yield* connectRunner({ runnerId: "local", logId: `log:${asked.agentId}`, backends: ["claude"], imageInputBackends: [] });
+export const artifactAuthor = (seed: string) => identity(Id.Request.make(seed)).agentId;
+
+export const prepareArtifactSource = Effect.fn("TestArtifacts.prepareSource")(function* (asked: { readonly seed: string }) {
+	const runner = yield* connectRunner({ runnerId: "local", logId: `log:${asked.seed}`, backends: ["claude"], imageInputBackends: [] });
 	const api = yield* apiOf(definition);
-	const requestId = Id.Request.make(asked.agentId);
+	const requestId = Id.Request.make(asked.seed);
 	const ids = identity(requestId);
 	yield* api.agents.spawn({ requestId, role: "worker", backend: "claude", model: null, effort: null });
 	yield* api.reclamation.plan({ agentId: ids.agentId, runner: "local", plan: { root: "/moorage", berths: [] } });

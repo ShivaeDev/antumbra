@@ -23,7 +23,7 @@ const SessionRow = (props: Props & { readonly session: typeof session.Row.Type }
 			className={cn("min-w-0 flex-1 rounded-md px-2 py-1 text-left text-xs hover:bg-accent", props.selected === props.session.id && "bg-secondary")}
 			onClick={() => props.onSelect(props.session.id)}
 		>
-			Read activity · {props.session.backend} · {props.session.id.slice(0, 8)}
+			Read activity · {props.session.backend} · {props.session.id}
 		</button>
 		{props.onOpenTranscript === undefined ? null : (
 			<Button aria-label="Open in a window" onClick={() => props.onOpenTranscript?.(props.session.id)} size="icon" variant="ghost">

@@ -6,7 +6,7 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Schema } from "effect";
 import { birthRequested } from "#facts/birth-requested.ts";
-import { BirthId, identity } from "#ids.ts";
+import { identity } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 
 export const request = command("request", {
@@ -30,7 +30,7 @@ export const request = command("request", {
 		if (working !== undefined) return yield* reject.PieceAlreadyCrewed({ pieceId: held.id, agentId: working.agentId });
 		return {
 			wakeSessionId: null,
-			id: BirthId.make(input.requestId),
+			id: ids.birthId,
 			source: "dispatch" as const,
 			agentId: ids.agentId,
 			sessionId: ids.sessionId,

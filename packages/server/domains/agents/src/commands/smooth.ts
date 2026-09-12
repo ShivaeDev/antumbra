@@ -5,7 +5,7 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
 import { smoothingRequested } from "#facts/smoothing-requested.ts";
-import { AgentId, BirthId } from "#ids.ts";
+import { AgentId, identity } from "#ids.ts";
 import { smoother } from "#queries/smoother.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
@@ -35,7 +35,7 @@ export const smooth = command("smooth", {
 		)
 			return yield* reject.Busy({ agentId: input.agentId });
 		return {
-			id: BirthId.make(input.requestId),
+			id: identity(input.requestId).birthId,
 			agentId: input.agentId,
 			sessionId: input.sessionId,
 			voyageId: input.voyageId,

@@ -5,6 +5,7 @@ import type { GitPushRefused } from "@antumbra/runner-git/errors.ts";
 import { pushBranch } from "@antumbra/runner-git/push.ts";
 import { toRunnerError } from "@antumbra/runner-git/resources/git-runtime.ts";
 import type { RunnerError } from "@antumbra/runner-git/resources/model.ts";
+import { namesResources } from "@antumbra/runner-git/resources/naming.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { readArtifact } from "#adapters/artifacts.ts";
@@ -46,7 +47,9 @@ export const resourceOperations = (resources: LocalRunner) =>
 		): Effect.fn.Return<OperationResult, RunnerError | FileFailure | GitPushRefused> {
 			switch (operation.type) {
 				case "Plan":
-					return { type: "MooragePlanned", plan: resources.plan(operation) };
+					return namesResources(operation.agentId)
+						? { type: "MooragePlanned", plan: resources.plan(operation) }
+						: { type: "Refused", reason: `agent id ${operation.agentId} cannot name a moorage directory or a work branch` };
 				case "ReadArtifact":
 					return yield* readArtifact(operation.moorageRoot, operation.relativePath);
 				case "ReadLog":

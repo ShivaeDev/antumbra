@@ -44,7 +44,7 @@ const SessionDiagnostic = ({
 	readonly session: typeof sessionRow.Row.Type;
 }) => (
 	<div className="flex min-w-0 flex-wrap items-center gap-1 text-xs">
-		<span className="font-mono text-muted-foreground">{session.id.slice(0, 8)}</span>
+		<span className="font-mono text-muted-foreground">{session.id}</span>
 		<Badge className="font-mono" variant="outline">
 			{session.executionStatus}
 			{session.id === currentSessionId ? " · current" : ""}
@@ -64,7 +64,7 @@ export const Diagnostics = ({ api, agent }: { readonly api: Api; readonly agent:
 		<summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">diagnostics</summary>
 		<div className="flex min-w-0 flex-col gap-1 pt-1.5">
 			<Badge className="font-mono" variant="outline">
-				current {agent.currentSessionId?.slice(0, 8) ?? "none"}
+				current {agent.currentSessionId ?? "none"}
 			</Badge>
 			{agent.currentSessionId === null ? null : <BirthDiagnostic api={api} sessionId={agent.currentSessionId} />}
 			<Live query={api.sessions.forAgent} input={{ agentId: agent.id }}>

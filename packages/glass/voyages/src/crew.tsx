@@ -23,7 +23,7 @@ export const Crew = (props: { readonly api: VoyagesDisplayApi; readonly voyageId
 const CrewMember = ({ agent }: { readonly agent: typeof import("@antumbra/domain-agents/rows/agent-reading.ts").agentReading.Row.Type }) => (
 	<li className="flex min-w-0 items-center gap-2 text-xs" key={agent.id}>
 		<span className="min-w-0 truncate font-medium">{agent.role}</span>
-		<span className="font-mono text-2xs text-muted-foreground">{agent.id.slice(0, 8)}</span>
+		<span className="font-mono text-2xs text-muted-foreground">{agent.id}</span>
 		<Badge className="ml-auto" variant="outline">
 			{agent.status}
 		</Badge>

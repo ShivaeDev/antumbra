@@ -2,6 +2,8 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
+import { file } from "#adapters/log.ts";
+import { resourceOperations } from "#resource-operations.ts";
 import { AGENT, berthing, git, makeHarbor, makeSourceRepo, provision } from "#test/harbor.ts";
 
 it.live("provisions a worktree on a work branch from the mirror", () =>
@@ -15,10 +17,10 @@ it.live("provisions a worktree on a work branch from the mirror", () =>
 		expect(moorage.berths).toHaveLength(1);
 		const berth = moorage.berths[0];
 		expect(berth?.slug).toBe("source");
-		expect(berth?.branch).toBe("work/01234567/source");
+		expect(berth?.branch).toBe("work/0123456789abcdef/source");
 		expect(existsSync(join(moorage.root, "source", "README.md"))).toBe(true);
 		const head = yield* git(["-C", join(moorage.root, "source"), "rev-parse", "--abbrev-ref", "HEAD"]);
-		expect(head.trim()).toBe("work/01234567/source");
+		expect(head.trim()).toBe("work/0123456789abcdef/source");
 	}),
 );
 
@@ -161,4 +163,13 @@ it.live("provisions concurrent moorages that share one mirror", () =>
 			expect(existsSync(join(plan.root, "source", "README.md"))).toBe(true);
 		}
 	}),
+);
+
+it.live("refuses to plan a moorage for an agent id that cannot name a directory or a branch", () =>
+	Effect.gen(function* () {
+		const { runner } = yield* makeHarbor;
+		const operations = yield* resourceOperations(runner);
+		const refusal = yield* operations({ type: "Plan", requestId: "plan", agentId: '["session","call",""]', repos: [] });
+		expect(refusal).toMatchObject({ type: "Refused" });
+	}).pipe(Effect.provide(file({ filename: ":memory:", seed: "plan-refusal" }))),
 );

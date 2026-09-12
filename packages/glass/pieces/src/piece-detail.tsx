@@ -77,7 +77,7 @@ const PieceCrew = (props: { readonly api: PiecesDisplayApi; readonly pieceId: Pi
 				<div className="flex flex-wrap gap-1">
 					{agents.map((agent) => (
 						<Badge key={agent.id} variant="outline">
-							<span className="font-mono">{agent.id.slice(0, 8)}</span> · {agent.status}
+							<span className="font-mono">{agent.id}</span> · {agent.status}
 						</Badge>
 					))}
 				</div>

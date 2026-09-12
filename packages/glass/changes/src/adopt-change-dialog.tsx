@@ -33,7 +33,7 @@ const AdoptionForm = ({ api, close }: { readonly api: ChangesApi; readonly close
 					No piece is chartered yet — a change is adopted onto the piece that owes it, so charter one first
 				</p>
 			) : (
-				<CommandForm command={api.changes.requestAdoption} label="Adopt change" submit="Adopt" sent={close} titles />
+				<CommandForm command={api.changes.requestAdoption} heading={false} label="Adopt change" submit="Adopt" sent={close} titles />
 			)
 		}
 	</Live>

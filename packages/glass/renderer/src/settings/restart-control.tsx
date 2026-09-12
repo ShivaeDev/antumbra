@@ -16,7 +16,7 @@ const RestartActions = ({ onKeep, onSend, sent }: { readonly onKeep: () => void;
 	</div>
 );
 
-export const RestartControl = ({ onError, shell }: { readonly onError: (message: string) => void; readonly shell: Shell }) => {
+export const RestartControl = ({ onError, shell }: { readonly onError: (message: string) => void; readonly shell: Pick<Shell, "restart"> }) => {
 	const [confirming, setConfirming] = useState(false);
 	const [sent, setSent] = useState(false);
 	const send = () => {

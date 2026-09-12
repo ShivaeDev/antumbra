@@ -28,6 +28,11 @@ export const ConsoleMain = (
 			),
 		);
 	};
+	const openTranscript = (sessionId: string) => {
+		Effect.runFork(
+			props.shell.open({ role: "transcript", sessionId }).pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))),
+		);
+	};
 	const session = (sessionId: string, onClose?: () => void) => (
 		<SessionPane
 			api={props.api}
@@ -50,6 +55,7 @@ export const ConsoleMain = (
 					<FleetPanel
 						api={props.api}
 						sessions={props.sessions}
+						onOpenTranscript={openTranscript}
 						sessionId={props.place.sessionId ?? undefined}
 						onSession={(sessionId) => props.onPlace({ ...props.place, sessionId })}
 						onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId })}
@@ -65,13 +71,7 @@ export const ConsoleMain = (
 				<QuayPanel
 					api={props.api}
 					selectedId={props.place.changeId ?? undefined}
-					onOpenSession={(sessionId) => {
-						Effect.runFork(
-							props.shell
-								.open({ role: "transcript", sessionId })
-								.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))),
-						);
-					}}
+					onOpenSession={openTranscript}
 					onSelect={(changeId) => props.onPlace({ ...props.place, changeId: changeId ?? null })}
 				/>
 			);

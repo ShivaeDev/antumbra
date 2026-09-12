@@ -80,6 +80,29 @@ it.app("an unset model is admitted on the model its backend declares", function*
 	);
 });
 
+it.app("a birth waits for its backend to list its models and says so until one arrives", function* (app) {
+	yield* connectRunner({ runnerId: "runner", logId: "runner", backends: ["claude"], imageInputBackends: [] }, { models: "none" });
+	yield* app.api.agents.spawn(asking("one"));
+	const sessionId = born("one").sessionId;
+
+	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.detail !== null)).toMatchObject({
+		detail: "waiting for claude to list its models",
+		status: "requested",
+	});
+
+	yield* app.api.backends.listModels({ backend: "claude", failure: "claude is not on the path", models: [] });
+	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.detail?.includes(":") === true)).toMatchObject({
+		detail: "waiting for claude to list its models: claude is not on the path",
+		status: "requested",
+	});
+
+	yield* knownModels(app.api, "claude", "opus");
+	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted")).toMatchObject({
+		detail: null,
+		model: "opus",
+	});
+});
+
 it.app("cancelling an unadmitted birth removes its demand without retiring the identity", function* (app) {
 	yield* app.api.capacity.observe({ ...BLOCKED, requestId: Id.Request.make("closed") });
 	yield* app.api.agents.spawn(asking("one"));

@@ -4,20 +4,22 @@ const INHERITED = { backend: "backend default", fleet: "fleet default" };
 
 const INHERIT = "Inherit";
 
-const UNRESOLVED = "backend decides";
+const UNLISTED = "waiting for the backend to list its models";
+
+const UNDECLARED = "backend decides";
 
 type Named = Resolution["model"];
 
 const inheritedFrom = (named: Named): string | undefined => (named.source === "chosen" ? undefined : INHERITED[named.source]);
 
-const shown = (named: Named): string => (named.source === "chosen" ? "" : (named.value ?? UNRESOLVED));
+const shown = (named: Named, absent: string): string => (named.source === "chosen" ? "" : (named.value ?? absent));
 
 export const placeholdersOf = (resolved: Resolution): Readonly<Record<string, string>> => {
 	const inherited = inheritedFrom(resolved.backend);
 	return {
 		backend: inherited === undefined ? INHERIT : `${resolved.backend.value} (${inherited})`,
-		effort: shown(resolved.effort),
-		model: shown(resolved.model),
+		effort: shown(resolved.effort, UNDECLARED),
+		model: shown(resolved.model, UNLISTED),
 	};
 };
 

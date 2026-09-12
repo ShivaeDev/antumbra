@@ -32,6 +32,13 @@ it.glass("saves a fleet choice", function* ({ api, render }) {
 	});
 });
 
+it.glass("says a role is waiting while its backend has listed no models", function* ({ api, render }) {
+	const container = yield* render(<RoleDefaults api={api} />);
+	const crew = yield* renderedForm(container, "Crew");
+	expect(labelled<HTMLInputElement>(crew, "Crew Model").placeholder).toBe("waiting for the backend to list its models");
+	expect(captions(crew)).toEqual([]);
+});
+
 it.glass("shows what an unset field resolves to and where it comes from", function* ({ api, render }) {
 	yield* api.backends.listModels({ backend: "claude", failure: null, models: [OPUS] });
 	const container = yield* render(<RoleDefaults api={api} />);

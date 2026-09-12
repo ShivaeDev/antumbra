@@ -2,12 +2,12 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import type { DatabaseService } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { NodeCrypto, NodeFileSystem, NodePath } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Crypto, Effect, FileSystem, Layer, type Path, PlatformError } from "effect";
+import { chartered, charting } from "#test/charting.ts";
 
 interface Fixture {
 	readonly moorage: string;
@@ -32,15 +32,7 @@ const seed = (db: DatabaseService, fixture: Fixture, suffix: string) =>
 	Effect.gen(function* () {
 		const agentId = `agent-${suffix}`;
 		const pieceId = `piece-${suffix}`;
-		yield* db.Piece.create({
-			charter: "draw the reef",
-			expectation: "a chart lands",
-			id: pieceId,
-			launchedAt: null,
-			parkedAt: null,
-			role: "cartographer",
-			title: "Chart",
-		});
+		yield* chartered(pieceId, "Chart");
 		yield* db.Agent.create({
 			charter: "draw the reef",
 			id: agentId,
@@ -102,7 +94,7 @@ const failurePlatform = (target: string, state: FailureState) => {
 };
 
 const artifactLayer = (published: string, platform: Layer.Layer<FileSystem.FileSystem | Path.Path | Crypto.Crypto>) =>
-	artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(platform));
+	artifactsLayer(published).pipe(Layer.provideMerge(charting), Layer.provide(platform));
 
 const cases = [
 	{
@@ -120,7 +112,7 @@ it.effectDB("lands only after new directory entries are durably linked", functio
 		const fixture = makeFixture();
 		expect(existsSync(fixture.published)).toBe(false);
 		writeFileSync(fixture.source, "inside");
-		const identity = yield* seed(db, fixture, boundary.name);
+		const identity = yield* seed(db, fixture, boundary.name).pipe(Effect.provide(charting));
 		const state: FailureState = { events: [], failed: false };
 		const layer = artifactLayer(fixture.published, failurePlatform(boundary.target(fixture), state));
 		const input = {

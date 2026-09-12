@@ -1,21 +1,15 @@
-import type { CharterPieceRequest } from "@antumbra/contract";
-import { soundings } from "@antumbra/contract/fixtures";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Schema } from "effect";
 import { useState } from "react";
 import { beforeEach, vi } from "vitest";
 import { useRequestForm } from "#adapters/form.ts";
-import { RendererRequestError } from "#adapters/request-error.ts";
 import { RequestForm } from "#forms/view.tsx";
 import { mount, settle, write } from "#test/dom.ts";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
-import { CharterPieceForm } from "#views/piece-form.tsx";
 
-const { charterPiece, adoptChange } = vi.hoisted(() => ({ charterPiece: vi.fn(), adoptChange: vi.fn() }));
+const { adoptChange } = vi.hoisted(() => ({ adoptChange: vi.fn() }));
 vi.mock("#adapters/trpc-quay.ts", () => ({ adoptChange }));
-vi.mock("#adapters/trpc-voyages.ts", () => ({ charterPiece }));
 beforeEach(() => {
-	charterPiece.mockReset();
 	adoptChange.mockReset();
 });
 
@@ -33,59 +27,6 @@ const button = (label: string): HTMLButtonElement => {
 	if (element === undefined) return Effect.runSync(Effect.die(`Missing button ${label}`));
 	return element;
 };
-it.effect(
-	"preserves a failed charter draft and waits for a successful retry before closing",
-	Effect.fnUntraced(function* () {
-		const first = yield* Deferred.make<void, RendererRequestError>();
-		const second = yield* Deferred.make<void, RendererRequestError>();
-		const requested = yield* Deferred.make<CharterPieceRequest>();
-		const retried = yield* Deferred.make<void>();
-		charterPiece.mockImplementationOnce((value: CharterPieceRequest) =>
-			Deferred.succeed(requested, value).pipe(Effect.andThen(Deferred.await(first))),
-		);
-		charterPiece.mockImplementationOnce(() => Deferred.succeed(retried, undefined).pipe(Effect.andThen(Deferred.await(second))));
-		const { root } = yield* mount();
-		yield* settle(() => root.render(<CharterPieceForm pieces={[soundings, { ...soundings, id: "harbor", title: "Harbor" }]} voyageId="voyage" />));
-		yield* settle(() => button("Charter piece").click());
-		yield* settle(() => {
-			change("Title", "Sound the channel");
-			change("Charter", "Find the safe passage");
-			change("Role", "navigator");
-			const dependency = document.querySelector("select");
-			for (const option of dependency?.options ?? []) option.selected = option.value === soundings.id;
-			dependency?.dispatchEvent(new Event("change", { bubbles: true }));
-		});
-		yield* settle(() =>
-			root.render(<CharterPieceForm pieces={[soundings, { ...soundings, id: "harbor", title: "Harbor" }]} voyageId="current-voyage" />),
-		);
-		yield* settle(() => document.querySelector("form")?.requestSubmit());
-		expect(yield* Deferred.await(requested)).toEqual({
-			title: "Sound the channel",
-			charter: "Find the safe passage",
-			role: "navigator",
-			expectation: "",
-			dependsOn: [soundings.id],
-			voyageId: "current-voyage",
-		});
-		expect(button("Chartering…").disabled).toBe(true);
-		expect(input("Title").closest("fieldset")?.disabled).toBe(true);
-		yield* settle(() => {
-			Effect.runSync(Deferred.fail(first, new RendererRequestError({ message: "Repository unavailable" })));
-		});
-		expect(document.querySelector('[role="alert"]')?.textContent).toContain("Repository unavailable");
-		expect(input("Title").value).toBe("Sound the channel");
-		expect(button("Charter piece").disabled).toBe(false);
-		yield* settle(() => button("Charter piece").click());
-		yield* Deferred.await(retried);
-		yield* settle(() => {
-			Effect.runSync(Deferred.succeed(second, undefined));
-		});
-		expect(document.querySelector("form")).toBeNull();
-		yield* settle(() => button("Charter piece").click());
-		expect(input("Title").value).toBe("");
-	}),
-);
-
 it.effect(
 	"keeps the selected piece and repository after adopting and clears only the address",
 	Effect.fnUntraced(function* () {

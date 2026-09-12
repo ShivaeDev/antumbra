@@ -1,6 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
-import { verifyPieceExists } from "@antumbra/pieces";
+import { Pieces } from "@antumbra/pieces";
 import { Crypto, Effect } from "effect";
 import { artifactPublicationFailed } from "#errors.ts";
 import { currentArtifactsForPiece } from "#lineage/current.ts";
@@ -35,7 +35,7 @@ export const landArtifact = Effect.fn("Artifacts.land")(function* (input: Artifa
 	const crypto = yield* Crypto.Crypto;
 	const feeds = yield* DomainFeeds;
 	const id = yield* crypto.randomUUIDv4.pipe(Effect.mapError(artifactPublicationFailed("identify artifact")));
-	yield* verifyPieceExists(input.pieceId);
+	yield* (yield* Pieces).verifyExists(input.pieceId);
 	if (input.supersedesArtifactId !== undefined) {
 		yield* validateLandingSupersession(input.supersedesArtifactId, id, input.pieceId);
 	}

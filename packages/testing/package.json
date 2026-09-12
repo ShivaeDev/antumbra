@@ -31,10 +31,11 @@
 	},
 	"dependencies": {
 		"@antumbra/domain": "workspace:*",
+		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
 		"@effect/platform-node": "catalog:",
-		"effect": "catalog:",
-		"@antumbra/plugin-api": "workspace:*"
+		"effect": "catalog:"
 	}
 }

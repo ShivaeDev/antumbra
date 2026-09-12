@@ -257,6 +257,9 @@ importers:
       '@antumbra/domain-feeds':
         specifier: workspace:*
         version: link:../../packages/domain-feeds
+      '@antumbra/domain-pieces':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/pieces
       '@antumbra/domain-role-settings':
         specifier: workspace:*
         version: link:../../packages/server/domains/role-settings
@@ -278,6 +281,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../../packages/persistence
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../../packages/pieces
       '@antumbra/platform-rpc':
         specifier: workspace:*
         version: link:../../packages/platform/rpc
@@ -362,6 +368,9 @@ importers:
       '@antumbra/domain-backends':
         specifier: workspace:*
         version: link:../../packages/server/domains/backends
+      '@antumbra/domain-pieces':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/pieces
       '@antumbra/domain-role-settings':
         specifier: workspace:*
         version: link:../../packages/server/domains/role-settings
@@ -501,6 +510,12 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
+      '@antumbra/settings':
+        specifier: workspace:*
+        version: link:../settings
+      '@antumbra/voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
@@ -664,6 +679,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../pieces
       '@antumbra/platform-service-definition':
         specifier: workspace:*
         version: link:../platform/service-definition
@@ -1104,11 +1122,66 @@ importers:
         specifier: 'catalog:'
         version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
+  packages/glass/pieces:
+    dependencies:
+      '@antumbra/domain-pieces':
+        specifier: workspace:*
+        version: link:../../server/domains/pieces
+      '@antumbra/domain-voyages':
+        specifier: workspace:*
+        version: link:../../server/domains/voyages
+      '@antumbra/glass-client':
+        specifier: workspace:*
+        version: link:../client
+      '@antumbra/glass-components':
+        specifier: workspace:*
+        version: link:../components
+      '@effect/atom-react':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+    devDependencies:
+      '@antumbra/app-testing':
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      '@antumbra/platform-vocabulary':
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
   packages/glass/role-settings:
     dependencies:
       '@antumbra/domain-backends':
         specifier: workspace:*
         version: link:../../server/domains/backends
+      '@antumbra/domain-pieces':
+        specifier: workspace:*
+        version: link:../../server/domains/pieces
       '@antumbra/domain-role-settings':
         specifier: workspace:*
         version: link:../../server/domains/role-settings
@@ -1410,9 +1483,6 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
-      '@antumbra/platform-service-definition':
-        specifier: workspace:*
-        version: link:../platform/service-definition
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary
@@ -1423,15 +1493,6 @@ importers:
         specifier: 'catalog:'
         version: 4.0.0-rc.112
     devDependencies:
-      '@antumbra/testing':
-        specifier: workspace:*
-        version: link:../testing
-      '@antumbra/testing-runtime':
-        specifier: workspace:*
-        version: link:../testing-runtime
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -1441,9 +1502,6 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   packages/platform/feature:
     dependencies:
@@ -1674,6 +1732,9 @@ importers:
       '@antumbra/contract':
         specifier: workspace:*
         version: link:../contract
+      '@antumbra/glass-pieces':
+        specifier: workspace:*
+        version: link:../glass/pieces
       '@antumbra/glass-role-settings':
         specifier: workspace:*
         version: link:../glass/role-settings
@@ -1796,6 +1857,9 @@ importers:
       '@antumbra/testing-runtime':
         specifier: workspace:*
         version: link:../testing-runtime
+      '@antumbra/voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
@@ -1894,6 +1958,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../pieces
       '@antumbra/platform-service-definition':
         specifier: workspace:*
         version: link:../platform/service-definition
@@ -1965,6 +2032,37 @@ importers:
 
   packages/server/domains/backends:
     dependencies:
+      '@antumbra/platform-feature':
+        specifier: workspace:*
+        version: link:../../../platform/feature
+      '@antumbra/platform-vocabulary':
+        specifier: workspace:*
+        version: link:../../../platform/vocabulary
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
+      '@antumbra/app-testing':
+        specifier: workspace:*
+        version: link:../../../../apps/testing
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/domains/pieces:
+    dependencies:
+      '@antumbra/domain-voyages':
+        specifier: workspace:*
+        version: link:../voyages
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature
@@ -2314,6 +2412,9 @@ importers:
       '@antumbra/domain':
         specifier: workspace:*
         version: link:../domain
+      '@antumbra/domain-feeds':
+        specifier: workspace:*
+        version: link:../domain-feeds
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
@@ -2381,6 +2482,9 @@ importers:
       '@antumbra/persistence':
         specifier: workspace:*
         version: link:../persistence
+      '@antumbra/pieces':
+        specifier: workspace:*
+        version: link:../pieces
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../platform/vocabulary

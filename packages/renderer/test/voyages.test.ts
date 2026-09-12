@@ -1,6 +1,6 @@
 import type { PieceState, PieceView, VoyageSummary } from "@antumbra/contract";
 import { describe, expect, it } from "vitest";
-import { actsFor } from "#voyages/acts.ts";
+import { worksNow } from "#voyages/acts.ts";
 import { dependsOnLabel } from "#voyages/labels.ts";
 import { byFlagship, byLadder } from "#voyages/order.ts";
 
@@ -38,21 +38,17 @@ describe("byLadder", () => {
 	});
 });
 
-describe("actsFor", () => {
-	it("offers only the verbs a piece's derived state can accept", () => {
-		expect(actsFor(piece("1", "alpha", "held"))).toEqual(["launch", "workNow", "rewire"]);
-		expect(actsFor(piece("1", "alpha", "ready"))).toEqual(["park", "rewire"]);
-		expect(actsFor(piece("1", "alpha", "blocked"))).toEqual(["park", "workNow", "rewire"]);
-		expect(actsFor(piece("1", "alpha", "parked"))).toEqual(["unpark", "rewire"]);
+describe("worksNow", () => {
+	it("offers work now to a piece someone can pick up by hand", () => {
+		for (const state of ["blocked", "done", "held", "landing"] as const) {
+			expect(worksNow(piece("1", "alpha", state))).toBe(true);
+		}
 	});
 
-	it("an active or abandoned piece offers nothing but repositioning", () => {
-		expect(actsFor(piece("1", "alpha", "active"))).toEqual(["rewire"]);
-		expect(actsFor(piece("1", "alpha", "abandoned"))).toEqual(["rewire"]);
-	});
-
-	it("a landed piece can still be asked to run again", () => {
-		expect(actsFor(piece("1", "alpha", "done"))).toEqual(["workNow", "rewire"]);
+	it("withholds work now from a piece the fleet is already sailing or has set down", () => {
+		for (const state of ["abandoned", "active", "parked", "ready"] as const) {
+			expect(worksNow(piece("1", "alpha", state))).toBe(false);
+		}
 	});
 });
 

@@ -1,7 +1,8 @@
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
-import { PiecesLive } from "@antumbra/pieces";
+import { Pieces } from "@antumbra/pieces";
+import { scriptedPieces } from "@antumbra/pieces/testing";
 import { RulingsLive } from "@antumbra/rulings";
 import { scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
 import { Voyages } from "@antumbra/voyages";
@@ -18,8 +19,8 @@ import { assignedExecution } from "#voyage-execution-selection.ts";
 
 const layer = ExecutionSource.layer.pipe(
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
-	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(scriptedPieces),
 	Layer.provideMerge(scriptedVoyages),
 	Layer.provideMerge(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),
@@ -27,8 +28,18 @@ const layer = ExecutionSource.layer.pipe(
 );
 const dispatch = Effect.flatMap(ExecutionSource, (source) => source.dispatch());
 const retirement = Effect.flatMap(ExecutionSource, (source) => source.retirement());
-const piece = (id: string, launchedAt: Date | null = new Date(1)) => ({ id, title: id, charter: id, expectation: id, role: "hand", launchedAt });
 const voyage = (id: string) => ({ id, name: id, context: id, northStar: id });
+const chartered = (id: string, voyageId: string, options: { dependsOn?: ReadonlyArray<string>; held?: boolean; parked?: boolean } = {}) =>
+	Effect.gen(function* () {
+		const pieces = yield* Pieces;
+		yield* pieces.charter({ charter: id, dependsOn: options.dependsOn ?? [], expectation: id, id, role: "hand", title: id, voyageId });
+		if (options.held !== true) {
+			yield* pieces.launch(id);
+		}
+		if (options.parked === true) {
+			yield* pieces.park(id, true);
+		}
+	});
 const agent = (id: string, status = "alive") => ({ id, status, role: "hand", charter: id });
 const root = (id: string, agentId: string, executionStatus = "idle") => ({
 	id,
@@ -42,30 +53,23 @@ const root = (id: string, agentId: string, executionStatus = "idle") => ({
 it.effectDB("dispatch includes direct prerequisites across berthings without reading unrelated work", function* (db) {
 	yield* Effect.gen(function* () {
 		const sailing = yield* Voyages;
+		const pieces = yield* Pieces;
 		for (const id of ["home", "other"]) yield* sailing.open(voyage(id));
-		for (const id of ["candidate", "unmembered", "parked"]) yield* db.Piece.create(piece(id));
-		for (const id of ["cross-prerequisite", "unmembered-prerequisite", "held"]) yield* db.Piece.create(piece(id, null));
-		yield* db.Piece.where({ id: "parked" }).update({ parkedAt: new Date(2) });
-		for (const id of ["candidate", "held", "parked"]) yield* db.VoyagePiece.create({ pieceId: id, voyageId: "home" });
-		yield* db.VoyagePiece.create({ pieceId: "candidate", voyageId: "other" });
-		yield* db.VoyagePiece.create({ pieceId: "cross-prerequisite", voyageId: "other" });
-		for (const id of ["cross-prerequisite", "unmembered-prerequisite"]) {
-			yield* db.PieceEdge.create({ fromPieceId: id, toPieceId: "candidate" });
-			yield* db.PieceVerdict.create({ pieceId: id, verdict: "delivered" });
-		}
+		yield* chartered("cross-prerequisite", "other", { held: true });
+		yield* chartered("home-prerequisite", "home", { held: true });
+		yield* chartered("candidate", "home", { dependsOn: ["cross-prerequisite", "home-prerequisite"] });
+		yield* chartered("held", "home", { held: true });
+		yield* chartered("parked", "home", { parked: true });
+		yield* pieces.landVerdict("cross-prerequisite", "delivered");
 		yield* db.Agent.create(agent("reworking"));
 		yield* db.AgentSession.create(root("reworking-root", "reworking", "active"));
 		yield* db.PieceAgent.create({ pieceId: "cross-prerequisite", agentId: "reworking" });
 		const world = yield* dispatch;
-		expect(new Set(world.pieces.map((row) => row.id))).toEqual(new Set(["candidate", "cross-prerequisite", "unmembered-prerequisite"]));
+		expect(new Set(world.pieces.map((row) => row.id))).toEqual(new Set(["candidate", "cross-prerequisite", "home-prerequisite"]));
 		expect(pieceStates(world).get("cross-prerequisite")).toBe("active");
-		expect(
-			readyPieces(world)
-				.map((ready) => ready.voyage.id)
-				.sort(),
-		).toEqual(["home", "other"]);
-		yield* db.PieceVerdict.where({ pieceId: "unmembered-prerequisite" }).deleteAll();
-		expect(readyPieces(yield* dispatch)).toEqual([]);
+		expect(readyPieces(world)).toEqual([]);
+		yield* pieces.landVerdict("home-prerequisite", "delivered");
+		expect(readyPieces(yield* dispatch).map((ready) => ready.voyage.id)).toEqual(["home"]);
 	}).pipe(Effect.provide(layer));
 });
 
@@ -77,9 +81,8 @@ it.effectDB("dispatch budgets unassigned working agents and preserves current-ro
 		yield* db.AgentSession.create(root("unassigned-root", "unassigned", "active"));
 		yield* db.AgentSession.create({ ...root("older-root", "idle", "active"), status: "closed", createdAt: new Date(1) });
 		yield* db.AgentSession.create({ ...root("newer-root", "idle"), createdAt: new Date(2) });
-		yield* db.Piece.create(piece("candidate"));
 		yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("home")));
-		yield* db.VoyagePiece.create({ pieceId: "candidate", voyageId: "home" });
+		yield* chartered("candidate", "home");
 		yield* db.PieceAgent.create({ pieceId: "candidate", agentId: "idle" });
 		const world = yield* dispatch;
 		expect(agentsAtWork(world)).toBe(3);
@@ -94,10 +97,9 @@ it.effectDB("dispatch budgets unassigned working agents and preserves current-ro
 
 it.effectDB("scoped outcome reads retain dismissed and withdrawn links while replacement work lands", function* (db) {
 	yield* Effect.gen(function* () {
-		yield* db.Piece.create(piece("candidate"));
-		yield* db.PieceVerdict.create({ pieceId: "candidate", verdict: "delivered" });
 		yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("home")));
-		yield* db.VoyagePiece.create({ pieceId: "candidate", voyageId: "home" });
+		yield* chartered("candidate", "home");
+		yield* Effect.flatMap(Pieces, (pieces) => pieces.landVerdict("candidate", "delivered"));
 		for (const [id, stage] of [
 			["landed", "landed"],
 			["dismissed", "withdrawn"],
@@ -120,10 +122,12 @@ it.effectDB("scoped outcome reads retain dismissed and withdrawn links while rep
 
 it.effectDB("retirement reads alive crew's concluded work and retains working co-assignees", function* (db) {
 	yield* Effect.gen(function* () {
-		for (const id of ["done", "abandoned", "reworking", "unfinished", "history"]) yield* db.Piece.create(piece(id, null));
-		yield* db.Piece.where({ id: "abandoned" }).update({ parkedAt: new Date(1) });
-		for (const id of ["done", "reworking", "history"]) yield* db.PieceVerdict.create({ pieceId: id, verdict: "delivered" });
-		yield* db.PieceVerdict.create({ pieceId: "abandoned", verdict: "abandoned" });
+		const pieces = yield* Pieces;
+		yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("home")));
+		for (const id of ["done", "reworking", "unfinished", "history"]) yield* chartered(id, "home", { held: true });
+		yield* chartered("abandoned", "home", { held: true, parked: true });
+		for (const id of ["done", "reworking", "history"]) yield* pieces.landVerdict(id, "delivered");
+		yield* pieces.landVerdict("abandoned", "abandoned");
 		for (const id of ["rested", "abandoned-hand", "busy", "unfinished-hand"]) {
 			yield* db.Agent.create(agent(id));
 			yield* db.AgentSession.create(root(`${id}-root`, id, id === "busy" ? "active" : "idle"));

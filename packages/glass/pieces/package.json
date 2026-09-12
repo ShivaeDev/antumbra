@@ -1,0 +1,37 @@
+{
+	"name": "@antumbra/glass-pieces",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"@effect/vitest": "catalog:",
+		"vitest": "catalog:",
+		"happy-dom": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*"
+	},
+	"dependencies": {
+		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
+		"@effect/atom-react": "catalog:",
+		"effect": "catalog:",
+		"react": "catalog:"
+	}
+}

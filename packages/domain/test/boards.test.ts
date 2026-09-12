@@ -1,4 +1,5 @@
 import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
@@ -20,14 +21,18 @@ const noted = (body: string) =>
 
 it.effectApp("every durable entity carries its own board", function* ({ db }) {
 	const boards = yield* Boards;
-	yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("boards-entities-voyage")));
-	yield* db.Piece.create({
-		charter: "sound the shallows",
-		expectation: "soundings are landed",
-		id: "boards-entities-piece",
-		role: "hand",
-		title: "alpha",
-	});
+	const opened = yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("boards-entities-voyage")));
+	yield* Effect.flatMap(Pieces, (pieces) =>
+		pieces.charter({
+			charter: "sound the shallows",
+			dependsOn: [],
+			expectation: "soundings are landed",
+			id: "boards-entities-piece",
+			role: "hand",
+			title: "alpha",
+			voyageId: opened.id,
+		}),
+	);
 	yield* db.Agent.create({
 		charter: "sound the shallows",
 		id: "boards-entities-agent",

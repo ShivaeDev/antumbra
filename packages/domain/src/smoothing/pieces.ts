@@ -3,6 +3,7 @@ import { Database } from "@antumbra/persistence";
 import { Effect, Option } from "effect";
 import { readAgentExecution } from "#execution/agents.ts";
 import { readOutcomes } from "#execution/outcomes.ts";
+import { piecesOfVoyages } from "#piece-reading.ts";
 import { concludedPieces } from "#piece-state.ts";
 
 export interface ConcludedPiece {
@@ -17,12 +18,7 @@ export interface PieceToSmooth extends ConcludedPiece {
 
 export const concludedPiecesOf = Effect.fnUntraced(function* (voyageIds: ReadonlyArray<string>, excluded: ReadonlySet<string>) {
 	const db = yield* Database;
-	const memberships = (yield* db.VoyagePiece.where((membership) => membership.voyageId.in(voyageIds)).all()).filter(
-		(membership) => !excluded.has(membership.pieceId),
-	);
-	const pieces = yield* db.Piece.where((piece) => piece.id.in(memberships.map((membership) => membership.pieceId)))
-		.orderBy((piece) => piece.createdAt.asc())
-		.all();
+	const pieces = (yield* piecesOfVoyages(voyageIds)).filter((piece) => !excluded.has(piece.id));
 	const pieceIds = pieces.map((piece) => piece.id);
 	const assignments = yield* db.PieceAgent.where((assignment) => assignment.pieceId.in(pieceIds)).all();
 	const agents = yield* db.Agent.where((agent) => agent.id.in(assignments.map((assignment) => assignment.agentId)))
@@ -34,11 +30,13 @@ export const concludedPiecesOf = Effect.fnUntraced(function* (voyageIds: Readonl
 		assignments,
 		pieces,
 	});
-	const voyageOf = new Map(memberships.map((membership) => [membership.pieceId, membership.voyageId]));
-	return pieces.flatMap((piece) => {
-		const voyageId = voyageOf.get(piece.id);
-		return concluded.has(piece.id) && voyageId !== undefined ? [{ pieceId: piece.id, title: piece.title, voyageId } satisfies ConcludedPiece] : [];
-	});
+	const settled: ConcludedPiece[] = [];
+	for (const piece of pieces) {
+		if (concluded.has(piece.id)) {
+			settled.push({ pieceId: piece.id, title: piece.title, voyageId: piece.voyageId });
+		}
+	}
+	return settled;
 });
 
 export const makeSpannedPieces = Effect.gen(function* () {

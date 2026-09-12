@@ -8,6 +8,7 @@ const RULE = "layout/dependency-direction";
 const SCOPE = "@antumbra/";
 
 const OLD_IMPORT_EXCEPTIONS: readonly { readonly from: string; readonly to: string }[] = [
+	{ from: "@antumbra/renderer", to: "@antumbra/glass-pieces" },
 	{ from: "@antumbra/renderer", to: "@antumbra/glass-role-settings" },
 	{ from: "@antumbra/renderer", to: "@antumbra/glass-settings" },
 	{ from: "@antumbra/renderer", to: "@antumbra/glass-voyages" },

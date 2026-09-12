@@ -2,7 +2,6 @@ import { artifactsLayer } from "@antumbra/artifacts";
 import { BoardsLive } from "@antumbra/boards";
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { PiecesLive } from "@antumbra/pieces";
 import type { ChangeHost, Runner } from "@antumbra/plugin-api";
 import { ReportsLive } from "@antumbra/reports";
 import { ReposLive } from "@antumbra/repos";
@@ -40,7 +39,6 @@ export const domainCapabilities = (
 ) => {
 	const foundations = Layer.mergeAll(
 		VoyageAuthority.layer,
-		PiecesLive,
 		BoardsLive,
 		artifactsLayer(artifactsDirectory),
 		ReportsLive,

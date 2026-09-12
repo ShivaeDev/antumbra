@@ -1,12 +1,4 @@
-import type {
-	ArtifactMarkdown,
-	BoardWriteRequest,
-	CharterPieceRequest,
-	ReportMarkdown,
-	RewireRequest,
-	VoyageSummary,
-	VoyageView,
-} from "@antumbra/contract";
+import type { ArtifactMarkdown, BoardWriteRequest, ReportMarkdown, VoyageSummary, VoyageView } from "@antumbra/contract";
 import { Effect } from "effect";
 import { client, fired, toError } from "#adapters/bridge.ts";
 import { RendererRequestError } from "#adapters/request-error.ts";
@@ -51,26 +43,6 @@ export const focusVoyage = (voyageId: string, focused: boolean, onError: OnError
 	fired(client.focusVoyage.mutate({ focused, voyageId }), onError);
 
 export const hailCaptain = (voyageId: string, onError: OnError): void => fired(client.hailCaptain.mutate({ voyageId }), onError);
-
-export const charterPiece = Effect.fn("Renderer.charterPiece")((request: CharterPieceRequest) =>
-	Effect.tryPromise({
-		try: () => client.charterPiece.mutate(request),
-		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
-	}),
-);
-
-export const launchPiece = (pieceId: string, onError: OnError): void => fired(client.launchPiece.mutate({ pieceId }), onError);
-
-export const parkPiece = (pieceId: string, onError: OnError): void => fired(client.parkPiece.mutate({ pieceId }), onError);
-
-export const unparkPiece = (pieceId: string, onError: OnError): void => fired(client.unparkPiece.mutate({ pieceId }), onError);
-
-export const rewirePiece = Effect.fn("Renderer.rewirePiece")((request: RewireRequest) =>
-	Effect.tryPromise({
-		try: () => client.rewirePiece.mutate(request),
-		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
-	}),
-);
 
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 

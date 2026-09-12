@@ -1,8 +1,11 @@
 import type { PieceView } from "@antumbra/contract";
+import { PieceActs } from "@antumbra/glass-pieces/piece-acts.tsx";
+import { RewirePiece } from "@antumbra/glass-pieces/rewire-piece.tsx";
+import { glass } from "#adapters/glass.ts";
 import { Badge } from "#components/ui/badge.tsx";
 import { BoardPanel } from "#views/board.tsx";
 import { MarkdownView } from "#views/markdown-view.tsx";
-import { PieceActs } from "#views/piece-acts.tsx";
+import { WorkNowAct } from "#views/piece-acts.tsx";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
 import { PieceRetire } from "#views/piece-retire.tsx";
 import { awaitingRulingLabel, dependsOnLabel } from "#voyages/labels.ts";
@@ -27,10 +30,12 @@ export const PieceDetail = ({
 	onError,
 	piece,
 	pieces,
+	voyageId,
 }: {
 	readonly onError: (message: string) => void;
 	readonly piece: PieceView;
 	readonly pieces: ReadonlyArray<PieceView>;
+	readonly voyageId: string;
 }) => {
 	const depends = dependsOnLabel(piece, pieces);
 	return (
@@ -45,7 +50,11 @@ export const PieceDetail = ({
 			<AtWork piece={piece} />
 			<BoardPanel entries={piece.board} name={piece.title} scope={{ kind: "piece", pieceId: piece.id }} />
 			<PieceOutcomes onError={onError} piece={piece} />
-			<PieceActs onError={onError} piece={piece} pieces={pieces} />
+			<div className="flex min-w-0 flex-wrap items-center gap-1.5">
+				<PieceActs api={glass.api} piece={piece} />
+				<WorkNowAct onError={onError} piece={piece} />
+			</div>
+			<RewirePiece api={glass.api} piece={{ dependsOn: piece.dependsOn, id: piece.id, title: piece.title, voyageId }} />
 			<PieceRetire onError={onError} piece={piece} />
 		</div>
 	);

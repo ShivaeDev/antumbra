@@ -10,7 +10,6 @@ import {
 	type VoyageState,
 	type VoyageSummary,
 } from "@antumbra/contract";
-import type { PieceAct } from "#voyages/acts.ts";
 import { type BoardNode, coveredEntryCount, coveredSummaries } from "#voyages/board-tree.ts";
 
 export const voyageStateLabel: Readonly<Record<VoyageState, string>> = {
@@ -32,14 +31,6 @@ export const pieceStateLabel: Readonly<Record<PieceState, string>> = {
 	landing: "Landing",
 	parked: "Parked",
 	ready: "Ready",
-};
-
-export const pieceActLabel: Readonly<Record<PieceAct, string>> = {
-	launch: "Launch",
-	park: "Park",
-	rewire: "Rewire",
-	unpark: "Unpark",
-	workNow: "Work now",
 };
 
 export const boardRegisterLabel: Readonly<Record<BoardEntryView["register"], string>> = {

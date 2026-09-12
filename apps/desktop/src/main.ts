@@ -10,6 +10,7 @@ import { reportModels } from "#adapters/backend-catalog.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
+import { PiecesOverRpc } from "#adapters/pieces.ts";
 import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
 import { applicationLayers, persistence } from "#adapters/runtime.ts";
 import { registerServerBridge } from "#adapters/server-bridge.ts";
@@ -48,7 +49,7 @@ const layoutStore = Effect.provide(
 const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
 	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
 	const reach = Layer.provide(ServerReachLive, serverProcess);
-	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc).pipe(
+	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc, PiecesOverRpc).pipe(
 		Layer.provideMerge(reach),
 		Layer.provide(DomainFeedsLive),
 		Layer.provide(persistence),

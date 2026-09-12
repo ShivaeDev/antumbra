@@ -15,6 +15,8 @@ export const piece = (id: string): PieceRow => ({
 	parkedAt: null,
 	role: "hand",
 	title: id,
+	verdict: null,
+	voyageId: "voyage-reef",
 });
 
 export const change = (id: string, stage: ChangeStage): ChangeRow => ({

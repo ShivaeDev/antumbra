@@ -66,7 +66,6 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 		const backend = { ...scripted.backend, capacity: capacity.source };
 		const recovered = yield* Effect.gen(function* () {
 			const pieces = yield* Pieces;
-			const db = yield* Database;
 			const domain = yield* AgentDomain;
 			const kernel = yield* Kernel;
 			const { alpha, voyage } = yield* chain;
@@ -79,12 +78,6 @@ it.live("a retried birth recovered after restart is not dispatched twice", () =>
 				voyageId: voyage.id,
 			});
 			yield* pieces.launch(probe.id);
-			yield* db.Piece.where({ id: alpha.id }).update({
-				launchedAt: new Date(1),
-			});
-			yield* db.Piece.where({ id: probe.id }).update({
-				launchedAt: new Date(2),
-			});
 			const birth = yield* kernel.submit(domain.spawn, {
 				agentId: "agent-recovered",
 				backend: "scripted",

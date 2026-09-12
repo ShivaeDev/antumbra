@@ -3,9 +3,11 @@ import { Database } from "@antumbra/persistence";
 
 export { acquireTemporaryPersistence } from "@antumbra/persistence/testing";
 
-import { PiecesLive } from "@antumbra/pieces";
+import { Pieces } from "@antumbra/pieces";
+import { scriptedChart, scriptedPiecesOn } from "@antumbra/pieces/testing";
 import type { ChangeHost, ChangeObservation, ChangeRef, OpenChangeRequest, Runner } from "@antumbra/plugin-api";
 import { scriptedRoleSettings } from "@antumbra/settings/testing";
+import { Voyages } from "@antumbra/voyages";
 import { scriptedVoyages } from "@antumbra/voyages/testing";
 import { Effect, Layer, Ref } from "effect";
 import { changesLayer as configuredChangesLayer } from "#layer.ts";
@@ -30,10 +32,14 @@ export const passiveRunner: Runner = {
 	tag: "local",
 };
 
+const scriptedPieces = scriptedPiecesOn(scriptedChart());
+
+const charting = scriptedPieces.pipe(Layer.provideMerge(scriptedVoyages), Layer.provide(scriptedRoleSettings), Layer.provide(DomainFeedsLive));
+
 export const changesLayer = (hosts: ReadonlyArray<ChangeHost>, runner: Runner = passiveRunner) =>
 	configuredChangesLayer(new Map(hosts.map((host) => [host.tag, host] as const)), new Map([[runner.tag, runner]])).pipe(
-		Layer.provideMerge(PiecesLive),
-		Layer.provide(scriptedVoyages),
+		Layer.provideMerge(scriptedPieces),
+		Layer.provideMerge(scriptedVoyages),
 		Layer.provide(scriptedRoleSettings),
 		Layer.provideMerge(DomainFeedsLive),
 	);
@@ -42,17 +48,18 @@ export const createRepo = (id: string, name: string, source: string, defaultRef 
 	Effect.flatMap(Database, (db) => db.Repo.create({ defaultRef, id, name, source }));
 
 export const createPiece = (id: string) =>
-	Effect.flatMap(Database, (db) =>
-		db.Piece.create({
-			charter: `chart ${id}`,
-			expectation: `${id} lands`,
-			id,
-			launchedAt: new Date("2026-08-18T00:00:00.000Z"),
-			parkedAt: null,
-			role: "crew",
-			title: id,
-		}),
-	);
+	Effect.gen(function* () {
+		const sailing = yield* Voyages;
+		const voyage = yield* sailing.open({
+			context: "the reef is uncharted",
+			id: "voyage-reef",
+			name: "Chart the reef",
+			northStar: "every shoal is known",
+		});
+		const pieces = yield* Pieces;
+		yield* pieces.charter({ charter: `chart ${id}`, dependsOn: [], expectation: `${id} lands`, id, role: "crew", title: id, voyageId: voyage.id });
+		yield* pieces.launch(id);
+	}).pipe(Effect.provide(charting));
 
 export const createBerth = (agentId: string, source = REEF_SOURCE, branch = `work/${agentId}/berth-0`) =>
 	Effect.gen(function* () {

@@ -24,6 +24,7 @@
 		"@antumbra/contract": "workspace:*",
 		"@antumbra/domain-feeds": "workspace:*",
 		"@antumbra/persistence": "workspace:*",
+		"@antumbra/pieces": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/plugin-api": "workspace:*",
 		"@antumbra/repos": "workspace:*",

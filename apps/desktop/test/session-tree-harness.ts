@@ -3,10 +3,11 @@ import { type Delivery, laneEvents, openSessionLanes } from "@antumbra/backend-c
 import { openThreadClaims, openThreadTree, type RpcNotification, threadOpened } from "@antumbra/backend-codex";
 import type { SightSource } from "@antumbra/contract";
 import { AgentDomain, AgentDomainLive, BackendCapacityReleases, installKernelReach, SightSourceLive } from "@antumbra/domain";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { KernelLive } from "@antumbra/kernel";
 import { acquireTemporaryPersistence, type TemporaryPersistence } from "@antumbra/persistence/testing";
 import type { AgentBackend, Runner, SessionHandle } from "@antumbra/plugin-api";
-import { makeEffectApp, scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
+import { makeEffectApp, scriptedPieces, scriptedRoleSettings, scriptedSettings, scriptedVoyages } from "@antumbra/testing-runtime";
 import { NodeServices } from "@effect/platform-node";
 import { Deferred, Effect, Layer, Option, Stream } from "effect";
 import {
@@ -95,9 +96,11 @@ const domainLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>
 		join(dirname(temporary.database), "session-inputs"),
 	).pipe(
 		Layer.provide(NodeServices.layer),
+		Layer.provideMerge(scriptedPieces),
 		Layer.provideMerge(scriptedVoyages),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
+		Layer.provideMerge(DomainFeedsLive),
 	);
 
 const sightLayer = (temporary: TemporaryPersistence, backend: AgentBackend) =>

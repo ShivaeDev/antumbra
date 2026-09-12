@@ -16,13 +16,14 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/testing": "workspace:*",
 		"@antumbra/testing-runtime": "workspace:*",
+		"@antumbra/voyages": "workspace:*",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@antumbra/testing": "workspace:*"
+		"vitest": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/domain-feeds": "workspace:*",

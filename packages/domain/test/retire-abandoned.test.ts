@@ -48,7 +48,7 @@ it.effectApp("a piece whose change merely closed waits out the ordinary rest", f
 	const { pieceId, voyageId } = yield* closedWithoutVerdict(scripted);
 	expect(yield* db.PieceChange.where({ pieceId }).all()).toHaveLength(1);
 	expect(yield* stateOf(voyageId, pieceId)).toBe("done");
-	expect(yield* db.PieceVerdict.all()).toEqual([]);
+	expect(yield* Effect.flatMap(Pieces, (pieces) => pieces.verdicts([pieceId]))).toEqual(new Map());
 
 	yield* swept;
 	expect(yield* retireIntents).toEqual([]);

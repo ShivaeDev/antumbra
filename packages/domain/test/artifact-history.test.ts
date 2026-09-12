@@ -11,6 +11,8 @@ const piece: PieceRow = {
 	parkedAt: null,
 	role: "cartographer",
 	title: "Chart",
+	verdict: null,
+	voyageId: "voyage-reef",
 };
 
 const artifact = (id: string) => ({

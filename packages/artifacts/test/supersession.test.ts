@@ -2,31 +2,23 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Artifacts, artifactsLayer } from "@antumbra/artifacts";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database, type DatabaseService } from "@antumbra/persistence";
 import { it } from "@antumbra/persistence/testing";
 import { NodeServices } from "@effect/platform-node";
 import { expect } from "@effect/vitest";
 import { type Context, Effect, Layer, Option } from "effect";
+import { chartered, charting } from "#test/charting.ts";
 
-const piece = {
-	charter: "draw the reef",
-	expectation: "a chart lands",
-	id: "piece-chart",
-	launchedAt: null,
-	parkedAt: null,
-	role: "cartographer",
-	title: "Chart",
-};
+const piece = { id: "piece-chart", title: "Chart" };
 
-const otherPiece = { ...piece, id: "piece-log", title: "Log" };
+const otherPiece = { id: "piece-log", title: "Log" };
 
 const root = mkdtempSync(join(tmpdir(), "antumbra-supersession-"));
 const published = join(root, "published");
 mkdirSync(published);
 it.afterAll(() => rmSync(root, { force: true, recursive: true }));
 
-const layer = artifactsLayer(published).pipe(Layer.provideMerge(DomainFeedsLive), Layer.provide(NodeServices.layer));
+const layer = artifactsLayer(published).pipe(Layer.provideMerge(charting), Layer.provide(NodeServices.layer));
 
 const ensureAuthor = (db: DatabaseService, authorAgentId: string) =>
 	Effect.gen(function* () {
@@ -69,7 +61,7 @@ const useArtifacts = <A, E>(use: (artifacts: Context.Service.Shape<typeof Artifa
 	Artifacts.pipe(Effect.flatMap(use), Effect.provide(layer));
 
 it.effectDB("lands an explicit revision and keeps immutable lineage", function* (db) {
-	yield* db.Piece.create(piece);
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
 	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 	const second = yield* Artifacts.pipe(
 		Effect.flatMap((artifacts) =>
@@ -109,8 +101,8 @@ it.effectDB("lands an explicit revision and keeps immutable lineage", function* 
 	]);
 });
 
-it.effectDB("returns every other current Artifact when landing does not infer supersession", function* (db) {
-	yield* db.Piece.create(piece);
+it.effectDB("returns every other current Artifact when landing does not infer supersession", function* () {
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
 	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 	const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
 
@@ -121,7 +113,7 @@ it.effectDB("returns every other current Artifact when landing does not infer su
 });
 
 it.effectDB("refuses branching and cycles without changing existing topology", function* (db) {
-	yield* db.Piece.create(piece);
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
 	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 	const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
 	const third = yield* land(piece.id, "third").pipe(Effect.provide(layer));
@@ -165,8 +157,8 @@ it.effectDB("refuses branching and cycles without changing existing topology", f
 });
 
 it.effectDB("refuses cross-Piece lineage and unauthorized correction unchanged", function* (db) {
-	yield* db.Piece.create(piece);
-	yield* db.Piece.create(otherPiece);
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
+	yield* Effect.provide(chartered(otherPiece.id, otherPiece.title), charting);
 	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 	const foreign = yield* land(otherPiece.id, "foreign").pipe(Effect.provide(layer));
 	const crossPiece = yield* Effect.flip(
@@ -197,7 +189,7 @@ it.effectDB("refuses cross-Piece lineage and unauthorized correction unchanged",
 });
 
 it.effectDB("an author may remove an involving edge and the admiral may correct any edge", function* (db) {
-	yield* db.Piece.create(piece);
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
 	const first = yield* land(piece.id, "first", "agent-first").pipe(Effect.provide(layer));
 	const second = yield* land(piece.id, "second", "agent-second").pipe(Effect.provide(layer));
 	const edge = {
@@ -230,7 +222,7 @@ it.effectDB("an author may remove an involving edge and the admiral may correct 
 });
 
 it.effectDB("replays explicit add and remove acts harmlessly", function* (db) {
-	yield* db.Piece.create(piece);
+	yield* Effect.provide(chartered(piece.id, piece.title), charting);
 	const first = yield* land(piece.id, "first").pipe(Effect.provide(layer));
 	const second = yield* land(piece.id, "second").pipe(Effect.provide(layer));
 	const input = {

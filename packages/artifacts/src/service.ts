@@ -1,5 +1,6 @@
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
+import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { type Context, Crypto, Effect, FileSystem, Path } from "effect";
 import { landArtifact } from "#land.ts";
@@ -17,7 +18,7 @@ export const Artifacts = defineService({
 		removeSupersession: deleteSupersession,
 		supersede: writeSupersession,
 	}),
-	requires: [Database, DomainFeeds, Crypto.Crypto, FileSystem.FileSystem, Path.Path, ArtifactStorage],
+	requires: [Database, DomainFeeds, Pieces, Crypto.Crypto, FileSystem.FileSystem, Path.Path, ArtifactStorage],
 });
 
 export type Artifacts = Context.Service.Identifier<typeof Artifacts>;

@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import { applicationLayers } from "@antumbra/domain";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import type { AgentBackend, ChangeHost, Runner } from "@antumbra/plugin-api";
@@ -8,6 +9,7 @@ import {
 	makeEffectApp,
 	makeScriptedBackend,
 	passiveRunner,
+	scriptedPieces,
 	scriptedRoleSettings,
 	scriptedSettings,
 	scriptedVoyages,
@@ -46,7 +48,11 @@ export const it = {
 						join(directory, "session-inputs"),
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
-				Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(scriptedRoleSettings, scriptedSettings)))),
+				Layer.provideMerge(
+					scriptedPieces.pipe(
+						Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
+					),
+				),
 			);
 			return { harness, layer };
 		}),

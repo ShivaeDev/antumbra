@@ -2,12 +2,11 @@ import { it } from "@antumbra/persistence/testing";
 import { expect } from "@effect/vitest";
 import { readHeldResources } from "#submissions/held-resources.ts";
 import { changeOf } from "#test/change-fixtures.ts";
-import { createPiece, createRepo } from "#test/change-harness.ts";
+import { createRepo } from "#test/change-harness.ts";
 
 it.effectDB("retains matching branches through shared Piece replacements and releases dismissed or landed Changes", function* (db) {
 	const reef = yield* createRepo("reef", "reef", "/reef");
 	const shoal = yield* createRepo("shoal", "shoal", "/shoal");
-	yield* createPiece("shared");
 	for (const fields of [
 		{ headRef: "work", id: "first", repoId: reef.id, stage: "withdrawn" as const },
 		{ headRef: "work", id: "second", repoId: reef.id, stage: "open" as const },

@@ -1,7 +1,8 @@
 import { changesLayer } from "@antumbra/changes";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { it } from "@antumbra/persistence/testing";
-import { PiecesLive } from "@antumbra/pieces";
+import { Pieces } from "@antumbra/pieces";
+import { scriptedPieces } from "@antumbra/pieces/testing";
 import { ReposLive } from "@antumbra/repos";
 import { RulingsLive } from "@antumbra/rulings";
 import { scriptedRoleSettings, scriptedVoyages } from "@antumbra/testing-runtime";
@@ -15,15 +16,19 @@ import { voyageView } from "#voyage-view.ts";
 
 const layer = VoyageDetails.layer.pipe(
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
-	Layer.provideMerge(PiecesLive),
 	Layer.provideMerge(ReposLive),
 	Layer.provideMerge(RulingsLive),
+	Layer.provideMerge(scriptedPieces),
 	Layer.provideMerge(scriptedVoyages),
 	Layer.provideMerge(scriptedRoleSettings),
 	Layer.provideMerge(DomainFeedsLive),
 );
 const read = (voyageId: string) => Effect.flatMap(VoyageDetails, (details) => details.read(voyageId));
-const piece = (id: string) => ({ id, title: id, charter: id, expectation: id, role: "hand", launchedAt: new Date(1) });
+const chartered = Effect.fnUntraced(function* (id: string, voyageId: string, dependsOn: ReadonlyArray<string> = []) {
+	const pieces = yield* Pieces;
+	yield* pieces.charter({ charter: id, dependsOn, expectation: id, id, role: "hand", title: id, voyageId });
+	yield* pieces.launch(id);
+});
 const voyage = (id: string) => ({ id, name: id, context: id, northStar: id });
 const agent = (id: string, createdAt: Date) => ({ id, status: "alive", role: "captain", charter: id, createdAt });
 const root = (id: string, agentId: string, executionStatus = "idle") => ({
@@ -75,14 +80,13 @@ it.effectDB("a Voyage shows its members while direct external prerequisites gove
 	yield* Effect.gen(function* () {
 		const sailing = yield* Voyages;
 		for (const id of ["home", "other"]) yield* sailing.open(voyage(id));
-		for (const id of ["member", "prerequisite", "ancestor", "unrelated"]) yield* db.Piece.create(piece(id));
-		yield* db.VoyagePiece.create({ voyageId: "home", pieceId: "member" });
-		yield* db.VoyagePiece.create({ voyageId: "other", pieceId: "prerequisite" });
-		yield* db.PieceEdge.create({ fromPieceId: "prerequisite", toPieceId: "member" });
-		yield* db.PieceEdge.create({ fromPieceId: "ancestor", toPieceId: "prerequisite" });
+		yield* chartered("ancestor", "other");
+		yield* chartered("prerequisite", "other", ["ancestor"]);
+		yield* chartered("member", "home", ["prerequisite"]);
+		yield* chartered("unrelated", "other");
 		const blocked = Option.getOrThrow(yield* read("home"));
 		expect(voyageView(blocked.rows, blocked.voyage).pieces).toMatchObject([{ id: "member", state: "blocked", dependsOn: ["prerequisite"] }]);
-		yield* db.PieceVerdict.create({ pieceId: "prerequisite", verdict: "delivered" });
+		yield* Effect.flatMap(Pieces, (pieces) => pieces.landVerdict("prerequisite", "delivered"));
 		yield* db.Agent.create(agent("reworking", new Date(2)));
 		yield* db.AgentSession.create(root("reworking-root", "reworking", "active"));
 		yield* db.PieceAgent.create({ pieceId: "prerequisite", agentId: "reworking" });
@@ -101,8 +105,9 @@ it.effectDB("a Voyage shows its members while direct external prerequisites gove
 
 it.effectDB("a captain assigned to work outside the Voyage is excluded from captain selection", function* (db) {
 	yield* Effect.gen(function* () {
-		yield* Effect.flatMap(Voyages, (sailing) => sailing.open(voyage("home")));
-		yield* db.Piece.create(piece("elsewhere"));
+		const sailing = yield* Voyages;
+		for (const id of ["home", "other"]) yield* sailing.open(voyage(id));
+		yield* chartered("elsewhere", "other");
 		for (const [id, born] of [
 			["captain", 1],
 			["worker", 2],

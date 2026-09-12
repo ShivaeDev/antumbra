@@ -1,6 +1,8 @@
 import { dirname, join } from "node:path";
+import { DomainFeedsLive } from "@antumbra/domain-feeds";
 import { defineIntent, type IntentExecution, type IntentKind, type Kernel, KernelLive } from "@antumbra/kernel";
 import type { TemporaryPersistence } from "@antumbra/persistence/testing";
+import { scriptedPieces } from "@antumbra/pieces/testing";
 import type { AgentBackend } from "@antumbra/plugin-api";
 import { BackendCapacities, type BackendCapacityReading, type BackendCapacityService } from "@antumbra/provider-capacity";
 import { type WakeFields, WakePayload } from "@antumbra/sessions";
@@ -88,9 +90,11 @@ export const templateDomainLayer = (temporary: TemporaryPersistence, backend: Ag
 		join(dirname(temporary.database), "session-inputs"),
 	).pipe(
 		Layer.provide(NodeServices.layer),
+		Layer.provideMerge(scriptedPieces),
 		Layer.provideMerge(scriptedVoyages),
 		Layer.provideMerge(scriptedRoleSettings),
 		Layer.provideMerge(scriptedSettings),
+		Layer.provideMerge(DomainFeedsLive),
 		Layer.provideMerge(temporary.layer),
 	);
 

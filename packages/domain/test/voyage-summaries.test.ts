@@ -1,3 +1,4 @@
+import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { Voyages } from "@antumbra/voyages";
 import { expect } from "@effect/vitest";
@@ -7,7 +8,12 @@ import { VoyageSummaries } from "#voyage/summaries/service.ts";
 
 const read = Effect.flatMap(VoyageSummaries, (summaries) => summaries.read());
 const voyage = (id: string) => ({ id, name: id, context: id, northStar: id });
-const piece = (id: string) => ({ id, title: id, charter: id, expectation: id, role: "hand", launchedAt: new Date(1) });
+const chartered = (id: string, voyageId: string, dependsOn: ReadonlyArray<string> = []) =>
+	Effect.gen(function* () {
+		const pieces = yield* Pieces;
+		yield* pieces.charter({ charter: id, dependsOn, expectation: id, id, role: "hand", title: id, voyageId });
+		yield* pieces.launch(id);
+	});
 const root = (id: string, agentId: string, created: number) => ({
 	id,
 	agentId,
@@ -28,32 +34,31 @@ const summaryOf = (voyageId: string) =>
 		return yield* Effect.die(new Error(`the fleet holds no summary for ${voyageId}`));
 	});
 
-it.effectApp("fleet counts include shared members and settle their unberthed prerequisites", function* ({ db }) {
+it.effectApp("fleet counts hold a member blocked until the prerequisite on another voyage lands", function* ({ db }) {
 	const sailing = yield* Voyages;
+	const pieces = yield* Pieces;
 	const flagship = yield* flagshipVoyage;
 	for (const id of ["first", "second", "empty"]) yield* sailing.open(voyage(id));
-	for (const id of ["member", "prerequisite", "unrelated"]) yield* db.Piece.create(piece(id));
-	for (const voyageId of ["first", "second"]) yield* db.VoyagePiece.create({ voyageId, pieceId: "member" });
-	yield* db.PieceEdge.create({ fromPieceId: "prerequisite", toPieceId: "member" });
+	yield* chartered("prerequisite", "second");
+	yield* chartered("member", "first", ["prerequisite"]);
 	const blocked = yield* read;
 	expect(blocked.map((summary) => summary.id)).toEqual([flagship.id, "first", "second", "empty"]);
-	expect(blocked.map((summary) => summary.counts.blocked)).toEqual([0, 1, 1, 0]);
+	expect(blocked.map((summary) => summary.counts.blocked)).toEqual([0, 1, 0, 0]);
 	expect(blocked.map((summary) => Object.values(summary.counts).reduce((sum, count) => sum + count, 0))).toEqual([0, 1, 1, 0]);
-	yield* db.PieceVerdict.create({ pieceId: "prerequisite", verdict: "delivered" });
-	expect((yield* read).map((summary) => summary.counts.ready)).toEqual([0, 1, 1, 0]);
+	yield* pieces.landVerdict("prerequisite", "delivered");
+	expect((yield* read).map((summary) => summary.counts.ready)).toEqual([0, 1, 0, 0]);
 	yield* db.Agent.create({ id: "worker", charter: "work", role: "hand", status: "alive" });
 	yield* db.AgentSession.create({ ...root("worker-root", "worker", 4), executionStatus: "active" });
 	yield* db.PieceAgent.create({ pieceId: "member", agentId: "worker" });
 	const working = yield* read;
-	expect(working.slice(1).map((summary) => summary.counts.active)).toEqual([1, 1, 0]);
-	expect(working.slice(1).map((summary) => summary.state)).toEqual(["underWay", "underWay", "quiet"]);
+	expect(working.slice(1).map((summary) => summary.counts.active)).toEqual([1, 0, 0]);
+	expect(working.slice(1).map((summary) => summary.state)).toEqual(["underWay", "quiet", "quiet"]);
 });
 
 it.effectApp("parking an unanswered ruling keeps its member blocked until it is ruled", function* ({ db }) {
 	const sailing = yield* Voyages;
 	yield* sailing.open(voyage("gated"));
-	yield* db.Piece.create(piece("waiting"));
-	yield* db.VoyagePiece.create({ voyageId: "gated", pieceId: "waiting" });
+	yield* chartered("waiting", "gated");
 	yield* db.Ruling.create({
 		id: "gate",
 		question: "Which course?",
@@ -73,7 +78,8 @@ it.effectApp("parking an unanswered ruling keeps its member blocked until it is 
 it.effectApp("fleet captain selection excludes outside workers while retired root history still stirs", function* ({ db }) {
 	const sailing = yield* Voyages;
 	yield* sailing.open(voyage("crewed"));
-	yield* db.Piece.create(piece("outside"));
+	yield* sailing.open(voyage("elsewhere"));
+	yield* chartered("outside", "elsewhere");
 	for (const [id, born, status] of [
 		["worker", 1, "alive"],
 		["captain", 2, "alive"],

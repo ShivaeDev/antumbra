@@ -4,6 +4,7 @@ export interface CharterInput {
 	readonly charter: string;
 	readonly dependsOn: ReadonlyArray<string>;
 	readonly expectation: string;
+	readonly id?: string;
 	readonly role: string;
 	readonly title: string;
 	readonly voyageId: string;

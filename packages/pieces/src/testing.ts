@@ -37,7 +37,7 @@ export const scriptedPiecesOn = (state: ScriptedChart) =>
 				charter: Effect.fnUntraced(function* (input: CharterInput) {
 					yield* sailing.verifyExists(input.voyageId);
 					const chart = yield* Ref.get(state);
-					const row = charteredRow(input, crypto.randomUUID());
+					const row = charteredRow(input, input.id ?? crypto.randomUUID());
 					const edges = yield* wiredEdges(chart, row.id, input.dependsOn);
 					yield* Ref.set(state, { edges: [...chart.edges, ...edges], pieces: [...chart.pieces, row] });
 					yield* feeds.publishVoyageRefresh();

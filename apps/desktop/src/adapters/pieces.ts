@@ -33,7 +33,7 @@ export const piecesOver = <Failure extends Refused>(reach: Reach<Failure>, store
 		byId: held,
 		byVoyage: berthed,
 		charter: Effect.fn("Pieces.charter")(function* (input: CharterInput) {
-			const requestId = Id.Request.make(Id.make());
+			const requestId = Id.Request.make(input.id ?? Id.make());
 			yield* reach.pieces
 				.charter({ ...input, requestId, voyageId: VoyageId.make(input.voyageId) })
 				.pipe(Effect.catch(charterRefused(input.voyageId)));

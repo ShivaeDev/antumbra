@@ -1,5 +1,5 @@
-import { RequestOrigin, type WindowPlace, WindowRefused, WindowSource } from "@antumbra/contract";
-import { Effect, Layer } from "effect";
+import { type WindowPlace, WindowRefused } from "@antumbra/platform-shell/windows.ts";
+import { Context, Effect, Layer } from "effect";
 import { openWindow } from "#adapters/windows/open.ts";
 import type { OwnedWindow, WindowRegistry, WindowShell } from "#adapters/windows/registry.ts";
 
@@ -50,3 +50,13 @@ export const WindowSourceLive = (input: WindowShell) =>
 		place: Effect.map(caller(input.registry), (record) => record.place),
 		remember: (place) => rememberFor(input, place),
 	});
+
+export class RequestOrigin extends Context.Service<RequestOrigin, { readonly windowId: string }>()("@antumbra/desktop/WindowOrigin") {}
+export class WindowSource extends Context.Service<
+	WindowSource,
+	{
+		readonly open: (place: WindowPlace) => Effect.Effect<void, WindowRefused, RequestOrigin>;
+		readonly place: Effect.Effect<WindowPlace, WindowRefused, RequestOrigin>;
+		readonly remember: (place: WindowPlace) => Effect.Effect<void, WindowRefused, RequestOrigin>;
+	}
+>()("@antumbra/desktop/WindowSource") {}

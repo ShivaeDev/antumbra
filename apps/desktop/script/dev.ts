@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
 import { Console, Effect } from "effect";
 import { exitAsksForRestart } from "#restart-exit-code.ts";
-import { copyOpencodePluginAssets, copyPersistenceAssets, copySkillAssets } from "#script/adapters/assets.ts";
+import { copyOpencodePluginAssets, copySkillAssets } from "#script/adapters/assets.ts";
 import { closeWatcher, watchMainAndPreload } from "#script/adapters/bundler.ts";
 import { spawnElectron, waitForExit } from "#script/adapters/electron-process.ts";
 import { startRendererServer, stopRendererServer } from "#script/adapters/renderer-tooling.ts";
@@ -16,7 +16,6 @@ const restartPending = (): void => {
 
 const runIteration = (iteration: number) =>
 	Effect.gen(function* () {
-		yield* copyPersistenceAssets(desktopRoot);
 		yield* copySkillAssets(desktopRoot);
 		yield* copyOpencodePluginAssets(desktopRoot);
 		const server = yield* startRendererServer(desktopRoot, RENDERER_PORT);

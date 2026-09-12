@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { WindowPlace } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { openInBrowser } from "#adapters/open-external.ts";

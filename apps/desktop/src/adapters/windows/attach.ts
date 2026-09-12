@@ -1,4 +1,4 @@
-import type { WindowPlace } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Effect } from "effect";
 import type { BrowserWindow } from "electron";
 import { attachWindowLifecycle, holdAuthority } from "#adapters/windows/lifecycle.ts";

@@ -1,4 +1,4 @@
-import type { WindowPlace } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { sameSubject } from "#adapters/windows/subject.ts";
 
 export interface DocumentContents {

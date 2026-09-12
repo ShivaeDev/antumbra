@@ -1,9 +1,9 @@
-import { RequestOrigin, type WindowPlace, WindowSource } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { closeChildren } from "#adapters/windows/attach.ts";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import { WindowSourceLive } from "#adapters/windows/source.ts";
+import { RequestOrigin, WindowSource, WindowSourceLive } from "#adapters/windows/source.ts";
 import { subjectOf } from "#adapters/windows/subject.ts";
 import { artifactPlace, consolePlace, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 

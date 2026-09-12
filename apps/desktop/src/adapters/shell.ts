@@ -59,13 +59,7 @@ export const serverDataDirectory = (): string => {
 
 export const serverBundle = (): string => (app.isPackaged ? join(process.resourcesPath, "server.js") : join(import.meta.dirname, "server.js"));
 
-export const persistenceMigrationsDirectory = (): string =>
-	app.isPackaged ? join(process.resourcesPath, "persistence", "migrations") : join(import.meta.dirname, "persistence", "migrations");
-
-export const skillsDirectory = (): string => (app.isPackaged ? join(process.resourcesPath, "skills") : join(import.meta.dirname, "skills"));
-
-export const opencodePluginFile = (): string =>
-	app.isPackaged ? join(process.resourcesPath, "opencode", "caller-session.js") : join(import.meta.dirname, "opencode", "caller-session.js");
+export const runnerBundle = (): string => (app.isPackaged ? join(process.resourcesPath, "runner.js") : join(import.meta.dirname, "runner.js"));
 
 export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	app.on("window-all-closed", () => {

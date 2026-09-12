@@ -15,7 +15,7 @@ type ShutdownPhase = "accepting" | "draining" | "exiting";
 const allowShutdownRetry = (cause: unknown, allow: () => void) =>
 	Effect.logError("graceful shutdown failed", cause).pipe(Effect.andThen(Effect.sync(allow)));
 
-export const requestRestart = (restarting: Ref.Ref<boolean>, record: Effect.Effect<void>, quit: () => void) =>
+export const requestRestart = <R>(restarting: Ref.Ref<boolean>, record: Effect.Effect<void, never, R>, quit: () => void) =>
 	Effect.flatMap(Ref.getAndSet(restarting, true), (already) => (already ? Effect.void : record.pipe(Effect.andThen(Effect.sync(quit)))));
 
 const abandonRequestedRestart = (restarting: Ref.Ref<boolean>, abandonRestart: Effect.Effect<void>) =>

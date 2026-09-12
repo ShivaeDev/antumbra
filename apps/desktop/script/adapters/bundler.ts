@@ -8,6 +8,12 @@ type BundleWatcher = ReturnType<typeof watch>;
 
 const configs = (root: string) => [
 	{
+		external: MAIN_EXTERNALS.filter((name) => name !== "electron"),
+		input: fileURLToPath(import.meta.resolve("@antumbra/runner/entry.ts")),
+		output: { codeSplitting: false, file: join(root, "out", "runner.js"), format: "esm" as const },
+		platform: "node" as const,
+	},
+	{
 		external: MAIN_EXTERNALS,
 		input: join(root, "src", "main.ts"),
 		output: {

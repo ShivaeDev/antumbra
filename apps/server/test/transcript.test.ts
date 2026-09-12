@@ -34,19 +34,29 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 			logId: "transcript-log",
 			cursor: 1,
 			at: 101,
-			event: { type: "ProviderEvent", sessionId, event: { type: "message", role: "agent", text: "Hello", raw } },
+			event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "agent", text: "Hello", raw } },
 		},
 		{
 			logId: "transcript-log",
 			cursor: 2,
 			at: 102,
-			event: { type: "ProviderEvent", sessionId, event: { type: "tool.started", toolId: "shell", name: "shell", input: "pwd", raw } },
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: { type: "tool.started", toolId: "shell", name: "shell", input: "pwd", raw },
+			},
 		},
 		{
 			logId: "transcript-log",
 			cursor: 3,
 			at: 103,
-			event: { type: "ProviderEvent", sessionId, event: { type: "tool.completed", toolId: "shell", ok: true, output: "/berth", raw } },
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: { type: "tool.completed", toolId: "shell", ok: true, output: "/berth", raw },
+			},
 		},
 		{
 			logId: "transcript-log",
@@ -54,6 +64,7 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 			at: 104,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId,
 				event: { type: "usage", inputTokens: 10, outputTokens: 20, costUsd: 0.01, cumulativeCostUsd: 50, raw },
 			},
@@ -83,7 +94,12 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		logId: "transcript-log",
 		cursor: 5,
 		at: 105,
-		event: { type: "ProviderEvent", sessionId, event: { type: "raw", raw: { source: "codex", kind: "future_kind", payload: '{"future":true}' } } },
+		event: {
+			type: "ProviderEvent",
+			observation: "live",
+			sessionId,
+			event: { type: "raw", raw: { source: "codex", kind: "future_kind", payload: '{"future":true}' } },
+		},
 	};
 	entries.push(future);
 	yield* runner.append([future]);

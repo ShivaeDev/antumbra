@@ -27,6 +27,7 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 			at: 101,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId: "cost-session",
 				event: {
 					type: "usage",
@@ -45,6 +46,7 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 			at: 102,
 			event: {
 				type: "ProviderEvent",
+				observation: "live",
 				sessionId: "cost-session",
 				event: {
 					type: "usage",

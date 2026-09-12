@@ -1,15 +1,15 @@
+import { answered, eventually } from "@antumbra/app-testing/answers.ts";
 import { click, form, labelled, named, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
-import { Option, Stream } from "effect";
 import { Settings } from "#settings.tsx";
 
 it.glass("renders settings", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
 	yield* renderedForm(container, "Hold everything");
 	yield* renderedForm(container, "Maximum running agents");
-	const flags = Option.getOrThrow(yield* api.settings.flags({}).pipe(Stream.runHead));
-	const counts = Option.getOrThrow(yield* api.settings.counts({}).pipe(Stream.runHead));
+	const flags = yield* answered(api.settings.flags({}));
+	const counts = yield* answered(api.settings.counts({}));
 	const readings = [...flags, ...counts];
 	expect([...container.querySelectorAll("form")].map(named)).toEqual(readings.map((reading) => reading.title));
 	for (const reading of readings) {
@@ -23,11 +23,8 @@ it.glass("saves a flag", function* ({ api, render }) {
 	expect(labelled<HTMLInputElement>(holding, "Hold everything On").type).toBe("checkbox");
 	yield* click(labelled<HTMLInputElement>(holding, "Hold everything On"));
 	yield* submit(container, "Hold everything");
-	const saved = yield* api.settings.flags({}).pipe(
-		Stream.filter((flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on)),
-		Stream.runHead,
-	);
-	expect(Option.getOrThrow(saved).find((flag) => flag.key === "holdEverything")?.on).toBe(true);
+	const saved = yield* eventually(api.settings.flags({}), (flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on));
+	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 });
 
 it.glass("replaces a saved count", function* ({ api, render }) {
@@ -38,11 +35,10 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 	expect(labelled<HTMLInputElement>(running, "Maximum running agents Count").type).toBe("number");
 	yield* write(labelled<HTMLInputElement>(running, "Maximum running agents Count"), "12");
 	yield* submit(container, "Maximum running agents");
-	const saved = yield* api.settings.counts({}).pipe(
-		Stream.filter((counts) => counts.some((count) => count.key === "maxParallelSessions" && count.count === 12)),
-		Stream.runHead,
+	const saved = yield* eventually(api.settings.counts({}), (counts) =>
+		counts.some((count) => count.key === "maxParallelSessions" && count.count === 12),
 	);
-	expect(Option.getOrThrow(saved).find((count) => count.key === "maxParallelSessions")?.count).toBe(12);
+	expect(saved.find((count) => count.key === "maxParallelSessions")?.count).toBe(12);
 });
 
 it.glass("rejects an out-of-range count", function* ({ api, render }) {

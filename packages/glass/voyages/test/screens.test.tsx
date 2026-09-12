@@ -1,7 +1,7 @@
+import { answered, eventually } from "@antumbra/app-testing/answers.ts";
 import { form, labelled, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
-import { Option, Stream } from "effect";
 import { OpenVoyage } from "#open-voyage.tsx";
 
 it.glass("renders voyage fields", function* ({ api, render }) {
@@ -31,7 +31,7 @@ it.glass("rejects a blank name", function* ({ api, render }) {
 	yield* until(() => name.getAttribute("aria-invalid") === "true");
 	expect(container.textContent).toContain("A voyage needs a name");
 	expect(name.value).toBe("   ");
-	expect(Option.getOrThrow(yield* api.voyages.list({}).pipe(Stream.runHead))).toEqual([]);
+	expect(yield* answered(api.voyages.list({}))).toEqual([]);
 });
 
 it.glass("opens a voyage and resets the form", function* ({ api, render }) {
@@ -49,11 +49,8 @@ it.glass("opens a voyage and resets the form", function* ({ api, render }) {
 	yield* write(labelled<HTMLInputElement>(opening, "Open voyage North star"), "every shoal is known");
 	yield* write(labelled<HTMLTextAreaElement>(opening, "Open voyage Context"), "the reef\nis uncharted");
 	yield* submit(container, "Open voyage");
-	const saved = yield* api.voyages.list({}).pipe(
-		Stream.filter((rows) => rows.length > 0),
-		Stream.runHead,
-	);
-	expect(Option.getOrThrow(saved)).toMatchObject([
+	const saved = yield* eventually(api.voyages.list({}), (rows) => rows.length > 0);
+	expect(saved).toMatchObject([
 		{
 			context: "the reef\nis uncharted",
 			kind: "voyage",

@@ -16,12 +16,13 @@ export const execute = Effect.fn("Sessions.execute")(function* (operation: typeo
 	const reactivity = yield* Reactivity;
 	const available = reactivity
 		.stream(["runner:connected"], runners.connected)
-		.pipe(Stream.filter((registrations) => registrations.some((runner) => runner.backends.includes(root.backend))));
+		.pipe(
+			Stream.filter((registrations) => registrations.some((runner) => runner.runnerId === root.runnerId && runner.backends.includes(root.backend))),
+		);
 	const connected = yield* Stream.runHead(available).pipe(Effect.map(Option.getOrThrow));
-	const previous = connected.find((runner) => runner.runnerId === root.runnerId);
-	const runner = previous ?? connected.find((runner) => runner.backends.includes(root.backend));
+	const runner = connected.find((runner) => runner.runnerId === root.runnerId);
 	if (runner === undefined) return;
-	const wire = yield* runnerOperation(operation, root, root.attached && previous !== undefined);
+	const wire = yield* runnerOperation(operation, root, root.attached);
 	if (wire === null) return;
 	const result = yield* runners.execute(runner.runnerId, wire);
 	if (result.type === "Refused") yield* holdOperation(operation.id, result.reason);

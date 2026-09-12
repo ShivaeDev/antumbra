@@ -65,16 +65,16 @@ export const tree = Effect.fn("Sessions.treeEvidence")(function* (fact: Observat
 	const evidence = fact.evidence;
 	if (evidence.type !== "closed" && evidence.type !== "node-audited") return;
 	const indexed = yield* rows.sessionNode.where({ rootSessionId: current.rootSessionId, nativeRef: evidence.nativeRef });
-	const index = indexed[0];
-	if (index === undefined) return;
-	const node = yield* rows.session.find(index.id);
+	const id = indexed[0]?.id ?? nodes.find((node) => node.nativeRef === evidence.nativeRef)?.id;
+	if (id === undefined) return;
+	const node = yield* rows.session.find(id);
 	if (Option.isNone(node)) return;
-	const gaps = yield* rows.sessionGap.count({ sessionId: index.id });
+	const gaps = yield* rows.sessionGap.count({ sessionId: id });
 	if (evidence.type === "node-audited") {
-		if (node.value.completeness !== "unaudited") yield* rows.session.update(index.id, { completeness: gaps > 0 ? "incomplete" : "complete" });
+		if (node.value.completeness !== "unaudited") yield* rows.session.update(id, { completeness: gaps > 0 ? "incomplete" : "complete" });
 		return;
 	}
-	yield* rows.session.update(index.id, {
+	yield* rows.session.update(id, {
 		status: "closed",
 		executionStatus: "idle",
 		attached: false,

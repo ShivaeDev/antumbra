@@ -6,6 +6,8 @@ export const rulingDisplay = row(
 	{
 		...ruling.fields,
 		voyage: Schema.NullOr(Schema.Struct({ id: Schema.String, name: Schema.String })),
+		recommendedLabel: Schema.NullOr(Schema.String),
+		chosenLabel: Schema.NullOr(Schema.String),
 		requesterName: Schema.String,
 		rungName: Schema.String,
 		subjectLabels: Schema.Array(Schema.Struct({ kind: Schema.String, id: Schema.String, label: Schema.String })),

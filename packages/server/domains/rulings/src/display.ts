@@ -9,9 +9,13 @@ import { projection } from "@antumbra/platform-feature/projection.ts";
 import { Effect } from "effect";
 import { rulingDisplay } from "#rows/display.ts";
 import { rulingGate } from "#rows/gate.ts";
-import { ruling } from "#rows/ruling.ts";
+import { type Ruling, ruling } from "#rows/ruling.ts";
 
 const authorityName = (rung: string | null): string => (rung === "flagship" ? "the flagship" : "the admiral");
+const choiceLabels = (ruling: Ruling) => ({
+	recommendedLabel: ruling.choices.find((choice) => choice.id === ruling.recommendation?.choiceId)?.label ?? null,
+	chosenLabel: ruling.choices.find((choice) => choice.id === ruling.answer?.choiceId)?.label ?? null,
+});
 export const rulingDisplayProjection = projection("rulingDisplay", {
 	reads: [ruling, rulingGate, agent, voyageAgent, piece, pieceProgress, repo, voyage, voyageProgress],
 	writes: [rulingDisplay],
@@ -41,6 +45,7 @@ export const rulingDisplayProjection = projection("rulingDisplay", {
 			);
 			const value = {
 				...ruling,
+				...choiceLabels(ruling),
 				voyage: namedVoyage === undefined ? null : { id: namedVoyage.id, name: namedVoyage.name },
 				requesterName: requester.kind === "agent" ? (speakers[requester.agentId] ?? "agent") : requester.by,
 				rungName: ruling.rung === "captain" && captainVoyage !== undefined ? `${captainVoyage.name}'s captain` : authorityName(ruling.rung),

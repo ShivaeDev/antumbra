@@ -7,6 +7,10 @@ import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Clock, Effect } from "effect";
 import { supportingHost } from "#changes/host.ts";
 import { namedRepo, readWorld } from "#changes/read.ts";
+
+const offBranch = (found: string, expected: string): string =>
+	`This berth is on ${found}, but Antumbra provisioned it on ${expected} and opens the change from there. Check out ${expected}, bring your commits over, and try again.`;
+
 export interface LocalChangeInput {
 	readonly callId: string;
 	readonly agentId: string;
@@ -43,6 +47,8 @@ export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: 
 			host: host.tag,
 			detail: captured.type === "Refused" ? captured.reason : "Runner returned no captured change evidence",
 		});
+	if (captured.evidence.branch !== berth.branch)
+		return yield* new ChangeHostRefused({ host: host.tag, detail: offBranch(captured.evidence.branch, berth.branch) });
 	const commit = yield* Commit;
 	yield* commit
 		.commit(prepare, {

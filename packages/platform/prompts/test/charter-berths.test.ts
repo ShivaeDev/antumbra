@@ -1,9 +1,8 @@
 import { expect, it } from "@effect/vitest";
-import { berthedCharter } from "#charter-berths.ts";
+import { berthsSection } from "#charter-berths.ts";
 
-it("leaves the charter unchanged when no repository is registered", () => {
-	const charter = "Investigate lost edits after restart.";
+it("leaves out the berths section when no repository is registered", () => {
 	for (const role of ["captain", "crew"] as const) {
-		expect(berthedCharter({ berths: [], charter, moorageRoot: "/work/agent-1", role })).toBe(charter);
+		expect(berthsSection({ berths: [], moorageRoot: "/work/agent-1" }, role)).toEqual([]);
 	}
 });

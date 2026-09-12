@@ -1,6 +1,5 @@
 import { Schema } from "effect";
-import { type AgentPrompt, agentPrompt } from "#mint.ts";
-import { proseOf, section } from "#prose.ts";
+import { section } from "#prose.ts";
 
 const Berth = Schema.Struct({
 	branch: Schema.String,
@@ -8,30 +7,31 @@ const Berth = Schema.Struct({
 	repo: Schema.String,
 });
 
-export const BerthedCharter = Schema.Struct({
+export const Berthing = Schema.Struct({
 	berths: Schema.Array(Berth),
-	charter: Schema.String,
 	moorageRoot: Schema.String,
-	role: Schema.Literals(["captain", "crew"]),
 });
-export type BerthedCharter = typeof BerthedCharter.Type;
+export type Berthing = typeof Berthing.Type;
 
-const CREW_ORDER = "- Make repository changes in the supplied Berth folders and branches.";
+const CREW_ORDERS = [
+	"Each berth is already on the work branch shown beside it. Work in the berth folder. Never create or switch branches.",
+	"Never open a pull request with `gh` or the GitHub UI. `open_change` opens it from the branch the berth is on. Write its title and body as the `pr-description` skill says.",
+].join("\n\n");
 
-const CAPTAIN_ORDER = "- Use the repository names below when chartering work.";
+const CAPTAIN_ORDERS = "Use the repository names above when chartering work.";
 
 const berthLine = (berth: typeof Berth.Type): string => `${berth.repo} — ${berth.folder} — branch ${berth.branch}`;
 
-const berthsBody = (input: BerthedCharter): string =>
-	[
-		`Working directory: ${input.moorageRoot}`,
-		`Scratch folder: ${input.moorageRoot}/scratch — write notes and drafts here; nothing in it is ever committed.`,
-		...input.berths.map(berthLine),
-	].join("\n");
-
-export const berthedCharter = (input: BerthedCharter): AgentPrompt =>
-	agentPrompt(
-		input.berths.length === 0
-			? input.charter
-			: proseOf([[input.charter], [input.role === "captain" ? CAPTAIN_ORDER : CREW_ORDER, ""], section("Berths", berthsBody(input))]),
-	);
+export const berthsSection = (input: Berthing, role: "captain" | "crew"): ReadonlyArray<string> =>
+	input.berths.length === 0
+		? []
+		: section(
+				"Berths",
+				[
+					`Working directory: ${input.moorageRoot}`,
+					`Scratch folder: ${input.moorageRoot}/scratch — write notes and drafts here; nothing in it is ever committed.`,
+					...input.berths.map(berthLine),
+					"",
+					role === "captain" ? CAPTAIN_ORDERS : CREW_ORDERS,
+				].join("\n"),
+			);

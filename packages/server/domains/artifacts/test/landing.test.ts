@@ -1,4 +1,5 @@
-import { prepareArtifactSource, readArtifact } from "@antumbra/app-testing/artifacts.ts";
+import { prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
+import { readArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";

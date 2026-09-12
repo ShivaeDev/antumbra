@@ -26,7 +26,14 @@ export const SessionComposer = (props: {
 						<SessionActs api={props.api} sessionId={props.sessionId} canSleep={agent.canSleep} canInterrupt={agent.canInterrupt} />
 						<AgentSpend api={props.api} agentId={agent.id} />
 					</div>
-					<SessionSituations api={props.api} inputs={props.inputs} drafts={props.drafts} sessionId={props.sessionId} onError={props.onError} />
+					<SessionSituations
+						key={props.sessionId}
+						api={props.api}
+						inputs={props.inputs}
+						drafts={props.drafts}
+						sessionId={props.sessionId}
+						onError={props.onError}
+					/>
 					<Live query={props.api.inputs.support} input={{ sessionId: SessionId.make(props.sessionId) }}>
 						{(support) => (
 							<SessionMessage

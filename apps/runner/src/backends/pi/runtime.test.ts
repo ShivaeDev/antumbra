@@ -45,34 +45,33 @@ it("a constrained session is allowed exactly the tools it was given", () => {
 	expect(chosenTools(request("Smooth this board."))).toEqual({ tools: [] });
 });
 
+const nativeHistory = (cwd: string): string =>
+	[
+		{ type: "session", version: 3, id: "persisted-pi-session", timestamp: "2026-09-05T00:00:00Z", cwd },
+		{
+			type: "message",
+			id: "message-1",
+			parentId: null,
+			timestamp: "2026-09-05T00:00:00Z",
+			message: { role: "user", content: "Remember this charter", timestamp: 1 },
+		},
+	]
+		.map((entry) => JSON.stringify(entry))
+		.join("\n");
+
+const resumeHistory = Effect.fnUntraced(function* (directory: string) {
+	const file = join(directory, "session.jsonl");
+	yield* Effect.promise(() => writeFile(file, nativeHistory(directory)));
+	const manager = sessions({ ...request(undefined), cwd: directory, resume: file });
+	expect(manager.getSessionFile()).toBe(file);
+	expect(manager.getSessionId()).toBe("persisted-pi-session");
+	expect(manager.getBranch()).toMatchObject([{ type: "message", message: { content: "Remember this charter" } }]);
+});
+
 it.effect("resumes the same native file and its recorded history without opening a model session", () =>
 	Effect.acquireUseRelease(
 		Effect.promise(() => mkdtemp(join(tmpdir(), "antumbra-pi-"))),
-		(directory) =>
-			Effect.gen(function* () {
-				const file = join(directory, "session.jsonl");
-				yield* Effect.promise(() =>
-					writeFile(
-						file,
-						[
-							{ type: "session", version: 3, id: "persisted-pi-session", timestamp: "2026-09-05T00:00:00Z", cwd: directory },
-							{
-								type: "message",
-								id: "message-1",
-								parentId: null,
-								timestamp: "2026-09-05T00:00:00Z",
-								message: { role: "user", content: "Remember this charter", timestamp: 1 },
-							},
-						]
-							.map((entry) => JSON.stringify(entry))
-							.join("\n"),
-					),
-				);
-				const manager = sessions({ ...request(undefined), cwd: directory, resume: file });
-				expect(manager.getSessionFile()).toBe(file);
-				expect(manager.getSessionId()).toBe("persisted-pi-session");
-				expect(manager.getBranch()).toMatchObject([{ type: "message", message: { content: "Remember this charter" } }]);
-			}),
+		resumeHistory,
 		(directory) => Effect.promise(() => rm(directory, { recursive: true, force: true })),
 	),
 );

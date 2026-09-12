@@ -42,33 +42,28 @@ export const smoothAttempt = Effect.fn("Smoothing.attempt")(function* <R>(attemp
 	);
 });
 
-export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
+const requestDue = Effect.fn("Smoothing.requestDue")(function* (now: Date, demands: typeof dueSmoothing.output.Type) {
 	const commit = yield* Commit;
+	for (const demand of demands) {
+		const key = demand.pieceId === null ? ["smoothing-day", demand.voyageId, localDay(now)] : ["smoothing-piece", demand.pieceId];
+		yield* commit.commit(requestSmoothing, { ...demand, requestId: Request.make(JSON.stringify(key)) }).pipe(
+			Effect.catchTag("AlreadyDone", () => Effect.void),
+			Effect.orDie,
+		);
+	}
+});
+
+const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
+	const now = new Date(yield* Clock.currentTimeMillis);
+	const due = yield* Reconcile.run(dueSmoothing, { now: now.toISOString() }, (demands) => requestDue(now, demands));
+	const tomorrow = new Date(now);
+	tomorrow.setHours(24, 0, 0, 0);
+	yield* Effect.raceAllFirst([due.await, Effect.sleep(tomorrow.getTime() - now.getTime())]);
+});
+
+export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
 	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
 		Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true }),
 	);
-	const daily = Effect.forever(
-		Effect.scoped(
-			Effect.gen(function* () {
-				const now = new Date(yield* Clock.currentTimeMillis);
-				const due = yield* Reconcile.run(dueSmoothing, { now: now.toISOString() }, (demands) =>
-					Effect.forEach(
-						demands,
-						(demand) => {
-							const key = demand.pieceId === null ? ["smoothing-day", demand.voyageId, localDay(now)] : ["smoothing-piece", demand.pieceId];
-							return commit.commit(requestSmoothing, { ...demand, requestId: Request.make(JSON.stringify(key)) }).pipe(
-								Effect.catchTag("AlreadyDone", () => Effect.void),
-								Effect.orDie,
-							);
-						},
-						{ discard: true },
-					),
-				);
-				const tomorrow = new Date(now);
-				tomorrow.setHours(24, 0, 0, 0);
-				yield* Effect.raceAllFirst([due.await, Effect.sleep(tomorrow.getTime() - now.getTime())]);
-			}),
-		),
-	);
-	yield* Effect.all([pending.await, daily], { concurrency: "unbounded", discard: true });
+	yield* Effect.all([pending.await, Effect.forever(Effect.scoped(watchDay()))], { concurrency: "unbounded", discard: true });
 });

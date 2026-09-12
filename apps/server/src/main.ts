@@ -1,6 +1,4 @@
 import { createServer } from "node:http";
-import { makeGitHubHost } from "@antumbra/edge-github/host.ts";
-import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { ServerToken } from "@antumbra/platform-rpc/token.ts";
 import { DataDirectory } from "@antumbra/server-journal/database.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
@@ -10,7 +8,7 @@ import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
-import { ghProcessLayer } from "#adapters/github/process.ts";
+import { githubHosts } from "#adapters/github/hosts.ts";
 import { application } from "#application.ts";
 import { Files } from "#files.ts";
 import { type Options, options } from "#options.ts";
@@ -21,10 +19,6 @@ const HOST = "127.0.0.1";
 
 const journal = (directory: string) => Journal.file().pipe(Layer.provide(Layer.succeed(DataDirectory, { path: directory })));
 
-const hosts = Layer.effect(
-	ChangeHosts,
-	Effect.map(makeGitHubHost({ executable: "gh" }), (host) => [host]),
-).pipe(Layer.provide(ghProcessLayer));
 const artifacts = Layer.unwrap(
 	Effect.gen(function* () {
 		const files = yield* Files;
@@ -34,7 +28,7 @@ const artifacts = Layer.unwrap(
 );
 const listener = (settings: Options) => {
 	const app = application.pipe(
-		Layer.provideMerge(Layer.mergeAll(journal(settings.directory), hosts, artifacts)),
+		Layer.provideMerge(Layer.mergeAll(journal(settings.directory), githubHosts, artifacts)),
 		Layer.provideMerge(Layer.succeed(Files, { root: settings.files })),
 	);
 	return HttpRouter.serve(transport, { disableListenLog: true }).pipe(

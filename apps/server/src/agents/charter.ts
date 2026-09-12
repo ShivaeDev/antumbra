@@ -1,5 +1,5 @@
 import { Charter } from "@antumbra/domain-agents/ports/charter.ts";
-import type { birth } from "@antumbra/domain-agents/rows/birth.ts";
+import { type birth, bornAs } from "@antumbra/domain-agents/rows/birth.ts";
 import { pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { digest } from "@antumbra/domain-boards/queries/digest.ts";
 import { entries } from "@antumbra/domain-boards/queries/entries.ts";
@@ -51,7 +51,8 @@ const chartered = Effect.fn("Agents.charter")(function* (held: Birth) {
 	const voyageLog = voyage === null ? [] : (yield* live.read(digest, { board: voyageBoard(voyage.id) })).map((entry) => entry.body);
 	const context = voyage?.context ?? "";
 	const northStar = voyage?.northStar ?? "";
-	if (held.role !== "captain")
+	const role = bornAs(held, voyage);
+	if (role === "crew")
 		return crewCharter({
 			context,
 			northStar,
@@ -63,7 +64,7 @@ const chartered = Effect.fn("Agents.charter")(function* (held: Birth) {
 			pieceLog: piece === null ? [] : (yield* live.read(digest, { board: pieceBoard(piece.id) })).map((entry) => entry.body),
 		});
 	const input = { context, northStar, voyageLog, rulings, pieceLines: voyage === null ? [] : yield* pieceLines(voyage.id) };
-	return voyage?.kind === "flagship" ? flagshipCharter(input) : captainCharter(input);
+	return role === "flagship" ? flagshipCharter(input) : captainCharter(input);
 });
 
 const compose = Effect.fn("Agents.compose")(function* (held: Birth) {

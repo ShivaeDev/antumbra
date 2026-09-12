@@ -3,6 +3,7 @@ import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceAssignmentWork } from "@antumbra/domain-pieces/rows/piece-assignment-work.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { resourceOwner } from "@antumbra/domain-reclamation/rows/resource-owner.ts";
+import { roleSetting } from "@antumbra/domain-role-settings/rows/role-setting.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { sessionStartResult } from "@antumbra/domain-sessions/rows/session-start-result.ts";
@@ -94,6 +95,7 @@ export const agents = feature("agents", {
 		sessionStartResult,
 		capacity,
 		voyage,
+		roleSetting,
 	],
 	facts: [crewRetired, agentRetired, smoothingRequested, birthRequested, birthAdmitted, birthHeld, birthCancelled, birthRetried],
 	commands: [retireCrew, retire, spawn, hail, workNow, request, admit, hold, cancel, retry, smooth],

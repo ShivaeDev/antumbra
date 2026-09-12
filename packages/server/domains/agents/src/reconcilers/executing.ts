@@ -8,6 +8,7 @@ import { BirthHeld, Provisioning } from "#ports/provisioning.ts";
 import { RunnerOperations } from "#ports/runner-operations.ts";
 import { ToolCatalog } from "#ports/tool-catalog.ts";
 import { admitted } from "#queries/admitted.ts";
+import { bornAs } from "#rows/birth.ts";
 
 export const executing = reconciler("executing", {
 	watch: admitted,
@@ -20,7 +21,7 @@ export const executing = reconciler("executing", {
 			const requestId = Request.make(held.operationRequestId);
 			const cwd = held.cwd ?? (yield* ports.provisioning.prepare(held.agentId, requestId, runnerId));
 			const voyage = held.voyageId === null ? null : yield* reconciling.read(byId, { id: held.voyageId });
-			const toolSet = yield* ports.toolCatalog.freeze(held.role, voyage?.kind ?? null);
+			const toolSet = yield* ports.toolCatalog.freeze(bornAs(held, voyage));
 			const chartered = yield* ports.charter.compose(held);
 			const refused = yield* ports.runnerOperations.start(runnerId, {
 				requestId: held.operationRequestId,

@@ -1,7 +1,9 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import type { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
+import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Schema } from "effect";
 import { AgentId, BirthId } from "#ids.ts";
 
@@ -28,3 +30,9 @@ export const birth = row(
 	},
 	{ key: "id" },
 );
+
+export const bornAs = (held: typeof birth.Row.Type, sailing: typeof voyage.Row.Type | null): AgentRole => {
+	if (held.role === "smoother") return "smoother";
+	if (held.role !== "captain" || held.pieceId !== null || sailing === null) return "crew";
+	return sailing.kind === "flagship" ? "flagship" : "captain";
+};

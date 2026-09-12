@@ -7,6 +7,4 @@ export interface Chartered {
 	readonly constrainedPrompt: string | null;
 }
 
-export type Born = typeof birth.Row.Type;
-
-export class Charter extends port<Charter, { readonly compose: (born: Born) => Effect.Effect<Chartered> }>()("charter") {}
+export class Charter extends port<Charter, { readonly compose: (held: typeof birth.Row.Type) => Effect.Effect<Chartered> }>()("charter") {}

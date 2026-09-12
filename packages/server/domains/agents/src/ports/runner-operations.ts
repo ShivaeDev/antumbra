@@ -1,21 +1,20 @@
 import { port } from "@antumbra/platform-feature/port.ts";
-import { ToolSet } from "@antumbra/platform-vocabulary/tool-set.ts";
-import { type Effect, Schema } from "effect";
+import type { ToolSet } from "@antumbra/platform-vocabulary/tool-set.ts";
+import type { Effect } from "effect";
 
-export const StartOrder = Schema.Struct({
-	requestId: Schema.String,
-	sessionId: Schema.String,
-	agentId: Schema.String,
-	backend: Schema.String,
-	cwd: Schema.String,
-	model: Schema.NullOr(Schema.String),
-	effort: Schema.NullOr(Schema.String),
-	constrainedPrompt: Schema.NullOr(Schema.String),
-	toolSet: ToolSet,
-	charterId: Schema.String,
-	charter: Schema.String,
-});
-export type StartOrder = typeof StartOrder.Type;
+export interface StartOrder {
+	readonly requestId: string;
+	readonly sessionId: string;
+	readonly agentId: string;
+	readonly backend: string;
+	readonly cwd: string;
+	readonly model: string | null;
+	readonly effort: string | null;
+	readonly constrainedPrompt: string | null;
+	readonly toolSet: ToolSet;
+	readonly charterId: string;
+	readonly charter: string;
+}
 
 export class RunnerOperations extends port<
 	RunnerOperations,

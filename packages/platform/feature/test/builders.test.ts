@@ -52,11 +52,40 @@ describe("fact", () => {
 		expect(Object.keys(noteWritten.Fact.fields).toSorted()).toEqual(["at", "noteId", "requestId", "seq", "text"]);
 		expect(Object.keys(noteWritten.Payload.fields).toSorted()).toEqual(["noteId", "text"]);
 	});
+
+	it("refuses a payload field the journal stamps", () => {
+		expect(() => fact("NoteWritten", { noteId: Schema.String, seq: Schema.Number })).toThrow(
+			'the fact "NoteWritten" declares the field "seq", which the journal stamps on every fact',
+		);
+	});
+
+	it("accepts a payload that names no stamped field", () => {
+		const noteNumbered = fact("NoteNumbered", { noteId: Schema.String, number: Schema.Number });
+		expect(Object.keys(noteNumbered.Payload.fields)).toEqual(["noteId", "number"]);
+	});
 });
 
 describe("command", () => {
 	it("puts the request id on the input the caller must supply", () => {
 		expect(Object.keys(write.Input.fields).toSorted()).toEqual(["noteId", "requestId", "text"]);
+	});
+
+	it("refuses an input field every command takes from its caller", () => {
+		const declare = () =>
+			command("write", {
+				input: { noteId: Schema.String, requestId: Schema.String },
+				reads: [note],
+				emits: noteWritten,
+				rejections: {},
+				run: Effect.fn("notes.write")(function* (input) {
+					return yield* Effect.succeed({ noteId: input.noteId, text: "" });
+				}),
+			});
+		expect(declare).toThrow('the command "write" declares the field "requestId", which every command takes from its caller');
+	});
+
+	it("accepts an input that names no reserved field", () => {
+		expect(Object.keys(write.input)).toEqual(["noteId", "text"]);
 	});
 
 	it("carries AlreadyDone beside the rejections it declared", () => {

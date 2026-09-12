@@ -1,7 +1,7 @@
+import { eventually } from "@antumbra/app-testing/answers.ts";
 import { labelled, named, renderedForm, submit, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
-import { Option, Stream } from "effect";
 import { RoleDefaults } from "#defaults.tsx";
 import { VoyageRoleSettings } from "#voyage.tsx";
 
@@ -18,11 +18,8 @@ it.glass("saves a fleet choice", function* ({ api, render }) {
 	const flagship = yield* renderedForm(container, "Flagship");
 	yield* write(labelled<HTMLInputElement>(flagship, "Flagship Model"), "opus");
 	yield* submit(container, "Flagship");
-	const saved = yield* api.roleSettings.defaults({}).pipe(
-		Stream.filter((rows) => rows.some((row) => row.role === "flagship" && row.model === "opus")),
-		Stream.runHead,
-	);
-	expect(Option.getOrThrow(saved).find((row) => row.role === "flagship")).toMatchObject({
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.model === "opus"));
+	expect(saved.find((row) => row.role === "flagship")).toMatchObject({
 		backend: null,
 		effort: null,
 		model: "opus",
@@ -40,11 +37,10 @@ it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, r
 	expect([...labelled<HTMLSelectElement>(captain, "Captain Backend").options].map((option) => option.text)).toContain("Fleet default (codex)");
 	yield* write(labelled<HTMLSelectElement>(crew, "Crew Backend"), "claude");
 	yield* submit(container, "Crew");
-	const saved = yield* api.roleSettings.forVoyage({ voyageId: VOYAGE }).pipe(
-		Stream.filter((rows) => rows.some((row) => row.role === "crew" && row.backend === "claude")),
-		Stream.runHead,
+	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
+		rows.some((row) => row.role === "crew" && row.backend === "claude"),
 	);
-	expect(Option.getOrThrow(saved).find((row) => row.role === "crew")).toMatchObject({
+	expect(saved.find((row) => row.role === "crew")).toMatchObject({
 		backend: "claude",
 		effort: null,
 		model: null,

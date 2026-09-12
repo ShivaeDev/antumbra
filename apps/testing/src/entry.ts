@@ -2,7 +2,7 @@ import { apiOf } from "@antumbra/server-journal/testing/api.ts";
 import { kit } from "@antumbra/server-journal/testing/kit.ts";
 import type { TestApp } from "@antumbra/server-journal/testing/surface.ts";
 import { it as test } from "@effect/vitest";
-import { Effect, type Layer, Option, type Scope, Stream } from "effect";
+import { Effect, type Layer, type Scope } from "effect";
 import { definition, layer } from "#app.ts";
 
 export type App = TestApp<typeof definition.features>;
@@ -20,7 +20,6 @@ export const it = {
 		),
 };
 
-export const answered = <Value, Failure>(stream: Stream.Stream<Value, Failure>): Effect.Effect<Value, Failure> =>
-	Effect.map(Stream.runHead(stream), Option.getOrThrow);
+export { answered, eventually } from "#answers.ts";
 
 export { definition } from "#app.ts";

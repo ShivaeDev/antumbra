@@ -26,6 +26,7 @@
 		"typecheck:compat:workspace": "tsc6 --noEmit -p tsconfig.workspace.json",
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
+		"journal": "node script/journal.ts",
 		"pr": "node script/pr.ts",
 		"ready": "node script/ready.ts",
 		"wt": "node script/wt.ts",
@@ -33,6 +34,9 @@
 		"test:app": "pnpm --filter @antumbra/app-testing test"
 	},
 	"devDependencies": {
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
 		"@biomejs/biome": "catalog:",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",

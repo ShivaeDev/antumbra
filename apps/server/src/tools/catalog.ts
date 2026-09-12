@@ -1,7 +1,7 @@
 import { artifactsTools } from "#tools/artifacts/tools.ts";
 import { writeSummaryTool } from "#tools/boards/summary.ts";
 import { boardTools } from "#tools/boards/tools.ts";
-import { changesTools } from "#tools/changes/tools.ts";
+import { changesTools } from "#tools/changes/handlers.ts";
 import { captainPieceTools } from "#tools/pieces/tools.ts";
 import { landReportTool } from "#tools/reports/land.ts";
 import { readReportTool } from "#tools/reports/read.ts";

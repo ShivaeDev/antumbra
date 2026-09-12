@@ -22,7 +22,7 @@ const windowTitle = (place: WindowPlace): string => {
 	if (place.role === "console") {
 		return "Antumbra";
 	}
-	return place.role === "artifact" ? "Artifact" : `Session ${place.sessionId.slice(0, 8)}`;
+	return place.role === "artifact" ? "Artifact" : `Session ${place.sessionId}`;
 };
 
 const construct = (place: WindowPlace): BrowserWindow =>

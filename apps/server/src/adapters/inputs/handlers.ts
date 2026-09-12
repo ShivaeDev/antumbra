@@ -6,7 +6,7 @@ import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { reading } from "@antumbra/domain-inputs/queries/reading.ts";
 import type { Draft, ImageRequest, Receipt } from "@antumbra/domain-inputs/rows/content.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
@@ -23,7 +23,7 @@ export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 	const recordNew = Effect.fn("inputs.recordNew")(function* (draft: Draft, digest: string) {
 		const prepared = yield* prepare(root, draft);
 		yield* commit
-			.commit(record, { ...prepared, requestId: Request.make(`input:${draft.id}`) })
+			.commit(record, { ...prepared, requestId: Id.Request.make(`input:${draft.id}`) })
 			.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 		const recorded = yield* current(draft.sessionId, draft.id);
 		if (recorded === null || recorded.requestDigest !== digest) return yield* new InputConflict({ inputId: draft.id });
@@ -36,7 +36,7 @@ export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 		if (held?.status === "ambiguous") return yield* new InputAmbiguous({ inputId: draft.id });
 		if (held?.status === "accepted" || held?.status === "queued_for_wake") return { id: draft.id, status: held.status } satisfies Receipt;
 		if (held?.status === "refused") {
-			yield* commit.commit(retry, { id: draft.id, requestId: Request.make(crypto.randomUUID()) }).pipe(
+			yield* commit.commit(retry, { id: draft.id, requestId: Id.Request.make(Id.make()) }).pipe(
 				Effect.catchTag("DeliverySettled", () => Effect.void),
 				Effect.catchTag("AlreadyDone", () => Effect.void),
 			);

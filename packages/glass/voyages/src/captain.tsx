@@ -13,7 +13,7 @@ export const CaptainCall = (props: { readonly api: VoyagesDisplayApi; readonly v
 			) : (
 				<span className="flex min-w-0 items-center gap-1.5 text-2xs text-muted-foreground">
 					<span>Captain</span>
-					<span className="truncate font-mono">{captain.agentId?.slice(0, 8)}</span>
+					<span className="truncate font-mono">{captain.agentId}</span>
 					<span>· {captain.standing}</span>
 				</span>
 			)

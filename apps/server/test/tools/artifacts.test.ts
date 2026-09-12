@@ -37,7 +37,7 @@ import { removeArtifactSupersessionTool, supersedeArtifactTool } from "#tools/ar
 it.app("artifact tools bind authors and keep replacement corrections", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	const source = yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	const source = yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	const context = { agentId: source.agentId, sessionId: source.sessionId, callId: "artifact:old", pieceId };
@@ -56,7 +56,7 @@ it.app("artifact tools bind authors and keep replacement corrections", function*
 it.app("a repeated landing can answer after its source is gone", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	const source = yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	const source = yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	const context = { agentId: source.agentId, sessionId: source.sessionId, callId: "artifact:chart", pieceId };

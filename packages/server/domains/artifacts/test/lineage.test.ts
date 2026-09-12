@@ -3,16 +3,16 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { ArtifactId } from "#ids.ts";
-import { chartering, landing, opening, pieceId } from "#test/kit.ts";
+import { cartographer, chartering, landing, opening, pieceId } from "#test/kit.ts";
 
 const old = ArtifactId.make("old");
 const next = ArtifactId.make("next");
-const edge = { supersededArtifactId: old, successorArtifactId: next, actorAgentId: "agent:cartographer" };
+const edge = { supersededArtifactId: old, successorArtifactId: next, actorAgentId: cartographer };
 
 it.app("correcting a replacement restores both artifacts", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing(old, "old.md");
@@ -28,7 +28,7 @@ it.app("correcting a replacement restores both artifacts", function* (app) {
 it.app("refuses a cycle and an unrelated author's correction", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing(old, "old.md");

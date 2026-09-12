@@ -3,7 +3,7 @@ import { optional, titled } from "@antumbra/platform-feature/edit.ts";
 import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { Effect, Schema } from "effect";
 import { birthRequested } from "#facts/birth-requested.ts";
-import { BirthId, identity } from "#ids.ts";
+import { identity } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 
 export const spawn = command("spawn", {
@@ -21,7 +21,7 @@ export const spawn = command("spawn", {
 		if (yield* rows.agent.exists(ids.agentId)) return yield* reject.AgentExists({ id: ids.agentId });
 		return {
 			wakeSessionId: null,
-			id: BirthId.make(input.requestId),
+			id: ids.birthId,
 			source: "direct" as const,
 			agentId: ids.agentId,
 			sessionId: ids.sessionId,

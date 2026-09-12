@@ -1,1 +1,3 @@
-export const workBranch = (agentId: string, slug: string): string => `work/${agentId.slice(0, 8)}/${slug}`;
+export const workBranch = (agentId: string, slug: string): string => `work/${agentId}/${slug}`;
+
+export const namesResources = (agentId: string): boolean => /^[0-9a-z]+$/.test(agentId);

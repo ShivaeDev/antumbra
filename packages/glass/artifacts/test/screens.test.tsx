@@ -1,4 +1,4 @@
-import { prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
+import { artifactAuthor, prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
 import { landArtifact, readArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { click, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
@@ -27,7 +27,7 @@ const opening = {
 	crewEffort: null,
 	crewModel: null,
 } as const;
-const landing = { pieceId, authorAgentId: "agent:cartographer", path: "old.md", title: "Old chart", supersedesArtifactId: null };
+const landing = { pieceId, authorAgentId: artifactAuthor("agent:cartographer"), path: "old.md", title: "Old chart", supersedesArtifactId: null };
 
 it.glass("revisions update the current artifact and keep readable history", function* ({ api, artifacts, render, run }) {
 	yield* api.voyages.open(opening);
@@ -40,7 +40,7 @@ it.glass("revisions update the current artifact and keep readable history", func
 		role: "hand",
 		dependsOn: [],
 	});
-	yield* run(prepareArtifactSource({ agentId: "agent:cartographer" }));
+	yield* run(prepareArtifactSource({ seed: "agent:cartographer" }));
 	artifacts.source.set("old.md", "# First sounding");
 	artifacts.source.set("new.md", "# Latest sounding");
 	yield* run(landArtifact({ ...landing, requestId: Id.Request.make(old) }));

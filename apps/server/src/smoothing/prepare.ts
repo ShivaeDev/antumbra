@@ -8,7 +8,7 @@ import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-at
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Clock, Effect, Option, Stream } from "effect";
@@ -19,14 +19,14 @@ export const prepareSmoother = Effect.fn("Smoothing.prepare")(function* (
 ) {
 	const live = yield* Live;
 	const commit = yield* Commit;
-	const sessionId = SessionId.make(JSON.stringify(["smoothing", attempt.id, target.board, target.coversFrom, target.coversTo]));
+	const sessionId = SessionId.make(Id.derive("smoothing", attempt.id, target.board, String(target.coversFrom), String(target.coversTo)));
 	const known = yield* live.read(birthBySession, { sessionId });
 	const retained = yield* live.read(smoother, { voyageId: attempt.voyageId });
-	const agentId = known?.agentId ?? retained?.id ?? AgentId.make(crypto.randomUUID());
+	const agentId = known?.agentId ?? retained?.id ?? AgentId.make(Id.make());
 	const start = Effect.gen(function* () {
 		if (known === null)
 			yield* commit
-				.commit(smooth, { agentId, sessionId, voyageId: attempt.voyageId, cwd: null, requestId: Request.make(`${sessionId}:start`) })
+				.commit(smooth, { agentId, sessionId, voyageId: attempt.voyageId, cwd: null, requestId: Id.Request.make(`${sessionId}:start`) })
 				.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 		const started = Option.getOrNull(
 			yield* Stream.runHead(
@@ -43,7 +43,7 @@ export const prepareSmoother = Effect.fn("Smoothing.prepare")(function* (
 			const pending = yield* live.read(birthBySession, { sessionId });
 			if (pending !== null && (pending.status === "requested" || pending.status === "waiting"))
 				yield* commit
-					.commit(cancel, { id: pending.id, requestId: Request.make(`${sessionId}:cancel`) })
+					.commit(cancel, { id: pending.id, requestId: Id.Request.make(`${sessionId}:cancel`) })
 					.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 			return;
 		}
@@ -55,7 +55,7 @@ export const prepareSmoother = Effect.fn("Smoothing.prepare")(function* (
 				inputId: null,
 				reason: "the smoothing pass finished",
 				requestedAt: new Date(yield* Clock.currentTimeMillis).toISOString(),
-				requestId: Request.make(`${sessionId}:stop`),
+				requestId: Id.Request.make(`${sessionId}:stop`),
 			})
 			.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 		yield* Effect.interruptible(Stream.runHead(live.live(reading, { id: sessionId }).pipe(Stream.filter((held) => held?.status === "closed"))));

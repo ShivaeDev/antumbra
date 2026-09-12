@@ -7,6 +7,7 @@ import { inputRequest } from "@antumbra/glass-inputs/adapters/request.ts";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { inputFailureMessage } from "@antumbra/glass-inputs/failure.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { useRef, useState } from "react";
@@ -33,7 +34,7 @@ export const SituationDialog = (props: {
 		if (inFlight.current || draft.drafting || draft.text.trim() === "") return;
 		inFlight.current = true;
 		setSending(true);
-		const id = inputId.current ?? SessionInputId.make(crypto.randomUUID());
+		const id = inputId.current ?? SessionInputId.make(Id.make());
 		inputId.current = id;
 		Effect.runFork(
 			Effect.gen(function* () {

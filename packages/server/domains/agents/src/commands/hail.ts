@@ -4,7 +4,7 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
 import { birthRequested } from "#facts/birth-requested.ts";
-import { BirthId, identity } from "#ids.ts";
+import { identity } from "#ids.ts";
 import { captain } from "#queries/captain.ts";
 import { agent } from "#rows/agent.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
@@ -34,7 +34,7 @@ export const hail = command("hail", {
 		} else if (Option.isSome(yield* rows.agent.find(ids.agentId))) return yield* reject.AgentExists({ id: ids.agentId });
 		return {
 			wakeSessionId,
-			id: BirthId.make(input.requestId),
+			id: ids.birthId,
 			source: "direct" as const,
 			agentId: ids.agentId,
 			sessionId: ids.sessionId,

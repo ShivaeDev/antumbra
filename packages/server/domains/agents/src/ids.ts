@@ -11,6 +11,7 @@ export const BirthId = Id.brand("BirthId");
 export type BirthId = typeof BirthId.Type;
 
 export const identity = (requestId: Id.Request) => ({
-	agentId: AgentId.make(requestId),
-	sessionId: SessionId.make(`${requestId}:session`),
+	agentId: AgentId.make(Id.derive(requestId, "agent")),
+	sessionId: SessionId.make(Id.derive(requestId, "session")),
+	birthId: BirthId.make(Id.derive(requestId, "birth")),
 });

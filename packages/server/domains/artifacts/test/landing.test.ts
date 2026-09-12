@@ -9,7 +9,7 @@ import { chartering, landing, opening, pieceId } from "#test/kit.ts";
 it.app("landed bytes survive losing their source", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing("chart", "old.md");
@@ -21,7 +21,7 @@ it.app("landed bytes survive losing their source", function* (app) {
 it.app("only an explicit revision moves an artifact into history", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing("old", "old.md");
@@ -42,7 +42,7 @@ it.app("only an explicit revision moves an artifact into history", function* (ap
 it.app("an unavailable source leaves no landed artifact", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	yield* prepareArtifactSource({ agentId: "agent:cartographer" });
+	yield* prepareArtifactSource({ seed: "agent:cartographer" });
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	expect(yield* Effect.flip(landing("missing", "missing.md"))).toMatchObject({ _tag: "ArtifactPublicationFailed" });

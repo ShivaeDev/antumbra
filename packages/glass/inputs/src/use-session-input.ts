@@ -1,3 +1,4 @@
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { useRef, useState } from "react";
@@ -24,7 +25,7 @@ export const useSessionInput = (api: InputsClient, drafts: Drafts, sessionId: st
 		if (inFlight.current || (images.images.length === 0 && words.text.trim() === "")) return;
 		inFlight.current = true;
 		setSending(true);
-		const id = inputId ?? SessionInputId.make(crypto.randomUUID());
+		const id = inputId ?? SessionInputId.make(Id.make());
 		setInputId(id);
 		setIssue(undefined);
 		const text = words.text;

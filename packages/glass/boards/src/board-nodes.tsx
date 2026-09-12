@@ -9,7 +9,7 @@ import { coveredLabel, summaryTitle } from "#summary-labels.ts";
 
 type Entry = typeof boardEntry.Row.Type;
 
-const author = (entry: Entry): string => (entry.kind !== "note" ? "Smoother" : (entry.authorAgentId?.slice(0, 8) ?? "you"));
+const author = (entry: Entry): string => (entry.kind !== "note" ? "Smoother" : (entry.authorAgentId ?? "you"));
 
 const PieceLink = (props: {
 	readonly api: BoardDisplayApi;

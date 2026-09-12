@@ -9,7 +9,7 @@ import { Diagnostics } from "#diagnostics.tsx";
 
 it.glass("a requested birth remains diagnosable before its conversation starts", function* ({ api, render }) {
 	const requested = Request.make("agent:surveyor");
-	const { agentId } = identity(requested);
+	const { agentId, sessionId } = identity(requested);
 	yield* api.agents.spawn({ requestId: requested, role: "surveyor", backend: "claude", model: null, effort: null });
 	const agent = yield* answered(api.agents.reading({ id: agentId }));
 	if (agent === null) return yield* Effect.die("Missing requested Agent reading");
@@ -18,5 +18,5 @@ it.glass("a requested birth remains diagnosable before its conversation starts",
 	if (disclosure === null) return yield* Effect.die("Missing Agent diagnostics disclosure");
 	yield* click(disclosure);
 	yield* until(() => container.textContent?.includes("birth · requested") === true, "the pending birth diagnostic");
-	expect(container.textContent).toContain("current agent:su");
+	expect(container.textContent).toContain(`current ${sessionId}`);
 });

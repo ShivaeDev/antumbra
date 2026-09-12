@@ -27,7 +27,7 @@ const OriginSession = ({ item, onOpenSession }: { readonly item: QuayChange; rea
 			type="button"
 			variant="link"
 		>
-			Session {sessionId.slice(0, 8)}
+			Session {sessionId}
 		</Button>
 	);
 };

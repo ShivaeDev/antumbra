@@ -1,9 +1,11 @@
+import { artifactAuthor } from "@antumbra/app-testing/artifact-source.ts";
 import { landArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 export const voyageId = VoyageId.make("voyage:reef");
 export const pieceId = PieceId.make("piece:reef");
+export const cartographer = artifactAuthor("agent:cartographer");
 export const opening = {
 	requestId: Id.Request.make(voyageId),
 	captainBackend: null,
@@ -30,7 +32,7 @@ export const landing = (name: string, path: string, supersedesArtifactId: Parame
 	landArtifact({
 		requestId: Id.Request.make(name),
 		pieceId,
-		authorAgentId: "agent:cartographer",
+		authorAgentId: cartographer,
 		path,
 		title: name,
 		supersedesArtifactId,

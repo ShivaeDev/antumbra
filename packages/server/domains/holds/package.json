@@ -1,0 +1,34 @@
+{
+	"name": "@antumbra/domain-holds",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*"
+	},
+	"dependencies": {
+		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"effect": "catalog:",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-mail": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*"
+	}
+}

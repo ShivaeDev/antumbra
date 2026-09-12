@@ -1,18 +1,10 @@
+import type { SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
 import type { UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
 import type { SessionEvent, SessionTreeNode } from "#transcript/types.ts";
 
-export interface OpenTool {
-	readonly name: string;
-}
-
-export interface SessionStanding {
-	readonly background: ReadonlyArray<BackgroundTask>;
-	readonly open: ReadonlyArray<OpenTool>;
-	readonly state: SessionState | undefined;
-	readonly usage: typeof UsageEvent.Type | undefined;
-}
+type OpenTool = SessionStanding["open"][number];
 
 interface Folding {
 	background: ReadonlyArray<BackgroundTask>;

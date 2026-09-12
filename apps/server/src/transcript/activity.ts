@@ -1,14 +1,9 @@
-import type { SessionStanding } from "#transcript/standing.ts";
+import type { Activity, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { SessionTreeNode } from "#transcript/types.ts";
 
 const presenceWords = { asleep: "asleep", ended: "ended", stranded: "stranded" };
 
 type Presence = "working" | "idle" | "asleep" | "ended" | "stranded";
-
-export interface Activity {
-	readonly live: boolean;
-	readonly words: string | undefined;
-}
 
 const toolNames = (names: ReadonlyArray<string>): string =>
 	names.length <= 2 ? names.join(", ") : `${names.slice(0, 2).join(", ")} + ${names.length - 2} more`;

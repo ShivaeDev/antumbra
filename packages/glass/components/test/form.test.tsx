@@ -33,7 +33,7 @@ it.glass("draws the choices allowed by the command schema", function* ({ api, re
 	]);
 });
 
-it.glass("offers models from the backend selected in the form", function* ({ api, render }) {
+it.glass("clears dependent choices when the backend changes", function* ({ api, render }) {
 	yield* api.backends.listModels({
 		backend: "claude",
 		failure: null,
@@ -47,14 +47,26 @@ it.glass("offers models from the backend selected in the form", function* ({ api
 			{ model: "gpt-mini", name: "GPT mini", efforts: ["medium", "high"], isDefault: false },
 		],
 	});
+	yield* api.roleSettings.choose({ backend: "claude", model: "opus", effort: "high", role: "flagship", scope: "fleet" });
 	const container = yield* render(<Board api={api} />);
 	yield* renderedForm(container, "Flagship");
-	yield* write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "claude");
+	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("opus");
+	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("high");
 	yield* until(() => offered(container, "Flagship Model").length === 1);
 	expect(offered(container, "Flagship Model")).toEqual(["opus"]);
 	yield* write(labelled<HTMLSelectElement>(container, "Flagship Backend"), "codex");
 	yield* until(() => offered(container, "Flagship Model").length === 2);
 	expect(offered(container, "Flagship Model")).toEqual(["gpt", "gpt-mini"]);
+	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("");
+	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("");
+	yield* submit(container, "Flagship");
+	const saved = Option.getOrThrow(
+		yield* api.roleSettings.defaults({}).pipe(
+			Stream.filter((rows) => rows.some((row) => row.role === "flagship" && row.backend === "codex")),
+			Stream.runHead,
+		),
+	);
+	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "codex", model: null, effort: null });
 });
 
 it.glass("saves a model absent from the catalogue", function* ({ api, render }) {

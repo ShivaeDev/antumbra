@@ -7,6 +7,7 @@ export const berthHeldMaterializer = materializer(berthHeld, {
 	writes: [berth],
 	run: Effect.fn("Reclamation.berthHeld")(function* (fact, rows) {
 		const stored = yield* rows.berth.get(fact.id);
-		yield* rows.berth.update(fact.id, { status: "stranded", strandedAt: stored.strandedAt ?? fact.at });
+		if (stored.reclaimRequestId !== fact.claimRequestId) return;
+		yield* rows.berth.update(fact.id, { reclaimResult: "held", status: "stranded", strandedAt: stored.strandedAt ?? fact.at });
 	}),
 });

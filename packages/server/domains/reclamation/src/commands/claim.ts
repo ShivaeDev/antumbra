@@ -26,8 +26,8 @@ export const claim = command("claim", {
 		if (heldAgent && claimed.length === 0) return yield* reject.Held(input);
 		const candidates = berths.filter(
 			(candidate) =>
-				candidate.reclaimState === "claimed" ||
-				(eligible && !heldAgent && candidate.runner === site.value.runner && candidate.status !== "reclaimed"),
+				(candidate.reclaimState === "claimed" && candidate.reclaimResult !== null) ||
+				(candidate.reclaimState === null && eligible && !heldAgent && candidate.runner === site.value.runner && candidate.status !== "reclaimed"),
 		);
 		if (candidates.length === 0) return yield* reject.NothingToReclaim(input);
 		return { agentId: input.agentId, berthIds: candidates.map((candidate) => candidate.id) };

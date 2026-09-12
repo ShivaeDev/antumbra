@@ -13,6 +13,6 @@ export const reclaimed = command("reclaimed", {
 	run: Effect.fn("Reclamation.reclaimed")(function* (input, rows, reject) {
 		const stored = yield* rows.berth.find(input.id);
 		if (Option.isNone(stored) || stored.value.reclaimRequestId !== input.claimRequestId) return yield* reject.StaleClaim({ id: input.id });
-		return { id: input.id };
+		return { id: input.id, claimRequestId: input.claimRequestId };
 	}),
 });

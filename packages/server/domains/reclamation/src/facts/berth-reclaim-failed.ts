@@ -3,4 +3,4 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Schema } from "effect";
 import { BerthId } from "#ids.ts";
 
-export const berthHeld = fact("BerthHeld", { id: BerthId, claimRequestId: Request, reason: Schema.String });
+export const berthReclaimFailed = fact("BerthReclaimFailed", { id: BerthId, claimRequestId: Request, reason: Schema.String });

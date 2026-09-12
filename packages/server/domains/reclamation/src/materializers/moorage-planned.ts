@@ -19,6 +19,7 @@ export const mooragePlannedMaterializer = materializer(mooragePlanned, {
 				status: "provisioning",
 				reclaimState: null,
 				reclaimRequestId: null,
+				reclaimResult: null,
 				strandedAt: null,
 			});
 		}

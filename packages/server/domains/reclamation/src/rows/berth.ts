@@ -17,6 +17,7 @@ export const berth = row(
 		path: Schema.String,
 		status: BerthStatusSchema,
 		reclaimRequestId: Schema.NullOr(Request),
+		reclaimResult: Schema.NullOr(Schema.Literals(["held", "failed"])),
 		reclaimState: Schema.NullOr(ResourceReclaimStateSchema),
 		strandedAt: Schema.NullOr(Schema.Number),
 	},

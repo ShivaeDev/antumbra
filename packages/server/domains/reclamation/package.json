@@ -20,12 +20,15 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@antumbra/platform-runner": "workspace:*"
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/server-journal": "workspace:*"
 	}
 }

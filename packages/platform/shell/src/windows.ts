@@ -13,6 +13,15 @@ export const ConsolePlace = Schema.Struct({
 });
 export type ConsolePlace = typeof ConsolePlace.Type;
 
+export const defaultConsole = {
+	changeId: null,
+	mode: "flagship",
+	pieceId: null,
+	role: "console",
+	sessionId: null,
+	voyageId: null,
+} as const satisfies ConsolePlace;
+
 const TranscriptPlace = Schema.Struct({
 	role: Schema.Literal("transcript"),
 	sessionId: Schema.String,

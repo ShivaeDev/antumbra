@@ -1,4 +1,4 @@
-import { type ConsolePlace, WindowPlace } from "@antumbra/platform-shell/windows.ts";
+import { defaultConsole, WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Result, Schema } from "effect";
 import { subjectOf } from "#adapters/windows/subject.ts";
 
@@ -16,15 +16,6 @@ export const WindowLayout = Schema.Struct({
 export type WindowLayout = typeof WindowLayout.Type;
 
 const decodeLayout = Schema.decodeUnknownResult(Schema.fromJsonString(WindowLayout));
-
-export const defaultConsole = {
-	changeId: null,
-	mode: "flagship",
-	pieceId: null,
-	role: "console",
-	sessionId: null,
-	voyageId: null,
-} as const satisfies ConsolePlace;
 
 export const layoutOf = (windows: ReadonlyArray<RememberedWindow>, focused: string | null): WindowLayout => ({ focused, version: 2, windows });
 

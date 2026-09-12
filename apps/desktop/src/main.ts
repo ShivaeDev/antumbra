@@ -7,7 +7,7 @@ import { ShellDraftsLayer } from "#adapters/drafts.ts";
 import { drainManagedRuntime, requestRestart } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
 import { RunnerProcessLayer } from "#adapters/runner-process.ts";
-import { ServerProcessLive } from "#adapters/server-process.ts";
+import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -31,6 +31,7 @@ import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
 import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry.ts";
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
+import { browserLink } from "#browser-link.ts";
 
 const ownerLayers = (shell: WindowShell, directory: string) => {
 	const state = ShellStateLayer(directory).pipe(Layer.provide(NodeServices.layer));
@@ -46,6 +47,15 @@ const ownerLayers = (shell: WindowShell, directory: string) => {
 	);
 };
 
+const announceBrowserLink = (document: string) =>
+	Effect.gen(function* () {
+		const serving = yield* ServerProcess.use((source) => source.serving);
+		const link = browserLink(document, serving);
+		if (link !== undefined) {
+			yield* Effect.logInfo(`browser: ${link}`);
+		}
+	});
+
 const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =>
 	Effect.gen(function* () {
 		const restarting = yield* Ref.make(false);
@@ -59,6 +69,7 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 			);
 			yield* whenReady;
 			yield* registerShellBridge(shell.registry, () => runtime.runPromise(restart));
+			yield* announceBrowserLink(shell.document);
 			yield* Effect.sync(registerOpenExternal);
 			yield* quitWhenAllWindowsClosed;
 			yield* lifecycle("honorRestart");

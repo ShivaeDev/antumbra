@@ -28,3 +28,9 @@ export interface ShellBridge {
 	readonly clearDraft: (ref: DraftRef, revision: string) => Promise<void>;
 	readonly subscribeDraft: (ref: DraftRef, listener: (snapshot: DraftSnapshot) => void) => () => void;
 }
+
+declare global {
+	interface Window {
+		readonly antumbra?: ShellBridge;
+	}
+}

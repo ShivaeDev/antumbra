@@ -1,5 +1,6 @@
+import { defaultConsole } from "@antumbra/platform-shell/windows.ts";
 import { describe, expect, it } from "@effect/vitest";
-import { defaultConsole, layoutOf, readLayout, restorePlan, writeLayout } from "#adapters/windows/layout.ts";
+import { layoutOf, readLayout, restorePlan, writeLayout } from "#adapters/windows/layout.ts";
 import { artifactPlace, transcriptPlace } from "#test/windows.ts";
 
 const voyaging = {

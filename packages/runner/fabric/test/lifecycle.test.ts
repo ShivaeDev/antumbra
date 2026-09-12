@@ -101,3 +101,41 @@ it.effect("audits a closed node without acquiring a provider session", () =>
 		}).pipe(Effect.provide(test.live));
 	}),
 );
+
+it.effect("attributes missing node audit gaps to the audited child", () =>
+	Effect.gen(function* () {
+		const test = yield* fixture;
+		test.nodeEvents.push({ type: "subsession.gap", gapKind: "spilled-preview", raw: { source: "scripted", kind: "audit", payload: "missing" } });
+		yield* Effect.gen(function* () {
+			const fabric = yield* RunnerFabric;
+			const log = yield* RunnerLog;
+			yield* log.append({
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId: "session",
+				event: {
+					type: "subsession.opened",
+					subsessionRef: "child",
+					spawnedBy: "spawn",
+					raw: { source: "scripted", kind: "opened", payload: "child" },
+				},
+			});
+			yield* fabric.execute({
+				type: "Audit",
+				requestId: "audit",
+				sessionId: "session",
+				backend: "scripted",
+				cwd: "/work",
+				rootRef: "native",
+				nodeRef: "child",
+			});
+			const events = (yield* log.read(-1)).map(({ event }) => event);
+			expect(events[1]).toMatchObject({
+				type: "ProviderEvent",
+				observation: "audit",
+				event: { type: "subsession.gap", origin: { node: "child", spawnedBy: "spawn" } },
+			});
+			expect(events[2]?.type).toBe("SessionNodeAudited");
+		}).pipe(Effect.provide(test.live));
+	}),
+);

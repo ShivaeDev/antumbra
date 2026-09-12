@@ -14,6 +14,7 @@ it.effect("logs native start and charter acceptance before answering and reuses 
 			expect(yield* fabric.execute(start)).toEqual({ type: "Accepted" });
 			expect(yield* fabric.execute(start)).toEqual({ type: "Accepted" });
 			expect(test.opens()).toBe(1);
+			expect((yield* log.read(-1))[0]?.event.type).toBe("SessionStarted");
 			expect(test.queued).toHaveLength(1);
 			expect((yield* log.request("start")).map(({ event }) => event.type)).toEqual(["SessionStarted", "InputAccepted"]);
 			yield* fabric.execute({

@@ -47,8 +47,8 @@ export const acquire = Effect.fn("RunnerFabric.acquire")(function* (state: State
 			.pipe(Scope.provide(scope), Effect.forkIn(scope), Effect.flatMap(Fiber.join));
 		entry.handle = handle;
 		const observed = Effect.fn("RunnerFabric.observe")(function* (event: AgentEvent) {
-			yield* record(entry, sessionId, event, "live");
 			if (event.type === "session.opened") yield* confirm(entry, operation, event.nativeRef);
+			yield* record(entry, sessionId, event, "live");
 			if (event.type === "subsession.ended") {
 				const root = yield* handle.nativeRef;
 				if (Option.isSome(root)) yield* audit(entry, operation, root.value, event.subsessionRef);

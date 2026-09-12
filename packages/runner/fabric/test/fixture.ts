@@ -36,13 +36,14 @@ export const fixture = Effect.gen(function* () {
 	const released = yield* Deferred.make<void>();
 	const steered: SessionInput[] = [];
 	const auditEvents: AgentEvent[] = [];
+	const nodeEvents: AgentEvent[] = [];
 	const acquisitions: OpenSessionOptions[] = [];
 	const forwarded = yield* Deferred.make<void>();
 	const answer = yield* Deferred.make<{ ok: boolean; text: string }>();
 	let opens = 0;
 	const backend: AgentBackend = {
 		tag: "scripted",
-		audit: { ...noSessionAudit, census: () => Effect.succeed({ events: auditEvents, nodes: [] }) },
+		audit: { ...noSessionAudit, node: () => Effect.succeed(nodeEvents), census: () => Effect.succeed({ events: auditEvents, nodes: [] }) },
 		capabilities: { imageInput: true },
 		listModels: Effect.succeed([]),
 		openSession: (options) =>
@@ -91,6 +92,7 @@ export const fixture = Effect.gen(function* () {
 		queued,
 		steered,
 		auditEvents,
+		nodeEvents,
 		acquisitions,
 		forwarded,
 		answer,

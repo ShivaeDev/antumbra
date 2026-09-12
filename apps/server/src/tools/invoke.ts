@@ -9,7 +9,7 @@ import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
-import { handlers, toolSets } from "#tools/catalog.ts";
+import { handlers } from "#tools/catalog.ts";
 
 export const invoke = Effect.fn("Tools.invoke")(function* (call: ToolCall) {
 	const live = yield* Live;
@@ -19,7 +19,6 @@ export const invoke = Effect.fn("Tools.invoke")(function* (call: ToolCall) {
 	if (earlier?.answer != null) return earlier.answer;
 	const bound = Option.getOrNull(yield* Stream.runHead(live.live(bySession, { sessionId })));
 	if (bound === null) return { ok: false, text: "this session has no bound tool set" };
-	if (!(bound.toolSetVersion in toolSets)) return yield* Effect.die(new Error(`unsupported tool set ${bound.toolSetVersion}`));
 	const context: ToolContext = {
 		agentId: bound.agentId,
 		sessionId: call.sessionId,

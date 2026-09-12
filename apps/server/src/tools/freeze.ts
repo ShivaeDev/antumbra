@@ -6,7 +6,9 @@ import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
 import { toolSets } from "#tools/catalog.ts";
 
-export const freeze = Effect.fn("Tools.freeze")(function* (context: Omit<ToolContext, "callId"> & { readonly role: string }) {
+export const freeze = Effect.fn("Tools.freeze")(function* (
+	context: Omit<ToolContext, "callId"> & { readonly role: string },
+): Effect.fn.Return<ToolSet, never, Live> {
 	let version: keyof typeof toolSets = context.role === "smoother" ? "smoothing-v1" : "crew-v1";
 	if (context.role === "captain" && context.voyageId !== undefined && context.pieceId === undefined) {
 		const live = yield* Live;
@@ -14,5 +16,5 @@ export const freeze = Effect.fn("Tools.freeze")(function* (context: Omit<ToolCon
 		const voyage = Option.getOrNull(found);
 		version = voyage?.kind === "flagship" ? "flagship-v1" : "captain-v1";
 	}
-	return { version, tools: toolSets[version].map((tool) => tool.spec) } satisfies ToolSet;
+	return { version, tools: toolSets[version].map((tool) => tool.spec) };
 });

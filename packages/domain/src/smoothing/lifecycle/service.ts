@@ -1,4 +1,3 @@
-import { Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
@@ -14,5 +13,5 @@ export const SmootherLifecycle = defineService({
 	id: "@antumbra/domain/SmootherLifecycle",
 	initialize: Effect.void,
 	methods: () => ({ ensureAgent, registerSession, closeSession }),
-	requires: [Boards, Database, DomainFeeds, SessionFabric, SessionRegistration, Voyages],
+	requires: [Database, DomainFeeds, SessionFabric, SessionRegistration, Voyages],
 });

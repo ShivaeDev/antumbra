@@ -1,3 +1,4 @@
+export { scriptedBoards } from "@antumbra/boards/testing";
 export { scriptedPieces } from "@antumbra/pieces/testing";
 export { scriptedRoleSettings } from "@antumbra/settings/testing";
 export { scriptedVoyages } from "@antumbra/voyages/testing";

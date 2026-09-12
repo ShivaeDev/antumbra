@@ -34,7 +34,7 @@ it.glass("exposes the piece log through the same collapsed Markdown control", fu
 
 	expect(container.innerHTML).toContain("<h2>Log entry</h2>");
 	expect(container.innerHTML).toContain("<strong>two</strong>");
-	expect(container.textContent).toContain("Write to the board");
+	expect(container.textContent).toContain("Register");
 });
 
 it.glass("closes again on the reader's word", function* ({ api, render }) {

@@ -68,6 +68,7 @@
 		"@antumbra/domain-pieces": "workspace:*",
 		"@antumbra/pieces": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/domain-boards": "workspace:*",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"react": "catalog:",

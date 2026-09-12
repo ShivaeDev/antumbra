@@ -1,4 +1,3 @@
-import { BoardScope, Boards } from "@antumbra/boards";
 import { DomainFeeds } from "@antumbra/domain-feeds";
 import { Database } from "@antumbra/persistence";
 import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
@@ -7,7 +6,6 @@ import { Effect, Option } from "effect";
 import { SMOOTHER_ROLE } from "#smoothing/fields.ts";
 
 export const ensureAgent = Effect.fn("SmootherLifecycle.ensureAgent")(function* (voyageId: string) {
-	const boards = yield* Boards;
 	const db = yield* Database;
 	const feeds = yield* DomainFeeds;
 	const voyages = yield* Voyages;
@@ -21,7 +19,6 @@ export const ensureAgent = Effect.fn("SmootherLifecycle.ensureAgent")(function* 
 		role: SMOOTHER_ROLE,
 		status: "alive",
 	});
-	yield* boards.ensure(BoardScope.Agent({ agentId }));
 	yield* voyages.assignAgent(voyageId, agentId, SMOOTHER_ROLE);
 	yield* feeds.publishFleetRefresh();
 	return agentId;

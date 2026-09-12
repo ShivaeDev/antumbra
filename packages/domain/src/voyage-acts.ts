@@ -1,19 +1,11 @@
 import { Artifacts } from "@antumbra/artifacts";
-import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
-import type { ArtifactSupersessionRequest, BoardWriteRequest } from "@antumbra/contract";
+import type { ArtifactSupersessionRequest } from "@antumbra/contract";
 import { Voyages } from "@antumbra/voyages";
-import { Effect, Match, Option } from "effect";
+import { Effect } from "effect";
 import { toFailure } from "#sight-failure.ts";
 import { VoyageProcedureService } from "#voyages/service.ts";
 
-const boardScope = Match.type<BoardWriteRequest["scope"]>().pipe(
-	Match.when({ kind: "piece" }, ({ pieceId }) => BoardScope.Piece({ pieceId })),
-	Match.when({ kind: "voyage" }, ({ voyageId }) => BoardScope.Voyage({ voyageId })),
-	Match.exhaustive,
-);
-
 export const makeVoyageActs = Effect.gen(function* () {
-	const boards = yield* Boards;
 	const artifacts = yield* Artifacts;
 	const procedures = yield* VoyageProcedureService;
 	const voyages = yield* Voyages;
@@ -33,16 +25,5 @@ export const makeVoyageActs = Effect.gen(function* () {
 				Effect.map((crewed) => ({ agentId: crewed.agentId })),
 				Effect.mapError(toFailure),
 			),
-		writeBoard: (request: BoardWriteRequest) =>
-			boards
-				.write(
-					boardScope(request.scope),
-					EntryInput.Note({
-						authorAgentId: Option.none(),
-						body: request.body,
-						register: request.register,
-					}),
-				)
-				.pipe(Effect.asVoid, Effect.mapError(toFailure)),
 	};
 });

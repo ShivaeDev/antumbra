@@ -1,7 +1,8 @@
 import type { BoardEntryView, BoardSmoothing, BoardTarget, PieceView } from "@antumbra/contract";
+import { WriteEntry } from "@antumbra/glass-boards/write-entry.tsx";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { BoardComposer } from "#views/board-composer.tsx";
+import { useGlass } from "#adapters/glass.ts";
 import { BoardNodes } from "#views/board-nodes.tsx";
 import { SmoothingLine, SmoothNow } from "#views/board-smoothing.tsx";
 import { Section } from "#views/section.tsx";
@@ -10,6 +11,8 @@ import { boardTree } from "#voyages/board-tree.ts";
 const EXPLAINER = "Entries newest first; open a summary to see the entries behind it.";
 
 const NO_ENTRIES = "No entries yet; agents write here as they work";
+
+const Composer = ({ owner }: { readonly owner: BoardTarget }) => <WriteEntry api={useGlass()} owner={owner} />;
 
 const NO_SUMMARY: Readonly<Record<BoardTarget["kind"], string>> = {
 	piece: "No summary yet; one is written when the Piece completes",
@@ -62,7 +65,7 @@ export const BoardPanel = ({
 					<BoardNodes boardName={name} depth={0} nodes={boardTree(entries)} pieces={{ known: pieces, onOpen: onPiece }} />
 				</>
 			) : null}
-			{open ? <BoardComposer scope={scope} /> : null}
+			{open ? <Composer owner={scope} /> : null}
 		</Section>
 	);
 };

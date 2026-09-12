@@ -1,4 +1,4 @@
-import { BoardsLive } from "@antumbra/boards";
+import { scriptedBoards } from "@antumbra/boards/testing";
 import { changesLayer } from "@antumbra/changes";
 import type { OpenRulingsView, RulingFailure, StandingRulingsView } from "@antumbra/contract";
 import { DomainFeedsLive } from "@antumbra/domain-feeds";
@@ -19,7 +19,7 @@ export const layer = RulingSourceLive.pipe(
 	Layer.provide(RulingReplies.layer),
 	Layer.provideMerge(changesLayer(new Map(), new Map())),
 	Layer.provideMerge(RulingHoldsLive),
-	Layer.provideMerge(BoardsLive),
+	Layer.provideMerge(scriptedBoards),
 	Layer.provideMerge(RulingsLive),
 	Layer.provideMerge(Layer.mergeAll(scriptedMail, scriptedPieces)),
 	Layer.provideMerge(scriptedVoyages),

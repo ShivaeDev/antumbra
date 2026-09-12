@@ -10,16 +10,9 @@ export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 	}
 }
 
-export class BoardSourceConflict extends Data.TaggedError("BoardSourceConflict")<{
-	readonly boardId: string;
-	readonly sourceRef: string;
-}> {
-	override get message(): string {
-		return `${this.sourceRef} already names a different entry on ${this.boardId}`;
-	}
-}
-
-export class StoredBoardEntryInvalid extends Data.TaggedError("StoredBoardEntryInvalid")<{
-	readonly detail: string;
-	readonly entryId: string;
+export class BoardEntryIncomplete extends Data.TaggedError("BoardEntryIncomplete")<{
+	readonly field: string;
+	readonly message: string;
 }> {}
+
+export type BoardWriteFailure = BoardEntryIncomplete | BoardOwnerNotFound;

@@ -1,8 +1,16 @@
+import { settle } from "@antumbra/app-testing/glass/dom.ts";
+import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import type { BoardEntryView, SummaryLevel } from "@antumbra/contract";
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { mount, settle } from "#test/dom.ts";
+import { expect } from "@effect/vitest";
+import { Effect, type Scope } from "effect";
+import type { ReactNode } from "react";
+import { GlassContext } from "#adapters/glass.ts";
 import { BoardPanel } from "#views/board.tsx";
+
+interface Glass {
+	readonly api: Api;
+	readonly render: (screen: ReactNode) => Effect.Effect<HTMLElement>;
+}
 
 const at = (day: number): string => `2026-08-${String(day).padStart(2, "0")}T09:10:00.000Z`;
 
@@ -45,12 +53,14 @@ const deep: ReadonlyArray<BoardEntryView> = [
 	summary(6, 18, "piece", 1, 5, "the whole piece"),
 ];
 
-const panel = (entries: ReadonlyArray<BoardEntryView>, piece = false) => (
-	<BoardPanel
-		entries={entries}
-		name={piece ? "soundings" : "Chart the reef"}
-		scope={piece ? { kind: "piece", pieceId: "piece-1" } : { kind: "voyage", voyageId: "voyage-1" }}
-	/>
+const panel = (glass: Glass, entries: ReadonlyArray<BoardEntryView>, piece: boolean): ReactNode => (
+	<GlassContext value={glass.api}>
+		<BoardPanel
+			entries={entries}
+			name={piece ? "soundings" : "Chart the reef"}
+			scope={piece ? { kind: "piece", pieceId: "piece-1" } : { kind: "voyage", voyageId: "voyage-1" }}
+		/>
+	</GlassContext>
 );
 
 const clickHeading = (container: HTMLElement): Effect.Effect<void> => settle(() => container.querySelector("button")?.click());
@@ -63,124 +73,98 @@ const openDeepest = (container: HTMLElement): Effect.Effect<void> => settle(() =
 
 const log = (container: HTMLElement): string => container.querySelector("ul")?.textContent ?? "";
 
-const shown = (entries: ReadonlyArray<BoardEntryView>, piece = false) =>
-	Effect.gen(function* () {
-		const { container, root } = yield* mount();
-		yield* settle(() => root.render(panel(entries, piece)));
-		yield* clickHeading(container);
-		return container;
-	});
+const shown = (glass: Glass, entries: ReadonlyArray<BoardEntryView>, piece = false): Effect.Effect<HTMLElement, never, Scope.Scope> =>
+	glass.render(panel(glass, entries, piece)).pipe(Effect.tap(clickHeading));
 
-it.effect("keeps a log collapsed until asked, then reads its entries as Markdown", () =>
-	Effect.gen(function* () {
-		const { container, root } = yield* mount();
-		yield* settle(() => root.render(panel(oneDay)));
+it.glass("keeps a log collapsed until asked, then reads its entries as Markdown", function* (glass) {
+	const container = yield* glass.render(panel(glass, oneDay, false));
 
-		expect(container.innerHTML).toContain('aria-expanded="false"');
-		expect(container.innerHTML).not.toContain("<h1>");
-		expect(container.textContent).not.toContain("Write to the board");
+	expect(container.innerHTML).toContain('aria-expanded="false"');
+	expect(container.innerHTML).not.toContain("<h1>");
+	expect(container.textContent).not.toContain("Register");
 
-		yield* clickHeading(container);
+	yield* clickHeading(container);
 
-		expect(container.innerHTML).toContain('aria-expanded="true"');
-		expect(container.innerHTML).toContain("<h1>Soundings</h1>");
-		expect(container.innerHTML).toContain("<strong>shallow</strong>");
-		expect(container.textContent).toContain("Write to the board");
+	expect(container.innerHTML).toContain('aria-expanded="true"');
+	expect(container.innerHTML).toContain("<h1>Soundings</h1>");
+	expect(container.innerHTML).toContain("<strong>shallow</strong>");
+	expect(container.textContent).toContain("Register");
 
-		yield* clickHeading(container);
-		expect(container.innerHTML).not.toContain("<h1>");
-	}),
-);
+	yield* clickHeading(container);
+	expect(container.innerHTML).not.toContain("<h1>");
+});
 
-it.effect("reads the log newest first, with the tail above the summary that stands for the rest", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(oneDay);
+it.glass("reads the log newest first, with the tail above the summary that stands for the rest", function* (glass) {
+	const container = yield* shown(glass, oneDay);
 
-		expect(container.textContent).toContain("Entries newest first; open a summary to see the entries behind it.");
-		expect(log(container)).toMatch(/a fresh sounding[\s\S]*Day summary · 2026-08-14/);
-	}),
-);
+	expect(container.textContent).toContain("Entries newest first; open a summary to see the entries behind it.");
+	expect(log(container)).toMatch(/a fresh sounding[\s\S]*Day summary · 2026-08-14/);
+});
 
-it.effect("names the smoother and drops the register from every entry", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(oneDay);
+it.glass("names the smoother and drops the register from every entry", function* (glass) {
+	const container = yield* shown(glass, oneDay);
 
-		expect(log(container)).toContain("Smoother");
-		expect(log(container)).not.toContain("Rough log");
-		expect(log(container)).not.toContain("Smooth log");
-	}),
-);
+	expect(log(container)).toContain("Smoother");
+	expect(log(container)).not.toContain("Rough log");
+	expect(log(container)).not.toContain("Smooth log");
+});
 
-it.effect("holds the entries behind a summary until the count is opened", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(oneDay);
-		expect(container.textContent).toContain("2 entries");
-		expect(log(container)).not.toContain("first sounding");
+it.glass("holds the entries behind a summary until the count is opened", function* (glass) {
+	const container = yield* shown(glass, oneDay);
+	expect(container.textContent).toContain("2 entries");
+	expect(log(container)).not.toContain("first sounding");
 
-		yield* openDeepest(container);
+	yield* openDeepest(container);
 
-		expect(log(container)).toContain("first sounding");
-		expect(log(container)).toMatch(/second sounding[\s\S]*first sounding/);
-	}),
-);
+	expect(log(container)).toContain("first sounding");
+	expect(log(container)).toMatch(/second sounding[\s\S]*first sounding/);
+});
 
-it.effect("stops at the third level down and shows the last count without a way in", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(deep, true);
-		expect(log(container)).toContain("Piece summary · soundings");
-		expect(log(container)).toContain("1 day · 2 entries");
+it.glass("stops at the third level down and shows the last count without a way in", function* (glass) {
+	const container = yield* shown(glass, deep, true);
+	expect(log(container)).toContain("Piece summary · soundings");
+	expect(log(container)).toContain("1 day · 2 entries");
 
-		yield* openDeepest(container);
-		yield* openDeepest(container);
-		yield* openDeepest(container);
+	yield* openDeepest(container);
+	yield* openDeepest(container);
+	yield* openDeepest(container);
 
-		expect(disclosures(container)).toHaveLength(4);
-		expect([...container.querySelectorAll("p")].filter((line) => line.textContent === "2 entries")).toHaveLength(1);
-		expect(log(container)).not.toContain("first sounding");
-	}),
-);
+	expect(disclosures(container)).toHaveLength(4);
+	expect([...container.querySelectorAll("p")].filter((line) => line.textContent === "2 entries")).toHaveLength(1);
+	expect(log(container)).not.toContain("first sounding");
+});
 
-it.effect("stands an admiral's own smooth entry as a block with nothing behind it", () =>
-	Effect.gen(function* () {
-		const container = yield* shown([
-			{ authorAgentId: null, body: "the reef shifts after a storm", createdAt: at(14), id: "note-1", kind: "note", register: "smooth", seq: 1 },
-		]);
+it.glass("stands an admiral's own smooth entry as a block with nothing behind it", function* (glass) {
+	const container = yield* shown(glass, [
+		{ authorAgentId: null, body: "the reef shifts after a storm", createdAt: at(14), id: "note-1", kind: "note", register: "smooth", seq: 1 },
+	]);
 
-		expect(log(container)).toContain("Note");
-		expect(log(container)).toContain("the reef shifts after a storm");
-		expect(disclosures(container)).toHaveLength(1);
-	}),
-);
+	expect(log(container)).toContain("Note");
+	expect(log(container)).toContain("the reef shifts after a storm");
+	expect(disclosures(container)).toHaveLength(1);
+});
 
-it.effect("says what would be here when the board is empty", () =>
-	Effect.gen(function* () {
-		const container = yield* shown([]);
+it.glass("says what would be here when the board is empty", function* (glass) {
+	const container = yield* shown(glass, []);
 
-		expect(container.textContent).toContain("No entries yet; agents write here as they work");
-		expect(container.textContent).not.toContain("Entries newest first");
-	}),
-);
+	expect(container.textContent).toContain("No entries yet; agents write here as they work");
+	expect(container.textContent).not.toContain("Entries newest first");
+});
 
-it.effect("says that a voyage board is smoothed by the day or on the admiral's word", () =>
-	Effect.gen(function* () {
-		const container = yield* shown([rough(1, 14, "first sounding")]);
+it.glass("says that a voyage board is smoothed by the day or on the admiral's word", function* (glass) {
+	const container = yield* shown(glass, [rough(1, 14, "first sounding")]);
 
-		expect(container.textContent).toContain("No summary yet; one is written at the end of each day or when you smooth now");
-	}),
-);
+	expect(container.textContent).toContain("No summary yet; one is written at the end of each day or when you smooth now");
+});
 
-it.effect("says that a piece board is smoothed when the Piece completes", () =>
-	Effect.gen(function* () {
-		const container = yield* shown([rough(1, 14, "first sounding")], true);
+it.glass("says that a piece board is smoothed when the Piece completes", function* (glass) {
+	const container = yield* shown(glass, [rough(1, 14, "first sounding")], true);
 
-		expect(container.textContent).toContain("No summary yet; one is written when the Piece completes");
-	}),
-);
+	expect(container.textContent).toContain("No summary yet; one is written when the Piece completes");
+});
 
-it.effect("drops the line about the first summary once one is written", () =>
-	Effect.gen(function* () {
-		const container = yield* shown(oneDay);
+it.glass("drops the line about the first summary once one is written", function* (glass) {
+	const container = yield* shown(glass, oneDay);
 
-		expect(container.textContent).not.toContain("No summary yet");
-	}),
-);
+	expect(container.textContent).not.toContain("No summary yet");
+});

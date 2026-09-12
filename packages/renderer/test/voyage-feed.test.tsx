@@ -39,7 +39,6 @@ vi.mock("#adapters/trpc-voyages.ts", () => ({
 	unparkPiece: vi.fn(),
 	watchVoyage,
 	workPieceNow: vi.fn(),
-	writeBoard: vi.fn(),
 }));
 vi.mock("mermaid", () => ({
 	default: { initialize: vi.fn(), render: vi.fn() },

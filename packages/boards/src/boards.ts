@@ -1,29 +1,15 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
-import { Pieces } from "@antumbra/pieces";
-import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
-import { Voyages } from "@antumbra/voyages";
-import { type Context, Effect } from "effect";
-import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";
-import { ensureBoard, writeEntry } from "#write.ts";
+import { Context, type Effect, type Option } from "effect";
+import type { BoardWriteFailure } from "#errors.ts";
+import type { BoardEntryRow, BoardScope, EntryInput } from "#model.ts";
+import type { SmoothingDay, SmoothingSpan } from "#summaries.ts";
 
-const requirements = [Database, DomainFeeds, Pieces, Voyages] as const;
+export interface BoardsService {
+	readonly digest: (scope: BoardScope) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly read: (scope: BoardScope) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly span: (scope: BoardScope) => Effect.Effect<Option.Option<SmoothingSpan>>;
+	readonly uncovered: (scope: BoardScope) => Effect.Effect<ReadonlyArray<SmoothingDay>>;
+	readonly under: (scope: BoardScope, summaryId: string) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly write: (scope: BoardScope, input: EntryInput) => Effect.Effect<BoardEntryRow, BoardWriteFailure>;
+}
 
-export const Boards = defineService({
-	id: "@antumbra/boards/Boards",
-	initialize: Effect.void,
-	methods: () => ({
-		digest: readDigest,
-		ensure: ensureBoard,
-		read: readBoard,
-		span: readUncoveredSpan,
-		uncovered: readUncoveredDays,
-		under: readUnder,
-		write: writeEntry,
-	}),
-	requires: requirements,
-});
-
-export type BoardsService = Context.Service.Shape<typeof Boards>;
-
-export const BoardsLive = Boards.layer;
+export class Boards extends Context.Service<Boards, BoardsService>()("@antumbra/boards/Boards") {}

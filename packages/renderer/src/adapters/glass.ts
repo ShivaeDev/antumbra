@@ -1,3 +1,4 @@
+import type { BoardsApi } from "@antumbra/glass-boards/glass.ts";
 import type { PiecesApi } from "@antumbra/glass-pieces/glass.ts";
 import type { RoleSettingsApi } from "@antumbra/glass-role-settings/glass.ts";
 import type { SettingsApi } from "@antumbra/glass-settings/glass.ts";
@@ -5,7 +6,7 @@ import type { VoyagesApi } from "@antumbra/glass-voyages/glass.ts";
 import { Effect } from "effect";
 import { createContext, useContext } from "react";
 
-type Api = PiecesApi & RoleSettingsApi & SettingsApi & VoyagesApi;
+type Api = BoardsApi & PiecesApi & RoleSettingsApi & SettingsApi & VoyagesApi;
 
 export const GlassContext = createContext<Api | undefined>(undefined);
 

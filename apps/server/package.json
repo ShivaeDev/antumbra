@@ -33,6 +33,7 @@
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
 		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-boards": "workspace:*",
 		"@antumbra/domain-mail": "workspace:*"
 	}
 }

@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@antumbra/contract": "workspace:*",
+		"@antumbra/glass-boards": "workspace:*",
 		"@antumbra/glass-pieces": "workspace:*",
 		"@antumbra/glass-role-settings": "workspace:*",
 		"@antumbra/glass-settings": "workspace:*",

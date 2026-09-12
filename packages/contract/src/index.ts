@@ -95,7 +95,6 @@ export {
 	AdoptChangeRequest,
 	ArtifactSupersessionRequest,
 	BoardTarget,
-	BoardWriteRequest,
 	CrewReceipt,
 	DismissChangeRequest,
 	HailReceipt,

@@ -21,57 +21,40 @@ interface BoardEntryFields {
 	readonly id: string;
 	readonly register: BoardRegister;
 	readonly seq: number;
-	readonly sourceRef: string | null;
 }
 
-interface UnsummarizedFields {
-	readonly coversFrom: null;
-	readonly coversTo: null;
-	readonly level: null;
+export interface NoteRow extends BoardEntryFields {
+	readonly kind: "note";
 }
 
-export type BoardEntryVariant =
-	| (UnsummarizedFields & {
-			readonly kind: "note";
-			readonly precedence: "routine";
-			readonly sourceRef: string | null;
-	  })
-	| (UnsummarizedFields & {
-			readonly kind: "pieceSummary";
-			readonly precedence: "routine";
-			readonly sourceRef: string;
-	  })
-	| {
-			readonly coversFrom: number;
-			readonly coversTo: number;
-			readonly kind: "summary";
-			readonly level: SummaryLevel;
-			readonly precedence: "routine";
-			readonly sourceRef: null;
-	  };
+export interface PieceSummaryRow extends BoardEntryFields {
+	readonly kind: "pieceSummary";
+	readonly pieceId: string;
+}
 
-export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
+export interface SummaryRow extends BoardEntryFields {
+	readonly coversFrom: number;
+	readonly coversTo: number;
+	readonly kind: "summary";
+	readonly level: SummaryLevel;
+}
 
-export type SummaryRow = BoardEntryRow & { readonly kind: "summary" };
+export type BoardEntryRow = NoteRow | PieceSummaryRow | SummaryRow;
 
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
 	readonly body: string;
-	readonly register: BoardRegister;
+	readonly id?: string;
 }
 
 export type EntryInput = Data.TaggedEnum<{
 	Note: EntryFields & {
-		readonly sourceRef?: string;
+		readonly register: BoardRegister;
 	};
-	PieceSummary: {
-		readonly authorAgentId: Option.Option<string>;
-		readonly body: string;
+	PieceSummary: EntryFields & {
 		readonly pieceId: string;
 	};
-	Summary: {
-		readonly authorAgentId: Option.Option<string>;
-		readonly body: string;
+	Summary: EntryFields & {
 		readonly coversFrom: number;
 		readonly coversTo: number;
 		readonly level: SummaryLevel;

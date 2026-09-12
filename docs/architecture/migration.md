@@ -68,7 +68,7 @@ packages/
     git/
   glass/
     client/  form/  components/  renderer/  harness/
-    role-settings/  settings/  voyages/  pieces/    a feature's screens, one glass package per feature
+    role-settings/  settings/  voyages/  pieces/  boards/    a feature's screens, one glass package per feature
 
   <flat>            the old code, untouched until its feature moves
 ```
@@ -77,8 +77,8 @@ A lint rule reads the path and holds the direction: `platform` imports only `pla
 groups the glass imports a domain's files and nothing else crosses; inside `server` only a domain may import `journal`, and an edge imports `platform`
 only; old packages import old packages and `platform`, and nothing nested imports old. The one exception the rule allows is a named list, so that
 `domain` can read a moved feature until it is deleted and the old renderer can mount a glass island until the renderer moves (`@antumbra/renderer`
-reaching `@antumbra/glass-role-settings`, `@antumbra/glass-settings`, `@antumbra/glass-voyages` and `@antumbra/glass-pieces`); every entry is removed
-with the package that needed it.
+reaching `@antumbra/glass-role-settings`, `@antumbra/glass-settings`, `@antumbra/glass-voyages`, `@antumbra/glass-pieces` and
+`@antumbra/glass-boards`); every entry is removed with the package that needed it.
 
 Every package in these groups exports `{ "./*": "./src/*" }` and nothing else: no `src/index.ts` barrel, no `"."` entry, no alias. An import names the
 real file with its extension, the way a package's own `#…ts` imports already do (`@antumbra/platform-vocabulary/board.ts`), and an asset a package
@@ -109,7 +109,7 @@ never spawns, `service-definition` excepted so its compiler fixtures can run `ts
 | Settings, the rest             | `settings`                                                           | landed                                                                                                                                                                      |
 | Voyages                        | `voyages`                                                            | truth and open form landed; list and detail follow piece state                                                                                                              |
 | Pieces and dependencies        | `pieces`                                                             | truth, charter, rewire and acts landed; the verdict is a column no screen writes yet; state stays derived in the old domain until agents, changes, reports and rulings move |
-| Boards                         | `boards`                                                             | not started                                                                                                                                                                 |
+| Boards                         | `boards`                                                             | truth and the composer landed; the entry tree and smoothing follow smoothing                                                                                                |
 | Mail                           | `boards`                                                             | truth landed; delivery and wakes follow sessions                                                                                                                            |
 | Rulings                        | `rulings`                                                            | not started                                                                                                                                                                 |
 | Repositories                   | `repos`                                                              | not started                                                                                                                                                                 |
@@ -145,7 +145,8 @@ Where each package goes. A package "stays" when its job is unchanged by the move
 | `voyages`                                                           | the voyage row and opening it are a domain at `packages/server/domains/voyages`; `authority/*` and `captainRole` stay until agents move                        | in progress |
 | `pieces`                                                            | the piece row, its wiring and its acts are a domain at `packages/server/domains/pieces`; the `Pieces` seam and `assignAgent` stay until agents move            | in progress |
 | `boards`, the mail half                                             | the message row with its precedence and its delivered and read stamps is a domain at `packages/server/domains/mail`; the `Mail` seam stays until sessions move | in progress |
-| `changes`, `repos`, `boards`, `rulings`, `artifacts`, `reports`     | domains: Schema classes, facts, projections, commands                                                                                                          | not started |
+| `boards`                                                            | the board entry and writing to it are a domain at `packages/server/domains/boards`; the `Boards` seam and the pure summaries stay until smoothing moves        | in progress |
+| `changes`, `repos`, `rulings`, `artifacts`, `reports`               | domains: Schema classes, facts, projections, commands                                                                                                          | not started |
 | `session-fabric`                                                    | the runner                                                                                                                                                     | not started |
 | `sessions`                                                          | a projection over the runner's log                                                                                                                             | not started |
 | `domain`                                                            | deleted; its read-time composition becomes projections inside the features                                                                                     | not started |

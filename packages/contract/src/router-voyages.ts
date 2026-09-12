@@ -1,7 +1,7 @@
 import { Schema } from "effect";
 import { ArtifactMarkdown } from "#artifact-views.ts";
 import { type AppProcedure, surface } from "#router-procedure.ts";
-import { ArtifactSupersessionRequest, BoardWriteRequest, CrewReceipt, HailReceipt } from "#voyage-requests.ts";
+import { ArtifactSupersessionRequest, CrewReceipt, HailReceipt } from "#voyage-requests.ts";
 import { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
 import { VoyageSource } from "#voyages.ts";
 
@@ -77,8 +77,4 @@ export const voyageRoutes = (procedure: AppProcedure) => ({
 			const voyages = yield* VoyageSource;
 			return yield* surface(voyages.workPieceNow(input.pieceId));
 		}),
-	writeBoard: procedure.input(BoardWriteRequest).mutation(function* (input) {
-		const voyages = yield* VoyageSource;
-		yield* surface(voyages.writeBoard(input));
-	}),
 });

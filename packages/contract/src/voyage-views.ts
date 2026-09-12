@@ -58,7 +58,7 @@ export type BoardPieceSummaryView = typeof BoardPieceSummaryView.Type;
 export const BoardEntryView = Schema.Union([
 	BoardSummaryView,
 	BoardPieceSummaryView,
-	Schema.Struct({ ...BoardEntryFields, kind: Schema.Literals(["mail", "note"]) }),
+	Schema.Struct({ ...BoardEntryFields, kind: Schema.Literal("note") }),
 ]);
 export type BoardEntryView = typeof BoardEntryView.Type;
 

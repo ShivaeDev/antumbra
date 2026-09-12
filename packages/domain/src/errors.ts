@@ -3,10 +3,9 @@ export { VoyageNotFound } from "@antumbra/voyages/errors";
 import { Data } from "effect";
 
 export {
+	BoardEntryIncomplete,
 	BoardOwnerNotFound,
-	BoardSourceConflict,
 	MailNotAddressed,
-	StoredBoardEntryInvalid,
 } from "@antumbra/boards";
 export { ChangeNotAddressable } from "@antumbra/changes/errors";
 export {

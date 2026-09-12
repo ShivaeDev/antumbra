@@ -62,7 +62,10 @@ export const emptyOf = (shape: Editing): unknown => {
 	if (shape.many) {
 		return NOTHING;
 	}
-	return shape.flag ? false : "";
+	if (shape.flag) {
+		return false;
+	}
+	return shape.optional || shape.literals === undefined ? "" : (shape.literals[0] ?? "");
 };
 
 export const valuesOf = (editables: readonly Editable[], row: Held): Held => {

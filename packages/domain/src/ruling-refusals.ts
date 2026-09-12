@@ -1,4 +1,3 @@
-import type { BoardOwnerNotFound, BoardSourceConflict, StoredBoardEntryInvalid } from "@antumbra/boards";
 import { RulingFailure, RulingRefused } from "@antumbra/contract";
 import type {
 	RulingContextFailure,
@@ -62,7 +61,7 @@ export const reclassifyFailure = (cause: RulingReclassifyFailure): RulingFailure
 	}
 };
 
-type ReplyFailure = BoardOwnerNotFound | BoardSourceConflict | RulingContextFailure | RulingParkFailure | StoredBoardEntryInvalid;
+type ReplyFailure = RulingContextFailure | RulingParkFailure;
 
 export const replyFailure = (cause: ReplyFailure): RulingFailure | RulingRefused => {
 	switch (cause._tag) {

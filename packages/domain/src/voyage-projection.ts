@@ -63,7 +63,7 @@ const entrySeen = (entry: BoardEntryRow): BoardEntryView => {
 	if (entry.kind === "summary") {
 		return { ...seen, coversFrom: entry.coversFrom, coversTo: entry.coversTo, kind: entry.kind, level: entry.level };
 	}
-	return entry.kind === "pieceSummary" ? { ...seen, kind: entry.kind, pieceId: entry.sourceRef } : { ...seen, kind: entry.kind };
+	return entry.kind === "pieceSummary" ? { ...seen, kind: entry.kind, pieceId: entry.pieceId } : { ...seen, kind: entry.kind };
 };
 
 const countsSeen = (counts: DerivedCounts): PieceCounts => ({

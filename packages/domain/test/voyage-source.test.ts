@@ -1,8 +1,9 @@
+import { BoardScope, Boards, EntryInput } from "@antumbra/boards";
 import { type SightFailure, VoyageSource, type VoyageView } from "@antumbra/contract";
 import { Pieces } from "@antumbra/pieces";
 import { it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Stream } from "effect";
+import { Deferred, Effect, Fiber, Option, Stream } from "effect";
 import { eventually, openReefVoyage, retireOneAlive, sessionIdOf } from "#test/voyage-fixtures.ts";
 
 const soundings = (voyageId: string) => ({
@@ -26,6 +27,9 @@ const summaryOf = (voyageId: string) =>
 	});
 
 const chartered = (voyageId: string) => Effect.flatMap(Pieces, (pieces) => pieces.charter(soundings(voyageId)));
+
+const written = (scope: BoardScope, body: string) =>
+	Effect.flatMap(Boards, (boards) => boards.write(scope, EntryInput.Note({ authorAgentId: Option.none(), body, register: "smooth" })));
 
 const launched = (pieceId: string) => Effect.flatMap(Pieces, (pieces) => pieces.launch(pieceId));
 
@@ -66,11 +70,7 @@ it.effectApp("the list and the read carry the state the domain derived", functio
 it.effectApp("a board entry the window writes carries no author agent", function* () {
 	const source = yield* VoyageSource;
 	const opened = yield* openReefVoyage;
-	yield* source.writeBoard({
-		body: "the reef shifts after a storm",
-		register: "smooth",
-		scope: { kind: "voyage", voyageId: opened.id },
-	});
+	yield* written(BoardScope.Voyage({ voyageId: opened.id }), "the reef shifts after a storm");
 	const view = yield* source.voyage(opened.id);
 	expect(view.board).toEqual([
 		{
@@ -89,11 +89,7 @@ it.effectApp("a voyage read carries each piece's own log", function* () {
 	const source = yield* VoyageSource;
 	const opened = yield* openReefVoyage;
 	const piece = yield* chartered(opened.id);
-	yield* source.writeBoard({
-		body: "## Sounding\n\nThe edge is **shallow**.",
-		register: "smooth",
-		scope: { kind: "piece", pieceId: piece.id },
-	});
+	yield* written(BoardScope.Piece({ pieceId: piece.id }), "## Sounding\n\nThe edge is **shallow**.");
 
 	const view = yield* source.voyage(opened.id);
 	expect(view.pieces[0]?.board).toMatchObject([

@@ -1,7 +1,5 @@
-import type { ArtifactMarkdown, BoardWriteRequest, ReportMarkdown, VoyageSummary, VoyageView } from "@antumbra/contract";
-import { Effect } from "effect";
+import type { ArtifactMarkdown, ReportMarkdown, VoyageSummary, VoyageView } from "@antumbra/contract";
 import { client, fired, toError } from "#adapters/bridge.ts";
-import { RendererRequestError } from "#adapters/request-error.ts";
 import type { Unsubscribe } from "#adapters/trpc.ts";
 
 type OnError = (message: string) => void;
@@ -47,10 +45,3 @@ export const hailCaptain = (voyageId: string, onError: OnError): void => fired(c
 export const workPieceNow = (pieceId: string, onError: OnError): void => fired(client.workPieceNow.mutate({ pieceId }), onError);
 
 export const smoothBoard = (voyageId: string, onError: OnError): void => fired(client.smoothBoard.mutate({ voyageId }), onError);
-
-export const writeBoard = Effect.fn("Renderer.writeBoard")((request: BoardWriteRequest) =>
-	Effect.tryPromise({
-		try: () => client.writeBoard.mutate(request),
-		catch: (cause) => new RendererRequestError({ message: toError(cause).message }),
-	}),
-);

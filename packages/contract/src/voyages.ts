@@ -3,7 +3,7 @@ import type { ArtifactMarkdown } from "#artifact-views.ts";
 import type { ChangeView } from "#change-views.ts";
 import type { QuayView } from "#quay-views.ts";
 import type { SightFailure } from "#sight.ts";
-import type { AdoptChangeRequest, ArtifactSupersessionRequest, BoardWriteRequest, CrewReceipt, HailReceipt } from "#voyage-requests.ts";
+import type { AdoptChangeRequest, ArtifactSupersessionRequest, CrewReceipt, HailReceipt } from "#voyage-requests.ts";
 import type { ReportMarkdown, VoyageSummary, VoyageView } from "#voyage-views.ts";
 
 export class ArtifactMarkdownFailure extends Data.TaggedError("ArtifactMarkdownFailure")<{
@@ -30,6 +30,5 @@ export class VoyageSource extends Context.Service<
 		readonly voyages: Effect.Effect<ReadonlyArray<VoyageSummary>, SightFailure>;
 		readonly voyagesFeed: Stream.Stream<ReadonlyArray<VoyageSummary>, SightFailure>;
 		readonly workPieceNow: (pieceId: string) => Effect.Effect<CrewReceipt, SightFailure>;
-		readonly writeBoard: (request: BoardWriteRequest) => Effect.Effect<void, SightFailure>;
 	}
 >()("@antumbra/contract/VoyageSource") {}

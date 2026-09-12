@@ -32,6 +32,7 @@
 		"@antumbra/domain-voyages": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/domain-pieces": "workspace:*"
+		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-boards": "workspace:*"
 	}
 }

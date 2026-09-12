@@ -1,3 +1,4 @@
+import { backendCatalog } from "@antumbra/domain-backends/rows/backend-catalog.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
@@ -11,11 +12,12 @@ import { recorded } from "#materializers/recorded.ts";
 import { deliveryReading } from "#queries/delivery.ts";
 import { pending } from "#queries/pending.ts";
 import { reading } from "#queries/reading.ts";
+import { support } from "#queries/support.ts";
 import { sessionInput } from "#rows/input.ts";
 export const inputs = feature("inputs", {
-	rows: [sessionInput, session, sessionOperation, capacity],
+	rows: [sessionInput, session, sessionOperation, capacity, backendCatalog],
 	facts: [inputRecorded, inputDeliveryChanged, inputObserved],
 	commands: [],
 	materializers: [recorded, changed, observed],
-	queries: [reading, pending, deliveryReading],
+	queries: [reading, pending, deliveryReading, support],
 });

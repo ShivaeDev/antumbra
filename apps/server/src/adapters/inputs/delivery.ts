@@ -4,6 +4,7 @@ import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts
 import { InputAmbiguous, InputNotFound, InputRefused } from "@antumbra/domain-inputs/commands/errors.ts";
 import { inputOperationId } from "@antumbra/domain-inputs/ids.ts";
 import { deliveryReading } from "@antumbra/domain-inputs/queries/delivery.ts";
+import { support } from "@antumbra/domain-inputs/queries/support.ts";
 import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
@@ -38,8 +39,8 @@ export const inputDeliveryLayer = Layer.effect(InputDelivery)(
 		const admit = Effect.fn("inputs.admit")(function* (draft: Draft) {
 			const root = yield* target(draft.sessionId, draft.id);
 			if (!draft.parts.some((part) => part.type === "image")) return;
-			const registrations = yield* runners.connected;
-			if (!registrations.some((runner) => runner.imageInputBackends.includes(root.backend)))
+			const capability = yield* live.read(support, { sessionId: draft.sessionId });
+			if (!capability.imageInput)
 				return yield* new InputRefused({ inputId: draft.id, detail: `backend_text_only: ${root.backend} has no proven image-input capability` });
 		});
 		const deliver = Effect.fn("inputs.deliver")(function* (input: { readonly sessionId: string; readonly inputId: string }) {

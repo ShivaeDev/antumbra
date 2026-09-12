@@ -20,7 +20,7 @@ const opened = (subsessionRef: string, parentRef = "native-root"): AgentEvent =>
 const provider = (event: AgentEvent, observation: "live" | "audit" = "live"): LogEvent => ({ type: "ProviderEvent", sessionId, observation, event });
 const connect = (backend = "codex") =>
 	Effect.gen(function* () {
-		const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: [backend], imageInputBackends: [] });
+		const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["codex", "claude"], imageInputBackends: [] });
 		let cursor = 0;
 		const append = (events: readonly LogEvent[]) => runner.append(events.map((event) => ({ logId: "log", at: 100, cursor: cursor++, event })));
 		yield* append([

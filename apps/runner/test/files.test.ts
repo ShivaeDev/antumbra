@@ -41,3 +41,13 @@ it.live("resolves digest-backed input to shared managed image custody", () =>
 		]);
 	}),
 );
+
+it.live("preserves a UTF-8 byte-order mark in artifact transport", () =>
+	Effect.gen(function* () {
+		const root = yield* directory;
+		const bytes = new TextEncoder().encode("\ufeff# Findings\n");
+		yield* Effect.promise(() => writeFile(join(root, "report.md"), bytes));
+		const artifact = yield* readArtifact(root, "report.md");
+		expect(new TextEncoder().encode(artifact.content)).toEqual(bytes);
+	}),
+);

@@ -4,7 +4,7 @@ import { Effect } from "effect";
 import { FileFailure } from "#adapters/file-error.ts";
 
 const ownedPath = async (rootPath: string, relativePath: string) => {
-	if (relativePath.length === 0 || isAbsolute(relativePath) || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(relativePath)) {
+	if (relativePath.length === 0 || relativePath.startsWith("\\") || isAbsolute(relativePath) || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(relativePath)) {
 		throw new Error("artifact path must be relative to its moorage");
 	}
 	const root = await realpath(rootPath);
@@ -31,7 +31,11 @@ export const readArtifact = (rootPath: string, relativePath: string) =>
 					if (bytesRead === 0) throw new Error("artifact changed while being read");
 					offset += bytesRead;
 				}
-				return { type: "ArtifactRead" as const, name: basename(resolved), content: new TextDecoder("utf-8", { fatal: true }).decode(bytes) };
+				return {
+					type: "ArtifactRead" as const,
+					name: basename(resolved),
+					content: new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes),
+				};
 			} finally {
 				await file.close();
 			}

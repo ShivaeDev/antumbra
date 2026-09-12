@@ -13,7 +13,7 @@ export const RunnerProcessLayer = (bundle: string, directory: string) =>
 			const { port, token } = yield* serving;
 			const spawn = ChildProcess.make(
 				process.execPath,
-				[bundle, "--data", directory, "--server", `ws://127.0.0.1:${port}/runner`, "--runner-id", identity.runnerId, "--log-id", identity.logId],
+				[bundle, "--data", directory, "--server", `ws://127.0.0.1:${port}/rpc`, "--runner-id", identity.runnerId, "--log-id", identity.logId],
 				{
 					env: { ANTUMBRA_TOKEN: token, ELECTRON_RUN_AS_NODE: "1" },
 					extendEnv: true,

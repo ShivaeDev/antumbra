@@ -61,7 +61,7 @@ it.effect("restarts the server on its chosen endpoint without replacing its sibl
 				const runner = yield* Queue.take(requests);
 				expect(first).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "0"] });
 				expect(runner).toMatchObject({
-					args: ["/runner.js", "--data", "/data", "--server", "ws://127.0.0.1:49123/runner", "--runner-id", "runner-id", "--log-id", "log-id"],
+					args: ["/runner.js", "--data", "/data", "--server", "ws://127.0.0.1:49123/rpc", "--runner-id", "runner-id", "--log-id", "log-id"],
 				});
 				yield* Deferred.succeed(exit, ChildProcessSpawner.ExitCode(1));
 				expect(yield* Queue.take(requests)).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "49123"] });

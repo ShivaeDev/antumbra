@@ -25,7 +25,7 @@ const end = Effect.fn("Sessions.endTree")(function* (fact: Observation, rows: Ro
 	for (const node of nodes) yield* rows.session.update(node.id, { attached: false, status: "closed", executionStatus: "idle", idleSince: at });
 	const operations = yield* rows.sessionOperation.where({ sessionId: current.rootSessionId });
 	for (const operation of operations) {
-		if (operation.status === "requested" || operation.status === "waiting")
+		if (operation.id !== fact.operationId && (operation.status === "requested" || operation.status === "waiting"))
 			yield* rows.sessionOperation.update(operation.id, { status: "cancelled", detail: evidence.reason });
 	}
 });

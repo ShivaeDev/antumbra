@@ -1,4 +1,4 @@
-import { type ImageUnavailable, InvalidInput } from "@antumbra/domain-inputs/commands/errors.ts";
+import { InvalidInput } from "@antumbra/domain-inputs/commands/errors.ts";
 import type { Draft, Prepared } from "@antumbra/domain-inputs/rows/content.ts";
 import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
@@ -21,6 +21,24 @@ const displayName = (value: string): string => {
 		.trim();
 	return (cleaned === "" ? "attached image" : cleaned).slice(0, 120);
 };
+const storePart = Effect.fn("inputs.storePart")(function* (root: string, part: NormalizedPart) {
+	if (part.type === "text") return part;
+	const { image, name } = part;
+	yield* publishImage(root, image.digest, image.mediaType, image.bytes);
+	return {
+		type: "image" as const,
+		name,
+		attachment: {
+			id: image.digest,
+			digest: image.digest,
+			mediaType: image.mediaType,
+			byteSize: image.bytes.length,
+			width: image.width,
+			height: image.height,
+		},
+	};
+});
+
 export const prepare = Effect.fn("inputs.prepare")(function* (root: string, draft: Draft) {
 	const firstText = draft.parts.findIndex((part) => part.type === "text");
 	const text = draft.parts.filter((part) => part.type === "text");
@@ -38,26 +56,7 @@ export const prepare = Effect.fn("inputs.prepare")(function* (root: string, draf
 	);
 	if (normalized.reduce((size, part) => size + (part.type === "image" ? part.image.bytes.length : 0), 0) > MAX_SESSION_INPUT_IMAGE_BYTES)
 		return yield* new InvalidInput({ reason: "input_too_large", detail: "normalized image bytes exceed the input limit" });
-	const parts = yield* Effect.forEach(
-		normalized,
-		(part): Effect.Effect<Prepared["parts"][number], ImageUnavailable> =>
-			part.type === "text"
-				? Effect.succeed(part)
-				: publishImage(root, part.image.digest, part.image.mediaType, part.image.bytes).pipe(
-						Effect.as({
-							type: "image" as const,
-							name: part.name,
-							attachment: {
-								id: part.image.digest,
-								digest: part.image.digest,
-								mediaType: part.image.mediaType,
-								byteSize: part.image.bytes.length,
-								width: part.image.width,
-								height: part.image.height,
-							},
-						}),
-					),
-	);
+	const parts = yield* Effect.forEach(normalized, (part) => storePart(root, part));
 	const [first, ...rest] = parts;
 	if (first === undefined) return yield* Effect.die(new Error("decoded input has no parts"));
 	return {

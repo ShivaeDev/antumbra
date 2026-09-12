@@ -3,7 +3,7 @@ import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
 import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
 import { type Reconciling, reconciler } from "@antumbra/platform-feature/reconciler.ts";
 import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
-import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
+import { derive, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Schema } from "effect";
 import { admit } from "#commands/admit.ts";
 import { delay } from "#commands/delay.ts";
@@ -33,7 +33,7 @@ const sayWaiting = Effect.fn("Agents.sayWaiting")(function* (held: typeof birth.
 	const listing = isBackend(backend) ? yield* reconciling.read(catalog, { backend }) : null;
 	const reason = waitingFor(backend, listing?.failure ?? null);
 	if (held.detail === reason) return;
-	yield* reconciling.commit(delay, { id: held.id, reason, requestId: Request.make(make()) }).pipe(Effect.catchTags(DELAY_REFUSALS));
+	yield* reconciling.commit(delay, { id: held.id, reason, requestId: Request.make(derive(held.id, reason)) }).pipe(Effect.catchTags(DELAY_REFUSALS));
 });
 
 export const admitting = reconciler("admitting", {

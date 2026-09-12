@@ -7,17 +7,18 @@ const ALIAS = "default";
 export const modelChoices = (models: ReadonlyArray<ModelInfo>): ReadonlyArray<ModelChoice> => {
 	const recommended = models.find((model) => model.value === ALIAS)?.resolvedModel;
 	const listed: ModelChoice[] = [];
-	let declared: string | undefined;
+	let declared = false;
 	for (const model of models) {
 		if (model.value === ALIAS) continue;
-		if (declared === undefined && recommended !== undefined && model.resolvedModel === recommended) declared = model.value;
+		const isDefault = !declared && recommended !== undefined && model.resolvedModel === recommended;
+		if (isDefault) declared = true;
 		listed.push({
 			defaultEffort: null,
 			efforts: model.supportedEffortLevels ?? [],
 			id: model.value,
-			isDefault: false,
+			isDefault,
 			name: model.displayName,
 		});
 	}
-	return listed.map((model) => (model.id === declared ? { ...model, isDefault: true } : model));
+	return listed;
 };

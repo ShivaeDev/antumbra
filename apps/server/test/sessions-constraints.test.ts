@@ -44,7 +44,7 @@ it.app("waking a smoother retains its constraint and the settings it was admitte
 	const start = yield* runner.next;
 	if (start.type !== "Start") return yield* Effect.die(`Expected Start, received ${start.type}`);
 	expect(start.options).toMatchObject({ constrainedPrompt: smootherWords, effort: null, toolSet: { version: "smoothing-v1" } });
-	const admitted = start.options.model;
+	const admitted = { backend: start.options.backend, effort: start.options.effort, model: start.options.model };
 	yield* runner.append([
 		{
 			logId: "log",
@@ -80,7 +80,7 @@ it.app("waking a smoother retains its constraint and the settings it was admitte
 	expect(wake).toMatchObject({
 		type: "Wake",
 		nativeRef: "native",
-		options: { constrainedPrompt: smootherWords, model: admitted, effort: null, toolSet: { version: "smoothing-v1" } },
+		options: { ...admitted, constrainedPrompt: smootherWords, toolSet: { version: "smoothing-v1" } },
 	});
 	yield* runner.reply(wake.requestId, { type: "Accepted" });
 });

@@ -10,36 +10,42 @@ const SHAPES = `CREATE TABLE IF NOT EXISTS "shape" ("name" TEXT PRIMARY KEY, "ha
 const CURSORS = `CREATE TABLE IF NOT EXISTS "runner_cursor" ("logId" TEXT PRIMARY KEY, "cursor" INTEGER NOT NULL, "seq" INTEGER NOT NULL)`;
 const Payload = Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown));
 
-export const start = (sql: SqlClient, registry: Registry): Effect.Effect<void> =>
-	sql
-		.withTransaction(
+export const start = (sql: SqlClient, registry: Registry, backup: Effect.Effect<void> = Effect.void): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		const known = yield* sql`SELECT "name" FROM sqlite_master WHERE "type" = 'table' AND "name" = 'shape'`;
+		const stored = known.length === 0 ? [] : yield* sql`SELECT "name", "hash" FROM "shape"`;
+		const changed =
+			registry.rows.some((row) => !stored.some((found) => found.name === row.name && found.hash === shapeOf(row))) ||
+			stored.length !== registry.rows.length;
+		if (changed && stored.length > 0) yield* backup;
+		yield* sql.withTransaction(
 			Effect.gen(function* () {
 				for (const statement of [JOURNAL, APPLIED, SHAPES, CURSORS]) yield* sql.unsafe(statement);
-				const stored = yield* sql`SELECT "name", "hash" FROM "shape"`;
-				const changed =
-					registry.rows.some((row) => !stored.some((found) => found.name === row.name && found.hash === shapeOf(row))) ||
-					stored.length !== registry.rows.length;
 				if (!changed) return;
 				for (const row of stored) yield* sql`DROP TABLE ${sql(String(row.name))}`;
 				yield* sql`DELETE FROM "shape"`;
 				yield* createTables(sql, registry);
-				const entries = yield* sql`SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`;
-				for (const entry of entries) {
-					const payload = yield* Schema.decodeUnknownEffect(Payload)(entry.payload);
-					const source = registry.materializers.get(String(entry.name));
-					if (source === undefined) return yield* Effect.die(new Error(`no materializer declares the fact "${String(entry.name)}"`));
-					const decoded = yield* Schema.decodeUnknownEffect(source.fact.Payload)(payload);
-					yield* materialize(
-						sql,
-						registry,
-						String(entry.name),
-						{ ...decoded, at: Number(entry.at), seq: Number(entry.seq), requestId: String(entry.requestId) },
-						() => {},
-					);
-				}
+				yield* replay(sql, registry);
 			}),
-		)
-		.pipe(Effect.orDie);
+		);
+	}).pipe(Effect.orDie);
+
+const replay = Effect.fn("Journal.replay")(function* (sql: SqlClient, registry: Registry) {
+	const entries = yield* sql`SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`;
+	for (const entry of entries) {
+		const payload = yield* Schema.decodeUnknownEffect(Payload)(entry.payload);
+		const source = registry.materializers.get(String(entry.name));
+		if (source === undefined) return yield* Effect.die(new Error(`no materializer declares the fact "${String(entry.name)}"`));
+		const decoded = yield* Schema.decodeUnknownEffect(source.fact.Payload)(payload);
+		yield* materialize(
+			sql,
+			registry,
+			String(entry.name),
+			{ ...decoded, at: Number(entry.at), seq: Number(entry.seq), requestId: String(entry.requestId) },
+			() => {},
+		);
+	}
+});
 
 const createTables = Effect.fn("journal.createTables")(function* (sql: SqlClient, registry: Registry) {
 	for (const row of registry.rows) {

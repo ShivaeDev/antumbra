@@ -1,7 +1,8 @@
-import { Context } from "effect";
+import { Context, type Effect } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 
 export interface Clients {
+	readonly backup: Effect.Effect<void>;
 	readonly read: SqlClient;
 	readonly write: SqlClient;
 }

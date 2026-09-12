@@ -20,6 +20,7 @@ it.effect("represents and accepts no-argument tools as objects", () =>
 		const spec = defineTool({ name: "read", description: "Read", input: Schema.Struct({}) });
 		const tool = bind(spec, () => Effect.succeed({ ok: true, text: "read" }));
 		expect(spec.inputSchema).toEqual({ additionalProperties: false, properties: {}, required: [], type: "object" });
+		expect(tool.spec).toEqual({ name: "read", description: "Read", inputSchema: spec.inputSchema });
 		expect(yield* tool.invoke(context, undefined)).toEqual({ ok: true, text: "read" });
 	}),
 );

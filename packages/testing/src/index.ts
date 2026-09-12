@@ -9,6 +9,7 @@ import {
 	makeEffectApp,
 	makeScriptedBackend,
 	passiveRunner,
+	scriptedMail,
 	scriptedPieces,
 	scriptedRoleSettings,
 	scriptedSettings,
@@ -49,7 +50,7 @@ export const it = {
 					).pipe(Layer.provide(NodeServices.layer), Layer.orDie),
 				),
 				Layer.provideMerge(
-					scriptedPieces.pipe(
+					Layer.mergeAll(scriptedMail, scriptedPieces).pipe(
 						Layer.provideMerge(scriptedVoyages.pipe(Layer.provideMerge(Layer.mergeAll(DomainFeedsLive, scriptedRoleSettings, scriptedSettings)))),
 					),
 				),

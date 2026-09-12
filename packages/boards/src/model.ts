@@ -1,8 +1,6 @@
 import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
 import { Data, type Option } from "effect";
 
-export type MailPrecedence = "flash" | "priority" | "routine";
-
 export type BoardScope = Data.TaggedEnum<{
 	Agent: { readonly agentId: string };
 	Piece: { readonly pieceId: string };
@@ -34,11 +32,6 @@ interface UnsummarizedFields {
 
 export type BoardEntryVariant =
 	| (UnsummarizedFields & {
-			readonly kind: "mail";
-			readonly precedence: MailPrecedence;
-			readonly sourceRef: string;
-	  })
-	| (UnsummarizedFields & {
 			readonly kind: "note";
 			readonly precedence: "routine";
 			readonly sourceRef: string | null;
@@ -61,8 +54,6 @@ export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
 
 export type SummaryRow = BoardEntryRow & { readonly kind: "summary" };
 
-export type UnreadMailRow = BoardEntryRow & { readonly delivered: boolean };
-
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
 	readonly body: string;
@@ -70,10 +61,6 @@ interface EntryFields {
 }
 
 export type EntryInput = Data.TaggedEnum<{
-	Mail: EntryFields & {
-		readonly precedence: MailPrecedence;
-		readonly sourceRef: string;
-	};
 	Note: EntryFields & {
 		readonly sourceRef?: string;
 	};
@@ -92,14 +79,6 @@ export type EntryInput = Data.TaggedEnum<{
 }>;
 
 export const EntryInput = Data.taggedEnum<EntryInput>();
-
-export interface MailInput {
-	readonly authorAgentId: Option.Option<string>;
-	readonly body: string;
-	readonly precedence: MailPrecedence;
-	readonly sourceRef: string;
-	readonly toAgentId: string;
-}
 
 export interface AppendFields {
 	readonly nowMillis: number;

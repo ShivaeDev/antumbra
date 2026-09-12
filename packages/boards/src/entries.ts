@@ -22,13 +22,6 @@ const StoredBoardEntry = Schema.Union([
 	Schema.Struct({
 		...StoredFields,
 		...Unsummarized,
-		kind: Schema.Literals(["mail"]),
-		precedence: Schema.Literals(["flash", "priority", "routine"]),
-		sourceRef: Schema.String,
-	}),
-	Schema.Struct({
-		...StoredFields,
-		...Unsummarized,
 		kind: Schema.Literals(["note"]),
 		precedence: Schema.Literals(["routine"]),
 		sourceRef: Schema.NullOr(Schema.String),
@@ -74,12 +67,6 @@ const UNSUMMARIZED = { coversFrom: null, coversTo: null, level: null } as const;
 
 export const storedEntryVariant = (input: EntryInput): BoardEntryVariant =>
 	EntryInput.$match(input, {
-		Mail: ({ precedence, sourceRef }): BoardEntryVariant => ({
-			...UNSUMMARIZED,
-			kind: "mail",
-			precedence,
-			sourceRef,
-		}),
 		Note: ({ sourceRef }): BoardEntryVariant => ({
 			...UNSUMMARIZED,
 			kind: "note",
@@ -104,7 +91,6 @@ export const storedEntryVariant = (input: EntryInput): BoardEntryVariant =>
 
 export const entryRegister = (input: EntryInput) =>
 	EntryInput.$match(input, {
-		Mail: ({ register }) => register,
 		Note: ({ register }) => register,
 		PieceSummary: () => "rough" as const,
 		Summary: () => "smooth" as const,

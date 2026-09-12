@@ -1,4 +1,4 @@
-import type { MailPrecedence, UnreadMailRow } from "#model.ts";
+import type { MailPrecedence, MailRow } from "#mail.ts";
 
 export interface MailBatch {
 	readonly count: number;
@@ -8,20 +8,20 @@ export interface MailBatch {
 export interface MailReading {
 	readonly nowMillis: number;
 	readonly quietMillis: number;
-	readonly unread: ReadonlyArray<UnreadMailRow>;
+	readonly unread: ReadonlyArray<MailRow>;
 }
 
 const URGENCY: Record<MailPrecedence, number> = { flash: 2, priority: 1, routine: 0 };
 
-const mostUrgent = (unread: ReadonlyArray<UnreadMailRow>): MailPrecedence | undefined =>
+const mostUrgent = (unread: ReadonlyArray<MailRow>): MailPrecedence | undefined =>
 	unread.reduce<MailPrecedence | undefined>(
-		(highest, entry) => (highest === undefined || URGENCY[entry.precedence] > URGENCY[highest] ? entry.precedence : highest),
+		(highest, held) => (highest === undefined || URGENCY[held.precedence] > URGENCY[highest] ? held.precedence : highest),
 		undefined,
 	);
 
 const qualifies = (input: MailReading): boolean =>
 	input.unread.some(
-		(entry) => !entry.delivered && (entry.precedence !== "routine" || input.nowMillis - entry.createdAt.getTime() >= input.quietMillis),
+		(held) => held.deliveredAt === null && (held.precedence !== "routine" || input.nowMillis - held.sentAt.getTime() >= input.quietMillis),
 	);
 
 export const dueMail = (input: MailReading): MailBatch | undefined => {

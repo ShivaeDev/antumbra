@@ -1,5 +1,5 @@
-import type { UsageEvidence } from "#usage/evidence.ts";
-import type { UsageTotal } from "#usage/schema.ts";
+import type { UsageTotal } from "@antumbra/domain-sessions/rows/usage.ts";
+import type { UsageEvidence } from "@antumbra/domain-sessions/rows/usage-evidence.ts";
 
 type Usage = UsageEvidence;
 

@@ -1,10 +1,10 @@
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { sessionUsage } from "@antumbra/domain-sessions/rows/session-usage.ts";
-import { UsageTotal } from "@antumbra/domain-sessions/usage/schema.ts";
-import { countUsage, emptyTally, totalOf } from "@antumbra/domain-sessions/usage/tally.ts";
+import { UsageTotal } from "@antumbra/domain-sessions/rows/usage.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect } from "effect";
+import { countUsage, emptyTally, totalOf } from "#queries/tally.ts";
 
 export const forVoyage = query("forVoyage", {
 	input: { voyageId: VoyageId },

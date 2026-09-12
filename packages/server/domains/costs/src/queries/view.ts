@@ -1,11 +1,11 @@
 import type { sessionUsage } from "@antumbra/domain-sessions/rows/session-usage.ts";
-import type { AgentSpend, BackendSpend, CostsView, DaySpend, ModelSpend, VoyageSpend } from "@antumbra/domain-sessions/usage/schema.ts";
+import type { AgentSpend, BackendSpend, CostsView, DaySpend, ModelSpend, VoyageSpend } from "@antumbra/domain-sessions/rows/usage.ts";
 
 type SessionUsage = typeof sessionUsage.Row.Type;
 
-import { type Tally, totalOf } from "@antumbra/domain-sessions/usage/tally.ts";
-import { countReading, emptyTallies, type SpendSession, type SpendTallies } from "#buckets.ts";
-import { windowDays } from "#days.ts";
+import { countReading, emptyTallies, type SpendSession, type SpendTallies } from "#queries/buckets.ts";
+import { windowDays } from "#queries/days.ts";
+import { type Tally, totalOf } from "#queries/tally.ts";
 
 export const COST_WINDOW_DAYS = 30;
 

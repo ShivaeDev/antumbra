@@ -15,7 +15,6 @@ import { pending } from "#queries/pending.ts";
 import { forAgent, reading } from "#queries/reading.ts";
 import { toolCall } from "#queries/tool-call.ts";
 import { transcriptSources } from "#queries/transcript.ts";
-import { usageAgent } from "#queries/usage.ts";
 import { tree } from "#queries/tree.ts";
 import { session } from "#rows/session.ts";
 import { sessionEvent } from "#rows/session-event.ts";
@@ -39,5 +38,5 @@ export const sessions = feature("sessions", {
 		operationRequestedMaterializer,
 		operationHeldMaterializer,
 	],
-	queries: [operations, transcriptSources, usageAgent, toolCall, reading, tree, forAgent, pending],
+	queries: [operations, transcriptSources, toolCall, reading, tree, forAgent, pending],
 });

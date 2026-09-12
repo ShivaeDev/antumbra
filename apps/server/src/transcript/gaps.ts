@@ -1,4 +1,4 @@
-import type { TranscriptNotice } from "@antumbra/domain-sessions/transcript/model.ts";
+import type { TranscriptNotice } from "@antumbra/domain-sessions/rows/transcript.ts";
 import type { SubsessionGap } from "@antumbra/platform-vocabulary/session-events/subsessions.ts";
 
 type GapKind = (typeof SubsessionGap.Type)["gapKind"];

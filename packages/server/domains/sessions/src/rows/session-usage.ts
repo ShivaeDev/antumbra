@@ -1,7 +1,7 @@
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
-import { UsageEvidence } from "#usage/evidence.ts";
+import { UsageEvidence } from "#rows/usage-evidence.ts";
 
 export const sessionUsage = row(
 	"sessionUsage",

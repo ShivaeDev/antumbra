@@ -1,6 +1,6 @@
 import { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
 import { Schema } from "effect";
-import { UsageEvidence } from "#usage/evidence.ts";
+import { UsageEvidence } from "#rows/usage-evidence.ts";
 
 export const SessionStanding = Schema.Struct({
 	background: Schema.Array(BackgroundTask),

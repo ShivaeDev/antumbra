@@ -1,7 +1,7 @@
 import type { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import type { transcriptSources } from "@antumbra/domain-sessions/queries/transcript.ts";
+import type { TranscriptReading } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
-import type { TranscriptReading } from "@antumbra/domain-sessions/transcript/rpc.ts";
 import { Effect } from "effect";
 import { sessionActivity } from "#transcript/activity.ts";
 import { deriveTranscript } from "#transcript/derive.ts";

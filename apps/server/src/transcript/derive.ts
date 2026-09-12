@@ -1,4 +1,4 @@
-import type { TranscriptItem } from "@antumbra/domain-sessions/transcript/model.ts";
+import type { TranscriptItem } from "@antumbra/domain-sessions/rows/transcript.ts";
 import { applyKnownEvent, type Derivation } from "#transcript/apply-event.ts";
 import { nodesByRef } from "#transcript/delegation.ts";
 import { openToolCalls } from "#transcript/tool-calls.ts";

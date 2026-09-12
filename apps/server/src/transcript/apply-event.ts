@@ -1,4 +1,4 @@
-import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "@antumbra/domain-sessions/transcript/model.ts";
+import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "@antumbra/domain-sessions/rows/transcript.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";

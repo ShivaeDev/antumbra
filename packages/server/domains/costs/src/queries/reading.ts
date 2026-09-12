@@ -1,10 +1,10 @@
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { sessionUsage } from "@antumbra/domain-sessions/rows/session-usage.ts";
-import { CostsView } from "@antumbra/domain-sessions/usage/schema.ts";
+import { CostsView } from "@antumbra/domain-sessions/rows/usage.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
-import { costsView } from "#view.ts";
+import { costsView } from "#queries/view.ts";
 
 export const reading = query("reading", {
 	input: { today: Schema.String },

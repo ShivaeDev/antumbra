@@ -2,8 +2,8 @@ import type { sessionUsage } from "@antumbra/domain-sessions/rows/session-usage.
 
 type SessionUsage = typeof sessionUsage.Row.Type;
 
-import { countUsage, emptyTally, type Tally, tallyAt } from "@antumbra/domain-sessions/usage/tally.ts";
-import { dayKey } from "#days.ts";
+import { dayKey } from "#queries/days.ts";
+import { countUsage, emptyTally, type Tally, tallyAt } from "#queries/tally.ts";
 
 export interface SpendSession {
 	readonly agentId: string;

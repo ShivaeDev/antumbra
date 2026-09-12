@@ -1,4 +1,4 @@
-import type { TranscriptItem, TranscriptTool } from "@antumbra/domain-sessions/transcript/model.ts";
+import type { TranscriptItem, TranscriptTool } from "@antumbra/domain-sessions/rows/transcript.ts";
 
 export interface ToolCalls {
 	readonly complete: (toolId: string, ok: boolean, result: string) => void;

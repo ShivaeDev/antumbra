@@ -2,7 +2,7 @@ import { fact } from "@antumbra/platform-feature/fact.ts";
 import { Origin } from "@antumbra/platform-vocabulary/session-events/origin.ts";
 import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
-import { UsageEvidence } from "#usage/evidence.ts";
+import { UsageEvidence } from "#rows/usage-evidence.ts";
 
 export const providerEvent = fact("SessionProviderEvent", {
 	sessionId: SessionId,

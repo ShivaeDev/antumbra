@@ -1,4 +1,4 @@
-import type { TranscriptDelegation } from "@antumbra/domain-sessions/transcript/model.ts";
+import type { TranscriptDelegation } from "@antumbra/domain-sessions/rows/transcript.ts";
 import type { SubsessionEnded, SubsessionOpened } from "@antumbra/platform-vocabulary/session-events/subsessions.ts";
 import { subsessionDisplayName } from "#transcript/nodes.ts";
 import type { SessionTreeNode } from "#transcript/types.ts";

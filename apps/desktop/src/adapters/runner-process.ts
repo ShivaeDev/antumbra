@@ -1,6 +1,8 @@
+import { dirname } from "node:path";
 import { loopback } from "@antumbra/platform-rpc/endpoint.ts";
 import { Context, Effect, Layer, Schedule, ScopedRef } from "effect";
 import { ChildProcess } from "effect/unstable/process";
+import { app } from "electron";
 import { ServerProcess } from "#adapters/server-process.ts";
 import { ShellState } from "#adapters/shell-state.ts";
 
@@ -14,7 +16,20 @@ export const RunnerProcessLayer = (bundle: string, directory: string) =>
 			const { port, token } = yield* serving;
 			const spawn = ChildProcess.make(
 				process.execPath,
-				[bundle, "--data", directory, "--server", loopback(port), "--runner-id", identity.runnerId, "--log-id", identity.logId],
+				[
+					bundle,
+					"--data",
+					directory,
+					"--assets",
+					app.isPackaged ? process.resourcesPath : dirname(bundle),
+					"--server",
+					loopback(port),
+					"--runner-id",
+					identity.runnerId,
+					"--log-id",
+					identity.logId,
+				],
+
 				{
 					env: { ANTUMBRA_TOKEN: token, ELECTRON_RUN_AS_NODE: "1" },
 					extendEnv: true,

@@ -30,6 +30,7 @@ const configs = (root: string) => [
 		platform: "node" as const,
 	},
 	{
+		external: ["sharp"],
 		input: fileURLToPath(import.meta.resolve("@antumbra/server/main.ts")),
 		output: {
 			codeSplitting: false,

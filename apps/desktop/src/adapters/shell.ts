@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 import { Config, Effect, type Ref } from "effect";
 import { app } from "electron";
+import { packagedChildBundle } from "#adapters/bundle-paths.ts";
 import { serverDataInDataDirectory } from "#adapters/data-paths.ts";
 import { registerGracefulShutdown } from "#adapters/graceful-shutdown.ts";
 import type { OwnedWindow } from "#adapters/windows/registry.ts";
@@ -57,9 +58,9 @@ export const serverDataDirectory = (): string => {
 	return directory;
 };
 
-export const serverBundle = (): string => (app.isPackaged ? join(process.resourcesPath, "server.js") : join(import.meta.dirname, "server.js"));
+export const serverBundle = (): string => (app.isPackaged ? packagedChildBundle(app.getAppPath(), "server") : join(import.meta.dirname, "server.js"));
 
-export const runnerBundle = (): string => (app.isPackaged ? join(process.resourcesPath, "runner.js") : join(import.meta.dirname, "runner.js"));
+export const runnerBundle = (): string => (app.isPackaged ? packagedChildBundle(app.getAppPath(), "runner") : join(import.meta.dirname, "runner.js"));
 
 export const quitWhenAllWindowsClosed = Effect.sync(() => {
 	app.on("window-all-closed", () => {

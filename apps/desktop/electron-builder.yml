@@ -7,9 +7,6 @@ directories:
   output: release
 files:
   - out/**
-  # The server bundle ships beside the app so the shell can run it on the app's own binary in Node mode.
-  - "!out/server.js"
-  - "!out/runner.js"
   # Antumbra drives the installed Claude Code CLI; the SDK's unused platform binaries add about 270 MB.
   - "!**/node_modules/@anthropic-ai/claude-agent-sdk-*/**"
 # Native .node addons require a real path outside ASAR; sharp and its @img prebuilds are the only native code Antumbra loads.
@@ -21,10 +18,6 @@ extraResources:
     to: skills
   - from: out/opencode
     to: opencode
-  - from: out/server.js
-    to: server.js
-  - from: out/runner.js
-    to: runner.js
 mac:
   # A workspace install contains only the current host's sharp prebuild, so packaging remains single-architecture.
   target:

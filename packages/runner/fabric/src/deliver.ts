@@ -1,5 +1,5 @@
 import type { Input } from "@antumbra/platform-runner/input.ts";
-import { Effect, Fiber } from "effect";
+import { Deferred, Effect, Fiber } from "effect";
 import { RunnerLog } from "#log.ts";
 import { InputResolver } from "#ports.ts";
 import { accepted, refusal, type State } from "#state.ts";
@@ -28,6 +28,7 @@ export const deliver = Effect.fn("RunnerFabric.deliver")(function* (
 	return yield* entry.handle[act](resolved).pipe(
 		Effect.forkIn(entry.scope),
 		Effect.flatMap(Fiber.join),
+		Effect.andThen(Deferred.await(entry.opened)),
 		Effect.andThen(log.append({ type: "InputAccepted", requestId, sessionId, inputId: input.id })),
 		Effect.as(accepted),
 		Effect.onInterrupt(() =>

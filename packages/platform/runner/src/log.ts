@@ -9,6 +9,12 @@ const session = { requestId: Schema.String, sessionId: Schema.String };
 const input = { ...session, inputId: Schema.String };
 
 export const LogEvent = Schema.Union([
+	Schema.Struct({ type: Schema.Literal("SessionNodeAudited"), sessionId: Schema.String, nodeRef: Schema.String }),
+	Schema.Struct({
+		type: Schema.Literal("SessionCensus"),
+		sessionId: Schema.String,
+		nodes: Schema.Array(Schema.Struct({ nodeRef: Schema.String, working: Schema.Boolean })),
+	}),
 	Schema.Struct({
 		type: Schema.Literal("BerthReclaimFailed"),
 		requestId: Schema.String,
@@ -40,7 +46,12 @@ export const LogEvent = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("SessionWoke"), ...session, runnerId: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("SessionSlept"), ...session }),
 	Schema.Struct({ type: Schema.Literal("SessionEnded"), ...session, reason: Schema.String }),
-	Schema.Struct({ type: Schema.Literal("ProviderEvent"), sessionId: Schema.String, event: AgentEvent }),
+	Schema.Struct({
+		type: Schema.Literal("ProviderEvent"),
+		sessionId: Schema.String,
+		observation: Schema.Literals(["live", "audit"]),
+		event: AgentEvent,
+	}),
 	Schema.Struct({ type: Schema.Literal("InputAccepted"), ...input }),
 	Schema.Struct({ type: Schema.Literal("InputFailed"), ...input, reason: Schema.String }),
 	Schema.Struct({ type: Schema.Literal("InputAmbiguous"), ...input, reason: Schema.String }),

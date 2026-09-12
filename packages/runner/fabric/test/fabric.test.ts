@@ -1,91 +1,9 @@
-import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
-import type { AgentBackend, OpenSessionOptions, SessionInput } from "@antumbra/runner-ports/backend.ts";
-import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Exit, Fiber, Layer, Option, Queue, Stream } from "effect";
-import { layer, RunnerFabric } from "#fabric.ts";
-import { file, RunnerLog } from "#log.ts";
-import { BackendRegistry, InputResolver, RunnerIdentity, ServerTools } from "#ports.ts";
-
-const start: Extract<Operation, { type: "Start" }> = {
-	type: "Start",
-	requestId: "start",
-	sessionId: "session",
-	options: {
-		agentId: "agent",
-		backend: "scripted",
-		cwd: "/work",
-		model: null,
-		effort: null,
-		constrainedPrompt: null,
-		toolSet: { version: "1", tools: [] },
-	},
-	charter: { id: "charter", parts: [{ type: "text", text: "work" }] },
-};
-
-const fixture = Effect.gen(function* () {
-	const events = yield* Queue.unbounded<AgentEvent>();
-	const queued: SessionInput[] = [];
-	const delivering = yield* Deferred.make<void>();
-	const releaseDelivery = yield* Deferred.make<void>();
-	let blocked = false;
-	const steered: SessionInput[] = [];
-	const auditEvents: AgentEvent[] = [];
-	const acquisitions: OpenSessionOptions[] = [];
-	const forwarded = yield* Deferred.make<void>();
-	const answer = yield* Deferred.make<{ ok: boolean; text: string }>();
-	let opens = 0;
-	const backend: AgentBackend = {
-		tag: "scripted",
-		audit: { ...noSessionAudit, census: () => Effect.succeed({ events: auditEvents, nodes: [] }) },
-		capabilities: { imageInput: true },
-		listModels: Effect.succeed([]),
-		openSession: (options) =>
-			Effect.gen(function* () {
-				opens++;
-				acquisitions.push(options);
-				yield* Queue.offer(events, { type: "session.opened", nativeRef: "native", raw: { source: "scripted", kind: "test", payload: "opened" } });
-				return {
-					events: Stream.fromQueue(events),
-					nativeRef: Effect.succeed(Option.some("native")),
-					interrupt: Effect.void,
-					queue: (input) =>
-						Effect.gen(function* () {
-							yield* Deferred.succeed(delivering, undefined);
-							if (blocked) yield* Deferred.await(releaseDelivery);
-							queued.push(input);
-						}),
-					steer: (input) =>
-						Effect.sync(() => {
-							steered.push(input);
-						}),
-				};
-			}),
-	};
-	const dependencies = Layer.mergeAll(
-		file({ filename: ":memory:", logId: "log" }),
-		Layer.succeed(BackendRegistry, { backends: new Map([["scripted", backend]]) }),
-		Layer.succeed(InputResolver, { resolve: (input) => Effect.succeed({ id: input.id, parts: [{ type: "text", text: "resolved input" }] }) }),
-		Layer.succeed(RunnerIdentity, { runnerId: "runner" }),
-		Layer.succeed(ServerTools, { call: () => Deferred.succeed(forwarded, undefined).pipe(Effect.andThen(Deferred.await(answer))) }),
-	);
-	return {
-		events,
-		queued,
-		steered,
-		auditEvents,
-		acquisitions,
-		forwarded,
-		answer,
-		delivering,
-		blockDelivery: Effect.sync(() => {
-			blocked = true;
-		}),
-		opens: () => opens,
-		live: layer.pipe(Layer.provideMerge(dependencies)),
-	};
-});
+import { Deferred, Effect, Exit, Fiber, Option, Queue, Stream } from "effect";
+import { RunnerFabric } from "#fabric.ts";
+import { RunnerLog } from "#log.ts";
+import { fixture, start } from "#test/fixture.ts";
 
 it.effect("logs native start and charter acceptance before answering and reuses the request", () =>
 	Effect.gen(function* () {
@@ -212,7 +130,7 @@ it.effect("keeps repeated native audit findings on one event path", () =>
 	Effect.gen(function* () {
 		const test = yield* fixture;
 		const event: AgentEvent = { type: "raw", raw: { source: "scripted", kind: "audit", payload: "finding" } };
-		test.auditEvents.push(event, event);
+		test.auditEvents.push(event, event, { type: "thinking", text: "distinct semantic event", raw: event.raw });
 		yield* Effect.gen(function* () {
 			const fabric = yield* RunnerFabric;
 			const log = yield* RunnerLog;
@@ -224,7 +142,7 @@ it.effect("keeps repeated native audit findings on one event path", () =>
 				nativeRef: "existing-native",
 				instruction: { id: "wake-input", parts: [{ type: "text", text: "continue" }] },
 			});
-			expect((yield* log.read(-1)).filter(({ event }) => event.type === "ProviderEvent" && event.event.raw.payload === "finding")).toHaveLength(1);
+			expect((yield* log.read(-1)).filter(({ event }) => event.type === "ProviderEvent" && event.event.raw.payload === "finding")).toHaveLength(2);
 		}).pipe(Effect.provide(test.live));
 	}),
 );

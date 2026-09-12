@@ -18,21 +18,26 @@ export const audit = Effect.fn("RunnerFabric.audit")(function* (entry: Attachmen
 		);
 		const known = new Set(stored.flatMap((event) => (event.type === "subsession.opened" ? [event.subsessionRef] : [])));
 		const recorded = new Set(stored.map((event) => event.raw.payload));
+		const semantic = new Set(stored.map((event) => JSON.stringify(event)));
 		const appendFresh = (events: ReadonlyArray<AgentEvent>) =>
 			Effect.forEach(
 				events,
 				(event) => {
-					if (recorded.has(event.raw.payload)) return Effect.void;
-					recorded.add(event.raw.payload);
-					return record(entry, opening.sessionId, event);
+					const key = JSON.stringify(event);
+					if (semantic.has(key)) return Effect.void;
+					semantic.add(key);
+					return record(entry, opening.sessionId, event, "audit");
 				},
 				{ discard: true },
 			);
-		if (nodeRef !== undefined)
+		if (nodeRef !== undefined) {
 			yield* appendFresh(yield* backend.audit.node({ cwd: opening.options.cwd, nodeRef, rootRef, recorded: Effect.succeed([...recorded]) }));
+			yield* log.append({ type: "SessionNodeAudited", sessionId: opening.sessionId, nodeRef });
+		}
 		const census = yield* backend.audit.census({ cwd: opening.options.cwd, rootRef, admitted: (node) => known.has(node) });
 		yield* appendFresh(census.events);
 		observeCensus(entry.activity, census.nodes);
+		yield* log.append({ type: "SessionCensus", sessionId: opening.sessionId, nodes: census.nodes });
 	}).pipe(
 		Effect.ensuring(
 			Effect.sync(() => {

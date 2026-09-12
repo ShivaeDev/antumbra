@@ -4,8 +4,13 @@ import { observeActivity } from "#activity.ts";
 import { RunnerLog } from "#log.ts";
 import type { Attachment } from "#state.ts";
 
-export const record = Effect.fn("RunnerFabric.event")(function* (entry: Attachment, sessionId: string, event: AgentEvent) {
+export const record = Effect.fn("RunnerFabric.event")(function* (
+	entry: Attachment,
+	sessionId: string,
+	event: AgentEvent,
+	observation: "live" | "audit",
+) {
 	const log = yield* RunnerLog;
-	observeActivity(entry.activity, event);
-	yield* log.append({ type: "ProviderEvent", sessionId, event });
+	if (observation === "live") observeActivity(entry.activity, event);
+	yield* log.append({ type: "ProviderEvent", sessionId, observation, event });
 });

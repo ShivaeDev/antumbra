@@ -1,5 +1,5 @@
 import { type ChangeHost, type ChangeHostError, ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
-import type { HostRepo } from "@antumbra/platform-change-host/schema.ts";
+import type { HostRepo } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect, Option } from "effect";
 import { type CachedCapability, makeCachedCapability } from "#capability.ts";
 import type { GhError } from "#errors.ts";

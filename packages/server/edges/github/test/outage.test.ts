@@ -1,4 +1,4 @@
-import type { HostRepo } from "@antumbra/platform-change-host/schema.ts";
+import type { HostRepo } from "@antumbra/platform-vocabulary/change-host.ts";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import { makeGitHubHost } from "#host.ts";

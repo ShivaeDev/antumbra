@@ -1,4 +1,4 @@
-import type { ChangeRef, Observation } from "@antumbra/platform-change-host/schema.ts";
+import type { ChangeRef, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect, Option } from "effect";
 import type { GhError } from "#errors.ts";
 import { observeGroup } from "#observe.ts";

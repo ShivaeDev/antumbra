@@ -1,4 +1,4 @@
-import type { Observation } from "@antumbra/platform-change-host/schema.ts";
+import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect } from "effect";
 import { runGh } from "#command.ts";
 import { type GhCommandFailed, type GhError, GhOutputInvalid } from "#errors.ts";

@@ -1,4 +1,4 @@
-import type { OpenRequest } from "@antumbra/platform-change-host/schema.ts";
+import type { OpenRequest } from "@antumbra/platform-vocabulary/change-host.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { makeGitHubHost } from "#host.ts";

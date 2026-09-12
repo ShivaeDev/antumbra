@@ -1,4 +1,4 @@
-import type { OpenRequest } from "@antumbra/platform-change-host/schema.ts";
+import type { OpenRequest } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect, Option } from "effect";
 import { runGh } from "#command.ts";
 import { type GhError, GhOutputInvalid } from "#errors.ts";

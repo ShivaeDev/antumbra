@@ -1,5 +1,5 @@
-import type { Observation } from "@antumbra/platform-change-host/schema.ts";
 import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/platform-vocabulary/change.ts";
+import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect } from "effect";
 import type { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, UnknownGitHubWord } from "#dialect.ts";
 import { GhOutputInvalid } from "#errors.ts";

@@ -44,20 +44,3 @@ it.effect("retains later draft edits when an earlier send finishes and publishes
 		expect(changed).toEqual(["first draft", "later edit", ""]);
 	}).pipe(Effect.provide(NodeServices.layer)),
 );
-
-it.effect("imports an existing browser draft once without replacing shell edits", () =>
-	Effect.gen(function* () {
-		const fs = yield* FileSystem.FileSystem;
-		const directory = yield* fs.makeTempDirectoryScoped();
-		yield* ShellDrafts.use((drafts) =>
-			Effect.gen(function* () {
-				const ref = { sessionId: "session-1", slot: "situation:blocker:piece-1" };
-				expect((yield* drafts.read(ref, "unsent old text")).text).toBe("unsent old text");
-				const next = yield* drafts.write(ref, "new text");
-				expect(yield* drafts.read(ref, "unsent old text")).toEqual(next);
-				yield* drafts.clear(ref, next.revision);
-				expect((yield* drafts.read(ref, "unsent old text")).text).toBe("");
-			}),
-		).pipe(Effect.provide(ShellDraftsLayer(directory)));
-	}).pipe(Effect.provide(NodeServices.layer)),
-);

@@ -8,9 +8,14 @@ import { mount, settle } from "#glass/dom.ts";
 
 export type Api = Glass<typeof definition.features>["api"];
 
+type Services = Layer.Success<typeof layer>;
+
 interface GlassTest {
 	readonly api: Api;
 	readonly render: (screen: ReactNode) => Effect.Effect<HTMLElement>;
+	readonly run: <Value, Failure, Requirements>(
+		effect: Effect.Effect<Value, Failure, Requirements>,
+	) => Effect.Effect<Value, Failure, Exclude<Requirements, Services>>;
 }
 
 export const it = {
@@ -23,7 +28,8 @@ export const it = {
 				yield* Effect.addFinalizer(() => Effect.sync(() => glass.registry.dispose()));
 				const { container, root } = yield* mount();
 				const render = (screen: ReactNode) => settle(() => root.render(<glass.Provider>{screen}</glass.Provider>)).pipe(Effect.as(container));
-				return yield* Effect.gen(() => body({ api: glass.api, render }));
+				const run = <Value, Failure, Requirements>(effect: Effect.Effect<Value, Failure, Requirements>) => effect.pipe(Effect.provide(services));
+				return yield* Effect.gen(() => body({ api: glass.api, render, run }));
 			}),
 		),
 };

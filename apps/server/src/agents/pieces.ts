@@ -8,14 +8,14 @@ import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option } from "effect";
 
-export const pieceLines = Effect.fn("Starts.pieceLines")(function* (voyageId: VoyageId) {
+export const pieceLines = Effect.fn("Agents.pieceLines")(function* (voyageId: VoyageId) {
 	const live = yield* Live;
 	const members = yield* live.read(displayByVoyage, { voyageId });
 	const dependencies = yield* live.read(edges, { voyageId });
 	const gates = yield* live.read(openGates, { pieceIds: members.map((piece) => piece.id) });
 	return yield* Effect.forEach(
 		members,
-		Effect.fn("Starts.pieceLine")(function* (piece) {
+		Effect.fn("Agents.pieceLine")(function* (piece) {
 			const landedReports = yield* live.read(reports, { pieceId: piece.id });
 			const landedArtifacts = yield* live.read(artifacts, { pieceId: piece.id });
 			const blocked = yield* Effect.forEach(

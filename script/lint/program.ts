@@ -15,6 +15,7 @@ import { pragmaViolations } from "#lint/rules/pragmas.ts";
 import { serviceDefinitionAssemblyViolations } from "#lint/rules/service-definition-assembly.ts";
 import { serviceParameterViolations } from "#lint/rules/service-parameters.ts";
 import { structureViolations } from "#lint/rules/structure.ts";
+import { testPatternViolations } from "#lint/rules/test-patterns.ts";
 import type { Violation } from "#lint/violation.ts";
 
 export const lint = (inventory: Inventory): Effect.Effect<readonly Violation[]> =>
@@ -29,6 +30,7 @@ export const lint = (inventory: Inventory): Effect.Effect<readonly Violation[]> 
 				Effect.sync(() => layoutDomainImportViolations(inventory)),
 				Effect.sync(() => layoutNodeViolations(inventory)),
 				Effect.sync(() => layoutTestsViolations(inventory)),
+				Effect.sync(() => testPatternViolations(inventory)),
 				Effect.sync(() => nestingViolations(inventory)),
 				Effect.sync(() => commentViolations(inventory)),
 				Effect.sync(() => pragmaViolations(inventory)),

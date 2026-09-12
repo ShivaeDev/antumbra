@@ -1,8 +1,8 @@
+import { eventually } from "@antumbra/app-testing/answers.ts";
 import { fill, form, labelled, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { expect } from "@effect/vitest";
-import { Option, Stream } from "effect";
 import { CommandForm } from "#form.tsx";
 
 const FIXED = ["role"] as const;
@@ -60,12 +60,7 @@ it.glass("clears dependent choices when the backend changes", function* ({ api, 
 	expect(labelled<HTMLInputElement>(container, "Flagship Model").value).toBe("");
 	expect(labelled<HTMLInputElement>(container, "Flagship Effort").value).toBe("");
 	yield* submit(container, "Flagship");
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "flagship" && row.backend === "codex")),
-			Stream.runHead,
-		),
-	);
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.backend === "codex"));
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "codex", model: null, effort: null });
 });
 
@@ -74,12 +69,7 @@ it.glass("saves a model absent from the catalogue", function* ({ api, render }) 
 	yield* renderedForm(container, "Captain");
 	yield* fill(container, "Captain Model", "gpt-6-astra");
 	yield* submit(container, "Captain");
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "captain" && row.model === "gpt-6-astra")),
-			Stream.runHead,
-		),
-	);
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "captain" && row.model === "gpt-6-astra"));
 	expect(saved.find((row) => row.role === "captain")).toMatchObject({ model: "gpt-6-astra", scope: "fleet" });
 });
 
@@ -91,12 +81,7 @@ it.glass("saves the changed row and settles clean", function* ({ api, render }) 
 	yield* fill(container, "Flagship Backend", "claude");
 	expect(save()).toHaveProperty("disabled", false);
 	yield* submit(container, "Flagship");
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "flagship" && row.backend === "claude")),
-			Stream.runHead,
-		),
-	);
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.backend === "claude"));
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({ backend: "claude", effort: null, model: null, scope: "fleet" });
 	yield* until(() => save()?.disabled === true);
 });
@@ -107,11 +92,6 @@ it.glass("saves an empty optional choice as null", function* ({ api, render }) {
 	yield* until(() => container.querySelector<HTMLInputElement>('[aria-label="Crew Model"]')?.value === "gpt");
 	yield* fill(container, "Crew Model", "");
 	yield* submit(container, "Crew");
-	const saved = Option.getOrThrow(
-		yield* api.roleSettings.defaults({}).pipe(
-			Stream.filter((rows) => rows.some((row) => row.role === "crew" && row.model === null)),
-			Stream.runHead,
-		),
-	);
+	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "crew" && row.model === null));
 	expect(saved.find((row) => row.role === "crew")).toMatchObject({ backend: "codex", model: null });
 });

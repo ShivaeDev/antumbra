@@ -1,5 +1,5 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
-import { form, labelled, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { fill, form, labelled, renderedForm, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { OpenVoyage } from "#open-voyage.tsx";
@@ -45,9 +45,9 @@ it.glass("opens a voyage and resets the form", function* ({ api, render }) {
 		/>,
 	);
 	const opening = yield* renderedForm(container, "Open voyage");
-	yield* write(labelled<HTMLInputElement>(opening, "Open voyage Name"), "Chart the reef");
-	yield* write(labelled<HTMLInputElement>(opening, "Open voyage North star"), "every shoal is known");
-	yield* write(labelled<HTMLTextAreaElement>(opening, "Open voyage Context"), "the reef\nis uncharted");
+	yield* fill(opening, "Open voyage Name", "Chart the reef");
+	yield* fill(opening, "Open voyage North star", "every shoal is known");
+	yield* fill(opening, "Open voyage Context", "the reef\nis uncharted");
 	yield* submit(container, "Open voyage");
 	const saved = yield* eventually(api.voyages.list({}), (rows) => rows.length > 0);
 	expect(saved).toMatchObject([

@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Rulings } from "@antumbra/rulings";
@@ -52,10 +52,7 @@ const ruleOn = (rulingId: string) =>
 		});
 	});
 
-const mailbox = Effect.gen(function* () {
-	const boards = yield* Boards;
-	return yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
-});
+const mailbox = Effect.flatMap(Mail, (mail) => mail.mailbox(ASKER));
 
 it.effectApp("a blocking request holds until ruled and returns the answer", { clock: "live" }, function* () {
 	yield* seedAsker;
@@ -105,7 +102,7 @@ it.effectApp("an interrupted hold leaves the ruling open for mail to answer", { 
 			return read;
 		}),
 	);
-	expect(entries[0]?.sourceRef).toBe(`ruling:${row.id}`);
+	expect(entries[0]?.id).toBe(`ruling:${row.id}`);
 	const delivered = Option.getOrThrow(yield* db.Ruling.where({ id: row.id }).first());
 	expect(delivered.deliveredAt).toBeInstanceOf(Date);
 });
@@ -133,5 +130,5 @@ it.effectApp("a live hold owns the answer and no mail repeats it", { clock: "liv
 			return read;
 		}),
 	);
-	expect(entries[0]?.sourceRef).toBe(`ruling:${unheld.id}`);
+	expect(entries[0]?.id).toBe(`ruling:${unheld.id}`);
 });

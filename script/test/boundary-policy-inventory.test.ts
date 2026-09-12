@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { compileBoundaryPolicy } from "#boundaries/compiler.ts";
 import { boundaryPolicyInventory, compiledBoundaryPolicy } from "#boundaries/config.ts";
-import { anyOf, files, importFrom, packages, vocabularyAccess } from "#boundaries/dsl.ts";
-import type { BoundaryRule, ImportSource } from "#boundaries/model.ts";
+import { anyOf, files, importFrom, packages } from "#boundaries/dsl.ts";
+import type { BoundaryRule, ImportSource, VocabularyAccess } from "#boundaries/model.ts";
 
-const vocabularyRule = vocabularyAccess("subject-inventory-under-test")
-	.because("The compiler validates vocabulary subjects against the workspace inventory.")
-	.for(packages.named("domain-pieces"))
-	.allowsOnly("id")
-	.demonstratedBy({
+const vocabularyRule: VocabularyAccess = {
+	name: "subject-inventory-under-test",
+	kind: "vocabulary-access",
+	rationale: "The compiler validates vocabulary subjects against the workspace inventory.",
+	consumers: packages.named("domain-pieces"),
+	allowedSubjects: ["id"],
+	examples: {
 		illegal: importFrom(files.inPackage("server/domains/pieces", "src/ids.ts")).to(files.inPackage("platform/vocabulary", "src/board.ts")),
 		legal: importFrom(files.inPackage("server/domains/pieces", "src/ids.ts")).to(files.inPackage("platform/vocabulary", "src/id.ts")),
-	});
+	},
+};
 
 const withConsumers = (consumers: ImportSource): BoundaryRule => ({
 	...vocabularyRule,

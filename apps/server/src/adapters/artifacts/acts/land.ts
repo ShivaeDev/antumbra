@@ -1,6 +1,5 @@
 import { land } from "@antumbra/domain-artifacts/commands/land.ts";
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
-import { ArtifactFiles, ArtifactSource } from "@antumbra/domain-artifacts/ports/content.ts";
 import { byId } from "@antumbra/domain-artifacts/queries/by-id.ts";
 import type { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { byId as pieceById } from "@antumbra/domain-pieces/queries/by-id.ts";
@@ -9,6 +8,7 @@ import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
 import { landingReceipt } from "#adapters/artifacts/acts/receipt.ts";
+import { ArtifactFiles, ArtifactSource } from "#adapters/artifacts/ports.ts";
 export interface ArtifactLandingInput {
 	readonly requestId: Request;
 	readonly pieceId: PieceId;

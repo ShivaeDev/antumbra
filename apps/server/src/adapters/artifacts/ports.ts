@@ -1,6 +1,7 @@
+import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
+import type { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
 import { Context, type Effect } from "effect";
-import type { ArtifactContentInvalid, ArtifactPublicationFailed, ArtifactSourceNotOwned, StoredArtifactContentInvalid } from "#content.ts";
-import type { ArtifactId } from "#ids.ts";
+import type { ArtifactContentInvalid, ArtifactPublicationFailed, ArtifactSourceNotOwned } from "#adapters/artifacts/errors.ts";
 export interface PublishedArtifact {
 	readonly basename: string;
 	readonly digest: string;
@@ -18,11 +19,11 @@ export class ArtifactSource extends Context.Service<
 			readonly path: string;
 		}) => Effect.Effect<ArtifactBytes, ArtifactSourceNotOwned | ArtifactContentInvalid | ArtifactPublicationFailed>;
 	}
->()("@antumbra/domain-artifacts/ArtifactSource") {}
+>()("@antumbra/server/ArtifactSource") {}
 export class ArtifactFiles extends Context.Service<
 	ArtifactFiles,
 	{
 		readonly publish: (source: ArtifactBytes) => Effect.Effect<PublishedArtifact, ArtifactPublicationFailed>;
 		readonly read: (input: PublishedArtifact & { readonly id: ArtifactId }) => Effect.Effect<string, StoredArtifactContentInvalid>;
 	}
->()("@antumbra/domain-artifacts/ArtifactFiles") {}
+>()("@antumbra/server/ArtifactFiles") {}

@@ -1,8 +1,8 @@
-import { ArtifactPublicationFailed } from "@antumbra/domain-artifacts/content.ts";
-import type { ArtifactBytes } from "@antumbra/domain-artifacts/ports/content.ts";
 import { Effect, Path } from "effect";
 import { digestBytes } from "#adapters/artifacts/content.ts";
+import { ArtifactPublicationFailed } from "#adapters/artifacts/errors.ts";
 import { ensureDurableDirectory } from "#adapters/artifacts/filesystem-durability.ts";
+import type { ArtifactBytes } from "#adapters/artifacts/ports.ts";
 import { installPublished } from "#adapters/artifacts/published-file.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 export const publishArtifact = Effect.fn("ArtifactFiles.publish")(

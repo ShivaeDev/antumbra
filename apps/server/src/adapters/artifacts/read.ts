@@ -1,8 +1,8 @@
-import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/content.ts";
 import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
-import type { PublishedArtifact } from "@antumbra/domain-artifacts/ports/content.ts";
+import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
 import { Effect, FileSystem, Path } from "effect";
 import { digestBytes, readOpened } from "#adapters/artifacts/content.ts";
+import type { PublishedArtifact } from "#adapters/artifacts/ports.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 
 type StoredArtifactContentInvalidReason = StoredArtifactContentInvalid["reason"];

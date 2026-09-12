@@ -3,7 +3,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { it } from "@antumbra/app-testing/entry.ts";
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
-import { ArtifactSource } from "@antumbra/domain-artifacts/ports/content.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
@@ -13,6 +12,7 @@ import { expect } from "vitest";
 import { landArtifact } from "#adapters/artifacts/acts/land.ts";
 import { readArtifact } from "#adapters/artifacts/acts/read.ts";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
+import { ArtifactSource } from "#adapters/artifacts/ports.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 
 it.app("artifact storage keeps published bytes after their source is removed", function* (app) {

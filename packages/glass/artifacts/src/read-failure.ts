@@ -1,5 +1,5 @@
 import { land } from "@antumbra/domain-artifacts/commands/land.ts";
-import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/content.ts";
+import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
 import { Cause, Option, Schema } from "effect";
 
 export const readFailure = (cause: Cause.Cause<unknown>): string => {

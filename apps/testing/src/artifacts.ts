@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { basename } from "node:path";
-import { ArtifactSourceNotOwned, StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/content.ts";
-import { ArtifactFiles, ArtifactSource } from "@antumbra/domain-artifacts/ports/content.ts";
+import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
+import { ArtifactSourceNotOwned } from "@antumbra/server/adapters/artifacts/errors.ts";
+import { ArtifactFiles, ArtifactSource } from "@antumbra/server/adapters/artifacts/ports.ts";
 import { Context, Effect, Layer } from "effect";
 
 export { landArtifact } from "@antumbra/server/adapters/artifacts/acts/land.ts";

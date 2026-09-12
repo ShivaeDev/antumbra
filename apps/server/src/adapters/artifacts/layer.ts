@@ -1,5 +1,5 @@
-import { ArtifactFiles } from "@antumbra/domain-artifacts/ports/content.ts";
 import { type Crypto, Effect, type FileSystem, Layer, type Path } from "effect";
+import { ArtifactFiles } from "#adapters/artifacts/ports.ts";
 import { publishArtifact } from "#adapters/artifacts/publish.ts";
 import { readArtifact } from "#adapters/artifacts/read.ts";
 import type { ArtifactStorage } from "#adapters/artifacts/storage.ts";

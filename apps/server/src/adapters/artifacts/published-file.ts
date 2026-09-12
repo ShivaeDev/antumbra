@@ -1,6 +1,6 @@
-import { ArtifactPublicationFailed } from "@antumbra/domain-artifacts/content.ts";
 import { Crypto, Effect, FileSystem, Path } from "effect";
 import { digestBytes } from "#adapters/artifacts/content.ts";
+import { ArtifactPublicationFailed } from "#adapters/artifacts/errors.ts";
 import { syncOpened } from "#adapters/artifacts/filesystem-durability.ts";
 
 const verifyPublished = (destination: string, digest: string, byteSize: number) =>

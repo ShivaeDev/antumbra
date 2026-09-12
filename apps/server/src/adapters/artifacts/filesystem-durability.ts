@@ -1,5 +1,5 @@
-import { ArtifactPublicationFailed } from "@antumbra/domain-artifacts/content.ts";
 import { Effect, FileSystem, Path, type PlatformError } from "effect";
+import { ArtifactPublicationFailed } from "#adapters/artifacts/errors.ts";
 
 const hasReason =
 	(tag: PlatformError.SystemErrorTag) =>

@@ -3,7 +3,8 @@ import type { ToolSessions } from "@antumbra/runner-backends-opencode/tool-sessi
 import type { ToolDefinition } from "@antumbra/runner-ports/tools.ts";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
+import type { CallToolRequest, CallToolResult, ServerNotification, ServerRequest } from "@modelcontextprotocol/sdk/types.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { Effect, Option, Schema } from "effect";
 
@@ -51,31 +52,37 @@ const answerCall = async (sessions: ToolSessions, name: string, args: unknown): 
 	return said(outcome.text, outcome.ok);
 };
 
+const progressWhileOpen = (send: (progress: number) => Promise<void>) =>
+	Effect.gen(function* () {
+		let progress = 0;
+		const report = Effect.promise(() => send(progress++));
+		yield* report;
+		yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.sleep(30_000), report)));
+	});
+
+const answerWithProgress = (sessions: ToolSessions, message: CallToolRequest, extra: RequestHandlerExtra<ServerRequest, ServerNotification>) =>
+	Effect.runPromise(
+		Effect.scoped(
+			Effect.gen(function* () {
+				const token = message.params._meta?.progressToken;
+				if (token !== undefined) {
+					yield* progressWhileOpen((progress) =>
+						extra.sendNotification({ method: "notifications/progress", params: { progressToken: token, progress } }),
+					);
+				}
+				return yield* Effect.promise(() => answerCall(sessions, message.params.name, message.params.arguments));
+			}),
+		),
+		{ signal: extra.signal },
+	);
+
 // Omitting the session-id generator makes the transport stateless, so each request gets its own protocol server and nothing is carried between them.
 export const answerToolRequest = (tools: ReadonlyArray<ToolDefinition>, sessions: ToolSessions) => {
 	const list = tools.map(listed);
 	return async (request: Request): Promise<Response> => {
 		const server = new Server({ name: TOOL_SERVER_NAME, version: "0.0.0" }, { capabilities: { tools: {} } });
 		server.setRequestHandler(ListToolsRequestSchema, () => ({ tools: list }));
-		server.setRequestHandler(CallToolRequestSchema, (message, extra) =>
-			Effect.runPromise(
-				Effect.scoped(
-					Effect.gen(function* () {
-						const token = message.params._meta?.progressToken;
-						if (token !== undefined) {
-							let progress = 0;
-							const report = Effect.promise(() =>
-								extra.sendNotification({ method: "notifications/progress", params: { progressToken: token, progress: progress++ } }),
-							);
-							yield* report;
-							yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.sleep(30_000), report)));
-						}
-						return yield* Effect.promise(() => answerCall(sessions, message.params.name, message.params.arguments));
-					}),
-				),
-				{ signal: extra.signal },
-			),
-		);
+		server.setRequestHandler(CallToolRequestSchema, (message, extra) => answerWithProgress(sessions, message, extra));
 		const transport = new WebStandardStreamableHTTPServerTransport();
 		await server.connect(transport);
 		const response = await transport.handleRequest(request);

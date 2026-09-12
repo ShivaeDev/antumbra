@@ -5,37 +5,44 @@ import { Effect, Layer, Option } from "effect";
 import { makeClaudeBackend } from "#backend.ts";
 import { ClaudeRuntime, type RawSessionRequest } from "#runtime.ts";
 
+const fixture = () => {
+	const opened: RawSessionRequest[] = [];
+	const delivered: { readonly kind: string; readonly text: string }[] = [];
+	let closed = false;
+	const handle = {
+		interrupt: () => Promise.resolve(),
+		queue: (text: string) =>
+			Effect.sync(() => {
+				delivered.push({ kind: "queue", text });
+			}),
+		steer: (text: string) =>
+			Effect.sync(() => {
+				delivered.push({ kind: "steer", text });
+			}),
+		subscribe: () => {},
+	};
+	const runtime = Layer.succeed(ClaudeRuntime, {
+		audit: noSessionAudit,
+		listModels: Effect.succeed([]),
+		open: (request) =>
+			Effect.acquireRelease(
+				Effect.sync(() => {
+					opened.push(request);
+					return handle;
+				}),
+				() =>
+					Effect.sync(() => {
+						closed = true;
+					}),
+			),
+	});
+	return { opened, delivered, runtime, closed: () => closed };
+};
+
 it.effect("resume, tool binding, queue and steer retain their own boundaries until close", () =>
 	Effect.gen(function* () {
-		const opened: RawSessionRequest[] = [];
-		const delivered: { readonly kind: string; readonly text: string }[] = [];
-		let closed = false;
-		const runtime = Layer.succeed(ClaudeRuntime, {
-			audit: noSessionAudit,
-			listModels: Effect.succeed([]),
-			open: (request) =>
-				Effect.acquireRelease(
-					Effect.sync(() => {
-						opened.push(request);
-						return {
-							interrupt: () => Promise.resolve(),
-							queue: (text: string) =>
-								Effect.sync(() => {
-									delivered.push({ kind: "queue", text });
-								}),
-							steer: (text: string) =>
-								Effect.sync(() => {
-									delivered.push({ kind: "steer", text });
-								}),
-							subscribe: () => {},
-						};
-					}),
-					() =>
-						Effect.sync(() => {
-							closed = true;
-						}),
-				),
-		});
+		const test = fixture();
+		const { opened, delivered, runtime } = test;
 		const session: OpenSessionOptions = {
 			cwd: "/crew",
 			effort: Option.some("high"),
@@ -60,9 +67,9 @@ it.effect("resume, tool binding, queue and steer retain their own boundaries unt
 					{ kind: "queue", text: "later" },
 					{ kind: "steer", text: "now" },
 				]);
-				expect(closed).toBe(false);
+				expect(test.closed()).toBe(false);
 			}).pipe(Effect.provide(runtime)),
 		);
-		expect(closed).toBe(true);
+		expect(test.closed()).toBe(true);
 	}),
 );

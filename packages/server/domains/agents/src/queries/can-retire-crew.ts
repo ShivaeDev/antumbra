@@ -5,6 +5,20 @@ import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Option, Schema } from "effect";
 import { agent } from "#rows/agent.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
+
+const sessionAtRest = (root: typeof session.Row.Type, sessions: ReadonlyArray<typeof session.Row.Type>): boolean =>
+	root.attached &&
+	root.executionStatus === "idle" &&
+	!sessions.some(
+		(child) =>
+			child.rootSessionId === root.id && (child.openDelegations > 0 || child.toolCalls > 0 || (child.attached && child.executionStatus !== "idle")),
+	);
+
+const agentAtRest = (agentId: string, sessions: ReadonlyArray<typeof session.Row.Type>): boolean => {
+	const roots = sessions.filter((root) => root.agentId === agentId && root.parentSessionId === null);
+	return roots.length > 0 && roots.every((root) => sessionAtRest(root, sessions));
+};
+
 export const canRetireCrew = query("canRetireCrew", {
 	input: { pieceId: PieceId },
 	output: Schema.Boolean,
@@ -15,24 +29,6 @@ export const canRetireCrew = query("canRetireCrew", {
 		const ids = new Set((yield* rows.pieceAgent.where({ pieceId: input.pieceId })).map((link) => link.agentId));
 		const alive = (yield* rows.agent.where({ status: "alive" })).filter((value) => ids.has(value.id));
 		const sessions = yield* rows.session.where({ status: "open" });
-		return (
-			alive.length > 0 &&
-			alive.every((value) => {
-				const roots = sessions.filter((root) => root.agentId === value.id && root.parentSessionId === null);
-				return (
-					roots.length > 0 &&
-					roots.every(
-						(root) =>
-							root.attached &&
-							root.executionStatus === "idle" &&
-							!sessions.some(
-								(child) =>
-									child.rootSessionId === root.id &&
-									(child.openDelegations > 0 || child.toolCalls > 0 || (child.attached && child.executionStatus !== "idle")),
-							),
-					)
-				);
-			})
-		);
+		return alive.length > 0 && alive.every((value) => agentAtRest(value.id, sessions));
 	}),
 });

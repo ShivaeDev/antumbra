@@ -34,3 +34,16 @@ it.effect("get defects when its required row is missing", () =>
 		expect(Cause.squash(cause)).toBeInstanceOf(RowNotFound);
 	}).pipe(Effect.provide(Journal.memory())),
 );
+
+it.effect("where and count match nullable fields", () =>
+	Effect.gen(function* () {
+		const session = row("session", { id: Schema.String, parentId: Schema.NullOr(Schema.String) }, { key: "id" });
+		const database = yield* Database;
+		yield* Effect.orDie(database.write.unsafe(tableDdl(session)));
+		yield* Effect.orDie(database.write`INSERT INTO "session" ("id", "parentId") VALUES ('root', NULL), ('child', 'root')`);
+		const rows = readHandle(database.read, codecFor(session));
+		expect(yield* rows.where({ parentId: null })).toEqual([{ id: "root", parentId: null }]);
+		expect(yield* rows.count({ parentId: null })).toBe(1);
+		expect(yield* rows.where({ parentId: "root" })).toEqual([{ id: "child", parentId: "root" }]);
+	}).pipe(Effect.provide(Journal.memory())),
+);

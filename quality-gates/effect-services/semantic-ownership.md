@@ -84,23 +84,25 @@ Semantic ownership is not a ban on querying, calculation, or reshaping:
 
 ## Reference shape
 
-`@antumbra/repos` demonstrates inseparable registry ownership. Registration, forgetting, related deletion sequencing, database access, and publication
-stay behind the small `RepoRegistry` API. Callers receive stable `RegisteredRepo` values from registration rather than tables, query callbacks, or
-exported row interpreters.
+`@antumbra/domain-repos` (`packages/server/domains/repos`) shows the shape today. Its `repo` and `repoReference` rows are declared inside the package,
+and only the package's own `register` and `forget` commands write them. Every other domain reaches repos through those commands or through the `all`,
+`byId`, `byIds` queries — the package's stable, declared answers, never the rows themselves.
+
+`changes` needs a repository picker for its `requestAdoption` command. Rather than reading `repo` rows itself and building `{ label, value }` pairs,
+it hands the `all` query to `choice`, which reads the label and value off the query's own declared row shape:
 
 ```ts
-// Good: a caller reshapes the registry owner's stable answer.
-const registerRepoOption = Effect.gen(function* () {
-	const repos = yield* Repos;
-	const { id, name } = yield* repos.register(registration);
-	return { label: name, value: id };
-});
+// packages/server/domains/changes/src/commands/request-adoption.ts
+import { all as repos } from "@antumbra/domain-repos/queries/all.ts";
+import { choice, titled } from "@antumbra/platform-feature/edit.ts";
 
-// Bad: a caller writes owner rows and rebuilds the registry's answer.
-const registerRepoOption = Effect.gen(function* () {
-	const db = yield* Database;
-	const row = yield* db.Repo.create(toRepoRow(registration));
-	return { label: row.name, value: row.id };
+// Good: changes hands the owner's declared query to choice instead of rebuilding the picker itself.
+repoId: titled(choice(repos, { label: "name", value: "id", input: {} }), { title: "Repository" }),
+
+// Bad: changes reads repo rows itself and rebuilds the registry's answer.
+const repoOptions = Effect.gen(function* () {
+	const known = yield* rows.repo.where({});
+	return known.map((stored) => ({ label: stored.name, value: stored.id }));
 });
 ```
 

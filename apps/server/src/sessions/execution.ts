@@ -22,7 +22,10 @@ export const execute = Effect.fn("Sessions.execute")(function* (operation: typeo
 	const connected = yield* Stream.runHead(available).pipe(Effect.map(Option.getOrThrow));
 	const runner = connected.find((runner) => runner.runnerId === root.runnerId);
 	if (runner === undefined) return;
-	const wire = yield* runnerOperation(operation, root, root.attached);
+	const current = yield* live.read(reading, { id: operation.sessionId });
+	if (current === null || current.status !== "open") return;
+	if (!(yield* capacityAvailable(operation, current.backend))) return;
+	const wire = yield* runnerOperation(operation, current, current.attached);
 	if (wire === null) return;
 	const result = yield* runners.execute(runner.runnerId, wire);
 	if (result.type === "Refused") yield* holdOperation(operation.id, result.reason);

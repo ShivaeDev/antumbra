@@ -1,18 +1,18 @@
+import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
 import { Effect } from "effect";
-import { landArtifact } from "#acts/land.ts";
-import { ArtifactId } from "#ids.ts";
-import { landArtifactSpec } from "#tools/specs.ts";
+import { landArtifact } from "#adapters/artifacts/acts/land.ts";
+import { landArtifactSpec } from "#tools/artifacts/specs.ts";
 export const landArtifactTool = bind(landArtifactSpec, (context, input) => {
 	if (context.pieceId === undefined) return Effect.succeed({ ok: false, text: "you are not on a piece" });
 	return answered(
 		context,
 		landArtifactSpec.name,
 		landArtifact({
-			requestId: Request.make(context.callId),
+			requestId: requestId(context),
 			authorAgentId: context.agentId,
 			pieceId: PieceId.make(context.pieceId),
 			path: input.path,

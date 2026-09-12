@@ -2,7 +2,7 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { ArtifactId } from "#ids.ts";
-import { chartering, custody, landing, opening, pieceId } from "#test/kit.ts";
+import { chartering, landing, opening, pieceId } from "#test/kit.ts";
 
 const old = ArtifactId.make("old");
 const next = ArtifactId.make("next");
@@ -11,9 +11,10 @@ const edge = { supersededArtifactId: old, successorArtifactId: next, actorAgentI
 it.app("correcting a replacement restores both artifacts", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	const files = custody();
-	yield* landing(old, "old.md").pipe(Effect.provide(files.layer));
-	yield* landing(next, "new.md").pipe(Effect.provide(files.layer));
+	app.artifacts.source.set("old.md", "# Old soundings");
+	app.artifacts.source.set("new.md", "# New soundings");
+	yield* landing(old, "old.md");
+	yield* landing(next, "new.md");
 	yield* app.api.artifacts.supersede(edge);
 	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ id: old }]);
 	yield* app.api.artifacts.removeSupersession(edge);
@@ -25,9 +26,10 @@ it.app("correcting a replacement restores both artifacts", function* (app) {
 it.app("refuses a cycle and an unrelated author's correction", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
-	const files = custody();
-	yield* landing(old, "old.md").pipe(Effect.provide(files.layer));
-	yield* landing(next, "new.md").pipe(Effect.provide(files.layer));
+	app.artifacts.source.set("old.md", "# Old soundings");
+	app.artifacts.source.set("new.md", "# New soundings");
+	yield* landing(old, "old.md");
+	yield* landing(next, "new.md");
 	yield* app.api.artifacts.supersede(edge);
 	expect(yield* Effect.flip(app.api.artifacts.supersede({ ...edge, supersededArtifactId: next, successorArtifactId: old }))).toMatchObject({
 		_tag: "ArtifactLineageConflict",

@@ -1,19 +1,19 @@
+import { removeSupersession } from "@antumbra/domain-artifacts/commands/remove-supersession.ts";
+import { supersede } from "@antumbra/domain-artifacts/commands/supersede.ts";
+import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
-import { removeSupersession } from "#commands/remove-supersession.ts";
-import { supersede } from "#commands/supersede.ts";
-import { ArtifactId } from "#ids.ts";
-import { removeArtifactSupersessionSpec, supersedeArtifactSpec } from "#tools/specs.ts";
+import { removeArtifactSupersessionSpec, supersedeArtifactSpec } from "#tools/artifacts/specs.ts";
 export const supersedeArtifactTool = bind(supersedeArtifactSpec, (context, input) =>
 	answered(
 		context,
 		supersedeArtifactSpec.name,
 		Effect.flatMap(Commit, (commit) =>
 			commit.commit(supersede, {
-				requestId: Request.make(context.callId),
+				requestId: requestId(context),
 				actorAgentId: context.agentId,
 				supersededArtifactId: ArtifactId.make(input.supersededArtifactId),
 				successorArtifactId: ArtifactId.make(input.successorArtifactId),
@@ -28,7 +28,7 @@ export const removeArtifactSupersessionTool = bind(removeArtifactSupersessionSpe
 		removeArtifactSupersessionSpec.name,
 		Effect.flatMap(Commit, (commit) =>
 			commit.commit(removeSupersession, {
-				requestId: Request.make(context.callId),
+				requestId: requestId(context),
 				actorAgentId: context.agentId,
 				supersededArtifactId: ArtifactId.make(input.supersededArtifactId),
 				successorArtifactId: ArtifactId.make(input.successorArtifactId),

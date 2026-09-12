@@ -2,8 +2,6 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { it } from "@antumbra/app-testing/entry.ts";
-import { landArtifact } from "@antumbra/domain-artifacts/acts/land.ts";
-import { readArtifact } from "@antumbra/domain-artifacts/acts/read.ts";
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { ArtifactSource } from "@antumbra/domain-artifacts/ports/content.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
@@ -12,6 +10,8 @@ import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, Layer } from "effect";
 import { expect } from "vitest";
+import { landArtifact } from "#adapters/artifacts/acts/land.ts";
+import { readArtifact } from "#adapters/artifacts/acts/read.ts";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 

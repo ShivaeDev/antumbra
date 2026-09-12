@@ -1,4 +1,5 @@
-import type { ToolAnswer, ToolDescriptor } from "@antumbra/platform-runner/tools.ts";
+import type { ToolDescriptor } from "@antumbra/platform-runner/tools.ts";
+import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Effect, JsonSchema, Schema } from "effect";
 import type { ToolContext } from "#context.ts";
 
@@ -29,7 +30,7 @@ export const bind = <Fields extends Schema.Struct.Fields, Requirements>(
 	spec: ToolSpec<Fields>,
 	handle: (context: ToolContext, input: Schema.Struct<Fields>["Type"]) => Effect.Effect<ToolAnswer, never, Requirements>,
 ): ToolHandler<Requirements> => ({
-	spec,
+	spec: { name: spec.name, description: spec.description, inputSchema: spec.inputSchema },
 	invoke: (context, input) =>
 		Effect.matchEffect(Schema.decodeUnknownEffect(spec.input)(input ?? {}), {
 			onFailure: (error) => Effect.succeed({ ok: false, text: `${spec.name}: ${error}` }),

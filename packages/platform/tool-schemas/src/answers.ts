@@ -1,4 +1,4 @@
-import type { ToolAnswer } from "@antumbra/platform-runner/tools.ts";
+import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { Effect } from "effect";
 import type { ToolContext } from "#context.ts";
 

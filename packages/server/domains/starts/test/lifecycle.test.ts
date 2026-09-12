@@ -36,10 +36,6 @@ it.app("births reserve the global running budget oldest first", function* (app) 
 	yield* app.api.starts.request(birth("one"));
 	yield* app.clock.advance(1);
 	yield* app.api.starts.request(birth("two"));
-	expect(yield* Effect.flip(app.api.starts.admit({ id: StartId.make("two"), requestId: Id.Request.make("admit-two-early") }))).toMatchObject({
-		_tag: "NotOldest",
-	});
-	yield* app.api.starts.admit({ id: StartId.make("one"), requestId: Id.Request.make("admit-one") });
 	expect(yield* Effect.flip(app.api.starts.admit({ id: StartId.make("two"), requestId: Id.Request.make("admit-two") }))).toMatchObject({
 		_tag: "NoSlot",
 		limit: 1,

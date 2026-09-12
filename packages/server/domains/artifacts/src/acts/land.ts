@@ -4,11 +4,11 @@ import type { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
+import { landingReceipt } from "#acts/receipt.ts";
 import { land } from "#commands/land.ts";
 import { ArtifactId } from "#ids.ts";
 import { ArtifactFiles, ArtifactSource } from "#ports/content.ts";
 import { byId } from "#queries/by-id.ts";
-import { byPiece } from "#queries/by-piece.ts";
 export interface ArtifactLandingInput {
 	readonly requestId: Request;
 	readonly pieceId: PieceId;
@@ -19,6 +19,8 @@ export interface ArtifactLandingInput {
 }
 export const landArtifact = Effect.fn("Artifacts.landArtifact")(function* (input: ArtifactLandingInput) {
 	const live = yield* Live;
+	const existing = Option.getOrThrow(yield* Stream.runHead(live.live(byId, { id: ArtifactId.make(input.requestId) })));
+	if (existing !== null) return yield* landingReceipt(input);
 	const piece = Option.getOrThrow(yield* Stream.runHead(live.live(pieceById, { id: input.pieceId })));
 	if (piece === null) return yield* new land.Rejection.UnknownPiece({ pieceId: input.pieceId });
 	if (input.supersedesArtifactId !== null) {
@@ -38,12 +40,5 @@ export const landArtifact = Effect.fn("Artifacts.landArtifact")(function* (input
 		supersedesArtifactId: input.supersedesArtifactId,
 		...stored,
 	});
-	const id = ArtifactId.make(input.requestId);
-	const artifact = Option.getOrThrow(yield* Stream.runHead(live.live(byId, { id })));
-	const current = Option.getOrThrow(yield* Stream.runHead(live.live(byPiece, { pieceId: input.pieceId })));
-	return {
-		artifact: Option.getOrThrow(Option.fromNullOr(artifact)),
-		otherCurrentArtifacts: current.current.filter((held) => held.id !== id),
-		supersededArtifactId: input.supersedesArtifactId,
-	};
+	return yield* landingReceipt(input);
 });

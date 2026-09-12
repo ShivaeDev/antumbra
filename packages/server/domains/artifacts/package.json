@@ -29,6 +29,7 @@
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
 		"effect": "catalog:",
-		"@antumbra/platform-rpc": "workspace:*"
+		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/platform-tool-schemas": "workspace:*"
 	}
 }

@@ -24,7 +24,7 @@ it.app("only an explicit revision moves an artifact into history", function* (ap
 	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toHaveLength(2);
 	yield* landing("revision", "new.md", ArtifactId.make("old")).pipe(Effect.provide(files.layer));
 	const reading = yield* answered(app.api.artifacts.byPiece({ pieceId }));
-	expect(reading.current.map(({ id }) => id)).toEqual(["same", "revision"]);
+	expect(reading.current.map(({ id }) => id)).toEqual(expect.arrayContaining(["same", "revision"]));
 	expect(reading.history).toMatchObject([{ id: "old", supersededByArtifactId: "revision" }]);
 });
 

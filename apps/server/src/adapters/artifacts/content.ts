@@ -1,5 +1,6 @@
 import { Crypto, Effect, type FileSystem, Option, type PlatformError } from "effect";
-export const hex = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+const hex = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 
 export const digestBytes = (bytes: Uint8Array) =>
 	Crypto.Crypto.pipe(
@@ -36,5 +37,3 @@ export const readOpened = (
 		),
 	);
 };
-
-export const decodeMarkdown = (bytes: Uint8Array): string => new TextDecoder("utf-8", { fatal: true }).decode(bytes);

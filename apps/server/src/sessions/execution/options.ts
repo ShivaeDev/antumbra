@@ -12,7 +12,7 @@ export const options = Effect.fn("Sessions.options")(function* (root: typeof ses
 	let model: string | null = null;
 	let effort: string | null = null;
 	if (start.voyageId !== null) {
-		let role: AgentRole = "crew";
+		let role: AgentRole = start.role === "smoother" ? "smoother" : "crew";
 		if (start.role === "captain" && start.pieceId === null) {
 			const voyage = yield* live.read(byId, { id: start.voyageId });
 			role = voyage?.kind === "flagship" ? "flagship" : "captain";
@@ -27,7 +27,7 @@ export const options = Effect.fn("Sessions.options")(function* (root: typeof ses
 		cwd: root.cwd,
 		model,
 		effort,
-		constrainedPrompt: null,
+		constrainedPrompt: start.constrainedPrompt,
 		toolSet: { version: start.toolSetVersion, tools: start.tools },
 	};
 });

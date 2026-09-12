@@ -111,8 +111,8 @@ explicit acts, each one asked for by somebody, and the Agent's own unread mail c
 as well, but it wakes only the roots whose work it cut: before the drain it records the attached roots that were mid-turn in one `AppMeta` row, the
 next boot deletes that row and then submits a wake for each of those roots, and a crash between the two leaves everything asleep; a drain that fails
 deletes the row too, so an abandoned restart wakes nothing. Roots that were already at rest come back at rest and are woken by their mail if any is
-waiting, because a restart is not itself a reason to start talking. One other wake reaches boot: a wake Intent that was still running when the process
-went is requeued by the kernel's reclaim, because it was asked for before the exit. Nothing else on boot wakes anything.
+waiting, because a restart is not itself a reason to start talking. One other wake reaches boot: a wake request that was still running when the
+process went is reconciled again from its own row, because it was asked for before the exit. Nothing else on boot wakes anything.
 
 Missing observers, an empty in-memory registry, or a dead watcher only remove current knowledge; they never mean an Agent retired, a Session closed, a
 Moorage orphaned, or a claim released.

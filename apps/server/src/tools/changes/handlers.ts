@@ -1,10 +1,10 @@
 import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
-import { adoptExternal } from "@antumbra/domain-changes/runtime/adopt.ts";
-import { prepareLocal } from "@antumbra/domain-changes/runtime/prepare.ts";
-import { openLocal } from "@antumbra/domain-changes/runtime/publish.ts";
 import { answered, onPiece } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
-import { requestId } from "@antumbra/platform-tool-schemas/request.ts";
+import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
+import { adoptExternal } from "#changes/adopt.ts";
+import { prepareLocal } from "#changes/prepare.ts";
+import { openLocal } from "#changes/publish.ts";
 import { adoptChangeSpec, openChangeSpec, submitChangeSpec } from "#tools/changes/specs.ts";
 
 const said = (row: ChangeRow): string => `change ${row.stage}: ${row.url ?? "no url"} (id ${row.id})`;

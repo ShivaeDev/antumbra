@@ -1,11 +1,11 @@
+import { adopt } from "@antumbra/domain-changes/commands/adopt.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Clock, Effect } from "effect";
-import { adopt } from "#commands/adopt.ts";
-import { claimingHost } from "#runtime/host.ts";
-import { namedRepo, readWorld } from "#runtime/read.ts";
+import { claimingHost } from "#changes/host.ts";
+import { namedRepo, readWorld } from "#changes/read.ts";
 export const adoptExternal = Effect.fn("changes.adoptExternal")(function* (input: {
 	readonly adoptionId?: string;
 	readonly callId: string;

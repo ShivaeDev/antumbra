@@ -1,16 +1,16 @@
+import { freeze } from "@antumbra/domain-changes/commands/freeze.ts";
+import { all } from "@antumbra/domain-changes/queries/all.ts";
+import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Clock, Effect, Option, Stream } from "effect";
-import { freeze } from "#commands/freeze.ts";
-import { all } from "#queries/all.ts";
-import type { ChangeRow } from "#rows/change.ts";
-import { claimingHost } from "#runtime/host.ts";
-import { recordObservation } from "#runtime/observations.ts";
-import { type LocalChangeInput, prepareLocal } from "#runtime/prepare.ts";
-import { readChange, readWorld } from "#runtime/read.ts";
+import { claimingHost } from "#changes/host.ts";
+import { recordObservation } from "#changes/observations.ts";
+import { type LocalChangeInput, prepareLocal } from "#changes/prepare.ts";
+import { readChange, readWorld } from "#changes/read.ts";
 export const publish = Effect.fn("changes.publish")(function* (held: ChangeRow) {
 	if (held.stage !== "prepared" || held.externalId !== null) return held;
 	const snapshot = yield* readWorld;

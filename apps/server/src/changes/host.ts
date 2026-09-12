@@ -1,5 +1,5 @@
 import { ChangeHostRefused, ChangeHosts, ChangeHostUnavailable } from "@antumbra/platform-change-host/port.ts";
-import type { HostRepo } from "@antumbra/platform-change-host/schema.ts";
+import type { HostRepo } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect } from "effect";
 export const claimingHost = Effect.fn("changes.claimingHost")(function* (repo: HostRepo, tag?: string) {
 	const hosts = yield* ChangeHosts;

@@ -1,11 +1,11 @@
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
-import { Observation } from "@antumbra/platform-change-host/schema.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect, Schema } from "effect";
-import { claimed, claimRows } from "#claims.ts";
+import { claimed, claimRows } from "#commands/claims.ts";
+import { Attachment, selectObservation } from "#commands/observation.ts";
+import { observeRow } from "#commands/observe-row.ts";
 import { changeObserved } from "#facts/change-observed.ts";
-import { Attachment, selectObservation } from "#observation.ts";
-import { observeRow } from "#observe-row.ts";
 import { change } from "#rows/change.ts";
 import { changeTransition } from "#rows/change-transition.ts";
 export const observe = command("observe", {

@@ -1,7 +1,7 @@
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Schema } from "effect";
-import { claimed, claimRows, ownerAvailable } from "#claims.ts";
+import { claimed, claimRows, ownerAvailable } from "#commands/claims.ts";
 import { proposalFrozen } from "#facts/proposal-frozen.ts";
 import { ChangeId } from "#ids.ts";
 import { change } from "#rows/change.ts";

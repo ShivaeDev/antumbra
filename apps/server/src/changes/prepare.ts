@@ -1,12 +1,12 @@
+import { prepare, submissionKey } from "@antumbra/domain-changes/commands/prepare.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Clock, Effect } from "effect";
-import { prepare, submissionKey } from "#commands/prepare.ts";
-import { claimingHost } from "#runtime/host.ts";
-import { namedRepo, readWorld } from "#runtime/read.ts";
+import { claimingHost } from "#changes/host.ts";
+import { namedRepo, readWorld } from "#changes/read.ts";
 export interface LocalChangeInput {
 	readonly callId: string;
 	readonly agentId: string;

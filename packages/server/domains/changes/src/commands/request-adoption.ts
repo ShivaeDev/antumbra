@@ -17,7 +17,7 @@ export const requestAdoption = command("requestAdoption", {
 	run: Effect.fn("changes.requestAdoption")(function* (input, rows, reject) {
 		if (!(yield* rows.piece.exists(input.pieceId))) return yield* reject.UnknownPiece({ id: input.pieceId });
 		if (!(yield* rows.repo.exists(input.repoId))) return yield* reject.UnknownRepo({ id: input.repoId });
-		return { id: input.requestId, pieceId: input.pieceId, repoId: input.repoId, url: input.url };
+		return { error: null, id: input.requestId, pieceId: input.pieceId, repoId: input.repoId, url: input.url };
 	}),
 });
 export const adoptionRequestedMaterializer = materializer(adoptionRequested, {

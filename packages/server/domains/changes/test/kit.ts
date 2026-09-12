@@ -1,7 +1,7 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import type { Observation } from "@antumbra/platform-change-host/schema.ts";
+import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 export const request = (name: string) => Request.make(name);
 export const voyageId = VoyageId.make("voyage:reef");

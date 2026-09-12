@@ -1,4 +1,4 @@
-import type { Observation } from "@antumbra/platform-change-host/schema.ts";
+import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Schema } from "effect";
 import { submissionKey } from "#commands/prepare.ts";
 import { ChangeId } from "#ids.ts";

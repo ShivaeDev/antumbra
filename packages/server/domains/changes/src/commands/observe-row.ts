@@ -1,7 +1,7 @@
-import type { Observation } from "@antumbra/platform-change-host/schema.ts";
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect } from "effect";
-import { projectObservation, sameEvidence } from "#observation.ts";
+import { projectObservation, sameEvidence } from "#commands/observation.ts";
 import type { ChangeRow } from "#rows/change.ts";
 import type { changeTransition } from "#rows/change-transition.ts";
 export const observeRow = Effect.fn("changes.observeRow")(function* (

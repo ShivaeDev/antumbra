@@ -1,19 +1,20 @@
+import { failAdoption } from "@antumbra/domain-changes/commands/adoption-failed.ts";
+import { observeHostCapability } from "@antumbra/domain-changes/commands/host-capability.ts";
+import { failPublication } from "@antumbra/domain-changes/commands/publication-failed.ts";
+import { adoptions } from "@antumbra/domain-changes/queries/adoptions.ts";
+import { publishing } from "@antumbra/domain-changes/queries/publishing.ts";
+import { world } from "@antumbra/domain-changes/queries/world.ts";
 import type { ChangeHost } from "@antumbra/platform-change-host/port.ts";
 import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { run } from "@antumbra/server-journal/reconcile.ts";
 import { Clock, Effect, Ref } from "effect";
-import { observeHostCapability } from "#commands/host-capability.ts";
-import { failPublication } from "#commands/publication-failed.ts";
-import { adoptions } from "#queries/adoptions.ts";
-import { publishing } from "#queries/publishing.ts";
-import { world } from "#queries/world.ts";
-import { adoptExternal } from "#runtime/adopt.ts";
-import { nextObserveDelayMillis, retryObserveDelayMillis } from "#runtime/cadence.ts";
-import { recordObservation } from "#runtime/observations.ts";
-import { publish } from "#runtime/publish.ts";
-import { readWorld } from "#runtime/read.ts";
+import { adoptExternal } from "#changes/adopt.ts";
+import { nextObserveDelayMillis, retryObserveDelayMillis } from "#changes/cadence.ts";
+import { recordObservation } from "#changes/observations.ts";
+import { publish } from "#changes/publish.ts";
+import { readWorld } from "#changes/read.ts";
 
 const cadence = { coldMillis: 900000, hotMillis: 30000, hotWindowMillis: 600000, warmMillis: 180000 };
 const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
@@ -82,7 +83,7 @@ export const watchChanges = Effect.gen(function* () {
 	);
 	const adopter = yield* run(adoptions, {}, (rows) =>
 		Effect.forEach(
-			rows,
+			rows.filter((row) => row.error === null),
 			(request) =>
 				Effect.gen(function* () {
 					const repository = (yield* readWorld).repos.find((repo) => repo.id === request.repoId);
@@ -95,7 +96,16 @@ export const watchChanges = Effect.gen(function* () {
 							agentId: null,
 							url: request.url,
 						});
-				}).pipe(Effect.catch((error) => Effect.logWarning("change adoption failed", { requestId: request.id, error }))),
+				}).pipe(
+					Effect.catch((error) =>
+						Effect.gen(function* () {
+							const commit = yield* Commit;
+							yield* commit
+								.commit(failAdoption, { requestId: Request.make(make()), id: request.id, url: request.url, message: String(error) })
+								.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+						}),
+					),
+				),
 			{ discard: true },
 		),
 	);

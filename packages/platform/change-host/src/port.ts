@@ -1,5 +1,5 @@
+import type { Capability, ChangeRef, HostRepo, Observation, OpenRequest } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Context, Data, type Effect } from "effect";
-import type { Capability, ChangeRef, HostRepo, Observation, OpenRequest } from "#schema.ts";
 export class ChangeHostUnavailable extends Data.TaggedError("ChangeHostUnavailable")<{ readonly host: string; readonly detail: string }> {
 	override get message(): string {
 		return this.detail;

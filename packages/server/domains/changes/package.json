@@ -28,12 +28,9 @@
 		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/platform-change-host": "workspace:*",
 		"effect": "catalog:",
 		"@antumbra/domain-reclamation": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
-		"@antumbra/platform-runner": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*"
 	}
 }

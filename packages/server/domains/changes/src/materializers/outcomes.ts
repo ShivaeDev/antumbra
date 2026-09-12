@@ -7,7 +7,7 @@ import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import type { ReadHandles, WriteHandles } from "@antumbra/platform-feature/handles.ts";
 import { projection } from "@antumbra/platform-feature/projection.ts";
 import { Effect } from "effect";
-import { unresolvedChangeIds } from "#outcome-status.ts";
+import { unresolvedChangeIds } from "#queries/outcome-status.ts";
 import { change } from "#rows/change.ts";
 import { changeVerdict } from "#rows/change-verdict.ts";
 import { pieceChange } from "#rows/piece-change.ts";

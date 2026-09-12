@@ -5,8 +5,8 @@ import { DEPENDS_ON, WOULD_CYCLE, wiring } from "#commands/wiring.ts";
 import { pieceRewired } from "#facts/piece-rewired.ts";
 import { PieceId } from "#ids.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
-import { pieceEdge } from "#rows/piece-edge.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceEdge } from "#rows/piece-edge.ts";
 
 export const rewire = command("rewire", {
 	input: {

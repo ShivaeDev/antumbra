@@ -1,79 +1,110 @@
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import type { ReactNode } from "react";
+import { answered } from "@antumbra/app-testing/entry.ts";
+import { choose, labelled, press, settle, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
+import { PieceId } from "@antumbra/domain-pieces/ids.ts";
+import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { expect } from "@effect/vitest";
+import { Effect, Stream } from "effect";
 import { CharterPiece } from "#charter-piece.tsx";
 import { PieceActs } from "#piece-acts.tsx";
 import { RewirePiece } from "#rewire-piece.tsx";
-import { CHARTS, type Desk, desk, SOUNDINGS, VOYAGE } from "#test/desk.ts";
-import { choose, mount, settle, until } from "#test/dom.ts";
 
-const shown = (board: Desk, island: ReactNode) =>
-	Effect.gen(function* () {
-		const { container, root } = yield* mount();
-		yield* settle(() => root.render(<board.glass.Provider>{island}</board.glass.Provider>));
-		return container;
-	});
+const REEF = Id.Request.make("voyage:reef");
+const SOUNDINGS = Id.Request.make("piece:soundings");
+const CHARTS = Id.Request.make("piece:charts");
 
-const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
-	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
+const voyageId = VoyageId.make(REEF);
+const soundings = PieceId.make(SOUNDINGS);
+const charts = PieceId.make(CHARTS);
 
-const pressing = (container: HTMLElement, words: string) =>
-	settle(() => {
-		for (const button of container.querySelectorAll("button")) {
-			if (button.textContent === words) {
-				button.click();
-			}
+const opening = {
+	captainBackend: null,
+	captainEffort: null,
+	captainModel: null,
+	context: "the reef is uncharted",
+	crewBackend: null,
+	crewEffort: null,
+	crewModel: null,
+	kind: "voyage",
+	name: "Chart the reef",
+	northStar: "every shoal is known",
+	requestId: REEF,
+} as const;
+
+const chartering = (requestId: Id.Request, title: string, dependsOn: readonly string[] = []) => ({
+	charter: `sound ${title}`,
+	dependsOn,
+	expectation: `${title} is landed`,
+	requestId,
+	role: "hand",
+	title,
+	voyageId,
+});
+
+const charted = Effect.fnUntraced(function* (api: Api) {
+	yield* api.voyages.open(opening);
+	yield* api.pieces.charter(chartering(SOUNDINGS, "Soundings"));
+	yield* api.pieces.charter(chartering(CHARTS, "Charts", [soundings]));
+});
+
+it.glass("charters a piece that waits on the pieces its form offers", function* ({ api, render }) {
+	yield* charted(api);
+	const container = yield* render(<CharterPiece api={api} onChartered={() => undefined} voyageId={voyageId} />);
+	yield* until(() => container.querySelectorAll("form").length === 1);
+
+	expect([...container.querySelectorAll("div > span[aria-hidden]")].map((title) => title.textContent)).toEqual([
+		"Title",
+		"Charter",
+		"Expectation",
+		"Role",
+		"Depends on",
+	]);
+	const waits = labelled<HTMLSelectElement>(container, "Charter piece Depends on");
+	expect(waits.multiple).toBe(true);
+	yield* until(() => waits.options.length === 2);
+	expect([...waits.options].map((option) => option.textContent)).toEqual(["Soundings", "Charts"]);
+
+	yield* settle(() => write(labelled<HTMLInputElement>(container, "Charter piece Title"), "Beacons"));
+	yield* settle(() => write(labelled<HTMLTextAreaElement>(container, "Charter piece Charter"), "light the shoals"));
+	yield* settle(() => write(labelled<HTMLInputElement>(container, "Charter piece Expectation"), "every shoal is lit"));
+	yield* settle(() => write(labelled<HTMLInputElement>(container, "Charter piece Role"), "hand"));
+	yield* settle(() => choose(waits, [soundings, charts]));
+	yield* submit(container, 0);
+
+	const landed = yield* answered(api.pieces.byVoyage({ voyageId }).pipe(Stream.filter((rows) => rows.length === 3)));
+	let beacons = landed[0];
+	for (const row of landed) {
+		if (row.title === "Beacons") {
+			beacons = row;
 		}
-	});
+	}
+	expect(beacons).toMatchObject({ charter: "light the shoals", expectation: "every shoal is lit", role: "hand" });
+	const wired = yield* answered(api.pieces.edges({ voyageId }).pipe(Stream.filter((edges) => edges.length === 3)));
+	expect(wired.filter((edge) => edge.to === beacons?.id).map((edge) => edge.from)).toEqual([soundings, charts]);
+});
 
-it.live("draws the charter form with the voyage's pieces offered as what the new piece waits on", () =>
-	Effect.gen(function* () {
-		const board = desk();
-		const container = yield* shown(board, <CharterPiece api={board.glass.api} onChartered={() => undefined} voyageId={VOYAGE} />);
-		yield* until(() => container.querySelectorAll("form").length > 0);
+it.glass("puts a cycle the server refuses on the field that carries what a piece waits on", function* ({ api, render }) {
+	yield* charted(api);
+	const container = yield* render(<RewirePiece api={api} piece={{ dependsOn: [], id: soundings, title: "Soundings", voyageId }} />);
+	const waits = labelled<HTMLSelectElement>(container, "Soundings Depends on");
+	yield* until(() => waits.options.length === 2);
 
-		expect([...container.querySelectorAll("div > span[aria-hidden]")].map((title) => title.textContent)).toEqual([
-			"Title",
-			"Charter",
-			"Expectation",
-			"Role",
-			"Depends on",
-		]);
-		const waits = labelled<HTMLSelectElement>(container, "Charter piece Depends on");
-		expect(waits.multiple).toBe(true);
-		yield* until(() => waits.options.length === 2);
-		expect([...waits.options].map((option) => option.textContent)).toEqual(["Soundings", "Charts"]);
-	}),
-);
+	yield* settle(() => choose(waits, [charts]));
+	yield* press(container, "Save position");
 
-it.live("puts a cycle the server refuses on the field that carries what a piece waits on", () =>
-	Effect.gen(function* () {
-		const board = desk();
-		const piece = { dependsOn: [CHARTS], id: SOUNDINGS, title: "Soundings", voyageId: VOYAGE };
-		const container = yield* shown(board, <RewirePiece api={board.glass.api} piece={piece} />);
-		const waits = labelled<HTMLSelectElement>(container, "Soundings Depends on");
-		yield* until(() => waits.options.length === 2);
-		expect([...waits.options].filter((option) => option.selected).map((option) => option.value)).toEqual([CHARTS]);
+	yield* until(() => waits.getAttribute("aria-invalid") === "true");
+	expect(container.textContent).toContain("A piece cannot wait on work that waits on it");
+	expect(yield* answered(api.pieces.edges({ voyageId }))).toEqual([{ from: soundings, id: `${soundings}/${charts}`, to: charts }]);
+});
 
-		yield* settle(() => choose(waits, [SOUNDINGS]));
-		yield* pressing(container, "Save position");
+it.glass("offers the acts a piece stands ready for and sends the one pressed", function* ({ api, render }) {
+	yield* charted(api);
+	const container = yield* render(<PieceActs api={api} piece={{ id: soundings, launchedAt: null, parkedAt: null }} />);
 
-		yield* until(() => waits.getAttribute("aria-invalid") === "true");
-		expect(container.textContent).toContain("A piece cannot wait on work that waits on it");
-		expect(board.said).toEqual([]);
-	}),
-);
+	expect([...container.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Launch", "Park"]);
+	yield* press(container, "Launch");
 
-it.live("offers the acts a piece stands ready for and sends the one pressed", () =>
-	Effect.gen(function* () {
-		const board = desk();
-		const piece = { id: SOUNDINGS, launchedAt: null, parkedAt: null };
-		const container = yield* shown(board, <PieceActs api={board.glass.api} piece={piece} />);
-
-		expect([...container.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Launch", "Park"]);
-		yield* pressing(container, "Launch");
-
-		yield* until(() => board.said.length === 1);
-		expect(board.said[0]).toMatchObject({ command: "launch", input: { id: SOUNDINGS } });
-	}),
-);
+	const launched = yield* answered(api.pieces.byId({ id: soundings }).pipe(Stream.filter((row) => row !== null && row.launchedAt !== null)));
+	expect(launched?.parkedAt).toBeNull();
+});

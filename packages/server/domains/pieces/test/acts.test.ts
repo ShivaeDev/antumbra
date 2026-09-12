@@ -1,10 +1,11 @@
+import { type App, answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { answered, type Chart, chartering, it, opening, pieceOf } from "#test/kit.ts";
+import { chartering, opening, pieceOf } from "#test/kit.ts";
 
 const soundings = pieceOf("soundings");
 
-const read = (app: Chart) => answered(app.api.pieces.byId({ id: soundings }));
+const read = (app: App) => answered(app.api.pieces.byId({ id: soundings }));
 
 it.app("a piece launches, parks and unparks, and repeating an act leaves it where it stands", function* (app) {
 	yield* app.api.voyages.open(opening);

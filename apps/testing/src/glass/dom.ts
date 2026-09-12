@@ -58,6 +58,15 @@ export const named = (form: HTMLFormElement): string | null | undefined =>
 
 export const submit = (container: HTMLElement, place: number) =>
 	settle(() => [...container.querySelectorAll("form")][place]?.querySelector("button")?.click());
+
+export const press = (container: HTMLElement, words: string): Effect.Effect<void> =>
+	settle(() => {
+		for (const button of container.querySelectorAll("button")) {
+			if (button.textContent === words) {
+				button.click();
+			}
+		}
+	});
 export const choose = (control: HTMLSelectElement, values: readonly string[]): void => {
 	for (const option of control.options) {
 		option.selected = values.includes(option.value);

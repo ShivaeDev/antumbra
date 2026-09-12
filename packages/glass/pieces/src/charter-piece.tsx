@@ -5,11 +5,7 @@ import type { PiecesApi } from "#glass.ts";
 
 const SUBMIT = "Charter piece";
 
-export const CharterPiece = (props: {
-	readonly api: PiecesApi;
-	readonly onChartered: () => void;
-	readonly voyageId: string;
-}): ReactNode => (
+export const CharterPiece = (props: { readonly api: PiecesApi; readonly onChartered: () => void; readonly voyageId: string }): ReactNode => (
 	<CommandForm
 		command={props.api.pieces.charter}
 		fixed={{ voyageId: VoyageId.make(props.voyageId) }}

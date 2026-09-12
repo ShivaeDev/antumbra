@@ -7,8 +7,8 @@ import { DEPENDS_ON, WOULD_CYCLE, wiring } from "#commands/wiring.ts";
 import { pieceChartered } from "#facts/piece-chartered.ts";
 import { PieceId } from "#ids.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
-import { pieceEdge } from "#rows/piece-edge.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceEdge } from "#rows/piece-edge.ts";
 
 const NEEDED: readonly { readonly field: "charter" | "role" | "title"; readonly message: string }[] = [
 	{ field: "title", message: "A piece needs a title" },

@@ -1,7 +1,8 @@
+import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { answered, chartering, it, opening, pieceOf, reef } from "#test/kit.ts";
+import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 it.app("a chartered piece joins its voyage and waits on the pieces it names", function* (app) {
 	yield* app.api.voyages.open(opening);

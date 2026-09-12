@@ -1,11 +1,12 @@
+import { type App, answered, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { answered, type Chart, chartering, it, opening, pieceOf, reef } from "#test/kit.ts";
+import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
-const wiredTo = (app: Chart) =>
+const wiredTo = (app: App) =>
 	Effect.map(answered(app.api.pieces.edges({ voyageId: reef })), (wires) => wires.map((wire) => `${wire.from} -> ${wire.to}`));
 
-const charted = Effect.fnUntraced(function* (app: Chart) {
+const charted = Effect.fnUntraced(function* (app: App) {
 	yield* app.api.voyages.open(opening);
 	for (const name of ["soundings", "charts", "beacons"]) {
 		yield* app.api.pieces.charter(chartering(name));

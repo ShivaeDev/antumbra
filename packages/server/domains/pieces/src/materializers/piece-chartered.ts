@@ -2,8 +2,8 @@ import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect } from "effect";
 import { pieceChartered } from "#facts/piece-chartered.ts";
 import { edgeId } from "#ids.ts";
-import { pieceEdge } from "#rows/piece-edge.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceEdge } from "#rows/piece-edge.ts";
 
 export const pieceCharteredMaterializer = materializer(pieceChartered, {
 	writes: [piece, pieceEdge],

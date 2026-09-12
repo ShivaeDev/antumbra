@@ -1,8 +1,8 @@
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
 import { Effect } from "effect";
 import { PieceId } from "#ids.ts";
-import { pieceEdge } from "#rows/piece-edge.ts";
-import { piece } from "#rows/piece.ts";
+import type { piece } from "#rows/piece.ts";
+import type { pieceEdge } from "#rows/piece-edge.ts";
 
 type Reading = ReadHandles<readonly [typeof piece, typeof pieceEdge]>;
 

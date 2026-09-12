@@ -22,8 +22,8 @@ import { all } from "#queries/all.ts";
 import { byId } from "#queries/by-id.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
 import { edges } from "#queries/edges.ts";
-import { pieceEdge } from "#rows/piece-edge.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceEdge } from "#rows/piece-edge.ts";
 
 export const pieces = feature("pieces", {
 	rows: [piece, pieceEdge, voyage],

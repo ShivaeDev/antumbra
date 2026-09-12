@@ -1,11 +1,11 @@
 import type { RuleRequest, RulingChoiceView, RulingView } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { Schema } from "effect";
 import type { ReactNode } from "react";
 import { useRequestForm } from "#adapters/form.ts";
 import { ruleOn } from "#adapters/trpc-rulings.ts";
-import { Badge } from "#components/ui/badge.tsx";
 import { RequestForm } from "#forms/view.tsx";
-import { cn } from "#lib/utils.ts";
 
 const ChoiceOption = ({
 	choice,

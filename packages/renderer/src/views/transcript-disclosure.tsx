@@ -1,6 +1,6 @@
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { cn } from "#lib/utils.ts";
 
 export const Disclosure = ({
 	body,

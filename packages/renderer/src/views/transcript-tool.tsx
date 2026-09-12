@@ -1,4 +1,4 @@
-import { Badge } from "#components/ui/badge.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { TranscriptTool as ToolItem } from "#transcript/model.ts";
 import { summaryLine } from "#transcript/summary.ts";
 import { toolFields } from "#transcript/tool-input.ts";

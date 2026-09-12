@@ -1,5 +1,5 @@
 import type { SessionTreeNode } from "@antumbra/contract";
-import { cn } from "#lib/utils.ts";
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { outcomeWords } from "#views/session-outcome-words.ts";
 
 const INDENTS = ["pl-1.5", "pl-4", "pl-6", "pl-8", "pl-10"] as const;

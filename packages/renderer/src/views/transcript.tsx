@@ -1,7 +1,7 @@
 import type { SessionEvent, SessionSummary, SessionTreeNode } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { ArrowDown } from "lucide-react";
 import { watchSessionEvents } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
 import { useFeedLog } from "#hooks/feed.ts";
 import { sessionActivity } from "#transcript/activity.ts";
 import { deriveTranscript } from "#transcript/derive.ts";

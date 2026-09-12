@@ -1,14 +1,14 @@
 import type { SessionSituation } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogClose, DialogContent } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
+import { Textarea } from "@antumbra/glass-components/ui/textarea.tsx";
 import { useAtomValue } from "@effect/atom-react";
 import { Effect } from "effect";
 import { useEffect, useRef, useState } from "react";
 import { useRequest } from "#adapters/request.ts";
 import type { RendererRequestError } from "#adapters/request-error.ts";
 import { sendToSession, situationDraft } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogClose, DialogContent } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
 import { situationLabel } from "#fleet/situations.ts";
 import { useSessionDraft } from "#hooks/session-draft.ts";
 

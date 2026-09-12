@@ -1,5 +1,5 @@
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
-import { Button } from "#components/ui/button.tsx";
 import type { DraftImage } from "#views/session-draft.ts";
 
 export const SessionAttachments = ({

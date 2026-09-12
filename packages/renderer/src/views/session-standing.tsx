@@ -1,6 +1,6 @@
 import type { SessionTreeNode } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
-import { Badge } from "#components/ui/badge.tsx";
 import type { Activity } from "#transcript/activity.ts";
 import { stateWords } from "#transcript/labels.ts";
 import type { SessionStanding } from "#transcript/standing.ts";

@@ -1,6 +1,6 @@
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
+import { SectionHeading } from "@antumbra/glass-components/section.tsx";
 import type { QuayChange } from "#quay/changes.ts";
-import { MarkdownView } from "#views/markdown-view.tsx";
-import { SectionHeading } from "#views/section.tsx";
 
 export const QuayDescription = ({ item }: { readonly item: QuayChange }) => (
 	<section className="flex flex-col gap-2">

@@ -1,6 +1,6 @@
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "#components/ui/badge.tsx";
 import type { ToolRunEntry, TranscriptToolRun } from "#transcript/fold.ts";
 import { TranscriptGutter } from "#views/transcript-gutter.tsx";
 import { TranscriptThought } from "#views/transcript-message.tsx";

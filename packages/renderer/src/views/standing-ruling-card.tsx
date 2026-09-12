@@ -1,5 +1,5 @@
 import type { StandingRulingView } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { rulingActorLabel, rulingRadiusLabel, rulingSubjectLabel } from "#rulings/labels.ts";
 import { type RulingAct, RulingActs } from "#views/ruling-acts.tsx";
 import { RulingSupersede } from "#views/ruling-supersede.tsx";

@@ -1,7 +1,7 @@
 import type { HostCapabilityView, QuayView } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { refreshChanges } from "#adapters/trpc-quay.ts";
-import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
 import { useCall } from "#hooks/call.ts";
 import { lastSight } from "#quay/groups.ts";
 import { AdoptChangeDialog } from "#views/adopt-change-dialog.tsx";

@@ -1,6 +1,6 @@
 import type { SessionSituation } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { useState } from "react";
-import { Button } from "#components/ui/button.tsx";
 import { situationLabel } from "#fleet/situations.ts";
 import { SituationDialog } from "#views/situation-dialog.tsx";
 

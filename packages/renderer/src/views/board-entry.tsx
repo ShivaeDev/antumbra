@@ -1,7 +1,7 @@
 import type { BoardEntryView, BoardPieceSummaryView, PieceView } from "@antumbra/contract";
-import { Button } from "#components/ui/button.tsx";
-import { cn } from "#lib/utils.ts";
-import { MarkdownView } from "#views/markdown-view.tsx";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { authorLabel, boardEntryKindLabel, whenLabel } from "#voyages/labels.ts";
 
 export interface BoardPieces {

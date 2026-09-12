@@ -1,6 +1,6 @@
-import { Separator } from "#components/ui/separator.tsx";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
 import { type RosterGroup, STANDING_LABEL, type Standing } from "#fleet/roster.ts";
-import { cn } from "#lib/utils.ts";
 import { AgentCard } from "#views/agent-card.tsx";
 
 const DOT: Readonly<Record<Standing, string>> = {

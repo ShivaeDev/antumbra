@@ -1,5 +1,5 @@
 import type { QuayGroup } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { QuayChange } from "#quay/changes.ts";
 import { groupTitle } from "#quay/groups.ts";
 import { type ChangeMark, changeMarks } from "#quay/marks.ts";

@@ -1,10 +1,10 @@
 import type { PieceView } from "@antumbra/contract";
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { PieceActs } from "@antumbra/glass-pieces/piece-acts.tsx";
 import { RewirePiece } from "@antumbra/glass-pieces/rewire-piece.tsx";
 import { useGlass } from "#adapters/glass.ts";
-import { Badge } from "#components/ui/badge.tsx";
 import { BoardPanel } from "#views/board.tsx";
-import { MarkdownView } from "#views/markdown-view.tsx";
 import { WorkNowAct } from "#views/piece-acts.tsx";
 import { PieceOutcomes } from "#views/piece-outcomes.tsx";
 import { PieceRetire } from "#views/piece-retire.tsx";

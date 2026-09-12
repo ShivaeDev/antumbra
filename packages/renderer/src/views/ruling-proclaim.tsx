@@ -1,13 +1,13 @@
 import type { ProclaimRequest } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { useStore } from "@tanstack/react-form";
 import { Schema } from "effect";
 import { ScrollTextIcon } from "lucide-react";
 import { useState } from "react";
 import { useRequestForm } from "#adapters/form.ts";
 import { proclaimRuling } from "#adapters/trpc-rulings.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { RequestForm } from "#forms/view.tsx";
 import { axisSchema, defaultAxes, RulingAxisFields } from "#views/ruling-axis-fields.tsx";
 

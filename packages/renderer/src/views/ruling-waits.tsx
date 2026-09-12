@@ -1,5 +1,5 @@
 import type { RulingView } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { rulingUrgencyLabel, rulingUrgencyTone, rulingWaitsLabel } from "#rulings/labels.ts";
 
 const Declared = ({ word }: { readonly word: string }) => <span className="text-2xs text-muted-foreground">declared {word}</span>;

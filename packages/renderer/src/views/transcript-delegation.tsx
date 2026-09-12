@@ -1,4 +1,4 @@
-import { Separator } from "#components/ui/separator.tsx";
+import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
 import type { TranscriptDelegation } from "#transcript/model.ts";
 import { outcomeWords } from "#views/session-outcome-words.ts";
 

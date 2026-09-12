@@ -1,8 +1,8 @@
 import type { ArtifactMarkdown } from "@antumbra/contract";
+import { OutcomeMarkdownView } from "@antumbra/glass-components/outcome-markdown.tsx";
 import { useEffect } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
 import { useCall } from "#hooks/call.ts";
-import { OutcomeMarkdownView } from "#views/outcome-markdown.tsx";
 
 export const ArtifactWindow = ({ artifactId }: { readonly artifactId: string }) => {
 	const read = useCall<ArtifactMarkdown>();

@@ -1,8 +1,8 @@
 import type { QuayPiece } from "@antumbra/contract";
+import { DialogFooter } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { Schema } from "effect";
 import { useRequestForm } from "#adapters/form.ts";
 import { adoptChange } from "#adapters/trpc-quay.ts";
-import { DialogFooter } from "#components/ui/dialog-sections.tsx";
 import { RequestForm } from "#forms/view.tsx";
 
 const draftSchema = Schema.Struct({ pieceId: Schema.NonEmptyString, repoName: Schema.NonEmptyString, url: Schema.NonEmptyString });

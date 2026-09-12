@@ -1,5 +1,5 @@
+import { Input } from "@antumbra/glass-components/ui/input.tsx";
 import { Search } from "lucide-react";
-import { Input } from "#components/ui/input.tsx";
 import type { QuayFilters, QuayRepository } from "#quay/changes.ts";
 import { quayStatusFrom } from "#quay/changes.ts";
 import { groupTitle, QUAY_GROUPS } from "#quay/groups.ts";

@@ -1,5 +1,5 @@
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { XIcon } from "lucide-react";
-import { Button } from "#components/ui/button.tsx";
 
 const line = "flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-2 py-1 text-xs text-destructive";
 

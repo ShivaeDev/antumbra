@@ -1,7 +1,7 @@
 import type { VoyageView } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { VoyageRoleSettings } from "@antumbra/glass-role-settings/voyage.tsx";
 import { useGlass } from "#adapters/glass.ts";
-import { Badge } from "#components/ui/badge.tsx";
 import { CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
 import { VoyageSpend } from "#views/voyage-spend.tsx";

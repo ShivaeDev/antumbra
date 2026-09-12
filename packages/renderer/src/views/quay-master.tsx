@@ -1,6 +1,6 @@
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { useState } from "react";
-import { Button } from "#components/ui/button.tsx";
-import { cn } from "#lib/utils.ts";
 import { filterQuayChanges, type QuayChange, type QuayFilters, repositoriesOf } from "#quay/changes.ts";
 import { QuayFilterControls } from "#views/quay-filters.tsx";
 import { QuayListRow } from "#views/quay-list-row.tsx";

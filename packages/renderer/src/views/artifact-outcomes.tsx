@@ -1,12 +1,13 @@
 import type { ArtifactMarkdown, ArtifactView } from "@antumbra/contract";
+import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
+import type { OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { ImageIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import { useState } from "react";
 import { readArtifactMarkdown } from "#adapters/trpc-voyages.ts";
 import { openWindow } from "#adapters/trpc-windows.ts";
-import { Button } from "#components/ui/button.tsx";
 import { useCall } from "#hooks/call.ts";
-import { OutcomeChips, OutcomeDetailView } from "#views/outcome-detail.tsx";
-import { detailOf, type OutcomeRef } from "#views/outcome-read.ts";
+import { detailOf } from "#views/outcome-read.ts";
 
 const named = (artifact: ArtifactMarkdown) => ({
 	markdown: artifact.markdown,

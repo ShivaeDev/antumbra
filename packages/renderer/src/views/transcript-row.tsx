@@ -1,4 +1,4 @@
-import { Separator } from "#components/ui/separator.tsx";
+import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
 import type { FoldedItem } from "#transcript/fold.ts";
 import type { TranscriptNotice } from "#transcript/model.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";

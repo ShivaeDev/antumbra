@@ -1,8 +1,8 @@
 import type { QuayPiece } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { useState } from "react";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { AdoptChangeForm } from "#views/adopt-change-form.tsx";
 
 export const AdoptChangeDialog = ({ pieces }: { readonly pieces: ReadonlyArray<QuayPiece> }) => {

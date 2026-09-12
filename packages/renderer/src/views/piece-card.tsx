@@ -1,10 +1,10 @@
 import type { PieceView } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { plainLine } from "@antumbra/glass-components/markdown-plain.ts";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Card } from "@antumbra/glass-components/ui/card.tsx";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Badge } from "#components/ui/badge.tsx";
-import { Card } from "#components/ui/card.tsx";
-import { cn } from "#lib/utils.ts";
-import { plainLine } from "#views/markdown-plain.ts";
 import { PieceDetail } from "#views/piece-detail.tsx";
 import { pieceStateLabel } from "#voyages/labels.ts";
 import { pieceTone } from "#voyages/tone.ts";

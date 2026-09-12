@@ -1,6 +1,6 @@
 import type { BerthSummary } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { AnchorIcon } from "lucide-react";
-import { Badge } from "#components/ui/badge.tsx";
 
 const BerthMark = ({ berth }: { readonly berth: BerthSummary }) => {
 	if (berth.reclaimState === "claimed") {

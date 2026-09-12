@@ -1,5 +1,5 @@
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
 import type { TranscriptMessage as MessageItem, TranscriptThinking } from "#transcript/model.ts";
-import { MarkdownView } from "#views/markdown-view.tsx";
 import { TranscriptImage } from "#views/transcript-image.tsx";
 
 const UserImages = ({ item, sessionId }: { readonly item: MessageItem; readonly sessionId: string }) => {

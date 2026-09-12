@@ -1,6 +1,6 @@
 import type { RulingContextView } from "@antumbra/contract";
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
 import { rulingContextAuthorLabel } from "#rulings/labels.ts";
-import { MarkdownView } from "#views/markdown-view.tsx";
 import { whenLabel } from "#voyages/labels.ts";
 
 export const RulingContexts = ({ contexts }: { readonly contexts: ReadonlyArray<RulingContextView> }) =>

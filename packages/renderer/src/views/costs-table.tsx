@@ -1,6 +1,6 @@
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { costCell, costReported, costTitle, exactTokens } from "#costs/format.ts";
 import type { RowTone, SpendRow } from "#costs/rows.ts";
-import { cn } from "#lib/utils.ts";
 
 const HEADS = ["Turns", "Input", "Cache read", "Cache write", "Output", "Cost"] as const;
 

@@ -1,5 +1,5 @@
 import type { BoardSmoothing } from "@antumbra/contract";
-import { Button } from "#components/ui/button.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 
 const SMOOTH_NOW = "Write one summary that stands in for the new entries";
 

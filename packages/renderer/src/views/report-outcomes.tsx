@@ -1,10 +1,11 @@
 import type { ReportMarkdown, ReportView } from "@antumbra/contract";
+import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
+import type { OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
 import { FileTextIcon } from "lucide-react";
 import { useState } from "react";
 import { readReportMarkdown } from "#adapters/trpc-voyages.ts";
 import { useCall } from "#hooks/call.ts";
-import { OutcomeChips, OutcomeDetailView } from "#views/outcome-detail.tsx";
-import { detailOf, type OutcomeRef } from "#views/outcome-read.ts";
+import { detailOf } from "#views/outcome-read.ts";
 
 const named = (report: ReportMarkdown) => ({
 	markdown: report.markdown,

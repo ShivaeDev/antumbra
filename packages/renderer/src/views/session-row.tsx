@@ -1,10 +1,10 @@
 import type { SessionSummary } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 import { interruptSession, sleepSession } from "#adapters/trpc.ts";
 import { openWindow } from "#adapters/trpc-windows.ts";
-import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
-import { cn } from "#lib/utils.ts";
 import { presenceWords } from "#views/session-presence-words.ts";
 
 const PRESENCE: Record<SessionSummary["presence"], React.ComponentProps<typeof Badge>["variant"]> = {

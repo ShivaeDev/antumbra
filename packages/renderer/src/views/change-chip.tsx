@@ -1,6 +1,6 @@
 import type { ChangeView } from "@antumbra/contract";
-import { cn } from "#lib/utils.ts";
-import { ExternalLink } from "#views/external-link.tsx";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { ExternalLink } from "@antumbra/glass-components/external-link.tsx";
 import { changeMarks, changeName } from "#voyages/change-marks.ts";
 
 const toneOf = (change: ChangeView): string => (change.stage === "landed" ? "text-muted-foreground" : "text-link");

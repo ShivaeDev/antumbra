@@ -1,5 +1,5 @@
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { type ReactNode, useState } from "react";
-import { Button } from "#components/ui/button.tsx";
 
 export interface RulingAct {
 	readonly act: ReactNode;

@@ -1,7 +1,7 @@
 import type { BackendCapacitySummary } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { retryBackend } from "#adapters/trpc.ts";
-import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
 
 const percentage = (utilization: number | null): string | undefined => (utilization === null ? undefined : `${Math.round(utilization * 100)}% used`);
 

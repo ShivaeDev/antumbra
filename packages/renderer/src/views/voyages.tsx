@@ -1,7 +1,7 @@
 import type { VoyageSummary } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
-import { Card } from "#components/ui/card.tsx";
-import { cn } from "#lib/utils.ts";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Card } from "@antumbra/glass-components/ui/card.tsx";
 import { CaptainCall, FocusToggle } from "#views/voyage-acts.tsx";
 import { VoyageProgress } from "#views/voyage-progress.tsx";
 import { voyageKindMark, voyageStateLabel } from "#voyages/labels.ts";

@@ -1,6 +1,6 @@
 import type { PieceView } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { workPieceNow } from "#adapters/trpc-voyages.ts";
-import { Button } from "#components/ui/button.tsx";
 import { worksNow } from "#voyages/acts.ts";
 
 export const WorkNowAct = ({ onError, piece }: { readonly onError: (message: string) => void; readonly piece: PieceView }) => {

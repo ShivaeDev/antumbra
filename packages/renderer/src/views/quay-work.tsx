@@ -1,5 +1,5 @@
+import { SectionHeading } from "@antumbra/glass-components/section.tsx";
 import type { QuayChange } from "#quay/changes.ts";
-import { SectionHeading } from "#views/section.tsx";
 
 export const QuayWork = ({ item }: { readonly item: QuayChange }) => (
 	<section className="flex flex-col gap-2">

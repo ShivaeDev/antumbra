@@ -1,7 +1,7 @@
 import type { RulingSubjectView, RulingView } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import { rulingAskedLabel, rulingGatedPieceLabel, rulingRequesterId, rulingSubjectLabel } from "#rulings/labels.ts";
-import { MarkdownView } from "#views/markdown-view.tsx";
 import { RulingAside } from "#views/ruling-aside.tsx";
 import { RulingContexts } from "#views/ruling-contexts.tsx";
 import { RulingReclassifications } from "#views/ruling-reclassifications.tsx";

@@ -1,7 +1,7 @@
 import type { SessionInputId } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { useEffect, useState } from "react";
 import { loadSessionImage } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
 
 export const TranscriptImage = ({
 	inputId,

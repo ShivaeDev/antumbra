@@ -1,7 +1,7 @@
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { watchQuay } from "#adapters/trpc-quay.ts";
-import { Button } from "#components/ui/button.tsx";
 import { useFeed } from "#hooks/feed.ts";
-import { cn } from "#lib/utils.ts";
 import { quayChanges } from "#quay/changes.ts";
 import { QuayDetail } from "#views/quay-detail.tsx";
 import { QuayHeader } from "#views/quay-header.tsx";

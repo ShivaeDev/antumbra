@@ -1,10 +1,10 @@
 import type { Fleet, SessionTree } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { XIcon } from "lucide-react";
 import { useState } from "react";
 import { watchSessionTree } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
 import { useFeed } from "#hooks/feed.ts";
-import { cn } from "#lib/utils.ts";
 import { SessionMessage } from "#views/session-message.tsx";
 import { SessionTreePanel } from "#views/session-tree.tsx";
 import { TranscriptView } from "#views/transcript.tsx";

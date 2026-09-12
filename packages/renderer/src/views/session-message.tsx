@@ -1,8 +1,8 @@
 import type { Fleet } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Textarea } from "@antumbra/glass-components/ui/textarea.tsx";
 import { Paperclip } from "lucide-react";
 import { useRef } from "react";
-import { Button } from "#components/ui/button.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
 import { SessionAttachments } from "#views/session-attachments.tsx";
 import { sessionMessageState } from "#views/session-message-state.ts";
 import { SessionSituations } from "#views/session-situations.tsx";

@@ -1,10 +1,10 @@
 import type { RepoSummary } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { useStore } from "@tanstack/react-form";
 import { Schema } from "effect";
 import { useRequestForm } from "#adapters/form.ts";
 import { forgetRepo, registerRepo } from "#adapters/trpc.ts";
-import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
 import { RequestForm } from "#forms/view.tsx";
 
 const RepoRow = ({ onError, repo }: { readonly onError: (message: string) => void; readonly repo: RepoSummary }) => (

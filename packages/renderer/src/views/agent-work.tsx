@@ -1,6 +1,6 @@
 import type { AgentWork, PieceWork, VoyageCommand } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { ShipIcon } from "lucide-react";
-import { cn } from "#lib/utils.ts";
 
 const LINK =
 	"min-w-0 rounded-sm text-left wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/60";

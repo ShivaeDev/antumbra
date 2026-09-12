@@ -1,6 +1,6 @@
 import type { CrewMemberView } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
-import { Section, SectionHeading } from "#views/section.tsx";
+import { Section, SectionHeading } from "@antumbra/glass-components/section.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 
 export const CrewPanel = ({ crew }: { readonly crew: ReadonlyArray<CrewMemberView> }) => (
 	<Section>

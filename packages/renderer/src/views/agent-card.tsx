@@ -1,8 +1,8 @@
 import type { AgentSummary } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Card, CardAction, CardContent, CardHeader } from "@antumbra/glass-components/ui/card.tsx";
 import { retireAgent } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Card, CardAction, CardContent, CardHeader } from "#components/ui/card.tsx";
-import { cn } from "#lib/utils.ts";
 import { AgentBerths } from "#views/agent-berths.tsx";
 import { AgentSessions } from "#views/agent-sessions.tsx";
 import { AgentWorkLines } from "#views/agent-work.tsx";

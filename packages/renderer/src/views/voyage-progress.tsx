@@ -1,5 +1,5 @@
 import type { PieceCounts } from "@antumbra/contract";
-import { cn } from "#lib/utils.ts";
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { landedLabel, type ProgressBand, type ProgressSlice, progressLabel, slicesOf } from "#voyages/progress.ts";
 
 const FILL: Readonly<Record<ProgressBand, string>> = {

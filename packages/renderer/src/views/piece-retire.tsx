@@ -1,6 +1,6 @@
 import type { PieceView } from "@antumbra/contract";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { retirePieceCrew } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
 
 export const PieceRetire = ({ onError, piece }: { readonly onError: (message: string) => void; readonly piece: PieceView }) => {
 	if (!piece.canRetireCrew) {

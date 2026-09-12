@@ -1,13 +1,13 @@
 import type { PieceView } from "@antumbra/contract";
+import { Section, SectionHeading } from "@antumbra/glass-components/section.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { CharterPiece } from "@antumbra/glass-pieces/charter-piece.tsx";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useGlass } from "#adapters/glass.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { PieceCard } from "#views/piece-card.tsx";
-import { Section, SectionHeading } from "#views/section.tsx";
 import { byLadder } from "#voyages/order.ts";
 
 const Chartering = ({ voyageId, onChartered }: { readonly voyageId: string; readonly onChartered: () => void }) => (

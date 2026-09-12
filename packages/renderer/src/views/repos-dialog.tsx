@@ -1,9 +1,9 @@
 import type { RepoSummary } from "@antumbra/contract";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { FolderGitIcon } from "lucide-react";
-import { Badge } from "#components/ui/badge.tsx";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
 import { ReposList } from "#views/repos.tsx";
 
 export const ReposDialog = ({ onError, repos }: { readonly onError: (message: string) => void; readonly repos: ReadonlyArray<RepoSummary> }) => (

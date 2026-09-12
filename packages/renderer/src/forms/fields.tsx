@@ -1,9 +1,9 @@
+import { Input } from "@antumbra/glass-components/ui/input.tsx";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@antumbra/glass-components/ui/select.tsx";
+import { SelectItem } from "@antumbra/glass-components/ui/select-parts.tsx";
+import { Textarea } from "@antumbra/glass-components/ui/textarea.tsx";
 import { useStore } from "@tanstack/react-form";
 import type { ComponentProps, ReactNode } from "react";
-import { Input } from "#components/ui/input.tsx";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "#components/ui/select.tsx";
-import { SelectItem } from "#components/ui/select-parts.tsx";
-import { Textarea } from "#components/ui/textarea.tsx";
 import { useFieldContext } from "#forms/context.ts";
 import { errorMessage } from "#forms/messages.ts";
 

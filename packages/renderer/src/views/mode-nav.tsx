@@ -1,7 +1,7 @@
 import type { ConsoleMode } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { Anchor, Coins, Flag, Gavel, type LucideIcon, Pause, Settings, Ship, Users } from "lucide-react";
-import { Button } from "#components/ui/button.tsx";
-import { cn } from "#lib/utils.ts";
 
 interface ModeEntry {
 	readonly icon: LucideIcon;

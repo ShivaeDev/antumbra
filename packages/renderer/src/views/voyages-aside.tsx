@@ -1,12 +1,12 @@
 import type { VoyageSummary } from "@antumbra/contract";
+import { SectionHeading } from "@antumbra/glass-components/section.tsx";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "@antumbra/glass-components/ui/dialog.tsx";
+import { DialogDescription, DialogHeader, DialogTitle } from "@antumbra/glass-components/ui/dialog-sections.tsx";
 import { OpenVoyage } from "@antumbra/glass-voyages/open-voyage.tsx";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { useGlass } from "#adapters/glass.ts";
-import { Button } from "#components/ui/button.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "#components/ui/dialog.tsx";
-import { DialogDescription, DialogHeader, DialogTitle } from "#components/ui/dialog-sections.tsx";
-import { SectionHeading } from "#views/section.tsx";
 import { VoyagesPanel } from "#views/voyages.tsx";
 
 const Opening = ({ onOpened }: { readonly onOpened: () => void }) => <OpenVoyage api={useGlass()} onOpened={onOpened} />;

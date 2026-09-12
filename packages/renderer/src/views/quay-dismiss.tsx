@@ -1,5 +1,5 @@
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { dismissChange } from "#adapters/trpc-quay.ts";
-import { Button } from "#components/ui/button.tsx";
 import type { QuayChange } from "#quay/changes.ts";
 
 export const QuayDismiss = ({ item, onError }: { readonly item: QuayChange; readonly onError: (message: string) => void }) => {

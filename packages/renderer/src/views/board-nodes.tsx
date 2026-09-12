@@ -1,7 +1,7 @@
 import type { BoardSummaryView } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { cn } from "#lib/utils.ts";
 import { Block, type BoardPieces, EntryRow, PieceSummaryBlock, SMOOTHER } from "#views/board-entry.tsx";
 import type { BoardNode } from "#voyages/board-tree.ts";
 import { authorLabel, boardEntryKindLabel, summaryCoveredLabel, summaryHeadingLabel } from "#voyages/labels.ts";

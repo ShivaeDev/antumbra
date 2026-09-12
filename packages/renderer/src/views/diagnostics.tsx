@@ -1,5 +1,5 @@
 import type { AgentDiagnostics, FleetDiagnostics, IntentDiagnostic, SessionDiagnostics } from "@antumbra/contract";
-import { Badge } from "#components/ui/badge.tsx";
+import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 
 const Chip = ({ children }: { readonly children: string }) => (
 	<Badge className="font-mono" variant="outline">

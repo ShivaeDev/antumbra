@@ -1,6 +1,6 @@
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { useState } from "react";
 import { restartApp } from "#adapters/trpc.ts";
-import { Button } from "#components/ui/button.tsx";
 
 const RestartActions = ({ onKeep, onSend, sent }: { readonly onKeep: () => void; readonly onSend: () => void; readonly sent: boolean }) => (
 	<div className="flex gap-2">

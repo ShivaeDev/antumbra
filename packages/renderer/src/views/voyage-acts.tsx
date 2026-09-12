@@ -1,8 +1,8 @@
 import type { VoyageCaptainView, VoyageSummary } from "@antumbra/contract";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import { PinIcon } from "lucide-react";
 import { focusVoyage, hailCaptain } from "#adapters/trpc-voyages.ts";
-import { Button } from "#components/ui/button.tsx";
-import { cn } from "#lib/utils.ts";
 import { captainAtWork } from "#voyages/acts.ts";
 import { captainCallLabel } from "#voyages/labels.ts";
 

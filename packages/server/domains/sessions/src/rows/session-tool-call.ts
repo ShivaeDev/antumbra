@@ -1,4 +1,5 @@
 import { row } from "@antumbra/platform-feature/row.ts";
+import { ToolAnswer } from "@antumbra/platform-runner/tools.ts";
 import { Schema } from "effect";
 import { SessionId } from "#ids.ts";
 
@@ -10,6 +11,7 @@ export const sessionToolCall = row(
 		name: Schema.String,
 		input: Schema.String,
 		answeredAt: Schema.NullOr(Schema.String),
+		answer: Schema.NullOr(ToolAnswer),
 		calledAt: Schema.String,
 	},
 	{ key: "id", scope: "sessionId" },

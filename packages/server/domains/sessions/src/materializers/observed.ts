@@ -117,7 +117,15 @@ const tools = Effect.fn("sessions.tools")(function* (fact: Observation, rows: Ro
 	if (evidence.type === "tool-called") {
 		const id = `${current.id}:${evidence.callId}`;
 		if (!(yield* rows.sessionToolCall.exists(id))) {
-			yield* rows.sessionToolCall.insert({ id, sessionId: current.id, name: evidence.name, input: evidence.input, answeredAt: null, calledAt: at });
+			yield* rows.sessionToolCall.insert({
+				id,
+				sessionId: current.id,
+				name: evidence.name,
+				input: evidence.input,
+				answeredAt: null,
+				answer: null,
+				calledAt: at,
+			});
 			yield* rows.session.update(current.id, { toolCalls: current.toolCalls + 1 });
 		}
 	}

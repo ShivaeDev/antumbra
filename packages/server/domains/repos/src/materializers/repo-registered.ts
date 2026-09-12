@@ -7,7 +7,7 @@ export const repoRegisteredMaterializer = materializer(repoRegistered, {
 	writes: [repo],
 	run: Effect.fn("repos.RepoRegistered")(function* (fact, rows) {
 		if (yield* rows.repo.exists(fact.id)) {
-			yield* rows.repo.update(fact.id, fact);
+			yield* rows.repo.update(fact.id, { defaultRef: fact.defaultRef });
 		} else {
 			yield* rows.repo.insert(fact);
 		}

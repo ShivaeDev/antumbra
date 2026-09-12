@@ -11,6 +11,7 @@ export const AgentCard = (props: {
 	readonly agent: typeof agentReading.Row.Type;
 	readonly sessionId?: string | undefined;
 	readonly onSession: (id: string) => void;
+	readonly onOpenTranscript?: ((id: string) => void) | undefined;
 	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onVoyage: (id: string) => void;
 }) => (
@@ -30,7 +31,13 @@ export const AgentCard = (props: {
 			</div>
 		</CardHeader>
 		<CardContent className="flex flex-col gap-2">
-			<AgentSessions api={props.api} agent={props.agent} selected={props.sessionId} onSelect={props.onSession} />
+			<AgentSessions
+				api={props.api}
+				agent={props.agent}
+				selected={props.sessionId}
+				onSelect={props.onSession}
+				onOpenTranscript={props.onOpenTranscript}
+			/>
 			<AgentBerths api={props.api} agentId={props.agent.id} />
 			<details className="border-t border-border pt-1.5">
 				<summary className="cursor-pointer text-xs text-muted-foreground">charter</summary>

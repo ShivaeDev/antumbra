@@ -33,9 +33,15 @@ export const SessionPane = (props: {
 			)}
 		>
 			<header className="flex min-w-0 items-center gap-2 border-b border-border px-4 py-2">
-				<Live query={props.api.sessions.reading} input={{ id: SessionId.make(selected) }}>
-					{(node) => <span className="min-w-0 flex-1 truncate text-xs">{node?.label ?? node?.kind ?? selected}</span>}
+				<Live query={props.api.agents.bySession} input={{ sessionId: SessionId.make(props.sessionId) }}>
+					{(agent) => <span className="min-w-0 truncate text-xs font-medium">{agent?.role ?? "Agent activity"}</span>}
 				</Live>
+				{selected === props.sessionId ? null : (
+					<Live query={props.api.sessions.reading} input={{ id: SessionId.make(selected) }}>
+						{(node) => <span className="min-w-0 truncate text-xs text-muted-foreground">{node?.label ?? node?.kind}</span>}
+					</Live>
+				)}
+				<span className="min-w-0 flex-1 truncate font-mono text-xs text-muted-foreground">{selected}</span>
 				{props.onClose === undefined ? null : (
 					<Button aria-label="Close transcript" onClick={props.onClose} size="icon" variant="ghost">
 						<XIcon />

@@ -10,6 +10,7 @@ export const FleetPanel = (props: {
 	readonly sessions: SessionsClient;
 	readonly sessionId?: string | undefined;
 	readonly onSession: (id: string) => void;
+	readonly onOpenTranscript?: ((id: string) => void) | undefined;
 	readonly onPiece: (voyageId: string, pieceId: string) => void;
 	readonly onVoyage: (id: string) => void;
 }) => (

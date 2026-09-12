@@ -18,7 +18,5 @@
 		"packages/*/*/*/src",
 		"packages/*/*/*/test"
 	],
-	"exclude": [
-		"packages/platform/service-definition/test"
-	]
+	"exclude": ["packages/platform/service-definition/test"]
 }

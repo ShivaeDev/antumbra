@@ -3,7 +3,7 @@ import { SessionInputId, SessionMessagePart } from "@antumbra/platform-vocabular
 import { Schema } from "effect";
 
 export const TranscriptMessage = Schema.Struct({
-	inputId: Schema.UndefinedOr(SessionInputId),
+	inputId: Schema.optional(Schema.UndefinedOr(SessionInputId)),
 	kind: Schema.Literal("message"),
 	parts: Schema.Array(SessionMessagePart),
 	role: Schema.Literals(["agent", "user"]),
@@ -17,9 +17,9 @@ export const TranscriptTool = Schema.Struct({
 	input: Schema.String,
 	kind: Schema.Literal("tool"),
 	name: Schema.String,
-	ok: Schema.UndefinedOr(Schema.Boolean),
+	ok: Schema.optional(Schema.UndefinedOr(Schema.Boolean)),
 	providerName: Schema.optional(Schema.String),
-	result: Schema.UndefinedOr(Schema.String),
+	result: Schema.optional(Schema.UndefinedOr(Schema.String)),
 	seq: Schema.Number,
 	servedBy: Schema.optional(Schema.Literal("antumbra")),
 });
@@ -29,14 +29,14 @@ export type TranscriptRaw = typeof TranscriptRaw.Type;
 export const TranscriptDelegation = Schema.Struct({
 	displayName: Schema.String,
 	kind: Schema.Literal("delegation"),
-	nodeId: Schema.UndefinedOr(Schema.String),
-	outcome: Schema.UndefinedOr(SubsessionOutcome),
+	nodeId: Schema.optional(Schema.UndefinedOr(Schema.String)),
+	outcome: Schema.optional(Schema.UndefinedOr(SubsessionOutcome)),
 	seq: Schema.Number,
 	state: Schema.Literals(["ended", "opened"]),
 });
 export type TranscriptDelegation = typeof TranscriptDelegation.Type;
 export const TranscriptNotice = Schema.Struct({
-	detail: Schema.UndefinedOr(Schema.String),
+	detail: Schema.optional(Schema.UndefinedOr(Schema.String)),
 	kind: Schema.Literal("notice"),
 	seq: Schema.Number,
 	title: Schema.String,

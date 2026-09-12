@@ -15,7 +15,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
-		"@antumbra/domain-sessions": "workspace:*",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
@@ -23,6 +22,8 @@
 		"typescript": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
 		"@antumbra/domain-artifacts": "workspace:*",
 		"@antumbra/domain-inputs": "workspace:*",
 		"@antumbra/server": "workspace:*",

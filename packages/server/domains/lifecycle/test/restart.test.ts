@@ -1,48 +1,67 @@
-import { it } from "@antumbra/app-testing/entry.ts";
-import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
-import { SessionId } from "@antumbra/domain-sessions/ids.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { lifecycleClient } from "@antumbra/app-testing/lifecycle.ts";
+import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
+import { Effect, Fiber } from "effect";
 import { expect } from "vitest";
-import { clear } from "#commands/clear.ts";
-import { record } from "#commands/record.ts";
-import { pending } from "#queries/pending.ts";
 
-it.app("records only running roots on connected runners and clears the requested wake list", function* () {
-	const commit = yield* Commit;
-	const live = yield* Live;
+const registration = { runnerId: "runner", logId: "lifecycle-proof", backends: ["claude"], imageInputBackends: [] };
+
+const started = (name: string, runnerId: string): LogEntry["event"] => ({
+	type: "SessionStarted",
+	sessionId: name,
+	requestId: `start-${name}`,
+	agentId: name,
+	backend: "claude",
+	cwd: "/berth",
+	nativeRef: name,
+	runnerId,
+	toolSetVersion: "v1",
+});
+
+it.app("records running roots on connected runners and abandons the requested wake list", function* (app) {
+	const runner = yield* connectRunner(registration);
+	const lifecycle = yield* lifecycleClient;
 	let cursor = 0;
-	for (const name of ["active", "idle", "detached", "disconnected"]) {
-		const identity = { sessionId: SessionId.make(name), nodeRef: null, origin: null, operationId: `start-${name}` };
-		const source = { logId: "lifecycle-proof", at: 100, requestId: Request.make(`start-${name}`) };
-		yield* commit.observe(observed, {
-			...source,
-			cursor: cursor++,
-			payload: {
-				...identity,
-				evidence: {
-					type: "started",
-					agentId: name,
-					backend: "scripted",
-					cwd: "/berth",
-					nativeRef: name,
-					runnerId: name === "disconnected" ? "gone" : "runner",
-					toolSetVersion: "v1",
-				},
-			},
-		});
+	const entries: LogEntry[] = [];
+	for (const name of ["active", "idle", "asleep"]) {
+		const source = { logId: registration.logId, at: 100 };
+		entries.push({ ...source, cursor: cursor++, event: started(name, registration.runnerId) });
 		if (name !== "idle")
-			yield* commit.observe(observed, { ...source, cursor: cursor++, payload: { ...identity, evidence: { type: "activity", state: "active" } } });
-		if (name === "detached")
-			yield* commit.observe(observed, {
+			entries.push({
 				...source,
 				cursor: cursor++,
-				payload: { ...identity, evidence: { type: "detached", reason: "runner left" } },
+				event: { type: "InputAccepted", sessionId: name, requestId: `start-${name}`, inputId: `charter-${name}` },
 			});
+		if (name === "asleep") entries.push({ ...source, cursor: cursor++, event: { type: "SessionSlept", sessionId: name, requestId: "sleep" } });
 	}
-	yield* commit.commit(record, { requestId: Request.make("record"), runnerIds: ["runner"] });
-	expect(yield* live.read(pending, {})).toEqual(["active"]);
-	yield* commit.commit(clear, { requestId: Request.make("consume") });
-	expect(yield* live.read(pending, {})).toBeNull();
+	yield* runner.append(entries);
+	yield* Effect.scoped(
+		Effect.gen(function* () {
+			const gone = yield* connectRunner({ ...registration, runnerId: "gone", logId: "gone-log" });
+			yield* gone.append([
+				{ logId: "gone-log", at: 100, cursor: 0, event: started("disconnected", "gone") },
+				{
+					logId: "gone-log",
+					at: 100,
+					cursor: 1,
+					event: { type: "InputAccepted", sessionId: "disconnected", requestId: "start-disconnected", inputId: "charter-disconnected" },
+				},
+			]);
+		}),
+	);
+	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
+	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual(["active"]);
+	yield* lifecycle("lifecycle.abandonRestart", { requestId: "abandon" });
+	expect(yield* answered(app.api.lifecycle.pending({}))).toBeNull();
+});
+
+it.app("ordinary shutdown waits for the runner to acknowledge drain", function* () {
+	const runner = yield* connectRunner(registration);
+	const lifecycle = yield* lifecycleClient;
+	const drained = yield* Effect.forkChild(lifecycle("lifecycle.drain", { requestId: "quit" }));
+	const operation = yield* runner.next;
+	expect(operation).toEqual({ type: "Drain", requestId: "quit:runner" });
+	expect(drained.pollUnsafe()).toBeUndefined();
+	yield* runner.reply(operation.requestId, { type: "Accepted" });
+	yield* Fiber.join(drained);
 });

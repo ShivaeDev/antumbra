@@ -1,26 +1,19 @@
 import type { AgentBackend, BackendFailure, OpenSessionOptions } from "@antumbra/runner-ports/backend.ts";
 import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
-import { Effect, RcRef } from "effect";
+import { Effect, type Scope } from "effect";
 import { listOpencodeModels } from "#models.ts";
 import type { OpencodeServer } from "#server.ts";
 import { openOpencodeSession } from "#session.ts";
 
-export type OpencodeServerPool = RcRef.RcRef<OpencodeServer, BackendFailure>;
-
-export interface OpencodeServerPools {
-	readonly constrained: OpencodeServerPool;
-	readonly ordinary: OpencodeServerPool;
+export interface OpencodeServers {
+	readonly catalogue: Effect.Effect<OpencodeServer, BackendFailure, Scope.Scope>;
+	readonly open: (options: OpenSessionOptions) => Effect.Effect<OpencodeServer, BackendFailure, Scope.Scope>;
 }
 
-const poolFor = (pools: OpencodeServerPools, options: OpenSessionOptions): OpencodeServerPool =>
-	options.constrainedPrompt === undefined ? pools.ordinary : pools.constrained;
-
-export const opencodeBackend = (pools: OpencodeServerPools): AgentBackend => ({
+export const opencodeBackend = (servers: OpencodeServers): AgentBackend => ({
 	audit: noSessionAudit,
-	capabilities: {
-		imageInput: false,
-	},
-	listModels: RcRef.get(pools.ordinary).pipe(Effect.flatMap(listOpencodeModels), Effect.scoped),
-	openSession: (options) => RcRef.get(poolFor(pools, options)).pipe(Effect.flatMap((live) => openOpencodeSession(live, options))),
+	capabilities: { imageInput: false },
+	listModels: servers.catalogue.pipe(Effect.flatMap(listOpencodeModels), Effect.scoped),
+	openSession: (options) => servers.open(options).pipe(Effect.flatMap((live) => openOpencodeSession(live, options))),
 	tag: "opencode",
 });

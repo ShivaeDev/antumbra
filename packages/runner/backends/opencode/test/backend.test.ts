@@ -1,37 +1,36 @@
 import type { OpenSessionOptions } from "@antumbra/runner-ports/backend.ts";
 import { expect, it } from "@effect/vitest";
-import { Effect, Option, RcRef, Ref } from "effect";
+import { Effect, Option } from "effect";
 import { opencodeBackend } from "#backend.ts";
 import { makeOpencodeServer } from "#server.ts";
-import { type FakeOpencode, makeFakeOpencode } from "#test/fake.ts";
+import { makeFakeOpencode } from "#test/fake.ts";
 import { makeToolSessions } from "#tool-sessions.ts";
 
-const session = (constrainedPrompt?: string): OpenSessionOptions => ({
+const session = (name: string, constrainedPrompt?: string): OpenSessionOptions => ({
 	constrainedPrompt,
 	cwd: "/moorage",
 	effort: Option.none(),
 	model: Option.none(),
 	resume: Option.none(),
-	sessionId: "antumbra-session",
-	tools: [],
+	sessionId: name,
+	tools: [{ name, description: name, inputSchema: { type: "object" }, call: () => Effect.succeed({ ok: true, text: name }) }],
 });
 
-const counted = (fake: FakeOpencode, starts: Ref.Ref<number>) =>
-	RcRef.make({ acquire: makeOpencodeServer(Ref.update(starts, (count) => count + 1).pipe(Effect.andThen(fake.connect)), makeToolSessions([])) });
-
-it.effect("a constrained session opens on its own server while ordinary sessions share theirs", () =>
+it.effect("opens each server with that session's frozen tool definitions and constrained prompt", () =>
 	Effect.gen(function* () {
-		const starts = yield* Ref.make(0);
-		const plain = makeFakeOpencode();
-		const narrow = makeFakeOpencode();
-		const backend = opencodeBackend({ constrained: yield* counted(narrow, starts), ordinary: yield* counted(plain, starts) });
-		yield* backend.openSession(session());
-		yield* backend.openSession(session());
-		expect(plain.calls.map((call) => call.path)).toEqual(["/session", "/session"]);
-		expect(narrow.calls).toEqual([]);
-		expect(yield* Ref.get(starts)).toBe(1);
-		yield* backend.openSession(session("Smooth this board."));
-		expect(narrow.calls.map((call) => call.path)).toEqual(["/session"]);
-		expect(yield* Ref.get(starts)).toBe(2);
+		const opened: Array<OpenSessionOptions> = [];
+		const acquire = makeOpencodeServer(makeFakeOpencode().connect, makeToolSessions([]));
+		const backend = opencodeBackend({
+			catalogue: acquire,
+			open: (options) => {
+				opened.push(options);
+				return acquire;
+			},
+		});
+		const plain = session("read_board");
+		const narrow = session("write_board", "Smooth this board.");
+		yield* backend.openSession(plain);
+		yield* backend.openSession(narrow);
+		expect(opened).toEqual([plain, narrow]);
 	}),
 );

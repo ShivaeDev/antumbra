@@ -7,6 +7,7 @@ export const backendCatalog = row(
 	{
 		backend: AgentBackendTagSchema,
 		failure: Schema.NullOr(Schema.String),
+		imageInput: Schema.NullOr(Schema.Boolean),
 	},
 	{ key: "backend", scope: "backend" },
 );

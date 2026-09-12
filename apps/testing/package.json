@@ -10,6 +10,7 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
+		"test": "node ../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
@@ -18,14 +19,24 @@
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"@antumbra/runner-backends-codex": "workspace:*",
+		"@antumbra/runner-backends-claude": "workspace:*"
 	},
 	"dependencies": {
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-artifacts": "workspace:*",
+		"@antumbra/domain-inputs": "workspace:*",
 		"@antumbra/server": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/platform-change-host": "workspace:*",
 		"@effect/vitest": "catalog:",
+		"@effect/platform-node": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",
 		"react-dom": "catalog:",

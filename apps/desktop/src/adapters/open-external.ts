@@ -1,4 +1,4 @@
-import { OPEN_EXTERNAL_CHANNEL } from "@antumbra/contract";
+import { OPEN_EXTERNAL_CHANNEL } from "@antumbra/platform-shell/channels.ts";
 import { Effect, Result, Schema } from "effect";
 import { ipcMain, shell } from "electron";
 

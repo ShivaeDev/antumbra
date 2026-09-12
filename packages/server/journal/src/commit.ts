@@ -1,5 +1,5 @@
 import type { CommandDefinition, CommandInput } from "@antumbra/platform-feature/command.ts";
-import type { FactShape } from "@antumbra/platform-feature/fact.ts";
+import type { FactPayload, FactShape } from "@antumbra/platform-feature/fact.ts";
 import type { Fields } from "@antumbra/platform-feature/fields.ts";
 import { AlreadyDone, type RejectedBy, type RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
@@ -7,10 +7,14 @@ import { Clock, Context, Effect, Schema } from "effect";
 import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import { codecOf, type Registry } from "#app.ts";
+import { materialize } from "#materialize.ts";
+import { type Observation, type ObservationMetadata, type ObservedFact, observe, observeBatch, readCursor } from "#observe.ts";
 import { readHandle } from "#read-handle.ts";
-import { writeHandle } from "#write-handle.ts";
 
 export interface CommitService {
+	readonly observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => Effect.Effect<number>;
+	readonly cursor: (logId: string) => Effect.Effect<number>;
+	readonly observe: <Fact extends FactShape>(fact: Fact, observation: Observation<FactPayload<Fact>>) => Effect.Effect<number>;
 	readonly commit: <
 		Name extends string,
 		Input extends Fields,
@@ -55,9 +59,6 @@ const declared = (command: RunnableCommand, error: unknown): boolean =>
 const reads = (context: CommitContext, rows: readonly RowShape[]): Record<string, unknown> =>
 	Object.fromEntries(rows.map((row) => [row.name, readHandle(context.sql, codecOf(context.registry, row))]));
 
-const writes = (context: CommitContext, rows: readonly RowShape[], dirty: (key: string) => void): Record<string, unknown> =>
-	Object.fromEntries(rows.map((row) => [row.name, writeHandle(context.sql, codecOf(context.registry, row), dirty)]));
-
 const append = Effect.fn("journal.append")(function* (context: CommitContext, entry: Record<string, unknown>) {
 	const written = yield* context.sql`INSERT INTO "journal" ${context.sql.insert(entry)} RETURNING "seq"`;
 	return Number(written[0]?.seq);
@@ -78,11 +79,7 @@ const transact = Effect.fn("journal.commit")(function* (
 	const at = yield* Clock.currentTimeMillis;
 	const encoded = yield* Effect.orDie(Schema.encodeUnknownEffect(command.emits.Payload)(payload));
 	const seq = yield* append(context, { at, name: command.emits.name, payload: JSON.stringify(encoded), requestId: input.requestId });
-	const materializer = context.registry.materializers.get(command.emits.name);
-	if (materializer === undefined) {
-		return yield* Effect.die(new Error(`no materializer declares the fact "${command.emits.name}"`));
-	}
-	yield* materializer.run({ ...payload, at, requestId: input.requestId, seq }, writes(context, materializer.writes, dirty));
+	yield* materialize(context.sql, context.registry, command.emits.name, { ...payload, at, requestId: input.requestId, seq }, dirty);
 	yield* context.sql`INSERT INTO "applied" ${context.sql.insert({ requestId: input.requestId, seq })}`;
 	return seq;
 });
@@ -98,5 +95,10 @@ const perform = Effect.fn("journal.perform")(function* (context: CommitContext, 
 
 export function commitService(context: CommitContext): CommitService;
 export function commitService(context: CommitContext): unknown {
-	return { commit: (command: RunnableCommand, input: RuntimeInput) => perform(context, command, input) };
+	return {
+		observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => observeBatch(context, metadata, entries),
+		cursor: (logId: string) => readCursor(context.sql, logId),
+		observe: (fact: FactShape, observation: Observation<Record<string, unknown>>) => observe(context, fact, observation),
+		commit: (command: RunnableCommand, input: RuntimeInput) => perform(context, command, input),
+	};
 }

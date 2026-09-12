@@ -1,4 +1,5 @@
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
+import { voyagePieceProgress } from "@antumbra/domain-voyages/rows/voyage-piece-progress.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { charter } from "#commands/charter.ts";
 import { landVerdict } from "#commands/land-verdict.ts";
@@ -21,12 +22,21 @@ import { pieceVerdictLandedMaterializer } from "#materializers/piece-verdict-lan
 import { all } from "#queries/all.ts";
 import { byId } from "#queries/by-id.ts";
 import { byVoyage } from "#queries/by-voyage.ts";
+import { dependencies } from "#queries/dependencies.ts";
+import { displayByVoyage } from "#queries/display-by-voyage.ts";
 import { edges } from "#queries/edges.ts";
+import { progress } from "#queries/progress.ts";
+import { reach } from "#queries/reach.ts";
+import { ready } from "#queries/ready.ts";
 import { piece } from "#rows/piece.ts";
+import { pieceAssignmentWork } from "#rows/piece-assignment-work.ts";
 import { pieceEdge } from "#rows/piece-edge.ts";
+import { pieceOutcome } from "#rows/piece-outcome.ts";
+import { pieceProgress } from "#rows/piece-progress.ts";
+import { pieceRulingGate } from "#rows/piece-ruling-gate.ts";
 
 export const pieces = feature("pieces", {
-	rows: [piece, pieceEdge, voyage],
+	rows: [voyagePieceProgress, pieceOutcome, pieceAssignmentWork, pieceRulingGate, pieceProgress, piece, pieceEdge, voyage],
 	facts: [pieceChartered, pieceLaunched, pieceParked, pieceUnparked, pieceRewired, pieceVerdictLanded],
 	commands: [charter, launch, park, unpark, rewire, landVerdict],
 	materializers: [
@@ -37,5 +47,5 @@ export const pieces = feature("pieces", {
 		pieceRewiredMaterializer,
 		pieceVerdictLandedMaterializer,
 	],
-	queries: [byVoyage, byId, edges, all],
+	queries: [ready, dependencies, displayByVoyage, reach, progress, byVoyage, byId, edges, all],
 });

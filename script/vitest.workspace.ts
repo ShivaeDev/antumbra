@@ -5,9 +5,6 @@ import { defineConfig } from "vitest/config";
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
-// runner-local shells out to Git worktrees and must not share the package pool.
-const isolatedPackageNames = new Set(["runner-local"]);
-
 const NEST = "packages/";
 
 export interface WorkspacePackage {
@@ -28,7 +25,6 @@ export const workspacePackages: readonly WorkspacePackage[] = packageDirectories
 		const path = relative(repoRoot, absolute).split(sep).join("/");
 		return { name: path.slice(NEST.length), path };
 	})
-	.filter(({ name }) => !isolatedPackageNames.has(name))
 	.toSorted((left, right) => left.name.localeCompare(right.name));
 
 export const workspacePackageNames: readonly string[] = workspacePackages.map(({ name }) => name);

@@ -1,5 +1,5 @@
 import { Effect, type ManagedRuntime } from "effect";
-import { app } from "electron";
+import { app, dialog } from "electron";
 
 export const ownerBoot = <A, E, R, E2, R2>(
 	ownership: Effect.Effect<boolean, E, R>,
@@ -24,6 +24,7 @@ export const runManagedRuntimeStartup = <R, ER, A, E>(runtime: ManagedRuntime.Ma
 export const runBoot = (start: () => Promise<unknown>): void => {
 	start().catch((cause: unknown) => {
 		process.stderr.write(`antumbra bridge failed to boot: ${String(cause)}\n`);
+		dialog.showErrorBox("Antumbra could not start", cause instanceof Error ? cause.message : String(cause));
 		app.exit(1);
 	});
 };

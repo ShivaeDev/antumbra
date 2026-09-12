@@ -1,0 +1,35 @@
+import { createHash } from "node:crypto";
+import { StoredArtifactContentInvalid } from "@antumbra/domain-artifacts/queries/content.ts";
+import { ArtifactFiles } from "@antumbra/server/adapters/artifacts/ports.ts";
+import { Context, Effect, Layer } from "effect";
+
+export { landArtifact } from "@antumbra/server/adapters/artifacts/acts/land.ts";
+export { readArtifact } from "@antumbra/server/adapters/artifacts/acts/read.ts";
+
+export class ScriptedArtifacts extends Context.Service<ScriptedArtifacts, { readonly source: Map<string, string> }>()(
+	"@antumbra/app-testing/ScriptedArtifacts",
+) {}
+
+export const layer = Layer.effectContext(
+	Effect.sync(() => {
+		const source = new Map<string, string>();
+		const stored = new Map<string, string>();
+		return Context.make(ScriptedArtifacts, { source }).pipe(
+			Context.add(ArtifactFiles, {
+				publish: ({ basename, bytes }) =>
+					Effect.sync(() => {
+						const digest = createHash("sha256").update(bytes).digest("hex");
+						stored.set(digest, new TextDecoder().decode(bytes));
+						return { basename, digest, byteSize: bytes.length };
+					}),
+				read: ({ id, digest }) =>
+					Effect.suspend(() => {
+						const markdown = stored.get(digest);
+						return markdown === undefined
+							? Effect.fail(new StoredArtifactContentInvalid({ artifactId: id, reason: "path" }))
+							: Effect.succeed(markdown);
+					}),
+			}),
+		);
+	}),
+);

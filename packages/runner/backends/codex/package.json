@@ -1,0 +1,30 @@
+{
+	"name": "@antumbra/runner-backends-codex",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"effect": "catalog:",
+		"@antumbra/runner-ports": "workspace:*"
+	}
+}

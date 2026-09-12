@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { WindowPlace } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { openInBrowser } from "#adapters/open-external.ts";
@@ -55,9 +55,20 @@ export const openWindow = (opening: WindowOpening) =>
 	Effect.gen(function* () {
 		const window = yield* Effect.sync(() => construct(opening.place));
 		keepInApp(window, opening.document);
-		yield* Effect.promise(() => window.loadURL(opening.document));
 		const record = attachWindow(opening, window, crypto.randomUUID());
-		return record === undefined ? yield* Effect.die(new Error("window could not be owned")) : record;
+		if (record === undefined) {
+			window.close();
+			return yield* Effect.die(new Error("window could not be owned"));
+		}
+		yield* Effect.promise(() => window.loadURL(opening.document)).pipe(
+			Effect.onError(() =>
+				Effect.sync(() => {
+					opening.registry.release(window.webContents);
+					window.close();
+				}),
+			),
+		);
+		return record;
 	});
 
 export const openConsole = (shell: WindowShell) => Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));

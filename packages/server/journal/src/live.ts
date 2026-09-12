@@ -9,6 +9,10 @@ import { scopeKey, tableKey } from "#keys.ts";
 import { readHandle } from "#read-handle.ts";
 
 export interface LiveService {
+	readonly read: <Name extends string, Input extends Fields, Output extends Schema.Top, Reads extends readonly RowShape[]>(
+		query: QueryDefinition<Name, Input, Output, Reads>,
+		input: Values<Input>,
+	) => Effect.Effect<Output["Type"]>;
 	readonly live: <Name extends string, Input extends Fields, Output extends Schema.Top, Reads extends readonly RowShape[]>(
 		query: QueryDefinition<Name, Input, Output, Reads>,
 		input: Values<Input>,
@@ -32,12 +36,18 @@ interface RunnableQuery {
 export const keysOf = (reads: readonly RowShape[], scope: string | undefined): readonly string[] =>
 	reads.map((row) => (scope === undefined ? tableKey(row.name) : scopeKey(row.name, scope)));
 
-const watch = (context: LiveContext, query: RunnableQuery, input: Record<string, unknown>): Stream.Stream<unknown> => {
+const read = (context: LiveContext, query: RunnableQuery, input: Record<string, unknown>): Effect.Effect<unknown> => {
 	const rows = Object.fromEntries(query.reads.map((row) => [row.name, readHandle(context.sql, codecOf(context.registry, row))]));
-	return context.reactivity.stream(keysOf(query.reads, query.scope?.(input)), Effect.orDie(query.run(input, rows)));
+	return Effect.orDie(query.run(input, rows));
 };
+
+const watch = (context: LiveContext, query: RunnableQuery, input: Record<string, unknown>): Stream.Stream<unknown> =>
+	context.reactivity.stream(keysOf(query.reads, query.scope?.(input)), read(context, query, input));
 
 export function liveService(context: LiveContext): LiveService;
 export function liveService(context: LiveContext): unknown {
-	return { live: (query: RunnableQuery, input: Record<string, unknown>) => watch(context, query, input) };
+	return {
+		read: (query: RunnableQuery, input: Record<string, unknown>) => read(context, query, input),
+		live: (query: RunnableQuery, input: Record<string, unknown>) => watch(context, query, input),
+	};
 }

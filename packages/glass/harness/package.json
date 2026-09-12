@@ -1,0 +1,26 @@
+{
+	"name": "@antumbra/glass-harness",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:"
+	},
+	"dependencies": {
+		"@antumbra/glass-renderer": "workspace:*",
+		"@antumbra/platform-shell": "workspace:*",
+		"effect": "catalog:"
+	}
+}

@@ -1,8 +1,8 @@
-import { RequestOrigin, type WindowPlace, WindowSource } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { makeWindowRegistry } from "#adapters/windows/registry.ts";
-import { WindowSourceLive } from "#adapters/windows/source.ts";
+import { RequestOrigin, WindowSource, WindowSourceLive } from "#adapters/windows/source.ts";
 import { consolePlace, eventFor, handleFor, ownWindow, transcriptPlace } from "#test/windows.ts";
 
 const asWindow = <A, E>(source: Effect.Effect<A, E, RequestOrigin | WindowSource>, shell: Parameters<typeof WindowSourceLive>[0], windowId: string) =>

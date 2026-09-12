@@ -54,12 +54,12 @@ const runBoundaries = (root: string) => spawnSync("node", [entry, root], { encod
 const replaceRule = (rule: BoundaryRule, change: Partial<Pick<BoundaryRule, "examples" | "rationale">>): BoundaryRule =>
 	Object.assign({}, rule, change);
 
-const databaseRule = compiledBoundaryPolicy.configuration.forbidden.find(({ name }) => name === "persistence-owns-the-db");
+const databaseRule = compiledBoundaryPolicy.configuration.forbidden.find(({ name }) => name === "journal-owns-the-db");
 
 const exceptionRule = (exception: SanctionedException): BoundaryRule => ({
 	examples: firstRule.examples,
 	from: {
-		excludedPackages: ["persistence"],
+		excludedPackages: ["server-journal"],
 		kind: "workspace-except",
 		sanctioned: [exception],
 	},
@@ -149,20 +149,20 @@ describe("boundary policy compiler", () => {
 	});
 });
 
-describe("the sanctioned exception to persistence owning the database", () => {
+describe("the sanctioned exception to the journal owning the database", () => {
 	it("carries its ruling and reason into the generated configuration", () => {
 		expect(databaseRule?.comment).toContain("dev trace sink");
 		expect(databaseRule?.comment).toContain("packages/platform/trace-sink");
-		expect(databaseRule?.comment).toContain("Database access exists only behind the persistence package.");
+		expect(databaseRule?.comment).toContain("Database access exists only behind the server journal.");
 	});
 
 	it("exempts the sanctioned package and no neighbour of it", () => {
 		const consumers = new RegExp(databaseRule?.from.path ?? "$^");
 		expect(consumers.test("packages/platform/trace-sink/src/adapters/database.ts")).toBe(false);
 		expect(consumers.test("packages/platform/trace-sink/test/trace-sink.test.ts")).toBe(false);
-		expect(consumers.test("packages/persistence/src/database.ts")).toBe(false);
+		expect(consumers.test("packages/server/journal/src/database.ts")).toBe(false);
 		expect(consumers.test("packages/platform/trace-sink-adjacent/src/store.ts")).toBe(true);
-		expect(consumers.test("packages/domain/src/domain.ts")).toBe(true);
+		expect(consumers.test("packages/server/domains/pieces/src/commands/launch.ts")).toBe(true);
 		expect(consumers.test("apps/desktop/src/main.ts")).toBe(true);
 	});
 });
@@ -179,6 +179,12 @@ describe("dependency boundary policy", () => {
 			.map((line) => line.slice(0, line.indexOf(":")))
 			.filter((name) => compiledBoundaryPolicy.fixtures.some(({ rule }) => rule === name));
 		expect(reportedRules.sort()).toEqual(compiledBoundaryPolicy.fixtures.map(({ rule }) => rule).sort());
+	});
+
+	it.each(["node:sqlite", "effect/unstable/sql/SqlClient"])("rejects a domain importing %s directly", (name) => {
+		const result = runBoundaries(seedTree([{ ...firstRule.examples.illegal, to: { kind: "external-module", name } }]));
+		expect(result.status).toBe(1);
+		expect(result.stderr).toContain(`journal-owns-the-db: ${firstRule.examples.illegal.from.path} → ${name}`);
 	});
 
 	it("accepts every generated nearest legal example", () => {

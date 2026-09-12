@@ -1,4 +1,4 @@
-import type { WindowPlace } from "@antumbra/contract";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import type { OwnedWindow, WindowRegistry } from "#adapters/windows/registry.ts";
 
 interface WindowLifecycleHost {

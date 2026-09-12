@@ -1,20 +1,9 @@
-import type { WindowPlace } from "@antumbra/contract";
-import type { SubscriptionSender } from "#adapters/trpc-subscription-handlers.ts";
+import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
+
 import type { DocumentContents, OwnedWindow, WindowHandle, WindowRegistry } from "#adapters/windows/registry.ts";
 
 export interface FakeContents extends DocumentContents {
 	destroyed: boolean;
-}
-
-export interface FakeSender extends SubscriptionSender, FakeContents {
-	readonly destroy: () => void;
-	readonly listeners: (name: string) => number;
-	readonly navigate: () => void;
-}
-
-interface Registration {
-	readonly listener: () => void;
-	readonly once: boolean;
 }
 
 export const contents = (): FakeContents => ({
@@ -23,37 +12,6 @@ export const contents = (): FakeContents => ({
 		return this.destroyed;
 	},
 });
-
-export const countingSender = (senderId: number): FakeSender => {
-	const registered = new Map<string, ReadonlyArray<Registration>>();
-	const add = (name: string, listener: () => void, once: boolean) => {
-		registered.set(name, [...(registered.get(name) ?? []), { listener, once }]);
-	};
-	const fire = (name: string) => {
-		const entries = registered.get(name) ?? [];
-		registered.set(
-			name,
-			entries.filter((entry) => !entry.once),
-		);
-		for (const entry of entries) {
-			entry.listener();
-		}
-	};
-	const sender: FakeSender = {
-		...contents(),
-		destroy: () => {
-			sender.destroyed = true;
-			fire("destroyed");
-		},
-		id: senderId,
-		listeners: (name) => (registered.get(name) ?? []).length,
-		navigate: () => fire("did-start-navigation"),
-		on: (name, listener) => add(name, listener, false),
-		once: (name, listener) => add(name, listener, true),
-		send: () => undefined,
-	};
-	return sender;
-};
 
 export const eventFor = <Sender extends DocumentContents>(sender: Sender) => ({ sender });
 

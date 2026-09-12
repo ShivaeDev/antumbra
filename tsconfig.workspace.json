@@ -16,8 +16,7 @@
 		"packages/*/*/src",
 		"packages/*/*/test",
 		"packages/*/*/*/src",
-		"packages/*/*/*/test",
-		"packages/persistence/prisma-next.config.ts"
+		"packages/*/*/*/test"
 	],
 	"exclude": ["packages/platform/service-definition/test"]
 }

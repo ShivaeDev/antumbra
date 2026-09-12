@@ -1,6 +1,5 @@
 import { Buffer } from "node:buffer";
 import process from "node:process";
-import { AppLifecycleSource, type Fleet, SightSource } from "@antumbra/contract";
 import { Effect, Stream } from "effect";
 import { Menu, nativeImage, Tray } from "electron";
 
@@ -18,22 +17,18 @@ export interface TrayHost {
 	readonly create: () => TrayHandle;
 }
 
-export const workingAgentCount = (fleet: Fleet): number =>
-	fleet.agents.filter((agent) => agent.sessions.some((session) => session.canInterrupt)).length;
-
 export const trayTitle = (count: number): string => (count === 0 ? "" : String(count));
 
 export const trayTooltip = (count: number): string =>
 	count === 0 ? "Antumbra — no agent is working" : `Antumbra — ${count} ${count === 1 ? "agent" : "agents"} working`;
 
-const showCount = (tray: TrayHandle, fleet: Fleet) =>
+const showCount = (tray: TrayHandle, count: number) =>
 	Effect.sync(() => {
-		const count = workingAgentCount(fleet);
 		tray.setTitle(trayTitle(count));
 		tray.setToolTip(trayTooltip(count));
 	});
 
-export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<Fleet, E>, activate: Effect.Effect<void, unknown>) =>
+export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<number, E>, activate: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
 		const tray = yield* Effect.acquireRelease(
 			Effect.sync(() => host.create()),
@@ -47,7 +42,7 @@ export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<Fleet, E>, a
 				);
 			}),
 		);
-		yield* Stream.runForEach(feed, (fleet) => showCount(tray, fleet));
+		yield* Stream.runForEach(feed, (count) => showCount(tray, count));
 	}).pipe(Effect.scoped);
 
 const ringBitmap = (size: number): Buffer => {
@@ -87,18 +82,14 @@ const electronTrayHost = (restart: () => void): TrayHost => ({
 	},
 });
 
-export const fleetTray = (activate: Effect.Effect<void, unknown>) =>
+export const fleetTray = <E>(feed: Stream.Stream<number, E>, activate: Effect.Effect<void, unknown>, restartEffect: Effect.Effect<void, unknown>) =>
 	Effect.gen(function* () {
-		if (process.platform !== "darwin") {
-			return;
-		}
-		const sight = yield* SightSource;
-		const lifecycle = yield* AppLifecycleSource;
+		if (process.platform !== "darwin") return;
 		const restart = () => {
-			lifecycle.restart.pipe(
+			restartEffect.pipe(
 				Effect.catchCause((cause) => Effect.logError("tray restart failed", cause)),
 				Effect.runFork,
 			);
 		};
-		yield* runFleetTray(electronTrayHost(restart), sight.fleetFeed, activate);
+		yield* runFleetTray(electronTrayHost(restart), feed, activate);
 	});

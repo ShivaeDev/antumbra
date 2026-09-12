@@ -32,6 +32,19 @@
 		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@fontsource-variable/inter": "catalog:",
+		"@radix-ui/react-dialog": "catalog:",
+		"@radix-ui/react-select": "catalog:",
+		"@radix-ui/react-separator": "catalog:",
+		"@radix-ui/react-slot": "catalog:",
+		"class-variance-authority": "catalog:",
+		"clsx": "catalog:",
+		"lucide-react": "catalog:",
+		"mermaid": "catalog:",
+		"react-markdown": "catalog:",
+		"remark-gfm": "catalog:",
+		"tailwind-merge": "catalog:",
+		"tailwindcss": "catalog:"
 	}
 }

@@ -22,7 +22,9 @@
 		"@effect/vitest": "catalog:",
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",
@@ -31,6 +33,11 @@
 		"@antumbra/glass-components": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/glass-pieces": "workspace:*",
+		"@antumbra/glass-role-settings": "workspace:*",
+		"@antumbra/glass-boards": "workspace:*",
+		"lucide-react": "catalog:"
 	}
 }

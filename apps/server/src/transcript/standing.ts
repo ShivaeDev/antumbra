@@ -1,0 +1,49 @@
+import type { SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
+import type { UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
+import type { SessionEvent, SessionTreeNode } from "#transcript/types.ts";
+
+type OpenTool = SessionStanding["open"][number];
+
+interface Folding {
+	background: ReadonlyArray<BackgroundTask>;
+	readonly open: Map<string, OpenTool>;
+	state: SessionState | undefined;
+	usage: typeof UsageEvent.Type | undefined;
+}
+
+const belongsToNode = (event: AgentEvent, delegate: boolean): boolean => delegate || !("origin" in event) || event.origin === undefined;
+
+const step = (fold: Folding, event: AgentEvent): void => {
+	switch (event.type) {
+		case "session.state":
+			fold.state = event.state;
+			return;
+		case "session.background":
+			fold.background = event.tasks;
+			return;
+		case "usage":
+			fold.usage = event;
+			return;
+		case "tool.started":
+			fold.open.set(event.toolId, { name: event.name });
+			return;
+		case "tool.completed":
+			fold.open.delete(event.toolId);
+			return;
+		default:
+			return;
+	}
+};
+
+export const sessionStanding = (events: ReadonlyArray<SessionEvent>, node?: SessionTreeNode | undefined): SessionStanding => {
+	const delegate = node !== undefined && node.depth > 0;
+	const fold: Folding = { background: [], open: new Map(), state: undefined, usage: undefined };
+	for (const row of events) {
+		if (belongsToNode(row.event, delegate)) {
+			step(fold, row.event);
+		}
+	}
+	return { background: fold.background, open: [...fold.open.values()], state: fold.state, usage: fold.usage };
+};

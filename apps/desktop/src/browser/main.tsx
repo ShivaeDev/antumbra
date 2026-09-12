@@ -1,21 +1,18 @@
 import { connect } from "@antumbra/glass-client/connect.ts";
-import { GlassContext, Surface } from "@antumbra/renderer";
+import { reachOf } from "@antumbra/glass-renderer/adapters/shell.ts";
+import { mount } from "@antumbra/glass-renderer/mount.tsx";
+import type { ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { features } from "@antumbra/server/features.ts";
 import { Effect } from "effect";
-import { createRoot } from "react-dom/client";
-import "@antumbra/renderer/stylesheet.css";
+import "@antumbra/glass-components/styles/theme.css";
 
-const glass = connect(
-	features,
-	Effect.promise(() => window.antumbra.server()),
-);
+declare global {
+	interface Window {
+		readonly antumbra: ShellBridge;
+	}
+}
+
 const container = document.getElementById("root");
 if (container !== null) {
-	createRoot(container).render(
-		<glass.Provider>
-			<GlassContext value={glass.api}>
-				<Surface />
-			</GlassContext>
-		</glass.Provider>,
-	);
+	Effect.runFork(Effect.scoped(mount(container, window.antumbra, connect(features, reachOf(window.antumbra)))));
 }

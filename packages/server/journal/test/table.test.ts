@@ -4,7 +4,6 @@ import { Effect, Schema } from "effect";
 import { expect } from "vitest";
 import type { Registry } from "#app.ts";
 import { Database } from "#database.ts";
-import { TableShapeChanged } from "#errors.ts";
 import { PieceId, VoyageId } from "#example/ids.ts";
 import { piece } from "#example/rows/piece.ts";
 import * as Journal from "#journal.ts";
@@ -13,7 +12,7 @@ import { indexDdl, shapeOf, tableDdl } from "#table.ts";
 
 const narrowed = row("piece", { id: PieceId, voyageId: VoyageId, title: Schema.String }, { key: "id", scope: "voyageId" });
 
-const registryFor = (rows: Registry["rows"]): Registry => ({ codecs: new Map(), materializers: new Map(), rows });
+const registryFor = (rows: Registry["rows"]): Registry => ({ codecs: new Map(), materializers: new Map(), projections: [], rows });
 
 it("derives the projection table and its scope index from the row's schema", () => {
 	expect(tableDdl(piece)).toBe(
@@ -23,14 +22,12 @@ it("derives the projection table and its scope index from the row's schema", () 
 	expect(shapeOf(piece)).not.toBe(shapeOf(narrowed));
 });
 
-it.effect("startup refuses a projection table that was built for another shape", () =>
+it.effect("startup rebuilds a changed projection shape", () =>
 	Effect.gen(function* () {
 		const database = yield* Database;
 		yield* start(database.write, registryFor([piece]));
-		const failure = yield* Effect.flip(start(database.write, registryFor([narrowed])));
-		expect(failure).toBeInstanceOf(TableShapeChanged);
-		expect(failure.table).toBe("piece");
-		expect(failure.expected).toBe(shapeOf(narrowed));
-		expect(failure.stored).toBe(shapeOf(piece));
+		yield* start(database.write, registryFor([narrowed]));
+		const columns = yield* Effect.orDie(database.write`PRAGMA table_info("piece")`);
+		expect(columns.map((column) => column.name)).toEqual(["id", "voyageId", "title"]);
 	}).pipe(Effect.provide(Journal.memory())),
 );

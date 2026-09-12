@@ -1,0 +1,49 @@
+{
+	"name": "@antumbra/runner",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#test/*": "./test/*",
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@effect/platform-node": "catalog:",
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*"
+	},
+	"dependencies": {
+		"effect": "catalog:",
+		"@antumbra/runner-git": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
+		"@effect/platform-node": "catalog:",
+		"@antumbra/runner-ports": "workspace:*",
+		"@antumbra/runner-fabric": "workspace:*",
+		"@antumbra/runner-tools": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*",
+		"@antumbra/platform-skills": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/runner-backends-claude": "workspace:*",
+		"@antumbra/runner-backends-codex": "workspace:*",
+		"@antumbra/runner-backends-opencode": "workspace:*",
+		"@antumbra/runner-backends-pi": "workspace:*",
+		"@anthropic-ai/claude-agent-sdk": "catalog:",
+		"@modelcontextprotocol/sdk": "catalog:",
+		"@earendil-works/pi-coding-agent": "catalog:",
+		"@effect/sql-sqlite-node": "catalog:"
+	}
+}

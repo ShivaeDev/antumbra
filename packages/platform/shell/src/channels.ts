@@ -1,0 +1,11 @@
+export const SERVER_CHANNEL = "antumbra:server";
+export const OPEN_EXTERNAL_CHANNEL = "antumbra:open-external";
+export const WINDOW_PLACE_CHANNEL = "antumbra:window-place";
+export const REMEMBER_PLACE_CHANNEL = "antumbra:remember-place";
+export const OPEN_WINDOW_CHANNEL = "antumbra:open-window";
+export const RESTART_CHANNEL = "antumbra:restart";
+export const APP_INFO_CHANNEL = "antumbra:app-info";
+export const READ_DRAFT_CHANNEL = "antumbra:read-draft";
+export const WRITE_DRAFT_CHANNEL = "antumbra:write-draft";
+export const CLEAR_DRAFT_CHANNEL = "antumbra:clear-draft";
+export const DRAFT_CHANGED_CHANNEL = "antumbra:draft-changed";

@@ -13,7 +13,7 @@ const directory = Layer.effect(
 	}),
 ).pipe(Layer.provide(NodeFileSystem.layer), Layer.orDie);
 
-const layer = Journal.file().pipe(Layer.provide(directory));
+const layer = Journal.file().pipe(Layer.provide(directory), Layer.provide(NodeFileSystem.layer));
 
 it.effect("file storage uses WAL and synchronous NORMAL", () =>
 	Effect.gen(function* () {

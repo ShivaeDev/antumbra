@@ -1,184 +1,123 @@
 # Architecture
 
-Antumbra is a macOS desktop app (Electron) for long-horizon work with AI agents. Early development: this document describes the shape the code has;
-what is designed and not yet built is listed in [`docs/design/intended.md`](docs/design/intended.md). The shape the code is moving to is
-[`docs/architecture/north-star.md`](docs/architecture/north-star.md), and [`docs/architecture/migration.md`](docs/architecture/migration.md) says how
-far along it is.
+Antumbra is a macOS desktop app for long-horizon work with AI agents. The application has three process owners: an Electron shell, a server, and a
+runner. Windows are clients of the server. This document describes their responsibilities and package boundaries; [DESIGN.md](DESIGN.md) owns the
+binding product axioms, and [intended work](docs/design/intended.md) records concepts that have not been built.
+
+The [North Star](docs/architecture/north-star.md) explains the architectural decisions. The [migration record](docs/architecture/migration.md) covers
+the cutover and its data compatibility limits.
 
 ## Process model
 
-The main process owns orchestration, scheduling, and native surfaces (menus, tray, windows); persistence owns durable truth. Process memory contains
-only things that may disappear at exit, such as fibers, handles, subscriptions, semaphores, timers, and local indexes. The renderer is a pure web app
-and a stateless projection: it holds no durable state, reaches main only through one typed contract, and every window can reload at any moment and
-rehydrate. Agents running in the main process never notice a renderer reload. Where each window is pointed is main-owned shell state kept in the
-selected data directory, never domain truth and never a renderer's to hold: main mints a window's role, remembers where it moves within that role, and
-restores that arrangement on the next launch, so losing the file costs the arrangement and nothing else.
+The shell in `apps/desktop` selects the data directory, takes Electron's single-instance lock, starts and supervises the server and runner, and owns
+native menus, tray, windows, links, and requested restart. Repeat launches reach the existing shell for that directory. Window roles, arrangement, and
+drafts are shell state; losing a window does not lose domain work. Preload exposes the narrow shell bridge from `packages/platform/shell`.
 
-Exactly one Antumbra desktop process owns the application and its selected local data directory at a time. Repeat launches are routed to that owner,
-which opens or focuses windows in its process; windows never create independent orchestration or persistence owners. The shell selects and configures
-the data directory first, then takes Electron's single-instance lock, and only the owner constructs runtime and persistence Layers. That order is
-deliberate: Electron scopes the lock by the `userData` path, so a development run and a packaged run hold separate locks over separate directories
-(`apps/desktop/src/adapters/shell.ts`). Before any migration applies to an existing database, persistence writes a `VACUUM INTO` copy of it beside the
-database under `backups/` and keeps the five newest.
+The server in `apps/server` owns the journal, command execution, materialized rows, live queries, and reconciliation. Its application definition
+assembles feature declarations and projection stages; its runtime supervises starts, Session operations, capacity release, resource reclamation, mail
+delivery, Change observation, Ruling reconciliation, and smoothing. App Layers supply filesystem custody, GitHub processes, and runner connections.
+The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner transport.
 
-Explicitly addressed mail is persisted as an immutable entry on the addressee's Agent Board; its marked-read receipt is separate durable truth, so a
-read never clears it. Raw Change and Review observations remain in their own records. No settling timer, presentation cap, or observation hook turns
-those facts into mail. Unread mail that has come due wakes the addressee's root Session when it is at rest — priority at once, routine after a quiet
-window the admiral sets — and never reaches one that is at work.
+The runner in `apps/runner` owns provider processes, live attachments, tool forwarding, Git work, and its durable event log. Its entry assembles the
+Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuration remain adapter concerns. Restarting a server does not transfer
+provider ownership into it: the runner reconnects and sends entries after the server's committed log cursor.
 
-Closing the app stops local execution, not durable work. A graceful quit marks every attached root Session that is not idle as draining, stops each
-attachment so its turn is cut, and settles the rows to idle before the process exits; a forced exit never invents completion. Nothing on the next boot
-resumes a Session on its own: startup reconciles the rows, requeues a wake Intent that was still running when the process went, and stops. A restart
-the admiral asks for is the one addition, and it is itself an act: before the drain, the shell records the attached roots in an `AppMeta` row; the
-next boot deletes that row and then submits a wake for exactly those roots, so a crash between the two leaves everything asleep, and a drain that
-fails deletes the row as well. In development the dev loop relaunches Electron when it exits with code 75, which is how a requested restart comes
-back. See [`docs/design/agent-recovery.md`](docs/design/agent-recovery.md).
+Glass packages provide the web UI. They read server projections through live RPC queries and invoke declared commands; they do not reconstruct domain
+truth from independent client caches. Transcript reads are sequenced. Native actions go through the shell bridge. Reloading a window has no effect on
+an Agent or its runner attachment.
 
 ## Workspace
 
-<!-- prettier-ignore -->
-| Package                   | Role                                                            |
-| ------------------------- | --------------------------------------------------------------- |
-| `apps/desktop`            | Electron shell: windows, native surfaces, composition           |
-| `packages/contract`       | Public typed IDL between renderer and main                      |
-| `packages/platform/vocabulary` | Neutral Agent runtime, Board, Change, Ruling, and Session-event language through explicit subject subpaths (a leaf) |
-| `packages/session-event-journal` | Durable Session event sequencing and native identity correlation |
-| `packages/session-inputs` | Ordered durable Session inputs, validated image custody, delivery readings, and transcript thumbnails |
-| `packages/platform/prompts` | The catalog of everything an Agent can be told: one template per set of blanks, minting the branded type the delivery seams accept (a leaf) |
-| `packages/platform/skills` | The skills Antumbra hands every harness: a Claude Code plugin directory holding one folder per skill, each with its SKILL.md (a leaf) |
-| `packages/plugin-api`     | The driven ports: agent backends, runners, plugin registration  |
-| `packages/agent-tools`    | The tools agents act through: schemas and binding, no transport |
-| `packages/platform/service-definition` | One constructor for inferred process-lifetime Effect services |
-| `packages/kernel`         | Intents, admission scheduling, lifecycle state machines         |
-| `packages/intent-demand`  | Recreates missing mortal Intents from closed durable-demand registrations |
-| `packages/domain-feeds`   | Shared post-commit domain change notifications                  |
-| `packages/resource-reclamation` | Replaceable-resource claims, guards, Runner cleanup, and recovery |
-| `packages/changes`       | Durable Change identity, submission, host reconciliation, and readiness |
-| `packages/repos`          | Application repository registry and its lifecycle               |
-| `packages/voyages`        | Durable Voyage creation, direction, and existence |
-| `packages/pieces`         | Piece acts and their graph invariants                           |
-| `packages/boards`         | Board and mailbox storage invariants                            |
-| `packages/rulings`        | The Ruling record: requests, answers, and the readings of open and standing rulings |
-| `packages/artifacts`      | Durable artifact publication and landing                        |
-| `packages/reports`        | Durable report landing                                           |
-| `packages/session-fabric` | Live Session attachment, start admission, and stop lifecycle    |
-| `packages/sessions`       | Durable Session tree: node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is listening to, and the tree read model the window subscribes to |
-| `packages/settings`       | Durable setting overrides, catalog-backed readings, and the agent settings each role sails on |
-| `packages/domain`         | Application-facing use cases and capability Layer composition |
-| `packages/git`            | Semantic Git operations over Effect's child-process port        |
-| `packages/github`         | GitHub change-host adapter: pull requests through `gh`           |
-| `packages/backend-claude` | The Claude agent backend: one adapter for one provider          |
-| `packages/backend-codex`  | The Codex agent backend: one app-server child, threads on it. Delegated threads are read passively off that one connection, admitted to a root by claim on evidence, and refused an attach at the wire; the census runs on a dedicated short-lived audit connection that can only read |
-| `packages/backend-opencode` | The OpenCode agent backend: one `opencode` server child found on the login PATH, sessions on it; not registered when the executable is absent |
-| `packages/backend-pi`     | The Pi backend: the pi coding agent run in-process through its SDK, given Antumbra's tools and skills |
-| `packages/runner-local`   | The local runner: processes and git worktrees on this machine   |
-| `packages/persistence`    | SQLite behind Effect layers; owns all database access           |
-| `packages/platform/trace-sink` | Dev-only sink: finished spans and log entries into their own trace file |
-| `packages/renderer`       | The web UI                                                      |
-| `packages/harness`        | Browser dev harness: the renderer over the contract's fixtures, without the shell |
-| `packages/testing-runtime` | Test doubles for the driven ports — a scripted backend, scripted and passive runners — and the `effectApp` test runner over temporary persistence |
-| `packages/testing`        | The application test harness: the desktop's whole Layer stack over temporary persistence with the scripted backend and the passive runner |
+| Path                       | Responsibility                                                                                                                |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `apps/desktop`             | Shell entry, native adapters, child supervision, and packaging                                                                |
+| `apps/server`              | Feature and projection assembly, RPC handlers, reconcilers, and external server adapters                                      |
+| `apps/runner`              | Runner entry, provider SDK and process adapters, filesystem and Git execution                                                 |
+| `apps/testing`             | Production application composition with test implementations of external services                                             |
+| `packages/platform`        | Shared schemas, feature declarations, RPC and runner wire contracts, shell vocabulary, prompts, skills, and service utilities |
+| `packages/server/journal`  | SQLite commit, schema-derived tables, materialization, replay, live queries, and reconciliation primitives                    |
+| `packages/server/domains`  | Feature-owned rows, facts, commands, queries, and derived projections                                                         |
+| `packages/server/edges`    | Neutral external-service adapters, including the GitHub Change host                                                           |
+| `packages/runner/fabric`   | Session attachment, operation handling, and durable runner log                                                                |
+| `packages/runner/ports`    | Backend capabilities and neutral delivery contracts                                                                           |
+| `packages/runner/backends` | Provider mapping and behavior over the runner ports                                                                           |
+| `packages/runner/tools`    | Binding frozen tool descriptors into provider sessions                                                                        |
+| `packages/runner/git`      | Git semantics over app-supplied machine capabilities                                                                          |
+| `packages/glass`           | Client, forms, shared components, feature screens, renderer, and harness                                                      |
 
-## Layers
+Server domains include Agents, Sessions, starts, lifecycle, settings, role settings, backend catalog, Voyages, Pieces, Boards, mail, Rulings,
+repositories, Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants. There is no
+application-wide Domain facade or Kernel workflow store.
 
-The workspace is hexagonal, and dependency direction is the point. The Effect-only `vocabulary` leaf exposes explicit subject subpaths and no generic
-root barrel. `contract` is the public IDL layer and may depend on that lower leaf, but never on a capability, port, adapter, domain, or app layer.
-`plugin-api` declares driven ports; `agent-tools` defines transport-free tools. Capability packages own business acts beneath the application-facing
-`domain` facade, while adapters implement ports without importing the domain.
+## Dependencies and effects
 
-`apps/desktop` is the only composition root where adapters and use cases meet. Effect environments state runtime dependencies, capability services own
-their durable writes and the post-commit signals that follow them, and Layers select implementations and lifetimes. Writes are single statements in
-their required order: there is no transaction anywhere in the workspace today. The one ruled exception is the commit the
-[North Star](docs/architecture/north-star.md#the-commit) describes, which arrives with the first feature that moves to the journal; a transaction
-anywhere else still needs a product ruling for a named, reproduced integrity failure, as the [simplicity gate](quality-gates/simplicity.md) says.
-Foreign callbacks cross adapter boundaries only after their Effect requirements are closed. `packages/git` remains process infrastructure beneath
-`runner-local`.
+Dependencies point one way. Platform packages know no feature or process implementation. Server and runner packages stay within their process group
+and platform. Glass may import a server domain's declared files. Server edges, runner Git, and runner ports are lower-level owners; backend packages
+use runner ports and platform. App composition roots supply machine services and close Effect environments.
 
-`service-definition` is the Effect-only construction leaf for process-lifetime services. One definition initializes private state and constructs the
-public method shape once per Layer instance. The Layer supplies only the definition's declared services; method-owned Scope remains visible to
-callers. A definition with no declared services may explicitly mark higher-rank generic methods for exact preservation; marked methods never enter
-declared-requirement subtraction and ordinary methods retain the dependency proof.
+Every package exports explicit source subpaths through `{ "./*": "./src/*" }`; imports name the real file and extension. Runtime code uses Effect
+services and Layers, typed failures, and Schema decoding at boundaries. A package does not hide a forbidden dependency behind an alias or a wrapper.
+Node, network, filesystem, and child-process implementations live in apps, apart from the named SQLite owners for the journal, runner log, and dev
+trace sink.
 
-`prompts` is the other leaf, and it is a closed set rather than a language: every string an Agent is ever handed is a template there, each with its
-blanks in a Schema struct beside it. It mints a branded `AgentPrompt` and exports no way to make one, so the seams that deliver words — send, resume,
-charter delivery — name that type and prose assembled anywhere else does not compile. Words the admiral types are not an exception hidden in a seam;
-they are their own template, and the two places text enters from outside the process call it.
+A feature declares its rows, facts, commands, and queries with the platform feature vocabulary. App assembly registers those declarations and the
+ordered derived projection stages. Neighbor-owned contribution rows express the evidence a feature needs without a reverse service dependency; for
+example Agents contribute resource eligibility and Changes contribute held Berths to reclamation.
 
-Settings are a closed set too, and they live in `contract` because the window and the work both read them. One catalog holds every setting an admiral
-can change: its key, the Schema its value must satisfy, the value Antumbra uses until someone says otherwise, and the sentence a surface shows. A key
-the catalog does not hold cannot be read, stored, or drawn, so a feature wanting a knob adds a line there rather than a flag of its own. A row exists
-only where someone overrode the catalog, reads go through to the rows every time, and a stored value that no longer decodes gives way to the declared
-one.
+Mechanical package, import, IO, and declaration rules live under `script/lint` and `script/boundaries`. Tests may depend on `@antumbra/app-testing` to
+exercise production composition; production code never imports it.
 
-`intent-demand` is the process-lifetime bridge between capability-owned durable demand and Kernel-owned mortal Intents. Capabilities close typed
-discovery registrations before handing them down; the bridge imports only Kernel and Effect, performs an initial pass before runtime readiness, and
-repeats on a tick or after bounded patience without owning business truth or durable checkpoints.
+## Durable truth and the commit
 
-`resource-reclamation` owns the whole lifecycle of replaceable-resource claims: selection, claim guards and claim creation, Runner cleanup, durable
-settlement, and the mortal reconcile loop. `changes` owns the whole durable Change aggregate and supplies Change-backed held-resource evidence through
-a read the reclaimer is handed; Domain composes the two capabilities. Resource reclamation never imports Change truth, Domain, applications, or
-providers.
+The server journal is SQLite at `server/journal.db` under the selected data directory. A command guard reads current rows, then the journal appends
+its fact and runs materializers and derived projection stages in one transaction. Commands are serialized. Commit marks reactivity keys dirty only
+with the committed change. Tables and wire shapes derive from the feature schemas.
 
-`provider-capacity` owns durable provider capacity readings, historical capacity evidence, and the scoped observation of registered backend capacity
-sources. Domain composes the capability and owns capacity admission waits and the release of waiting Intents.
+Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts; fact migrations handle
+supported historical payloads. An existing journal is backed up before an actual rebuild. This is not a promise to retain or prune a fixed number of
+backups.
 
-`session-fabric` owns live Session attachment: opening a backend session, pumping its events, confirming native identity, and gating starts against
-stops. Everything it holds is process memory that may disappear at exit — handles, fibers, semaphores — rebuilt empty at boot, so the capability
-persists nothing and reaches no further than the driven ports. Domain composes it and supplies the durable event sink.
+The old Prisma `antumbra.db` has no importer in this cutover. The shell refuses an unsupported legacy installation before launching the new runtime;
+it neither deletes that database nor silently treats it as a new journal. See the [data policy](docs/architecture/migration.md#data-compatibility).
 
-`sessions` owns the durable Session tree: node lifecycle and adoption, the gap ledger, the completeness audit, boot reconciliation of nodes nothing is
-listening to, and the tree read model the window subscribes to. Domain composes it inside the application facade.
+The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it. The server commits observed facts and
+the consumed cursor together. Transport replies acknowledge operations; they do not fabricate Session completion. Image and Artifact bytes live in
+app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
 
-`settings` owns durable overrides and catalog-backed readings, and the agent settings — backend, model, effort — each role sails on, whether the fleet
-set them or one Voyage did. The contract owns the closed catalog and the bridge-facing service because both window and runtime consumers speak that
-public language; Domain re-exports the live Layer so the desktop still composes through the application facade.
+## Requests and reconciliation
 
-`session-inputs` owns human message ingestion before transport. Source images are bounded, decoded, normalized, and installed in app-owned
-content-addressed custody; SQLite stores only ordered metadata and delivery readings. Recovery carries an input id, never bytes or a renderer path.
+Durable requests describe pending operations. Reconcilers compare rows with current external evidence, then call commands to record decisions and
+runner operations to perform effects. They do not write rows directly or checkpoint an executing workflow. Journal reconciliation primitives run at
+boot and on dirty keys; the app refreshes them on runner reconnect and owns any required cadence.
 
-`trace-sink` is a dev instrument and depends on nothing in the workspace. It provides an Effect Tracer and a second Logger that record finished spans
-and log entries into their own file in the dev data directory, pruned to the five most recent runs; the desktop shell installs it only when the app is
-not packaged, so a release carries no tracer at all. It is the one package besides `persistence` that may open a database, under a named sanctioned
-exception in the boundary policy, because the trace it writes is not durable truth and must never share the app's schema, migrations, or write path.
-See [dev tracing](docs/contributing/dev-tracing.md).
+Starts use committed admission guards and observable waiting reasons. Piece demand survives an attempt, and provider capacity can hold an operation
+until an explicit release or suitable evidence permits progress. Resource reclamation keeps committed claim exclusions and Change-backed holds; runner
+Git evidence decides whether cleanup is safe. Dirty or uncertain resources do not become disposable merely through age.
 
-Package manifests and exports are the source of truth for ordinary workspace edges. `dependency-cruiser` independently rejects architectural edges
-that a declared dependency must not make legal; its runner also fails when it cannot inspect every workspace source. Authors declare each rule and its
-rationale through the fluent policy in `script/boundaries/policy/`; the compiler alone owns dependency-cruiser selectors and causal fixtures. The
-generated config entry is `.dependency-cruiser.mjs`. The [package-architecture](quality-gates/package-architecture.md) and
-[Effect-services](quality-gates/effect-services.md) gates cover responsibility, composition, and lifetime judgments an import graph cannot make.
+An operation has an issuer-minted request id. Reconnection may repeat that operation and receive its existing result. A new authorized attempt gets a
+new id. The [runner RPC schema](packages/platform/runner/src/rpc.ts) declares the protocol; the [append handler](apps/server/src/runner/append.ts)
+commits observed facts and their cursor.
 
-## The kernel
+## Sessions, tools, and recovery
 
-Work enters the system as an intent: a durable, schema-validated record. Submitting an intent never fails for system-state reasons — it is a write
-that returns an id and an observable status stream. The scheduler admits queued Intents oldest first, by `createdAt` and then id, and is the only
-component that starts work. It runs on a tick — a nudge from any status change, or a five-second patience timeout — so a lost tick costs latency,
-never liveness. The kernel accepts admission gates as options (a concurrency cap, a settle window, a gauge ceiling); the desktop configures none, and
-the running-agent budget belongs to the dispatcher, which reads it from the `maxParallelSessions` setting. A tick is not a Session wake: a wake is an
-Intent of its own (`agent/wake`) that puts one Session back on its provider, and only a hail, a send, a dispatcher assignment, mail that has come due
-for a resting Session, or a restart the admiral asked for submits one. Intent lifecycles are explicit state machines with transition tables.
+An Agent is a durable responsibility; a Session carries execution identity beneath it. The runner owns live provider handles and native identity
+evidence. The server derives its Session readings from the log. A missing attachment does not mean the Session ended, and starting a process does not
+itself authorize resuming work.
 
-An Intent is a mortal executable attempt, not durable Piece demand. A desired Piece that is dependency-blocked has no dispatch workflow;
-reconciliation submits a new Intent when it becomes eligible. Waiting is reserved for an admitted attempt that needs immediate external intervention,
-such as authentication.
+Wake, delivery, drain, and close are explicit operations. Requested restart records the relevant roots through lifecycle commands before drain and
+consumes that record before requesting their wakes. Abandoning restart clears the record. Ordinary boot does not invent a wake for every recorded
+Session. The [recovery guide](docs/design/agent-recovery.md) owns the product distinctions among rest, stranding, closure, and retirement.
 
-Execution history lives only for one admitted attempt. Retried or reclaimed attempts begin again, so every step is idempotent or reconciles durable
-domain truth. See the [durable-recovery gate](quality-gates/durable-recovery.md) for the binding review criteria.
+Tool schemas and handlers are assembled on the server. Opening a Session binds its descriptors and tool-set version. The runner adapts those data
+descriptors to the provider and forwards calls with the trusted Session identity and stable call id. It logs tool invocation and answer evidence.
+Historical handler-version hosting and staged server swaps are not supplied by the cutover.
 
-## Plugins
+## Validation
 
-Capabilities — agent backends, runners, integrations — register through the plugin API. Built-in capabilities use the same registration path as
-external plugins, so the API stays honest by construction.
+Feature behavior is tested through the production application with scripted external boundaries. Glass tests exercise the same server definition; app
+tests own process, filesystem, provider, and transport integration. Pure schema and journal primitive tests remain with their owners. The
+[testing guide](docs/contributing/tests.md) lists commands and local test serialization.
 
-## Where this is going
-
-The main process is becoming three: a shell that supervises, a server that owns the journal, the projections, and the commit, and a runner that holds
-the sessions and writes its own log, with every window a client of the server over Effect RPC. Facts enter through one commit, reconcilers replace the
-kernel's Intents and tick, screens are live queries over projections, and tables, wire, and forms are derived from the same Schema classes. Prisma and
-tRPC leave with the last feature that moves. The target is [`docs/architecture/north-star.md`](docs/architecture/north-star.md); the progress is
-[`docs/architecture/migration.md`](docs/architecture/migration.md); this document keeps describing what the code does.
-
-## Quality
-
-Mechanical guards run in `pnpm ready`; judgment-level standards are routed by `quality-gates/README.md`. `DESIGN.md` contains the binding design
-axioms.
+Run `pnpm ready` for the repository gates. The [quality routes](quality-gates/README.md) cover judgments that an import graph or passing test cannot
+make. Migration completion requires integrated verification, including process startup and packaging, rather than the presence of replacement packages
+alone.

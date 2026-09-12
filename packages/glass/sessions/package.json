@@ -1,0 +1,52 @@
+{
+	"name": "@antumbra/glass-sessions",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"@effect/vitest": "catalog:",
+		"vitest": "catalog:",
+		"happy-dom": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*"
+	},
+	"dependencies": {
+		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
+		"effect": "catalog:",
+		"react": "catalog:",
+		"lucide-react": "catalog:",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/glass-inputs": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/domain-costs": "workspace:*",
+		"@effect/atom-react": "catalog:",
+		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/domain-repos": "workspace:*",
+		"@antumbra/glass-repos": "workspace:*",
+		"@antumbra/domain-starts": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/domain-reclamation": "workspace:*",
+		"@antumbra/domain-changes": "workspace:*",
+		"@antumbra/domain-inputs": "workspace:*",
+		"@antumbra/glass-changes": "workspace:*",
+		"@antumbra/platform-rpc": "workspace:*"
+	}
+}

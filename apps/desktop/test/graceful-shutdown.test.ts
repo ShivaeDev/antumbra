@@ -234,3 +234,15 @@ it.effect("records the roots once when the restart is requested again during the
 		expect(yield* Ref.get(restarting)).toBe(true);
 	}),
 );
+
+it.effect("leaves ordinary quit unchanged when restart recording fails", () =>
+	Effect.gen(function* () {
+		const restarting = yield* Ref.make(false);
+		const calls: string[] = [];
+		yield* Effect.exit(requestRestart(restarting, Effect.die("server unavailable"), () => calls.push("quit")));
+		expect(yield* Ref.get(restarting)).toBe(false);
+		expect(calls).toEqual([]);
+		yield* requestRestart(restarting, Effect.void, () => calls.push("quit"));
+		expect(calls).toEqual(["quit"]);
+	}),
+);

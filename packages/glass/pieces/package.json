@@ -32,6 +32,13 @@
 		"@antumbra/glass-components": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-rulings": "workspace:*",
+		"@antumbra/glass-artifacts": "workspace:*",
+		"@antumbra/glass-boards": "workspace:*",
+		"@antumbra/glass-changes": "workspace:*",
+		"@antumbra/glass-reports": "workspace:*",
+		"lucide-react": "catalog:"
 	}
 }

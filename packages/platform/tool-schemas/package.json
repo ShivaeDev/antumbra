@@ -1,0 +1,27 @@
+{
+	"name": "@antumbra/platform-tool-schemas",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"dependencies": {
+		"effect": "catalog:",
+		"@antumbra/platform-vocabulary": "workspace:*"
+	},
+	"devDependencies": {
+		"@effect/vitest": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
+	}
+}

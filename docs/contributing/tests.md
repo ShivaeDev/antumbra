@@ -1,10 +1,11 @@
 # Running tests
 
-Use `pnpm test:packages` for package suites, `pnpm test:desktop` for desktop tests, `pnpm test:runner-local` for runner tests, and `pnpm test:guards`
-for repository tooling tests. `pnpm test` runs the package, desktop, and runner suites in sequence.
+Use `pnpm test:packages` for package suites, `pnpm test:desktop` for shell tests, `pnpm test:runner` for runner app tests, `pnpm test:server` for
+server app tests, `pnpm test:app` for shared application tests, and `pnpm test:guards` for repository tooling tests. `pnpm test` runs the package,
+desktop, runner, server, and application suites in sequence.
 
-To run a smaller suite, use a package's test script, for example `pnpm --filter @antumbra/kernel test test/active-intents.test.ts`. Arguments pass
-through to Vitest.
+To run a smaller suite, use a package's test script, for example `pnpm --filter @antumbra/domain-reclamation test test/reclamation.test.ts`. Arguments
+pass through to Vitest.
 
 These scripts share a local test lock across the repository's worktrees. A test command waits before starting Vitest when another command holds the
 lock. Waiting does not count against test timeouts. Normal completion, failure, and cancellation release the lock after the test process exits.

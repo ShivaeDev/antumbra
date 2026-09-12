@@ -1,4 +1,4 @@
-import { type ConsolePlace, WindowPlace } from "@antumbra/contract";
+import { type ConsolePlace, WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Result, Schema } from "effect";
 import { subjectOf } from "#adapters/windows/subject.ts";
 

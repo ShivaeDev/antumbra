@@ -1,20 +1,7 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
 	"files": {
-		"includes": [
-			"**",
-			"!**/dist",
-			"!**/out",
-			"!**/coverage",
-			"!**/release",
-			"!!.worktrees",
-			"!!.local",
-			"!packages/persistence/contract.json",
-			"!packages/persistence/contract.d.ts",
-			"!packages/persistence/migrations",
-			"!packages/persistence/test/fixtures",
-			"!packages/backend-codex/src/schema"
-		]
+		"includes": ["**", "!**/dist", "!**/out", "!**/coverage", "!**/release", "!!.worktrees", "!!.local", "!packages/runner/backends/codex/src/schema"]
 	},
 	"formatter": {
 		"enabled": true,

@@ -1,42 +1,6 @@
-import type { AgentSummary, Fleet, SessionSummary } from "@antumbra/contract";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, ManagedRuntime, Stream } from "effect";
-import { runFleetTray, type TrayHandle, trayTitle, trayTooltip, workingAgentCount } from "#adapters/tray.ts";
-
-const session = (id: string, canInterrupt: boolean): SessionSummary => ({
-	addressable: [],
-	backend: "claude",
-	canAttachImages: false,
-	canInterrupt,
-	canSend: canInterrupt,
-	canSleep: false,
-	cwd: "/moorage",
-	diag: { current: true, execution: "active", intents: [] },
-	id,
-	presence: canInterrupt ? "working" : "ended",
-	status: canInterrupt ? "open" : "closed",
-});
-
-const agent = (id: string, sessions: ReadonlyArray<SessionSummary>): AgentSummary => ({
-	berths: [],
-	canRetire: false,
-	charter: "charter",
-	diag: { currentSessionId: sessions[0]?.id ?? null, intents: [] },
-	id,
-	role: "crew",
-	sessions,
-	status: "alive",
-	work: [],
-});
-
-const fleetOf = (agents: ReadonlyArray<AgentSummary>): Fleet => ({
-	agents,
-	backends: ["claude"],
-	capacities: [],
-	diag: { intents: [] },
-	repos: [],
-	roleSettings: [],
-});
+import { runFleetTray, type TrayHandle, trayTitle, trayTooltip } from "#adapters/tray.ts";
 
 interface RecordedTray {
 	readonly destroys: () => number;
@@ -75,16 +39,6 @@ const recordedTray = (onDestroy?: () => void, onClickRegistered?: () => void): R
 	};
 };
 
-it("counts an agent as working when any of its sessions can be interrupted", () => {
-	const fleet = fleetOf([
-		agent("working", [session("quiet", false), session("turning", true)]),
-		agent("waiting", [session("open", false)]),
-		agent("empty", []),
-	]);
-
-	expect(workingAgentCount(fleet)).toBe(1);
-});
-
 it("leaves the menu-bar title empty when no agent is working", () => {
 	expect(trayTitle(0)).toBe("");
 	expect(trayTitle(3)).toBe("3");
@@ -99,7 +53,7 @@ it("names the empty state and the count in the tooltip", () => {
 it.effect("publishes the working count of every snapshot the feed emits", () =>
 	Effect.gen(function* () {
 		const tray = recordedTray();
-		const feed = Stream.fromArray([fleetOf([agent("one", [session("turning", true)])]), fleetOf([agent("one", [session("turning", false)])])]);
+		const feed = Stream.fromArray([1, 0]);
 
 		yield* runFleetTray({ create: () => tray.handle }, feed, Effect.void);
 
@@ -114,7 +68,7 @@ it.effect("opens the window when the tray icon is clicked", () =>
 		const activated = yield* Deferred.make<void>();
 		const registered = yield* Deferred.make<void>();
 		const tray = recordedTray(undefined, () => Effect.runSync(Deferred.succeed(registered, undefined)));
-		const feed = Stream.fromArray([fleetOf([])]).pipe(Stream.concat(Stream.never));
+		const feed = Stream.fromArray([0]).pipe(Stream.concat(Stream.never));
 
 		const fiber = yield* Effect.forkChild(runFleetTray({ create: () => tray.handle }, feed, Deferred.succeed(activated, undefined)));
 		yield* Deferred.await(registered);

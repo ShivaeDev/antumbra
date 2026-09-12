@@ -1,24 +1,14 @@
-import { makeAppRouter } from "@antumbra/contract";
-import { drainActiveSessions, honorRestartIntent, SessionRestart } from "@antumbra/domain";
-import { DomainFeedsLive } from "@antumbra/domain-feeds";
-import { ensureInstallMarker } from "@antumbra/persistence";
 import { NodeServices } from "@effect/platform-node";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
-import { AppInfoSourceLive } from "#adapters/app-info.ts";
-import { AppLifecycleSourceLive } from "#adapters/app-lifecycle.ts";
-import { reportModels } from "#adapters/backend-catalog.ts";
-import { BoardsOverRpc } from "#adapters/boards.ts";
+import { app } from "electron";
+import { lifecycle, ShellLifecycle, ShellLifecycleLayer } from "#adapters/app-lifecycle.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
-import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
-import { MailOverRpc } from "#adapters/mail.ts";
+import { requireSupportedData } from "#adapters/data-compatibility.ts";
+import { ShellDraftsLayer } from "#adapters/drafts.ts";
+import { drainManagedRuntime, requestRestart } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
-import { PiecesOverRpc } from "#adapters/pieces.ts";
-import { RoleSettingsOverRpc } from "#adapters/role-settings.ts";
-import { applicationLayers, persistence } from "#adapters/runtime.ts";
-import { registerServerBridge } from "#adapters/server-bridge.ts";
-import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
-import { ServerReachLive } from "#adapters/server-reach.ts";
-import { SettingsOverRpc } from "#adapters/settings.ts";
+import { RunnerProcessLayer } from "#adapters/runner-process.ts";
+import { ServerProcessLive } from "#adapters/server-process.ts";
 import {
 	claimDesktopOwnership,
 	configureDataDirectory,
@@ -26,16 +16,16 @@ import {
 	drainBeforeQuit,
 	focusOrOpenConsole,
 	quitWhenAllWindowsClosed,
+	runnerBundle,
 	serverBundle,
 	serverDataDirectory,
 	whenReady,
 	windowLayoutInDataDirectory,
 } from "#adapters/shell.ts";
+import { registerShellBridge } from "#adapters/shell-bridge.ts";
+import { ShellStateLayer } from "#adapters/shell-state.ts";
 import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
-import { registerTrpcBridge } from "#adapters/trpc-bridge.ts";
-import { registerTrpcSubscriptions } from "#adapters/trpc-subscriptions.ts";
-import { VoyagesOverRpc } from "#adapters/voyages.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
 import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
@@ -43,70 +33,63 @@ import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
 
-const layoutStore = Effect.provide(
-	Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, windowLayoutInDataDirectory(configureDataDirectory()))),
-	NodeServices.layer,
-);
-
-const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
-	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
-	const reach = Layer.provide(ServerReachLive, serverProcess);
-	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc, PiecesOverRpc, MailOverRpc, BoardsOverRpc).pipe(
-		Layer.provideMerge(reach),
-		Layer.provide(DomainFeedsLive),
-		Layer.provide(persistence),
-	);
+const ownerLayers = (shell: WindowShell, directory: string) => {
+	const state = ShellStateLayer(directory).pipe(Layer.provide(NodeServices.layer));
+	const server = ServerProcessLive(serverBundle(), serverDataDirectory(), directory).pipe(Layer.provide(state), Layer.provide(NodeServices.layer));
+	const runner = RunnerProcessLayer(runnerBundle(), directory).pipe(Layer.provide(server), Layer.provide(state), Layer.provide(NodeServices.layer));
 	return Layer.mergeAll(
-		AppInfoSourceLive,
 		WindowSourceLive(shell),
+		ShellDraftsLayer(directory),
 		devTracing(),
-		serverProcess,
-		AppLifecycleSourceLive(restarting).pipe(Layer.provideMerge(Layer.orDie(Layer.provideMerge(applicationLayers(), overRpc)))),
+		server,
+		runner,
+		ShellLifecycleLayer.pipe(Layer.provide(server)),
 	);
 };
 
-const startOwner = (shell: WindowShell, store: LayoutStore) =>
+const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =>
 	Effect.gen(function* () {
+		yield* requireSupportedData(directory).pipe(Effect.provide(NodeServices.layer));
 		const restarting = yield* Ref.make(false);
-		const runtime = ManagedRuntime.make(ownerLayers(shell, restarting));
-		const router = makeAppRouter(runtime);
+		const runtime = ManagedRuntime.make(ownerLayers(shell, directory));
+		const restart = requestRestart(restarting, lifecycle("recordRestart").pipe(Effect.orDie), () => app.quit());
 		const main = Effect.gen(function* () {
 			yield* drainBeforeQuit(
-				drainManagedRuntime(runtime, drainActiveSessions),
+				drainManagedRuntime(runtime, lifecycle("drain")),
 				restarting,
-				Effect.promise(() => runtime.runPromise(SessionRestart.use((restart) => restart.abandon()))),
+				Effect.promise(() => runtime.runPromise(lifecycle("abandonRestart"))),
 			);
 			yield* whenReady;
-			yield* Effect.sync(() => {
-				registerServerBridge(shell.registry, () => runtime.runPromise(ServerProcess.use(({ serving }) => serving)));
-				registerTrpcBridge(router, shell.registry);
-				registerTrpcSubscriptions(router, shell.registry);
-				registerOpenExternal();
-			});
+			yield* registerShellBridge(shell.registry, () => runtime.runPromise(restart));
+			yield* Effect.sync(registerOpenExternal);
 			yield* quitWhenAllWindowsClosed;
-			yield* ensureInstallMarker;
-			yield* honorRestartIntent;
-			const writer = yield* layoutWriter({
-				registry: shell.registry,
-				store,
-			});
+			yield* lifecycle("honorRestart");
+			const writer = yield* layoutWriter({ registry: shell.registry, store });
 			yield* restoreWindows(shell, store);
-			yield* Effect.sync(() => {
-				shell.registry.onChanged(() => runtime.runFork(writer.note));
-			});
-			yield* Effect.sync(() => runtime.runFork(fleetTray(focusOrOpenConsole(shell.registry, openConsole(shell)))));
-			yield* Effect.sync(() => runtime.runFork(reportModels));
-			yield* Effect.logInfo("bridge: console open");
+			yield* Effect.sync(() => shell.registry.onChanged(() => runtime.runFork(writer.note)));
+			const api = yield* ShellLifecycle;
+			yield* Effect.sync(() =>
+				runtime.runFork(
+					fleetTray(
+						api["agents.workingCount"]({}),
+						focusOrOpenConsole(shell.registry, openConsole(shell)),
+						restart.pipe(Effect.provideService(ShellLifecycle, api)),
+					),
+				),
+			);
+			yield* Effect.logInfo("shell: console open");
 		});
 		return yield* Effect.promise(() => runManagedRuntimeStartup(runtime, main));
 	});
 
 const boot = Effect.gen(function* () {
+	const directory = configureDataDirectory();
 	const document = yield* Effect.orDie(rendererDocument);
 	const shell = { document, registry: makeWindowRegistry() };
-	const store = yield* layoutStore;
+	const store = yield* Effect.map(FileSystem.FileSystem, (fs) => fileLayoutStore(fs, windowLayoutInDataDirectory(directory))).pipe(
+		Effect.provide(NodeServices.layer),
+	);
 	const ownership = claimDesktopOwnership(desktopApplication, shell.registry, openConsole(shell));
-	return yield* ownerBoot(ownership, () => startOwner(shell, store));
+	return yield* ownerBoot(ownership, () => startOwner(shell, store, directory));
 });
-
 runBoot(() => Effect.runPromise(boot));

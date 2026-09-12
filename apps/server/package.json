@@ -20,7 +20,8 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",
@@ -34,6 +35,27 @@
 		"effect": "catalog:",
 		"@antumbra/domain-pieces": "workspace:*",
 		"@antumbra/domain-boards": "workspace:*",
-		"@antumbra/domain-mail": "workspace:*"
+		"@antumbra/domain-mail": "workspace:*",
+		"@antumbra/domain-repos": "workspace:*",
+		"@antumbra/domain-reports": "workspace:*",
+		"@antumbra/domain-artifacts": "workspace:*",
+		"@antumbra/domain-capacity": "workspace:*",
+		"@antumbra/domain-reclamation": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-inputs": "workspace:*",
+		"@antumbra/domain-starts": "workspace:*",
+		"@antumbra/domain-changes": "workspace:*",
+		"@antumbra/domain-rulings": "workspace:*",
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/platform-prompts": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/platform-tool-schemas": "workspace:*",
+		"@antumbra/domain-lifecycle": "workspace:*",
+		"@antumbra/platform-change-host": "workspace:*",
+		"@antumbra/edge-github": "workspace:*",
+		"sharp": "catalog:",
+		"@antumbra/domain-costs": "workspace:*",
+		"@antumbra/domain-holds": "workspace:*"
 	}
 }

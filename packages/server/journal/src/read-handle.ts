@@ -15,7 +15,9 @@ export interface RuntimeRead {
 
 export const conditions = (sql: SqlClient, codec: RowCodec, match: Record<string, unknown>): Effect.Effect<Fragment | undefined> =>
 	Effect.map(
-		Effect.forEach(Object.entries(match), ([name, value]) => Effect.map(codec.encodeField(name, value), (encoded) => sql`${sql(name)} = ${encoded}`)),
+		Effect.forEach(Object.entries(match), ([name, value]) =>
+			Effect.map(codec.encodeField(name, value), (encoded) => (encoded === null ? sql`${sql(name)} IS NULL` : sql`${sql(name)} = ${encoded}`)),
+		),
 		(clauses) => (clauses.length === 0 ? undefined : sql.and(clauses)),
 	);
 

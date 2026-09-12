@@ -1,3 +1,6 @@
+import { agent } from "@antumbra/domain-agents/rows/agent.ts";
+import { session } from "@antumbra/domain-sessions/rows/session.ts";
+import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { markDelivered } from "#commands/mark-delivered.ts";
 import { markRead } from "#commands/mark-read.ts";
@@ -8,14 +11,15 @@ import { messageSent } from "#facts/message-sent.ts";
 import { messageDeliveredMaterializer } from "#materializers/message-delivered.ts";
 import { messageReadMaterializer } from "#materializers/message-read.ts";
 import { messageSentMaterializer } from "#materializers/message-sent.ts";
+import { dueWakes } from "#queries/due-wakes.ts";
 import { mailbox } from "#queries/mailbox.ts";
 import { unread } from "#queries/unread.ts";
 import { message } from "#rows/message.ts";
 
 export const mail = feature("mail", {
-	rows: [message],
+	rows: [message, agent, session, count],
 	facts: [messageSent, messageDelivered, messageRead],
 	commands: [send, markDelivered, markRead],
 	materializers: [messageSentMaterializer, messageDeliveredMaterializer, messageReadMaterializer],
-	queries: [unread, mailbox],
+	queries: [unread, mailbox, dueWakes],
 });

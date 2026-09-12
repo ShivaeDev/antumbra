@@ -10,10 +10,13 @@
 		"#*": "./src/*"
 	},
 	"scripts": {
+		"test": "node ../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"devDependencies": {
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
@@ -22,6 +25,7 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-artifacts": "workspace:*",
+		"@antumbra/domain-inputs": "workspace:*",
 		"@antumbra/server": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",

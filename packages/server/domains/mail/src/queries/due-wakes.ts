@@ -26,9 +26,10 @@ export const dueWakes = query("dueWakes", {
 		const quietMillis = (settings.find((value) => value.key === "routineMailMinutes")?.count ?? COUNTS.routineMailMinutes.fallback) * 60_000;
 		const nowMillis = yield* Clock.currentTimeMillis;
 		const alive = new Map((yield* rows.agent.where({ status: "alive" })).map((value) => [String(value.id), value.id]));
-		const resting = yield* rows.session.where({ status: "open", parentSessionId: null, executionStatus: "idle" });
+		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle" });
 		const due: DueWake[] = [];
 		for (const root of resting) {
+			if (root.parentSessionId !== null) continue;
 			const ownerId = alive.get(root.agentId);
 			if (ownerId === undefined) continue;
 			const unread = (yield* rows.message.where({ toAgentId: root.agentId })).filter((held) => held.readAt === null);

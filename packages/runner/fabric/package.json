@@ -28,6 +28,7 @@
 		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:",
 		"@antumbra/runner-ports": "workspace:*",
-		"@antumbra/runner-tools": "workspace:*"
+		"@antumbra/runner-tools": "workspace:*",
+		"@antumbra/platform-service-definition": "workspace:*"
 	}
 }

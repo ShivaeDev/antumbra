@@ -3,7 +3,7 @@ import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/ev
 import type { AgentBackend, OpenSessionOptions, SessionInput } from "@antumbra/runner-ports/backend.ts";
 import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
+import { Deferred, Effect, Exit, Fiber, Layer, Option, Queue, Stream } from "effect";
 import { layer, RunnerFabric } from "#fabric.ts";
 import { file, RunnerLog } from "#log.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity, ServerTools } from "#ports.ts";
@@ -27,6 +27,9 @@ const start: Extract<Operation, { type: "Start" }> = {
 const fixture = Effect.gen(function* () {
 	const events = yield* Queue.unbounded<AgentEvent>();
 	const queued: SessionInput[] = [];
+	const delivering = yield* Deferred.make<void>();
+	const releaseDelivery = yield* Deferred.make<void>();
+	let blocked = false;
 	const steered: SessionInput[] = [];
 	const acquisitions: OpenSessionOptions[] = [];
 	const forwarded = yield* Deferred.make<void>();
@@ -47,7 +50,9 @@ const fixture = Effect.gen(function* () {
 					nativeRef: Effect.succeed(Option.some("native")),
 					interrupt: Effect.void,
 					queue: (input) =>
-						Effect.sync(() => {
+						Effect.gen(function* () {
+							yield* Deferred.succeed(delivering, undefined);
+							if (blocked) yield* Deferred.await(releaseDelivery);
 							queued.push(input);
 						}),
 					steer: (input) =>
@@ -64,7 +69,20 @@ const fixture = Effect.gen(function* () {
 		Layer.succeed(RunnerIdentity, { runnerId: "runner" }),
 		Layer.succeed(ServerTools, { call: () => Deferred.succeed(forwarded, undefined).pipe(Effect.andThen(Deferred.await(answer))) }),
 	);
-	return { events, queued, steered, acquisitions, forwarded, answer, opens: () => opens, live: layer.pipe(Layer.provideMerge(dependencies)) };
+	return {
+		events,
+		queued,
+		steered,
+		acquisitions,
+		forwarded,
+		answer,
+		delivering,
+		blockDelivery: Effect.sync(() => {
+			blocked = true;
+		}),
+		opens: () => opens,
+		live: layer.pipe(Layer.provideMerge(dependencies)),
+	};
 });
 
 it.effect("logs native start and charter acceptance before answering and reuses the request", () =>
@@ -99,7 +117,7 @@ it.effect("sleep refuses working roots and ordinary quit cuts them without endin
 			yield* fabric.execute(start);
 			expect((yield* fabric.execute({ type: "Sleep", requestId: "sleep", sessionId: "session" })).type).toBe("Refused");
 			yield* fabric.execute({ type: "Drain", requestId: "quit" });
-			expect(yield* fabric.attached).toEqual(new Set());
+			expect(yield* fabric.attached()).toEqual(new Set());
 			expect((yield* log.request("quit")).map(({ event }) => event.type)).toEqual(["SessionSlept"]);
 		}).pipe(Effect.provide(test.live));
 	}),
@@ -167,6 +185,23 @@ it.effect("opens nothing at boot and resumes the same native identity only when 
 			expect(test.acquisitions[0]?.resume).toEqual(Option.some("existing-native"));
 			expect(test.acquisitions[0]?.sessionId).toBe("session");
 			expect(test.queued.map((input) => input.id)).toEqual(["wake-input"]);
+		}).pipe(Effect.provide(test.live));
+	}),
+);
+
+it.effect("an explicit stop cuts an outstanding charter delivery", () =>
+	Effect.gen(function* () {
+		const test = yield* fixture;
+		yield* Effect.gen(function* () {
+			const fabric = yield* RunnerFabric;
+			const log = yield* RunnerLog;
+			yield* test.blockDelivery;
+			const starting = yield* fabric.execute(start).pipe(Effect.forkScoped);
+			yield* Deferred.await(test.delivering);
+			yield* fabric.execute({ type: "Stop", requestId: "stop", sessionId: "session", reason: "stopped" });
+			expect(Exit.isFailure(yield* Fiber.await(starting))).toBe(true);
+			expect(test.queued).toEqual([]);
+			expect((yield* log.request("start")).map(({ event }) => event.type)).toEqual(["SessionStarted", "InputAmbiguous"]);
 		}).pipe(Effect.provide(test.live));
 	}),
 );

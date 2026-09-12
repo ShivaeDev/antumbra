@@ -50,15 +50,11 @@ export const rulingDisplayProjection = projection("rulingDisplay", {
 				requesterName: requester.kind === "agent" ? (speakers[requester.agentId] ?? "agent") : requester.by,
 				rungName: ruling.rung === "captain" && captainVoyage !== undefined ? `${captainVoyage.name}'s captain` : authorityName(ruling.rung),
 				speakers,
-				subjectLabels: ruling.subjects.map((subject) =>
-					subject.kind === "tag"
-						? { kind: "tag", id: subject.tag, label: subject.tag }
-						: {
-								kind: subject.kind,
-								id: subject.id,
-								label: names[subject.kind][subject.id] ?? subject.id,
-							},
-				),
+				subjectLabels: ruling.subjects.map((subject) => {
+					const id = subject.kind === "tag" ? subject.tag : subject.id;
+					const label = subject.kind === "tag" ? subject.tag : (names[subject.kind][subject.id] ?? subject.id);
+					return { kind: subject.kind, id, label };
+				}),
 				gatedPieces: gates
 					.filter((gate) => gate.rulingId === ruling.id)
 					.flatMap((gate) => {

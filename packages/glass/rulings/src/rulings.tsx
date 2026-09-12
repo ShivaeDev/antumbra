@@ -1,3 +1,4 @@
+import type { display } from "@antumbra/domain-rulings/queries/display.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { CommandForm } from "@antumbra/glass-components/form.tsx";
 import type { RulingsApi } from "#glass.ts";
@@ -15,18 +16,7 @@ export const RulingsPanel = ({ api }: { readonly api: RulingsApi }) => (
 		<Live query={api.rulings.display} input={{}} waiting="Reading the rulings…">
 			{(view) => (
 				<>
-					{view.openCount === 0 ? (
-						<p>Nothing is waiting on you. A ruling appears here the moment an agent asks for one.</p>
-					) : (
-						view.groups.map((group) => (
-							<section className="flex flex-col gap-3" key={group.id}>
-								<h3>{group.name}</h3>
-								{group.rulings.map((ruling) => (
-									<RulingCard api={api} ruling={ruling} key={ruling.id} />
-								))}
-							</section>
-						))
-					)}
+					<OpenRulings api={api} view={view} />
 					<section className="flex flex-col gap-3">
 						<h3>Left for later</h3>
 						{view.parked.map((ruling) => (
@@ -44,3 +34,17 @@ export const RulingsPanel = ({ api }: { readonly api: RulingsApi }) => (
 		</Live>
 	</section>
 );
+
+const OpenRulings = ({ api, view }: { readonly api: RulingsApi; readonly view: typeof display.output.Type }) =>
+	view.openCount === 0 ? (
+		<p>Nothing is waiting on you. A ruling appears here the moment an agent asks for one.</p>
+	) : (
+		view.groups.map((group) => (
+			<section className="flex flex-col gap-3" key={group.id}>
+				<h3>{group.name}</h3>
+				{group.rulings.map((ruling) => (
+					<RulingCard api={api} ruling={ruling} key={ruling.id} />
+				))}
+			</section>
+		))
+	);

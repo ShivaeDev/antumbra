@@ -1,4 +1,4 @@
-import type { Waiting } from "@antumbra/domain-holds/queries/queues.ts";
+import type { HoldQueue, Waiting } from "@antumbra/domain-holds/queries/queues.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import type { HoldsApi } from "#glass.ts";
 import { HoldSwitch } from "#hold-switch.tsx";
@@ -18,24 +18,7 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 					</p>
 				</header>
 				{view.queues.map((queue) => (
-					<section key={queue.kind} aria-label={queue.title} className="flex flex-col gap-2 border-b border-border p-4">
-						<header className="flex justify-between">
-							<h3>
-								{queue.title} · {queue.waiting.length} waiting
-							</h3>
-							<HoldSwitch api={api} setting={queue.setting} title={queue.title} held={queue.own} everything={view.everything} />
-						</header>
-						<p className="text-xs text-muted-foreground">{queue.description}</p>
-						{queue.waiting.length === 0 ? (
-							<p>{queue.quiet}</p>
-						) : (
-							<ul>
-								{queue.waiting.map((waiting) => (
-									<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
-								))}
-							</ul>
-						)}
-					</section>
+					<QueueSection api={api} queue={queue} everything={view.everything} key={queue.kind} />
 				))}
 			</section>
 		)}
@@ -54,4 +37,33 @@ const WaitingRow = ({ waiting, held }: { readonly waiting: typeof Waiting.Type; 
 		<span>{waitedWords(waiting.waitedMillis)}</span>
 		{held ? <span>held</span> : null}
 	</li>
+);
+
+const QueueSection = ({
+	api,
+	queue,
+	everything,
+}: {
+	readonly api: HoldsApi;
+	readonly queue: typeof HoldQueue.Type;
+	readonly everything: boolean;
+}) => (
+	<section aria-label={queue.title} className="flex flex-col gap-2 border-b border-border p-4">
+		<header className="flex justify-between">
+			<h3>
+				{queue.title} · {queue.waiting.length} waiting
+			</h3>
+			<HoldSwitch api={api} setting={queue.setting} title={queue.title} held={queue.own} everything={everything} />
+		</header>
+		<p className="text-xs text-muted-foreground">{queue.description}</p>
+		{queue.waiting.length === 0 ? (
+			<p>{queue.quiet}</p>
+		) : (
+			<ul>
+				{queue.waiting.map((waiting) => (
+					<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
+				))}
+			</ul>
+		)}
+	</section>
 );

@@ -7,6 +7,7 @@ import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
 import { AppInfoSourceLive } from "#adapters/app-info.ts";
 import { AppLifecycleSourceLive } from "#adapters/app-lifecycle.ts";
 import { reportModels } from "#adapters/backend-catalog.ts";
+import { BoardsOverRpc } from "#adapters/boards.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { drainManagedRuntime } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
@@ -49,7 +50,7 @@ const layoutStore = Effect.provide(
 const ownerLayers = (shell: WindowShell, restarting: Ref.Ref<boolean>) => {
 	const serverProcess = Layer.provide(ServerProcessLive(serverBundle(), serverDataDirectory()), NodeServices.layer);
 	const reach = Layer.provide(ServerReachLive, serverProcess);
-	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc, PiecesOverRpc).pipe(
+	const overRpc = Layer.mergeAll(RoleSettingsOverRpc, SettingsOverRpc, VoyagesOverRpc, PiecesOverRpc, BoardsOverRpc).pipe(
 		Layer.provideMerge(reach),
 		Layer.provide(DomainFeedsLive),
 		Layer.provide(persistence),

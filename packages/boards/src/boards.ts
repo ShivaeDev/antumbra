@@ -1,34 +1,19 @@
-import { DomainFeeds } from "@antumbra/domain-feeds";
-import { Database } from "@antumbra/persistence";
-import { Pieces } from "@antumbra/pieces";
-import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
-import { Voyages } from "@antumbra/voyages";
-import { type Context, Effect } from "effect";
-import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
-import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";
-import { ensureBoard, writeEntry } from "#write.ts";
+import { Context, type Effect, type Option } from "effect";
+import type { BoardSourceConflict, BoardWriteFailure, MailFailure, MailNotAddressed } from "#errors.ts";
+import type { BoardEntryInput, BoardEntryRow, BoardScope, MailInput, MailRow, UnreadMailRow } from "#model.ts";
+import type { SmoothingDay, SmoothingSpan } from "#summaries.ts";
 
-const requirements = [Database, DomainFeeds, Pieces, Voyages] as const;
+export interface BoardsService {
+	readonly digest: (scope: BoardScope) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly mail: (input: MailInput) => Effect.Effect<MailRow, BoardSourceConflict | MailFailure>;
+	readonly markDelivered: (agentId: string, entryIds: ReadonlyArray<string>) => Effect.Effect<void, MailFailure | MailNotAddressed>;
+	readonly markRead: (agentId: string, entryIds: ReadonlyArray<string>) => Effect.Effect<void, MailFailure | MailNotAddressed>;
+	readonly read: (scope: BoardScope) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly span: (scope: BoardScope) => Effect.Effect<Option.Option<SmoothingSpan>>;
+	readonly uncovered: (scope: BoardScope) => Effect.Effect<ReadonlyArray<SmoothingDay>>;
+	readonly under: (scope: BoardScope, summaryId: string) => Effect.Effect<ReadonlyArray<BoardEntryRow>>;
+	readonly unread: (agentId: string) => Effect.Effect<ReadonlyArray<UnreadMailRow>, MailFailure>;
+	readonly write: (scope: BoardScope, input: BoardEntryInput) => Effect.Effect<BoardEntryRow, BoardWriteFailure>;
+}
 
-export const Boards = defineService({
-	id: "@antumbra/boards/Boards",
-	initialize: Effect.void,
-	methods: () => ({
-		digest: readDigest,
-		ensure: ensureBoard,
-		mail,
-		markDelivered: markMailDelivered,
-		markRead: markMailRead,
-		read: readBoard,
-		span: readUncoveredSpan,
-		uncovered: readUncoveredDays,
-		under: readUnder,
-		unread: unreadMail,
-		write: writeEntry,
-	}),
-	requires: requirements,
-});
-
-export type BoardsService = Context.Service.Shape<typeof Boards>;
-
-export const BoardsLive = Boards.layer;
+export class Boards extends Context.Service<Boards, BoardsService>()("@antumbra/boards/Boards") {}

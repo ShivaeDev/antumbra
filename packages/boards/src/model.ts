@@ -1,4 +1,4 @@
-import type { BoardOwnerKind, BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
+import type { BoardRegister, SummaryLevel } from "@antumbra/platform-vocabulary/board.ts";
 import { Data, type Option } from "effect";
 
 export type MailPrecedence = "flash" | "priority" | "routine";
@@ -11,80 +11,60 @@ export type BoardScope = Data.TaggedEnum<{
 
 export const BoardScope = Data.taggedEnum<BoardScope>();
 
-export interface BoardOwner {
-	readonly ownerId: string;
-	readonly ownerKind: BoardOwnerKind;
-}
-
-interface BoardEntryFields {
+interface EntryRowFields {
 	readonly authorAgentId: string | null;
 	readonly body: string;
 	readonly createdAt: Date;
 	readonly id: string;
 	readonly register: BoardRegister;
 	readonly seq: number;
-	readonly sourceRef: string | null;
 }
 
-interface UnsummarizedFields {
-	readonly coversFrom: null;
-	readonly coversTo: null;
-	readonly level: null;
+export interface MailRow extends EntryRowFields {
+	readonly kind: "mail";
+	readonly precedence: MailPrecedence;
+	readonly sourceRef: string;
 }
 
-export type BoardEntryVariant =
-	| (UnsummarizedFields & {
-			readonly kind: "mail";
-			readonly precedence: MailPrecedence;
-			readonly sourceRef: string;
-	  })
-	| (UnsummarizedFields & {
-			readonly kind: "note";
-			readonly precedence: "routine";
-			readonly sourceRef: string | null;
-	  })
-	| (UnsummarizedFields & {
-			readonly kind: "pieceSummary";
-			readonly precedence: "routine";
-			readonly sourceRef: string;
-	  })
-	| {
-			readonly coversFrom: number;
-			readonly coversTo: number;
-			readonly kind: "summary";
-			readonly level: SummaryLevel;
-			readonly precedence: "routine";
-			readonly sourceRef: null;
-	  };
+export interface NoteRow extends EntryRowFields {
+	readonly kind: "note";
+}
 
-export type BoardEntryRow = BoardEntryFields & BoardEntryVariant;
+export interface PieceSummaryRow extends EntryRowFields {
+	readonly kind: "pieceSummary";
+	readonly pieceId: string;
+}
 
-export type SummaryRow = BoardEntryRow & { readonly kind: "summary" };
+export interface SummaryRow extends EntryRowFields {
+	readonly coversFrom: number;
+	readonly coversTo: number;
+	readonly kind: "summary";
+	readonly level: SummaryLevel;
+}
 
-export type UnreadMailRow = BoardEntryRow & { readonly delivered: boolean };
+export type BoardEntryRow = NoteRow | PieceSummaryRow | SummaryRow;
+
+export type UnreadMailRow = MailRow & { readonly delivered: boolean };
 
 interface EntryFields {
 	readonly authorAgentId: Option.Option<string>;
 	readonly body: string;
-	readonly register: BoardRegister;
+	readonly id?: string;
 }
 
 export type EntryInput = Data.TaggedEnum<{
-	Mail: EntryFields & {
+	Mail: Omit<EntryFields, "id"> & {
 		readonly precedence: MailPrecedence;
+		readonly register: BoardRegister;
 		readonly sourceRef: string;
 	};
 	Note: EntryFields & {
-		readonly sourceRef?: string;
+		readonly register: BoardRegister;
 	};
-	PieceSummary: {
-		readonly authorAgentId: Option.Option<string>;
-		readonly body: string;
+	PieceSummary: EntryFields & {
 		readonly pieceId: string;
 	};
-	Summary: {
-		readonly authorAgentId: Option.Option<string>;
-		readonly body: string;
+	Summary: EntryFields & {
 		readonly coversFrom: number;
 		readonly coversTo: number;
 		readonly level: SummaryLevel;
@@ -92,6 +72,10 @@ export type EntryInput = Data.TaggedEnum<{
 }>;
 
 export const EntryInput = Data.taggedEnum<EntryInput>();
+
+export type MailEntry = Extract<EntryInput, { readonly _tag: "Mail" }>;
+
+export type BoardEntryInput = Exclude<EntryInput, { readonly _tag: "Mail" }>;
 
 export interface MailInput {
 	readonly authorAgentId: Option.Option<string>;

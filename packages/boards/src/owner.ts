@@ -1,52 +1,36 @@
 import { Database } from "@antumbra/persistence";
-import { Pieces } from "@antumbra/pieces";
-import { Voyages } from "@antumbra/voyages";
 import { Effect, Option } from "effect";
 import { BoardOwnerNotFound } from "#errors.ts";
-import { type BoardOwner, BoardScope } from "#model.ts";
 
-const ownerOf = (scope: BoardScope): BoardOwner =>
-	BoardScope.$match(scope, {
-		Agent: ({ agentId }): BoardOwner => ({
-			ownerId: agentId,
-			ownerKind: "agent",
-		}),
-		Piece: ({ pieceId }): BoardOwner => ({
-			ownerId: pieceId,
-			ownerKind: "piece",
-		}),
-		Voyage: ({ voyageId }): BoardOwner => ({
-			ownerId: voyageId,
-			ownerKind: "voyage",
-		}),
-	});
+const ownerOf = (agentId: string) => ({ ownerId: agentId, ownerKind: "agent" as const });
 
-export const requireBoardOwner = (scope: BoardScope) =>
+export const requireMailbox = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const berthed = yield* Pieces;
-		const sailing = yield* Voyages;
-		const exists = yield* BoardScope.$match(scope, {
-			Agent: ({ agentId }) => db.Agent.where({ id: agentId }).exists(),
-			Piece: ({ pieceId }) => Effect.map(berthed.byId(pieceId), Option.isSome),
-			Voyage: ({ voyageId }) => Effect.map(sailing.byId(voyageId), Option.isSome),
-		});
-		if (!exists) {
-			return yield* new BoardOwnerNotFound(ownerOf(scope));
+		if (!(yield* db.Agent.where({ id: agentId }).exists())) {
+			return yield* new BoardOwnerNotFound(ownerOf(agentId));
 		}
 	});
 
-export const linkedBoardId = (scope: BoardScope) =>
+export const linkedMailbox = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		return yield* db.BoardOwner.where(ownerOf(scope))
+		return yield* db.BoardOwner.where(ownerOf(agentId))
 			.select("boardId")
 			.first()
 			.pipe(Effect.map((link) => Option.map(link, (row) => row.boardId)));
 	});
 
-export const linkBoard = (scope: BoardScope, boardId: string) =>
+export const openMailbox = (agentId: string) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		yield* db.BoardOwner.create({ boardId, ...ownerOf(scope) });
+		yield* requireMailbox(agentId);
+		const linked = yield* linkedMailbox(agentId);
+		if (Option.isSome(linked)) {
+			return linked.value;
+		}
+		const boardId = crypto.randomUUID();
+		yield* db.Board.create({ id: boardId });
+		yield* db.BoardOwner.create({ boardId, ...ownerOf(agentId) });
+		return boardId;
 	});

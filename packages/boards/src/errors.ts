@@ -1,3 +1,4 @@
+import type { PrismaError } from "@antumbra/persistence";
 import type { BoardOwnerKind } from "@antumbra/platform-vocabulary/board.ts";
 import { Data } from "effect";
 
@@ -9,6 +10,11 @@ export class BoardOwnerNotFound extends Data.TaggedError("BoardOwnerNotFound")<{
 		return `no ${this.ownerKind} named ${this.ownerId} carries a board`;
 	}
 }
+
+export class BoardEntryIncomplete extends Data.TaggedError("BoardEntryIncomplete")<{
+	readonly field: string;
+	readonly message: string;
+}> {}
 
 export class BoardSourceConflict extends Data.TaggedError("BoardSourceConflict")<{
 	readonly boardId: string;
@@ -32,3 +38,7 @@ export class StoredBoardEntryInvalid extends Data.TaggedError("StoredBoardEntryI
 	readonly detail: string;
 	readonly entryId: string;
 }> {}
+
+export type MailFailure = BoardOwnerNotFound | PrismaError | StoredBoardEntryInvalid;
+
+export type BoardWriteFailure = BoardEntryIncomplete | BoardOwnerNotFound;

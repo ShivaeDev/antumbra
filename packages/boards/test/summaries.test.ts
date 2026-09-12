@@ -8,16 +8,11 @@ const at = (day: number, hour: number) => new Date(2026, 8, day, hour, 0, 0);
 const rough = (seq: number, day: number, hour: number): BoardEntryRow => ({
 	authorAgentId: "agent-1",
 	body: `sounding ${seq}`,
-	coversFrom: null,
-	coversTo: null,
 	createdAt: at(day, hour),
 	id: `rough-${seq}`,
 	kind: "note",
-	level: null,
-	precedence: "routine",
 	register: "rough",
 	seq,
-	sourceRef: null,
 });
 
 const summary = (seq: number, coversFrom: number, coversTo: number): BoardEntryRow => ({
@@ -29,10 +24,8 @@ const summary = (seq: number, coversFrom: number, coversTo: number): BoardEntryR
 	id: `summary-${seq}`,
 	kind: "summary",
 	level: "day",
-	precedence: "routine",
 	register: "smooth",
 	seq,
-	sourceRef: null,
 });
 
 const admiralNote = (seq: number): BoardEntryRow => ({ ...rough(seq, 1, 9), authorAgentId: null, id: `admiral-${seq}`, register: "smooth" });

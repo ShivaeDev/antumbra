@@ -21,6 +21,7 @@
 		"typescript": "catalog:"
 	},
 	"dependencies": {
+		"@antumbra/domain-artifacts": "workspace:*",
 		"@antumbra/server": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",

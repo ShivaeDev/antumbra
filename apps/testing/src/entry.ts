@@ -4,8 +4,9 @@ import type { TestApp } from "@antumbra/server-journal/testing/surface.ts";
 import { it as test } from "@effect/vitest";
 import { Effect, type Layer, type Scope } from "effect";
 import { definition, layer } from "#app.ts";
+import { ScriptedArtifacts } from "#artifacts.ts";
 
-export type App = TestApp<typeof definition.features>;
+export type App = TestApp<typeof definition.features> & { readonly artifacts: ScriptedArtifacts["Service"] };
 
 type Services = Layer.Success<typeof layer>;
 
@@ -15,7 +16,8 @@ export const it = {
 			Effect.gen(function* () {
 				const parts = yield* kit(definition);
 				const api = yield* apiOf(definition);
-				return yield* Effect.gen(() => body({ ...parts, api }));
+				const artifacts = yield* ScriptedArtifacts;
+				return yield* Effect.gen(() => body({ ...parts, api, artifacts }));
 			}).pipe(Effect.provide(layer), Effect.orDie),
 		),
 };

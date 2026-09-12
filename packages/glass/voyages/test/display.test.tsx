@@ -2,7 +2,7 @@ import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
-import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { Flagship } from "#flagship.tsx";
@@ -39,7 +39,9 @@ it.glass("shows live Voyage progress and routes selection and captain actions", 
 	yield* until(() => container.textContent?.includes("Nothing chartered yet") === true, "the empty voyage progress");
 	yield* press(container, "Reef");
 	expect(selected).toBe("reef");
-	yield* press(container, "Hail a captain");
+	const reefRow = [...container.querySelectorAll("li")].find((row) => row.textContent?.includes("Reef") === true);
+	if (reefRow === undefined) return expect.fail("the Reef row");
+	yield* press(reefRow, "Hail a captain");
 	expect(hailed).toBe("reef");
 	yield* api.pieces.charter({
 		requestId: Id.Request.make("soundings"),
@@ -53,7 +55,6 @@ it.glass("shows live Voyage progress and routes selection and captain actions", 
 	yield* until(() => container.textContent?.includes("0 of 1 landed") === true, "the chartered piece count");
 });
 it.glass("offers to hail the Flagship captain before a session exists", function* ({ api, render }) {
-	yield* api.voyages.open({ ...opening, kind: "flagship" });
 	let hailed = "";
 	const container = yield* render(
 		<Flagship
@@ -66,18 +67,17 @@ it.glass("offers to hail the Flagship captain before a session exists", function
 	);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the Flagship captain action");
 	yield* press(container, "Hail a captain");
-	expect(hailed).toBe("reef");
+	expect(hailed).toBe(FLAGSHIP_REQUEST);
 });
 
 it.glass("opens the Flagship captain conversation after hail", function* ({ api, render }) {
-	yield* api.voyages.open({ ...opening, kind: "flagship" });
 	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
 	yield* api.starts.hail({
 		requestId: Id.Request.make("hail"),
 		agentId: AgentId.make("captain"),
 		sessionId: SessionId.make("conversation"),
-		voyageId: VoyageId.make("reef"),
+		voyageId: VoyageId.make(FLAGSHIP_REQUEST),
 		pieceId: null,
 		backend: "test",
 		model: null,

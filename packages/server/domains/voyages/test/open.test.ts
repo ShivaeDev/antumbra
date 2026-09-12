@@ -51,11 +51,13 @@ it.app("seats both roles and changes only the chosen role", function* (app) {
 });
 
 it.app("rejects a blank name without creating a voyage", function* (app) {
+	const voyages = yield* app.rows.voyage.count({});
+	const roleSettings = yield* app.rows.roleSetting.count({});
 	const refused = yield* Effect.flip(app.api.voyages.open({ ...opening, name: "   " }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "name", message: "A voyage needs a name" });
-	expect(yield* app.rows.voyage.count({})).toBe(0);
-	expect(yield* app.rows.roleSetting.count({})).toBe(0);
+	expect(yield* app.rows.voyage.count({})).toBe(voyages);
+	expect(yield* app.rows.roleSetting.count({})).toBe(roleSettings);
 });
 
 it.app("deduplicates the flagship request", function* (app) {

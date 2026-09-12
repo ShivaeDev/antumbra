@@ -5,7 +5,6 @@ import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect } from "effect";
 import { constrainedPrompt } from "#agents/charter.ts";
 
-// A transcript belongs to the provider and the model that hold it, so a woken session keeps the settings it was admitted on.
 export const options = Effect.fn("Sessions.options")(function* (root: typeof session.Row.Type) {
 	const live = yield* Live;
 	const catalog = yield* ToolCatalog;

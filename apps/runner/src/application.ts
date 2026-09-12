@@ -1,3 +1,4 @@
+import { layer as capacity } from "@antumbra/runner-fabric/capacity.ts";
 import { layer as fabric } from "@antumbra/runner-fabric/fabric.ts";
 import { file } from "@antumbra/runner-fabric/log.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity } from "@antumbra/runner-fabric/ports.ts";
@@ -31,5 +32,5 @@ export const application = (options: Options, backends: ReadonlyMap<string, Agen
 				imageInputBackends: [...backends].filter(([, backend]) => backend.capabilities.imageInput).map(([name]) => name),
 			},
 			makeLocalRunner(paths),
-		).pipe(Effect.provide(fabric.pipe(Layer.provideMerge(services))));
+		).pipe(Effect.provide(Layer.merge(fabric, capacity).pipe(Layer.provideMerge(services))));
 	});

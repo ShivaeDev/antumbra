@@ -10,6 +10,6 @@ export const catalog = query("catalog", {
 	scope: (input) => input.backend,
 	run: Effect.fn("backends.catalog")(function* (input, rows) {
 		const listed = yield* rows.backendCatalog.find(input.backend);
-		return Option.isNone(listed) ? { backend: input.backend, failure: null } : listed.value;
+		return Option.isNone(listed) ? { backend: input.backend, failure: null, imageInput: null } : listed.value;
 	}),
 });

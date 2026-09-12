@@ -1,6 +1,8 @@
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { listModels } from "#commands/list-models.ts";
+import { capabilityObserved } from "#facts/capability-observed.ts";
 import { modelsListed } from "#facts/models-listed.ts";
+import { capabilityObservedMaterializer } from "#materializers/capability-observed.ts";
 import { modelsListedMaterializer } from "#materializers/models-listed.ts";
 import { catalog } from "#queries/catalog.ts";
 import { efforts } from "#queries/efforts.ts";
@@ -10,8 +12,8 @@ import { backendModel } from "#rows/backend-model.ts";
 
 export const backends = feature("backends", {
 	rows: [backendModel, backendCatalog],
-	facts: [modelsListed],
+	facts: [modelsListed, capabilityObserved],
 	commands: [listModels],
-	materializers: [modelsListedMaterializer],
+	materializers: [modelsListedMaterializer, capabilityObservedMaterializer],
 	queries: [models, efforts, catalog],
 });

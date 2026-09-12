@@ -20,8 +20,8 @@ export const modelsListedMaterializer = materializer(modelsListed, {
 		for (const gone of stored.filter((candidate) => !listed.has(candidate.id))) {
 			yield* rows.backendModel.delete(gone.id);
 		}
-		const catalogued = { backend: fact.backend, failure: fact.failure };
 		const catalog = yield* rows.backendCatalog.find(fact.backend);
+		const catalogued = { backend: fact.backend, failure: fact.failure, imageInput: Option.isSome(catalog) ? catalog.value.imageInput : null };
 		yield* Option.isNone(catalog) ? rows.backendCatalog.insert(catalogued) : rows.backendCatalog.update(fact.backend, catalogued);
 	}),
 });

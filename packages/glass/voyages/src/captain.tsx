@@ -6,8 +6,8 @@ import type { VoyagesDisplayApi } from "#display.ts";
 export const CaptainCall = (props: { readonly api: VoyagesDisplayApi; readonly voyageId: string; readonly onHail: (voyageId: string) => void }) => (
 	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.agents.captainReading}>
 		{(captain) =>
-			captain === null || captain.canHail ? (
-				<Button onClick={() => props.onHail(props.voyageId)} size="sm" variant="outline">
+			captain === null || !captain.atWork ? (
+				<Button disabled={captain !== null && !captain.canHail} onClick={() => props.onHail(props.voyageId)} size="sm" variant="outline">
 					{captain?.status === "alive" ? "Wake the captain" : "Hail a captain"}
 				</Button>
 			) : (

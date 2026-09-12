@@ -41,6 +41,10 @@ export const observation = (entry: LogEntry): FactPayload<typeof observed> | nul
 			return { ...base, evidence: { type: "failed", reason: event.reason } };
 		case "InputAccepted":
 			return { ...base, evidence: { type: "input-accepted", inputId: event.inputId } };
+		case "InputFailed":
+			return { ...base, evidence: { type: "input-failed", inputId: event.inputId, reason: event.reason } };
+		case "InputAmbiguous":
+			return { ...base, evidence: { type: "input-ambiguous", inputId: event.inputId, reason: event.reason } };
 		case "ToolCalled":
 			return { ...base, evidence: { type: "tool-called", callId: event.callId, name: event.name, input: JSON.stringify(event.input) } };
 		case "ToolAnswered":

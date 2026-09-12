@@ -2,6 +2,7 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
@@ -135,4 +136,66 @@ it.app("failed start waits and explicit retry has a new deduplicated edge reques
 		agentId: "one",
 		sessionId: "session:one",
 	});
+});
+
+it.app("smoothing reuses its Agent across fresh constrained sessions", function* (app) {
+	const voyageId = VoyageId.make("reef");
+	yield* app.api.voyages.open({
+		requestId: Id.Request.make("reef"),
+		captainBackend: null,
+		captainEffort: null,
+		captainModel: null,
+		crewBackend: null,
+		crewEffort: null,
+		crewModel: null,
+		context: "reef",
+		kind: "voyage",
+		name: "Reef",
+		northStar: "Known",
+	});
+	const { source: _source, role: _role, pieceId: _piece, ...initial } = birth("smooth-one");
+	const input = { ...initial, voyageId, constrainedPrompt: "Summarize only", cwd: null };
+	yield* app.api.starts.smooth(input);
+	yield* app.api.starts.admit({ id: StartId.make("smooth-one"), requestId: Id.Request.make("admit") });
+	const commit = yield* Commit;
+	const source = { logId: "smooth-log", at: 100, requestId: Id.Request.make("log") };
+	const identity = { sessionId: input.sessionId, nodeRef: null, origin: null, operationId: "smooth-one" };
+	yield* commit.observe(observed, {
+		...source,
+		cursor: 0,
+		payload: {
+			...identity,
+			evidence: {
+				type: "started",
+				agentId: input.agentId,
+				backend: "claude",
+				cwd: "/smooth",
+				nativeRef: "native",
+				runnerId: "runner",
+				toolSetVersion: "1",
+			},
+		},
+	});
+	yield* commit.observe(observed, { ...source, cursor: 1, payload: { ...identity, evidence: { type: "input-accepted", inputId: "charter" } } });
+	yield* commit.observe(observed, { ...source, cursor: 2, payload: { ...identity, evidence: { type: "ended", reason: "complete" } } });
+	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({ id: input.agentId, status: "alive", currentSessionId: null });
+	const next = {
+		...input,
+		requestId: Id.Request.make("smooth-two"),
+		sessionId: SessionId.make("session:two"),
+		constrainedPrompt: "Summarize next",
+		toolSetVersion: "2",
+	};
+	yield* app.api.starts.smooth(next);
+	expect(yield* answered(app.api.starts.bySession({ sessionId: next.sessionId }))).toMatchObject({
+		createsAgent: false,
+		constrainedPrompt: "Summarize next",
+		toolSetVersion: "2",
+	});
+	expect(yield* app.rows.agent.count({})).toBe(1);
+	expect(
+		yield* Effect.flip(app.api.starts.smooth({ ...next, requestId: Id.Request.make("overlap"), sessionId: SessionId.make("session:overlap") })),
+	).toMatchObject({ _tag: "Busy" });
+	yield* app.api.starts.cancel({ id: StartId.make("smooth-two"), requestId: Id.Request.make("cancel-pass") });
+	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({ status: "alive", currentSessionId: null });
 });

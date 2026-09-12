@@ -28,6 +28,9 @@ export const startRequestedMaterializer = materializer(startRequested, {
 		yield* rows.start.insert({
 			id: fact.id,
 			operationRequestId: fact.requestId,
+			createsAgent: true,
+			constrainedPrompt: null,
+			cwd: null,
 			agentId: fact.agentId,
 			sessionId: fact.sessionId,
 			voyageId: fact.voyageId,

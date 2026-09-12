@@ -37,11 +37,13 @@ export const admit = command("admit", {
 		const capacities = yield* rows.capacity.where({});
 		if (capacities.some((value) => value.backend === held.backend && value.status === "blocked"))
 			return yield* reject.Held({ reason: "provider capacity" });
+		if (!held.createsAgent) return { id: input.id };
 		const starts = yield* rows.start.where({});
 		const oldest = starts
 			.filter(
 				(value) =>
 					value.status === "requested" &&
+					value.createsAgent &&
 					eligible(value) &&
 					!capacities.some((c) => c.backend === value.backend && c.status === "blocked") &&
 					!(value.source === "dispatch" && flags.some((f) => f.on && (f.key === "holdPieceDispatch" || f.key === "holdEverything"))),

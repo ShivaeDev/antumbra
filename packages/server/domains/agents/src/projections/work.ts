@@ -15,6 +15,7 @@ export const agentWork = projection("agentWork", {
 			const status = activated ? "alive" : held.status;
 			if (activated && current !== undefined)
 				yield* writes.agent.update(held.id, { status, updatedAt: current.charterDeliveredAt ?? held.updatedAt });
+			if (held.role === "smoother" && current?.status === "closed") yield* writes.agent.update(held.id, { currentSessionId: null });
 			const owner = {
 				agentId: held.id,
 				status,

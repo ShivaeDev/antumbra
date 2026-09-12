@@ -12,6 +12,9 @@ export const start = row(
 	{
 		id: StartId,
 		operationRequestId: Schema.String,
+		createsAgent: Schema.Boolean,
+		constrainedPrompt: Schema.NullOr(Schema.String),
+		cwd: Schema.NullOr(Schema.String),
 		source: Schema.Literals(["dispatch", "work-now", "direct"]),
 		agentId: AgentId,
 		sessionId: SessionId,

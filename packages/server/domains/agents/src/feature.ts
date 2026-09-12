@@ -23,6 +23,7 @@ import { dueRetirements } from "#queries/due-retirements.ts";
 import { dueSiestas } from "#queries/due-siestas.ts";
 import { reading } from "#queries/reading.ts";
 import { roster } from "#queries/roster.ts";
+import { smoother } from "#queries/smoother.ts";
 import { workingCount } from "#queries/working-count.ts";
 import { agent } from "#rows/agent.ts";
 import { agentReading } from "#rows/agent-reading.ts";
@@ -49,5 +50,20 @@ export const agents = feature("agents", {
 	facts: [agentRetired],
 	commands: [retire],
 	materializers: [agentRetiredMaterializer],
-	queries: [captainView, byVoyage, byPiece, dueSiestas, dueRetirements, roster, reading, bySession, workingCount, all, byId, captain, authority],
+	queries: [
+		smoother,
+		captainView,
+		byVoyage,
+		byPiece,
+		dueSiestas,
+		dueRetirements,
+		roster,
+		reading,
+		bySession,
+		workingCount,
+		all,
+		byId,
+		captain,
+		authority,
+	],
 });

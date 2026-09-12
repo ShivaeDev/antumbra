@@ -18,11 +18,14 @@ import { hail } from "#commands/hail.ts";
 import { hold } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
 import { retry } from "#commands/retry.ts";
+import { smooth } from "#commands/smooth.ts";
+import { smoothingRequested } from "#facts/smoothing-requested.ts";
 import { startAdmitted } from "#facts/start-admitted.ts";
 import { startCancelled } from "#facts/start-cancelled.ts";
 import { startHeld } from "#facts/start-held.ts";
 import { startRequested } from "#facts/start-requested.ts";
 import { startRetried } from "#facts/start-retried.ts";
+import { smoothingRequestedMaterializer } from "#materializers/smoothing-requested.ts";
 import { startAdmittedMaterializer } from "#materializers/start-admitted.ts";
 import { startCancelledMaterializer } from "#materializers/start-cancelled.ts";
 import { startHeldMaterializer } from "#materializers/start-held.ts";
@@ -51,8 +54,15 @@ export const starts = feature("starts", {
 		flag,
 		capacity,
 	],
-	facts: [startHeld, startRequested, startAdmitted, startCancelled, startRetried],
-	commands: [hold, request, hail, admit, cancel, retry],
-	materializers: [startHeldMaterializer, startRequestedMaterializer, startAdmittedMaterializer, startCancelledMaterializer, startRetriedMaterializer],
+	facts: [smoothingRequested, startHeld, startRequested, startAdmitted, startCancelled, startRetried],
+	commands: [smooth, hold, request, hail, admit, cancel, retry],
+	materializers: [
+		smoothingRequestedMaterializer,
+		startHeldMaterializer,
+		startRequestedMaterializer,
+		startAdmittedMaterializer,
+		startCancelledMaterializer,
+		startRetriedMaterializer,
+	],
 	queries: [dispatch, all, pending, admitted, bySession],
 });

@@ -1,7 +1,6 @@
 import { createServer } from "node:http";
 import { makeGitHubHost } from "@antumbra/edge-github/host.ts";
 import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
-import { serialization } from "@antumbra/platform-rpc/serialization.ts";
 import { ServerToken } from "@antumbra/platform-rpc/token.ts";
 import { DataDirectory } from "@antumbra/server-journal/database.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
@@ -9,18 +8,16 @@ import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node
 import { Cause, Console, Effect, Exit, FileSystem, Layer, Logger, Path, type Runtime } from "effect";
 import * as HttpRouter from "effect/unstable/http/HttpRouter";
 import * as HttpServer from "effect/unstable/http/HttpServer";
-import * as RpcServer from "effect/unstable/rpc/RpcServer";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 import { ghProcessLayer } from "#adapters/github/process.ts";
 import { application } from "#application.ts";
 import { Files } from "#files.ts";
 import { type Options, options } from "#options.ts";
-import { rpc as group } from "#rpc.ts";
 import { ServerRuntime } from "#runtime.ts";
+import { transport } from "#transport.ts";
 
 const HOST = "127.0.0.1";
-const PATH = "/rpc";
 
 const journal = (directory: string) => Journal.file().pipe(Layer.provide(Layer.succeed(DataDirectory, { path: directory })));
 
@@ -40,12 +37,7 @@ const listener = (settings: Options) => {
 		Layer.provideMerge(Layer.mergeAll(journal(settings.directory), hosts, artifacts)),
 		Layer.provideMerge(Layer.succeed(Files, { root: settings.files })),
 	);
-	const rpc = RpcServer.layer(group).pipe(
-		Layer.provideMerge(app),
-		Layer.provide(RpcServer.layerProtocolWebsocket({ path: PATH })),
-		Layer.provide(serialization),
-	);
-	return HttpRouter.serve(rpc, { disableListenLog: true }).pipe(
+	return HttpRouter.serve(transport, { disableListenLog: true }).pipe(
 		Layer.provideMerge(app),
 		Layer.provide(Layer.succeed(ServerToken, { token: settings.token })),
 		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: HOST, port: settings.port })),

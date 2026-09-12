@@ -1,6 +1,6 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect, Option } from "effect";
-import { capacityObserved, capacityReleased } from "#facts.ts";
+import { capacityObserved } from "#facts/observed.ts";
 import { capacity } from "#rows/capacity.ts";
 
 const severity = { available: 0, warning: 1, blocked: 2 };
@@ -24,25 +24,6 @@ export const observed = materializer(capacityObserved, {
 			detail: limited ? fact.detail : null,
 			resetsAt: limited ? fact.resetsAt : null,
 			utilization: limited ? fact.utilization : null,
-		};
-		if (Option.isNone(current)) return yield* rows.capacity.insert(value);
-		yield* rows.capacity.update(fact.backend, value);
-	}),
-});
-
-export const released = materializer(capacityReleased, {
-	writes: [capacity],
-	run: Effect.fn("capacity.released")(function* (fact, rows) {
-		const current = yield* rows.capacity.find(fact.backend);
-		if (Option.isSome(current) && current.value.observedAt > fact.at) return;
-		const value = {
-			backend: fact.backend,
-			status: "available" as const,
-			observedAt: fact.at,
-			reason: null,
-			detail: null,
-			resetsAt: null,
-			utilization: null,
 		};
 		if (Option.isNone(current)) return yield* rows.capacity.insert(value);
 		yield* rows.capacity.update(fact.backend, value);

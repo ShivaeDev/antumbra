@@ -1,4 +1,4 @@
-import { capacityObserved } from "@antumbra/domain-capacity/facts.ts";
+import { capacityObserved } from "@antumbra/domain-capacity/facts/observed.ts";
 import { inputObserved } from "@antumbra/domain-inputs/facts/observed.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { providerEvent } from "@antumbra/domain-sessions/facts/provider-event.ts";

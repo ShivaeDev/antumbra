@@ -6,7 +6,7 @@ import { expect } from "vitest";
 import { SessionId, SessionOperationId } from "#ids.ts";
 
 const sessionId = SessionId.make("session");
-const registration = { runnerId: "runner", logId: "runner-log", backends: ["claude"] };
+const registration = { runnerId: "runner", logId: "runner-log", backends: ["claude"], imageInputBackends: ["claude"] };
 const source = { logId: "runner-log", at: 100 };
 const identity = { sessionId, requestId: "start" };
 const start = {
@@ -131,4 +131,22 @@ it.app("an uncertain provider handoff remains held and cannot be resent by retry
 	yield* runner.reply("send", { type: "Accepted" });
 	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([expect.objectContaining({ id: "send", status: "ambiguous" })]);
 	expect(yield* Effect.flip(app.api.sessions.retry({ id: SessionOperationId.make("send") }))).toMatchObject({ _tag: "Unavailable" });
+});
+
+it.app("stop completion remains accepted after a late refusal", function* (app) {
+	const runner = yield* connectRunner(registration);
+	yield* runner.append([{ ...source, cursor: 0, event: start }]);
+	yield* app.api.sessions.request({
+		requestId: Request.make("stop"),
+		sessionId,
+		kind: "stop",
+		inputId: null,
+		reason: "retired",
+		requestedAt: new Date(100).toISOString(),
+	});
+	expect(yield* runner.next).toMatchObject({ type: "Stop", requestId: "stop" });
+	yield* runner.append([{ ...source, cursor: 1, event: { type: "SessionEnded", sessionId, requestId: "stop", reason: "retired" } }]);
+	yield* runner.reply("stop", { type: "Refused", reason: "late stale refusal" });
+	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([expect.objectContaining({ id: "stop", status: "accepted" })]);
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ status: "closed", attached: false });
 });

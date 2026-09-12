@@ -1,12 +1,11 @@
 import { Kernel } from "@antumbra/kernel";
-import { Database } from "@antumbra/persistence";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { endsTurn, it } from "@antumbra/testing";
 import { expect } from "@effect/vitest";
 import { Effect, Ref } from "effect";
 import { AgentDomain } from "#domain.ts";
 import { completesTurn, makeScriptedBackend, rawOf, type ScriptedBackend } from "#test/harness.ts";
-import { deliversMail, HAND, mailed, NATIVE, wakeIntents, working } from "#test/mail-delivery-fixture.ts";
+import { deliversMail, HAND, mailbox, mailed, NATIVE, wakeIntents, working } from "#test/mail-delivery-fixture.ts";
 import { refuseWhile, reportsNativeRef, untilTerminal, untilWaitingOrTerminal } from "#test/session-recovery-fixture.ts";
 
 const mailBackend = makeScriptedBackend.pipe(
@@ -51,13 +50,12 @@ const wokenOnce = (scripted: ScriptedBackend) =>
 	});
 
 it.effectApp.withProviders("mail a wake already carried never wakes the agent again on its own", mailBackend, function* (_, scripted) {
-	const db = yield* Database;
 	const live = yield* wokenOnce(scripted);
 	yield* deliversMail;
 	yield* deliversMail;
 	expect(yield* wakeIntents).toHaveLength(1);
 	expect(yield* live.steered).toEqual([CARRIED]);
-	expect(yield* db.BoardEntryReceipt.all()).toEqual([]);
+	expect((yield* mailbox).map((held) => held.readAt)).toEqual([null]);
 });
 
 it.effectApp.withProviders("mail that arrives after a wake comes due again", mailBackend, function* (_, scripted) {

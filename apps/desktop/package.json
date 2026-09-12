@@ -70,6 +70,9 @@
 	},
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "catalog:",
-		"sharp": "catalog:"
+		"sharp": "catalog:",
+		"@antumbra/domain-mail": "workspace:*",
+		"@antumbra/boards": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*"
 	}
 }

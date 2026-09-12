@@ -1,5 +1,5 @@
 import { Artifacts } from "@antumbra/artifacts";
-import { Boards } from "@antumbra/boards";
+import { Boards, Mail } from "@antumbra/boards";
 import { Changes } from "@antumbra/changes";
 import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
@@ -26,6 +26,7 @@ export const AgentToolCompiler = defineService({
 		Artifacts,
 		Boards,
 		Changes,
+		Mail,
 		Pieces,
 		Reports,
 		Repos,

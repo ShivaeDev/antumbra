@@ -15,16 +15,7 @@ export class BoardSourceConflict extends Data.TaggedError("BoardSourceConflict")
 	readonly sourceRef: string;
 }> {
 	override get message(): string {
-		return `${this.sourceRef} already names different mail on ${this.boardId}`;
-	}
-}
-
-export class MailNotAddressed extends Data.TaggedError("MailNotAddressed")<{
-	readonly agentId: string;
-	readonly entryId: string;
-}> {
-	override get message(): string {
-		return `${this.entryId} is not mail addressed to ${this.agentId}`;
+		return `${this.sourceRef} already names a different entry on ${this.boardId}`;
 	}
 }
 

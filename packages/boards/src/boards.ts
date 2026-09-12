@@ -4,7 +4,6 @@ import { Pieces } from "@antumbra/pieces";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Voyages } from "@antumbra/voyages";
 import { type Context, Effect } from "effect";
-import { mail, markMailDelivered, markMailRead, unreadMail } from "#mailbox.ts";
 import { readBoard, readDigest, readUncoveredDays, readUncoveredSpan, readUnder } from "#read.ts";
 import { ensureBoard, writeEntry } from "#write.ts";
 
@@ -16,14 +15,10 @@ export const Boards = defineService({
 	methods: () => ({
 		digest: readDigest,
 		ensure: ensureBoard,
-		mail,
-		markDelivered: markMailDelivered,
-		markRead: markMailRead,
 		read: readBoard,
 		span: readUncoveredSpan,
 		uncovered: readUncoveredDays,
 		under: readUnder,
-		unread: unreadMail,
 		write: writeEntry,
 	}),
 	requires: requirements,

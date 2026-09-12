@@ -5,7 +5,7 @@ import { expect } from "@effect/vitest";
 import { Effect, Option, Stream } from "effect";
 import { TestClock } from "effect/testing";
 import { endTurn, makeScriptedBackend } from "#test/harness.ts";
-import { deliversMail, HAND, mailed, NATIVE, wakeIntents, working } from "#test/mail-delivery-fixture.ts";
+import { deliversMail, HAND, mailbox, mailed, NATIVE, wakeIntents, working } from "#test/mail-delivery-fixture.ts";
 import { reportsNativeRef } from "#test/session-recovery-fixture.ts";
 import { assignedPieces, chain, eventually, stateOf } from "#test/voyage-fixtures.ts";
 
@@ -52,7 +52,6 @@ it.effectApp.withProviders(
 	function* (_, scripted) {
 		yield* TestClock.withLive(
 			Effect.gen(function* () {
-				const db = yield* Database;
 				const settings = yield* SettingsSource;
 				yield* settings.change({ key: "holdWakes", value: true });
 				yield* working(scripted);
@@ -60,7 +59,7 @@ it.effectApp.withProviders(
 				yield* mailed("the eastern approach is closed", "test:held-wake");
 				yield* deliversMail;
 				expect(yield* wakeIntents).toEqual([]);
-				expect(yield* db.BoardEntryDelivery.all()).toEqual([]);
+				expect((yield* mailbox).map((held) => held.deliveredAt)).toEqual([null]);
 				expect(yield* waitingOn("wake")).toEqual([HAND.role]);
 
 				yield* settings.change({ key: "holdWakes", value: false });

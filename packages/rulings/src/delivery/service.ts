@@ -1,4 +1,4 @@
-import { Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
 import { Effect } from "effect";
@@ -11,5 +11,5 @@ export const RulingDelivery = defineService({
 	id: "@antumbra/rulings/RulingDelivery",
 	initialize: Effect.void,
 	methods: () => ({ deliverAscent, deliverPending }),
-	requires: [Database, Boards, RulingHolds, Rulings],
+	requires: [Database, Mail, RulingHolds, Rulings],
 });

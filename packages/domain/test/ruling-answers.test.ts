@@ -1,4 +1,4 @@
-import { BoardScope, Boards } from "@antumbra/boards";
+import { Mail } from "@antumbra/boards";
 import { Database } from "@antumbra/persistence";
 import type { DirectTool } from "@antumbra/plugin-api";
 import { Rulings } from "@antumbra/rulings";
@@ -75,10 +75,7 @@ const ruleOn = (rulingId: string) =>
 		});
 	});
 
-const mailbox = Effect.gen(function* () {
-	const boards = yield* Boards;
-	return yield* boards.read(BoardScope.Agent({ agentId: ASKER }));
-});
+const mailbox = Effect.flatMap(Mail, (mail) => mail.mailbox(ASKER));
 
 const stored = (rulingId: string) =>
 	Effect.gen(function* () {
@@ -175,7 +172,7 @@ it.effectApp("not now ends the hold and the request comes back when it is ruled"
 			return read;
 		}),
 	);
-	expect(entries[0]?.sourceRef).toBe(`ruling:${row.id}`);
+	expect(entries[0]?.id).toBe(`ruling:${row.id}`);
 });
 
 it.effectApp("both answers reach an asker who is not holding", { clock: "live" }, function* () {
@@ -198,7 +195,7 @@ it.effectApp("both answers reach an asker who is not holding", { clock: "live" }
 	});
 	expect(entries[1]).toMatchObject({
 		body: expect.stringContaining("Not now: the survey lands first"),
+		id: `ruling-parked:${row.id}`,
 		precedence: "priority",
-		sourceRef: `ruling-parked:${row.id}`,
 	});
 });

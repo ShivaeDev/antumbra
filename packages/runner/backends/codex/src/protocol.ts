@@ -68,6 +68,21 @@ export const TokenUsageNotification = Schema.Struct({
 	turnId: Schema.String,
 });
 
+// Codex may add reroute reasons, so the reason is read as the free word it is rather than the one-value enum the pin declares.
+export const ModelReroutedNotification = Schema.Struct({
+	fromModel: Schema.String,
+	reason: Schema.String,
+	threadId: Schema.String,
+	toModel: Schema.String,
+	turnId: Schema.String,
+});
+
+// A settings update is the one frame that names the model a thread runs on; the rest of the settings are the caller's own.
+export const ThreadSettingsUpdatedNotification = Schema.Struct({
+	threadId: Schema.String,
+	threadSettings: Schema.Struct({ model: Schema.String }),
+});
+
 export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
 
 // Only Codex spawn metadata carries a parent thread id; other names may be absent.

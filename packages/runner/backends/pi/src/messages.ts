@@ -10,16 +10,16 @@ const spoken = (content: Assistant["content"]): string => content.flatMap((part)
 
 const reasoned = (content: Assistant["content"]): string => content.flatMap((part) => (part.type === "thinking" ? [part.thinking] : [])).join("\n");
 
-const usage = (message: Assistant, raw: RawPayload): AgentEvent => ({
-	cacheReadTokens: message.usage.cacheRead,
-	cacheWriteTokens: message.usage.cacheWrite,
-	costUsd: message.usage.cost.total,
-	inputTokens: message.usage.input,
-	model: message.model,
-	outputTokens: message.usage.output,
-	raw,
-	type: "usage",
-});
+const usage = (message: Assistant, raw: RawPayload): AgentEvent => {
+	const spent = {
+		cacheReadTokens: message.usage.cacheRead,
+		cacheWriteTokens: message.usage.cacheWrite,
+		costUsd: message.usage.cost.total,
+		inputTokens: message.usage.input,
+		outputTokens: message.usage.output,
+	};
+	return { ...spent, byModel: [{ ...spent, model: message.model }], raw, type: "usage" };
+};
 
 const assistantEvents = (message: Assistant, raw: RawPayload): AgentEvent[] => {
 	const thinking = reasoned(message.content);

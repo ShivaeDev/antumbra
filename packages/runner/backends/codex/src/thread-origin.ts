@@ -4,6 +4,7 @@ import type { Origin } from "@antumbra/platform-vocabulary/session-events/origin
 export const attributed = (event: AgentEvent, origin: Origin): AgentEvent => {
 	switch (event.type) {
 		case "message":
+		case "model.rerouted":
 		case "raw":
 		case "subsession.gap":
 		case "thinking":

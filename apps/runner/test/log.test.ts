@@ -52,7 +52,16 @@ for (const recordedIdentity of [undefined, "shell:100"]) {
 					expect((yield* log.read(-1)).map(({ cursor }) => cursor)).toEqual([7, 8]);
 				}).pipe(Effect.provide(file({ filename, seed: "a-different-seed" }))),
 			);
-			expect(yield* Effect.promise(() => readdir(root))).toEqual(["runner.sqlite"]);
+			const backups = (yield* Effect.promise(() => readdir(root))).filter((name) => name.startsWith("runner.sqlite.upgrade-"));
+			expect(backups).toHaveLength(1);
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const sql = yield* SqliteClient.make({ filename: join(root, String(backups[0])), readonly: true, disableWAL: true });
+					expect(yield* Effect.orDie(sql`PRAGMA user_version`)).toEqual([{ user_version: 0 }]);
+					expect(yield* Effect.orDie(sql`SELECT cursor, at, event FROM runner_log`)).toEqual([{ cursor: 7, at: 100, event: JSON.stringify(event) }]);
+					if (recordedIdentity !== undefined) expect(yield* Effect.orDie(sql`SELECT logId FROM log_shape`)).toEqual([{ logId }]);
+				}),
+			);
 		}).pipe(Effect.provide(reactivityLayer)),
 	);
 }

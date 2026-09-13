@@ -12,38 +12,47 @@ export interface Log {
 }
 export class RunnerLog extends Context.Service<RunnerLog, Log>()("@antumbra/runner-fabric/RunnerLog") {}
 
-export class LogDatabase extends Context.Service<LogDatabase, SqlClient>()("@antumbra/runner-fabric/LogDatabase") {}
+export interface LogFile {
+	readonly sql: SqlClient;
+	readonly backup: Effect.Effect<void>;
+}
+export class LogDatabase extends Context.Service<LogDatabase, LogFile>()("@antumbra/runner-fabric/LogDatabase") {}
 
 const Stored = Schema.Struct({ cursor: Schema.Int, at: Schema.Number, event: Schema.fromJsonString(LogEntry.fields.event) });
 const decode = Schema.decodeUnknownEffect(Schema.Array(Stored));
 const Identity = Schema.Struct({ logId: Schema.String });
 
 const upgrade = Effect.fn("RunnerLog.upgrade")(function* (seed: string) {
-	const sql = yield* LogDatabase;
+	const { sql, backup } = yield* LogDatabase;
 	const versions = yield* Effect.orDie(sql`PRAGMA user_version`);
 	const version = yield* Schema.decodeUnknownEffect(Schema.Struct({ user_version: Schema.Int }))(versions[0]).pipe(Effect.orDie);
 	if (version.user_version < 1) {
 		const tables = yield* Effect.orDie(sql`SELECT name FROM sqlite_master WHERE type = 'table'`);
 		const existing = tables.some((table) => table.name === "runner_log");
-		const shaped = tables.some((table) => table.name === "log_shape");
-		const identities = shaped ? yield* Effect.orDie(sql`SELECT logId FROM log_shape`) : [];
-		const stored = identities[0];
-		const epoch = yield* Clock.currentTimeMillis;
-		const logId = existing ? seed : `${seed}:${epoch}`;
-		const identity = stored === undefined ? { logId } : yield* Schema.decodeUnknownEffect(Identity)(stored).pipe(Effect.orDie);
-		yield* Effect.orDie(sql`CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`);
-		yield* Effect.orDie(sql`CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`);
-		yield* Effect.orDie(sql`CREATE TABLE IF NOT EXISTS log_identity (logId TEXT PRIMARY KEY)`);
-		yield* Effect.orDie(sql`INSERT INTO log_identity ${sql.insert(identity)}`);
-		yield* Effect.orDie(sql`DROP TABLE IF EXISTS log_shape`);
-		yield* Effect.orDie(sql`PRAGMA user_version = 1`);
+		if (existing) yield* backup;
+		yield* sql
+			.withTransaction(
+				Effect.gen(function* () {
+					yield* sql`CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`;
+					yield* sql`CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`;
+					yield* sql`CREATE TABLE IF NOT EXISTS log_shape (logId TEXT PRIMARY KEY, hash TEXT NOT NULL)`;
+					const identities = yield* sql`SELECT logId FROM log_shape`;
+					if (identities.length === 0) {
+						const epoch = yield* Clock.currentTimeMillis;
+						const logId = existing ? seed : `${seed}:${epoch}`;
+						yield* sql`INSERT INTO log_shape ${sql.insert({ logId, hash: "" })}`;
+					}
+					yield* sql`PRAGMA user_version = 1`;
+				}),
+			)
+			.pipe(Effect.orDie);
 	}
-	const identities = yield* Effect.orDie(sql`SELECT logId FROM log_identity`);
+	const identities = yield* Effect.orDie(sql`SELECT logId FROM log_shape`);
 	return yield* Schema.decodeUnknownEffect(Identity)(identities[0]).pipe(Effect.orDie);
 });
 
 export const makeLog = Effect.fn("RunnerLog.make")(function* (seed: string) {
-	const sql = yield* LogDatabase;
+	const { sql } = yield* LogDatabase;
 	const { logId } = yield* upgrade(seed);
 	const changed = yield* PubSub.unbounded<void>();
 	const entries = (rows: ReadonlyArray<unknown>) =>

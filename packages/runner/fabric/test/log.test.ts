@@ -8,7 +8,7 @@ import { file } from "#test/database.ts";
 
 const openFile = Effect.gen(function* () {
 	const sql = yield* SqliteClient.make({ filename: ":memory:" });
-	return { sql, database: sql };
+	return { sql, database: { sql, backup: Effect.void } };
 });
 
 it.effect("keeps one ordered log across sessions and reopens stored request evidence", () =>

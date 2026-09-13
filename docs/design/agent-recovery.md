@@ -70,7 +70,14 @@ waits. Provider turns may appear in telemetry, but the domain never treats a tur
 The durable Session event sequence is the UI and audit source. Each observer subscribes to post-write publication before reading the log, then
 deduplicates by sequence as live events arrive. That ordering closes the read/subscription gap. Its neutral vocabulary covers opening, messages,
 thinking, tool start and completion, usage, rate limits, model reroutes, provider-turn telemetry, subsession opening, ending, and gaps, and raw
-evidence. A subsession gap is where the record admits it stopped seeing, and a node's ledger of them is what its completeness is projected from.
+evidence. A subsession gap is where the record admits it stopped seeing, and a node's ledger of them is what its completeness is projected from. A
+reading that says only that a node is there reaches the journal the first time the runner makes it and again when it says something else about that
+node, so a pass that meets a node it has already reported writes nothing. A reading that asserts something — a state, a census, an opening, a gap — is
+written every time it is made, because writing it again is how the record is re-asserted against whatever has moved since.
+
+What has been reported is a claim of the current runner connection and never outlives it, so the first pass after a reconnect reports every node once
+and the journal folds what it already holds. The claim is made only once the reading is durable, and a node that closes or a session that ends is
+forgotten.
 
 A **subsession** is a nested provider conversation a Session spawns through a tool call. It is part of that Session's own record and never an Agent,
 but it is durable in its own right: a Session row with its own id, its parent and root edges, the kind and label it opened under, an outcome, a

@@ -31,6 +31,7 @@
 		"@antumbra/server": "workspace:*",
 		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/glass-components": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",

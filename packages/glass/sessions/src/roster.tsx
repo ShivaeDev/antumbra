@@ -1,5 +1,6 @@
 import type { agentReading } from "@antumbra/domain-agents/rows/agent-reading.ts";
-import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
+import { cn } from "@antumbra/glass-components/class-names.ts";
+import { SectionHeading } from "@antumbra/glass-components/compositions/section-heading.tsx";
 import type { ComponentProps } from "react";
 import { AgentCard } from "#agent-card.tsx";
 
@@ -12,17 +13,12 @@ export const Roster = (props: Omit<ComponentProps<typeof AgentCard>, "agent"> & 
 	return [...groups]
 		.toSorted(([left], [right]) => order.indexOf(left) - order.indexOf(right))
 		.map(([standing, agents]) => (
-			<section key={standing} className="flex min-w-0 flex-col gap-2">
-				<header className="flex items-center gap-2">
-					<h3 className="text-xs font-medium text-muted-foreground">{standing === "Idle" ? "listening" : standing}</h3>
-					<span className="text-xs text-muted-foreground">{agents.length}</span>
-					<Separator className="min-w-0 flex-1" />
-				</header>
-				<div className="grid min-w-0 grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] gap-2">
+			<SectionHeading count={agents.length} key={standing} title={standing === "Idle" ? "Listening" : standing}>
+				<div className={cn("grid min-w-0 gap-3", props.sessionId === undefined ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]" : "grid-cols-1")}>
 					{agents.map((agent) => (
 						<AgentCard {...props} key={agent.id} agent={agent} />
 					))}
 				</div>
-			</section>
+			</SectionHeading>
 		));
 };

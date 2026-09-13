@@ -31,8 +31,8 @@ const rewire = command("rewire", {
 const FIXED = { backend: "codex" } as const;
 
 const MODELS = [
-	{ model: "gpt", name: "GPT", efforts: ["medium"], isDefault: true },
-	{ model: "gpt-mini", name: "GPT mini", efforts: ["medium", "high"], isDefault: false },
+	{ model: "gpt", name: "GPT", defaultEffort: "medium", efforts: ["medium"], isDefault: true },
+	{ model: "gpt-mini", name: "GPT mini", defaultEffort: "medium", efforts: ["medium", "high"], isDefault: false },
 ];
 
 const ROW = { backend: "codex", key: "crew", models: ["codex/gpt"] };

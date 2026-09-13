@@ -1,3 +1,4 @@
+import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
@@ -65,6 +66,7 @@ it.app("provision refusal holds the birth and explicit retry reuses its prepared
 });
 
 it.app("raising the running budget admits the next held birth", function* (app) {
+	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 1 });
 	for (const id of ["first", "second"]) {
 		yield* app.api.agents.spawn({ requestId: Request.make(id), role: "crew", backend: "claude", model: null, effort: null });

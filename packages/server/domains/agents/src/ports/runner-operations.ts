@@ -8,7 +8,7 @@ export interface StartOrder {
 	readonly agentId: string;
 	readonly backend: string;
 	readonly cwd: string;
-	readonly model: string | null;
+	readonly model: string;
 	readonly effort: string | null;
 	readonly constrainedPrompt: string | null;
 	readonly toolSet: ToolSet;

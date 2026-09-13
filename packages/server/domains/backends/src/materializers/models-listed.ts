@@ -11,7 +11,15 @@ export const modelsListedMaterializer = materializer(modelsListed, {
 		const listed = new Set<BackendModelId>();
 		for (const model of fact.models) {
 			const id = backendModelId(fact.backend, model.model);
-			const offered = { backend: fact.backend, efforts: model.efforts, id, isDefault: model.isDefault, model: model.model, name: model.name };
+			const offered = {
+				backend: fact.backend,
+				defaultEffort: model.defaultEffort,
+				efforts: model.efforts,
+				id,
+				isDefault: model.isDefault,
+				model: model.model,
+				name: model.name,
+			};
 			const known = yield* rows.backendModel.find(id);
 			listed.add(id);
 			yield* Option.isNone(known) ? rows.backendModel.insert(offered) : rows.backendModel.update(id, offered);

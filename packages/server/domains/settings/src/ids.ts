@@ -2,7 +2,7 @@ import { Schema } from "effect";
 
 export const FLEET = "fleet";
 
-export const FLAG_KEYS = ["foldToolCalls", "retireSweep", "holdEverything", "holdPieceDispatch", "holdWakes"] as const;
+export const FLAG_KEYS = ["foldToolCalls", "signChanges", "retireSweep", "holdEverything", "holdPieceDispatch", "holdWakes"] as const;
 
 export const FlagKey = Schema.Literals(FLAG_KEYS);
 export type FlagKey = typeof FlagKey.Type;
@@ -51,6 +51,11 @@ export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {
 		description: "Retire agents that have rested longer than the threshold.",
 		fallback: true,
 		title: "Retire rested agents",
+	},
+	signChanges: {
+		description: "Adds one line at the end of every pull request body that Antumbra opens.",
+		fallback: true,
+		title: "Sign pull requests as opened through Antumbra",
 	},
 };
 

@@ -11,7 +11,7 @@ export const SessionOptions = Schema.Struct({
 	agentId: Schema.String,
 	backend: Schema.String,
 	cwd: Schema.String,
-	model: Schema.NullOr(Schema.String),
+	model: Schema.String,
 	effort: Schema.NullOr(Schema.String),
 	constrainedPrompt: Schema.NullOr(Schema.String),
 	toolSet: ToolSet,

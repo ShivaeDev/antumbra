@@ -46,7 +46,7 @@ it.effect("resume, tool binding, queue and steer retain their own boundaries unt
 		const session: OpenSessionOptions = {
 			cwd: "/crew",
 			effort: Option.some("high"),
-			model: Option.some("claude-model"),
+			model: "claude-model",
 			resume: Option.some("native-conversation"),
 			sessionId: "antumbra-session",
 			tools: [

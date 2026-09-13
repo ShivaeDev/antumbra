@@ -14,7 +14,7 @@ export interface PiOpenRequest {
 	readonly constrainedPrompt: string | undefined;
 	readonly cwd: string;
 	readonly effort: PiThinkingLevel | undefined;
-	readonly model: string | undefined;
+	readonly model: string;
 	readonly resume: string | undefined;
 	readonly tools: ReadonlyArray<ToolDefinition>;
 }

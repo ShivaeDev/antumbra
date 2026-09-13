@@ -10,9 +10,12 @@ const NOTHING: readonly string[] = [];
 
 const BLANK: Held = {};
 
+const BLANK_WORDS: Readonly<Record<string, string>> = {};
+
 const SAVE_WORDS = "Save";
 
 export const CommandForm = <Command extends CommandShape, Failure>(props: {
+	readonly captions?: Readonly<Record<string, string>>;
 	readonly command: Send<Command, Failure>;
 	readonly description?: string;
 	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[] | Readonly<Partial<Values<Command["input"]>>>;
@@ -42,6 +45,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	};
 	return (
 		<Row
+			captions={props.captions ?? BLANK_WORDS}
 			creating={creating}
 			description={props.description}
 			editables={editables}

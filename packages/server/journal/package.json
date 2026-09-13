@@ -18,7 +18,7 @@
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/domain-role-settings": "workspace:*",
+		"@antumbra/domain-mail": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",

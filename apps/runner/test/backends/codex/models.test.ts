@@ -7,6 +7,7 @@ import { makeFakeAppServer } from "#test/backends/codex/fake.ts";
 const catalog = {
 	data: [
 		{
+			defaultReasoningEffort: "high",
 			displayName: "GPT-5 Codex",
 			isDefault: true,
 			model: "gpt-5-codex",
@@ -16,6 +17,7 @@ const catalog = {
 			],
 		},
 		{
+			defaultReasoningEffort: "medium",
 			displayName: "GPT-5",
 			isDefault: false,
 			model: "gpt-5",
@@ -32,8 +34,8 @@ it.live("codex names the models it offers, the efforts each advertises, and the 
 		const fake = answering(catalog);
 		const server = yield* makeCodexServer({ skills: "/antumbra/skills", spawn: () => fake.process });
 		expect(yield* listCodexModels(server)).toEqual([
-			{ efforts: ["low", "high"], id: "gpt-5-codex", isDefault: true, name: "GPT-5 Codex" },
-			{ efforts: ["medium"], id: "gpt-5", isDefault: false, name: "GPT-5" },
+			{ defaultEffort: "high", efforts: ["low", "high"], id: "gpt-5-codex", isDefault: true, name: "GPT-5 Codex" },
+			{ defaultEffort: "medium", efforts: ["medium"], id: "gpt-5", isDefault: false, name: "GPT-5" },
 		]);
 		expect(fake.requests.at(-1)?.method).toBe("model/list");
 	}).pipe(Effect.scoped),

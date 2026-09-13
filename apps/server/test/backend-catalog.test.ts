@@ -22,13 +22,13 @@ it.app("runner model discovery supplies persisted model and effort pickers", fun
 					type: "ModelsListed",
 					backend: "codex",
 					failure: null,
-					models: [{ id: "test-model", name: "Test Model", isDefault: true, efforts: ["medium", "high"] }],
+					models: [{ id: "test-model", name: "Test Model", isDefault: true, defaultEffort: "high", efforts: ["medium", "high"] }],
 				});
 			},
 		}),
 	);
 	expect(yield* live.read(models, { backend: "codex" })).toEqual([
-		expect.objectContaining({ model: "test-model", name: "Test Model", isDefault: true, efforts: ["medium", "high"] }),
+		expect.objectContaining({ model: "test-model", name: "Test Model", isDefault: true, defaultEffort: "high", efforts: ["medium", "high"] }),
 	]);
 	expect(yield* live.read(efforts, { backend: "codex", model: "test-model" })).toEqual(["medium", "high"]);
 });

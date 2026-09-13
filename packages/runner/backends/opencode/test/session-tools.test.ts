@@ -21,7 +21,7 @@ const options = (tools: ReadonlyArray<DirectTool>, constrainedPrompt?: string): 
 	constrainedPrompt,
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "opencode-go/gpt-5.6-luna",
 	resume: Option.none(),
 	sessionId: "antumbra-session",
 	tools,

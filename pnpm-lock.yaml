@@ -2280,6 +2280,9 @@ importers:
 
   packages/server/domains/agents:
     dependencies:
+      '@antumbra/domain-backends':
+        specifier: workspace:*
+        version: link:../backends
       '@antumbra/domain-capacity':
         specifier: workspace:*
         version: link:../capacity
@@ -3043,9 +3046,9 @@ importers:
       '@antumbra/app-testing':
         specifier: workspace:*
         version: link:../../../apps/testing
-      '@antumbra/domain-role-settings':
+      '@antumbra/domain-mail':
         specifier: workspace:*
-        version: link:../domains/role-settings
+        version: link:../domains/mail
       '@antumbra/domain-settings':
         specifier: workspace:*
         version: link:../domains/settings

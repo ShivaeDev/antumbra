@@ -38,7 +38,7 @@ export const acquire = Effect.fn("RunnerFabric.acquire")(function* (state: State
 			.openSession({
 				sessionId,
 				cwd: options.cwd,
-				model: Option.fromNullishOr(options.model),
+				model: options.model,
 				effort: Option.fromNullishOr(options.effort),
 				resume: operation.type === "Wake" ? Option.some(operation.nativeRef) : Option.none(),
 				...(options.constrainedPrompt === null ? {} : { constrainedPrompt: options.constrainedPrompt }),

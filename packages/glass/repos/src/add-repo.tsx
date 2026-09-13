@@ -37,6 +37,7 @@ export const AddRepo = (props: { readonly api: ReposApi }) => {
 			</span>
 			{editables.map((editable) => (
 				<Control
+					caption={undefined}
 					change={form.change}
 					editable={editable}
 					form={form}

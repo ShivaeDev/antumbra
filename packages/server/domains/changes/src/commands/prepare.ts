@@ -9,6 +9,23 @@ import { changePrepared } from "#facts/change-prepared.ts";
 import { ChangeId, pieceChangeId } from "#ids.ts";
 import { type ChangeRow, change } from "#rows/change.ts";
 export const submissionKey = (agentId: string, repoId: string): string => JSON.stringify([agentId, repoId]);
+interface CapturedWork {
+	readonly headSha: string;
+	readonly workingDiff: string;
+	readonly workingTreeStatus: string;
+	readonly worktreePath: string;
+}
+const recaptured = (stored: ChangeRow | undefined, work: CapturedWork): ChangeRow | undefined =>
+	stored === undefined || stored.stage !== "prepared"
+		? stored
+		: {
+				...stored,
+				headSha: work.headSha,
+				preparedHeadSha: work.headSha,
+				workingDiff: work.workingDiff,
+				workingTreeStatus: work.workingTreeStatus,
+				worktreePath: work.worktreePath,
+			};
 export const prepare = command("prepare", {
 	input: {
 		pieceId: PieceId,
@@ -39,7 +56,7 @@ export const prepare = command("prepare", {
 		if (yield* claimed(rows, input.agentId, repository.source, input.branch)) return yield* reject.ResourceClaimed({ agentId: input.agentId });
 		const key = submissionKey(input.agentId, input.repoId);
 		const existing = (yield* rows.change.where({ submissionKey: key }))[0];
-		const held: ChangeRow = existing ?? {
+		const held: ChangeRow = recaptured(existing, input) ?? {
 			id: ChangeId.make(input.requestId),
 			repoId: input.repoId,
 			host: input.host,

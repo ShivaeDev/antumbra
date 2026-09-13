@@ -8,6 +8,7 @@ import { askedFor, type FakeAppServer, makeFakeAppServer } from "#test/backends/
 import { textInput } from "#test/backends/codex/input.ts";
 
 const THREAD = "thread-1";
+const MODEL = "gpt-5-codex";
 
 const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFakeAppServer(), constrainedPrompt?: string) =>
 	Effect.gen(function* () {
@@ -16,7 +17,7 @@ const openFake = (resume: Option.Option<string> = Option.none(), fake = makeFake
 			constrainedPrompt,
 			cwd: "/moorage",
 			effort: Option.none(),
-			model: Option.none(),
+			model: MODEL,
 			resume,
 			sessionId: "session-1",
 			tools: [],
@@ -50,6 +51,7 @@ it.live("a constrained thread takes Antumbra's instructions and can only read", 
 			approvalsReviewer: "auto_review",
 			baseInstructions: "Smooth this board.",
 			cwd: "/moorage",
+			model: MODEL,
 			sandbox: "read-only",
 		});
 	}),
@@ -62,6 +64,7 @@ it.live("the handshake runs, a thread opens, and session.opened names it", () =>
 		expect(askedFor(fake, "thread/start")).toEqual({
 			approvalsReviewer: "auto_review",
 			cwd: "/moorage",
+			model: MODEL,
 			sandbox: "workspace-write",
 		});
 		expect(yield* handle.nativeRef).toEqual(Option.some(THREAD));
@@ -138,6 +141,7 @@ it.live("queue settles only when its text reaches a provider turn", () =>
 		expect(secondRequest.params).toEqual({
 			clientUserMessageId: "00000000-0000-4000-8000-000000000001",
 			input: [{ text: "second", text_elements: [], type: "text" }],
+			model: MODEL,
 			threadId: THREAD,
 		});
 		secondRequest.accept();
@@ -176,7 +180,7 @@ it.live("closing a session fails text held before provider acceptance", () =>
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
-			model: Option.none(),
+			model: "gpt-5-codex",
 			resume: Option.none(),
 			sessionId: "session-cut",
 			tools: [],
@@ -267,7 +271,7 @@ it.live("turn.completed carries the codex status; the child dying ends the strea
 		const handle: SessionHandle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
-			model: Option.none(),
+			model: "gpt-5-codex",
 			resume: Option.none(),
 			sessionId: "session-1",
 			tools: [],

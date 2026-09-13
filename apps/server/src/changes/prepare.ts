@@ -7,6 +7,10 @@ import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Clock, Effect } from "effect";
 import { supportingHost } from "#changes/host.ts";
 import { namedRepo, readWorld } from "#changes/read.ts";
+
+const offBranch = (found: string, expected: string): string =>
+	`This berth is on ${found}, but Antumbra provisioned it on ${expected} and opens the change from there. Check out ${expected}, bring your commits over, and try again.`;
+
 export interface LocalChangeInput {
 	readonly callId: string;
 	readonly agentId: string;
@@ -21,28 +25,22 @@ export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: 
 	const host = yield* supportingHost(repository);
 	const snapshot = yield* readWorld;
 	const key = submissionKey(input.agentId, repository.id);
-	const existing = snapshot.changes.find((row) => row.submissionKey === key);
 	const berth = snapshot.berths.find((row) => row.agentId === input.agentId && row.source === repository.source);
 	if (berth === undefined) return yield* new ChangeHostRefused({ host: host.tag, detail: "The agent has no berth for this repository" });
 	const runner = yield* RunnerOperations;
-	const captured =
-		existing === undefined
-			? yield* runner.execute(berth.runner, { type: "CaptureChange", requestId: `${input.callId}:capture`, agentId: input.agentId, berth })
-			: {
-					type: "ChangeCaptured" as const,
-					evidence: {
-						branch: existing.preparedHeadRef ?? existing.headRef,
-						headSha: existing.preparedHeadSha ?? existing.headSha ?? "",
-						workingDiff: existing.workingDiff ?? "",
-						workingTreeStatus: existing.workingTreeStatus ?? "",
-						worktreePath: existing.worktreePath ?? berth.path,
-					},
-				};
+	const captured = yield* runner.execute(berth.runner, {
+		type: "CaptureChange",
+		requestId: `${input.callId}:capture`,
+		agentId: input.agentId,
+		berth,
+	});
 	if (captured.type !== "ChangeCaptured")
 		return yield* new ChangeHostRefused({
 			host: host.tag,
 			detail: captured.type === "Refused" ? captured.reason : "Runner returned no captured change evidence",
 		});
+	if (captured.evidence.branch !== berth.branch)
+		return yield* new ChangeHostRefused({ host: host.tag, detail: offBranch(captured.evidence.branch, berth.branch) });
 	const commit = yield* Commit;
 	yield* commit
 		.commit(prepare, {

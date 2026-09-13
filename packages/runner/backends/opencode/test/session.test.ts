@@ -8,11 +8,12 @@ import { part, SESSION, spoke, status, textPart } from "#test/frames.ts";
 import { makeToolSessions } from "#tool-sessions.ts";
 
 const PROMPT = `/session/${SESSION}/prompt_async`;
+const NAMED = { modelID: "gpt-5.6-luna", providerID: "opencode-go" };
 
 const options = (chosen: Partial<OpenSessionOptions> = {}): OpenSessionOptions => ({
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "opencode-go/gpt-5.6-luna",
 	resume: Option.none(),
 	sessionId: "antumbra-session",
 	tools: [],
@@ -46,6 +47,7 @@ it.effect("a constrained session takes the agent that displaces opencode's promp
 			yield* handle.queue(words("go on then"));
 			expect(fake.calls.find((call) => call.path === PROMPT)?.body).toEqual({
 				agent: "antumbra",
+				model: NAMED,
 				parts: [{ text: "go on then", type: "text" }],
 				system: "Smooth this board.",
 			});
@@ -93,7 +95,7 @@ it.effect("sends a prompt straight away when the session is not working", () =>
 			const fake = makeFakeOpencode();
 			const handle = yield* opened(fake);
 			yield* handle.queue(words("go on then"));
-			expect(spoken(fake)).toEqual([JSON.stringify({ parts: [{ text: "go on then", type: "text" }] })]);
+			expect(spoken(fake)).toEqual([JSON.stringify({ model: NAMED, parts: [{ text: "go on then", type: "text" }] })]);
 		}),
 	),
 );
@@ -102,15 +104,9 @@ it.effect("carries the voyage's model and effort on the prompt", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
 			const fake = makeFakeOpencode();
-			const handle = yield* opened(fake, { effort: Option.some("high"), model: Option.some("opencode-go/gpt-5.6-luna") });
+			const handle = yield* opened(fake, { effort: Option.some("high"), model: "opencode-go/gpt-5.6-luna" });
 			yield* handle.queue(words("go on then"));
-			expect(spoken(fake)).toEqual([
-				JSON.stringify({
-					model: { modelID: "gpt-5.6-luna", providerID: "opencode-go" },
-					variant: "high",
-					parts: [{ text: "go on then", type: "text" }],
-				}),
-			]);
+			expect(spoken(fake)).toEqual([JSON.stringify({ model: NAMED, variant: "high", parts: [{ text: "go on then", type: "text" }] })]);
 		}),
 	),
 );
@@ -118,7 +114,7 @@ it.effect("carries the voyage's model and effort on the prompt", () =>
 it.effect("refuses to open on a model that names no provider", () =>
 	Effect.scoped(
 		Effect.gen(function* () {
-			const outcome = yield* Effect.exit(opened(makeFakeOpencode(), { model: Option.some("gpt-5.6-luna") }));
+			const outcome = yield* Effect.exit(opened(makeFakeOpencode(), { model: "gpt-5.6-luna" }));
 			expect(outcome._tag).toBe("Failure");
 		}),
 	),

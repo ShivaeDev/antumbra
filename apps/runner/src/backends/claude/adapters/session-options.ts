@@ -14,7 +14,7 @@ interface SessionShape {
 	readonly cwd: string;
 	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
-	readonly model: string | undefined;
+	readonly model: string;
 	readonly resume: string | undefined;
 	readonly skills: string;
 	readonly store: SessionStore;
@@ -43,13 +43,13 @@ const harness = (session: SessionShape) =>
 export const sessionOptions = (session: SessionShape): Options => ({
 	cwd: resolve(session.cwd),
 	forwardSubagentText: true,
+	model: session.model,
 	pathToClaudeCodeExecutable: session.executable,
 	permissionMode: "auto",
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
 	...harness(session),
 	...(session.effort === undefined ? {} : { effort: session.effort }),
-	...(session.model === undefined ? {} : { model: session.model }),
 	...(session.resume === undefined ? {} : { resume: session.resume }),
 	...Option.match(session.tools, { onNone: () => ({}), onSome: served }),
 });

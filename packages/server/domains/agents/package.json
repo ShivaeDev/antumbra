@@ -32,6 +32,7 @@
 		"@antumbra/domain-reclamation": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-capacity": "workspace:*",
-		"@antumbra/domain-role-settings": "workspace:*"
+		"@antumbra/domain-role-settings": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*"
 	}
 }

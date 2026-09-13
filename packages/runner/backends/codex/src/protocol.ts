@@ -27,6 +27,7 @@ export const TurnResponse = Schema.Struct({ turn: Turn });
 export const ModelListResponse = Schema.Struct({
 	data: Schema.Array(
 		Schema.Struct({
+			defaultReasoningEffort: ReasoningEffort,
 			displayName: Schema.String,
 			isDefault: Schema.Boolean,
 			model: Schema.String,

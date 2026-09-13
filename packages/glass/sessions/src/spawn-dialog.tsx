@@ -9,6 +9,8 @@ import type { SessionsApi } from "#glass.ts";
 
 const PLACEHOLDERS = { role: "navigator" };
 
+const NOTHING: Readonly<Record<string, string>> = {};
+
 export const SpawnDialog = ({ api }: { readonly api: SessionsApi }) => {
 	const [open, setOpen] = useState(false);
 	const [revision, setRevision] = useState(0);
@@ -27,6 +29,7 @@ export const SpawnDialog = ({ api }: { readonly api: SessionsApi }) => {
 				</DialogHeader>
 				<Row
 					key={revision}
+					captions={NOTHING}
 					creating
 					description={undefined}
 					editables={editables}

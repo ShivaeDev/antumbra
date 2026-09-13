@@ -1,9 +1,11 @@
 import { Schema } from "effect";
+import { Berthing, berthsSection } from "#charter-berths.ts";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
 import { STANDING_ORDERS } from "#standing-orders.ts";
 
 export const CaptainCharter = Schema.Struct({
+	...Berthing.fields,
 	context: Schema.String,
 	northStar: Schema.String,
 	pieceLines: Schema.Array(Schema.String),
@@ -27,6 +29,7 @@ export const captainCharter = (input: CaptainCharter): AgentPrompt =>
 			section("Context", input.context),
 			logSection("Voyage log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
+			berthsSection(input, "captain"),
 			logSection("Standing rulings", input.rulings),
 			section(
 				"Standing orders",

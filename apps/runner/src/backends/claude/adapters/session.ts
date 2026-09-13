@@ -16,7 +16,7 @@ interface RawSessionOptions {
 	readonly cwd: string;
 	readonly effort: EffortLevel | undefined;
 	readonly executable: string;
-	readonly model: string | undefined;
+	readonly model: string;
 	readonly observeCapacity: BackendCapacityController["observe"];
 	readonly resume: string | undefined;
 	readonly skills: string;

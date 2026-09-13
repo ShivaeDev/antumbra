@@ -5,18 +5,13 @@ import { ReasoningEffort } from "#protocol.ts";
 
 export interface AgentSettings {
 	readonly effort?: string;
-	readonly model?: string;
+	readonly model: string;
 }
 
 const decodeEffort = Schema.decodeUnknownOption(ReasoningEffort);
 
-export const chosenModel = (settings: AgentSettings): { readonly model?: string } => (settings.model === undefined ? {} : { model: settings.model });
-
 export const agentSettings = (options: OpenSessionOptions): Effect.Effect<AgentSettings, BackendFailure> => {
-	const model = Option.match(options.model, {
-		onNone: (): AgentSettings => ({}),
-		onSome: (id): AgentSettings => ({ model: id }),
-	});
+	const model: AgentSettings = { model: options.model };
 	return Option.match(options.effort, {
 		onNone: () => Effect.succeed(model),
 		onSome: (value) =>

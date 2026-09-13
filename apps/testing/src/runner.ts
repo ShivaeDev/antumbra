@@ -12,7 +12,15 @@ import { ScriptedArtifacts } from "#artifacts.ts";
 
 export type { LogEntry } from "@antumbra/platform-runner/log.ts";
 
-export const connectRunner = Effect.fn("TestRunner.connect")(function* (registration: Registration) {
+const declaredModel = (backend: string) => ({ defaultEffort: null, efforts: [], id: `${backend}-model`, isDefault: true, name: `${backend} model` });
+
+export interface RunnerListing {
+	readonly models: "declared" | "none";
+}
+
+const LISTING: RunnerListing = { models: "declared" };
+
+export const connectRunner = Effect.fn("TestRunner.connect")(function* (registration: Registration, listing: RunnerListing = LISTING) {
 	const calls = yield* RpcTest.makeClient(RunnerRpc, { flatten: true });
 	const operations = yield* RunnerOperations;
 	const reactivity = yield* Reactivity;
@@ -23,7 +31,12 @@ export const connectRunner = Effect.fn("TestRunner.connect")(function* (registra
 				return calls("runner.reply", {
 					runnerId: registration.runnerId,
 					requestId: operation.requestId,
-					result: { type: "ModelsListed", backend: operation.backend, models: [], failure: null },
+					result: {
+						type: "ModelsListed",
+						backend: operation.backend,
+						models: listing.models === "none" ? [] : [declaredModel(operation.backend)],
+						failure: null,
+					},
 				}).pipe(Effect.as(false));
 			}
 			if (operation.type !== "ReadArtifact") return Effect.succeed(true);

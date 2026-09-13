@@ -1,3 +1,4 @@
+import { berthsSection } from "#charter-berths.ts";
 import { CAPTAIN_STANDING_ORDER, type CaptainCharter } from "#charter-captain.ts";
 import { type AgentPrompt, agentPrompt } from "#mint.ts";
 import { logSection, proseOf, section } from "#prose.ts";
@@ -22,6 +23,7 @@ export const flagshipCharter = (input: CaptainCharter): AgentPrompt =>
 			section("Your station", STATION),
 			logSection("Fleet log", input.voyageLog),
 			section("Pieces", input.pieceLines.join("\n")),
+			berthsSection(input, "captain"),
 			logSection("Standing rulings", input.rulings),
 			section("Standing orders", CAPTAIN_STANDING_ORDER),
 		]),

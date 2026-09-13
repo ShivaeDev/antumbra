@@ -13,7 +13,7 @@ it.live("an ordered local image reaches codex and its echo keeps the input id", 
 		const handle = yield* openThreadSession(server, {
 			cwd: "/moorage",
 			effort: Option.none(),
-			model: Option.none(),
+			model: "gpt-5-codex",
 			resume: Option.none(),
 			sessionId: "session-1",
 			tools: [],
@@ -31,6 +31,7 @@ it.live("an ordered local image reaches codex and its echo keeps the input id", 
 				{ path: "/custody/reef.png", type: "localImage" },
 				{ text: "what is shown?", text_elements: [], type: "text" },
 			],
+			model: "gpt-5-codex",
 			threadId: "thread-1",
 		});
 		fake.notify("item/completed", {

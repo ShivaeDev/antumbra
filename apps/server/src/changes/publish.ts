@@ -1,6 +1,7 @@
 import { freeze } from "@antumbra/domain-changes/commands/freeze.ts";
 import { all } from "@antumbra/domain-changes/queries/all.ts";
 import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
+import { flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -56,23 +57,27 @@ export const publish = Effect.fn("changes.publish")(function* (held: ChangeRow) 
 	});
 	return yield* readChange(held.id);
 });
+const TRAILER = "Opened through Antumbra";
+
 export const openLocal = Effect.fn("changes.openLocal")(function* (
 	input: LocalChangeInput & { readonly title: string; readonly body: string; readonly base: string | null; readonly draft: boolean },
 ) {
 	const held = yield* prepareLocal(input);
 	const commit = yield* Commit;
+	const live = yield* Live;
+	const chosen = yield* live.read(flags, {});
+	const signing = chosen.some((flag) => flag.key === "signChanges" && flag.on);
 	yield* commit
 		.commit(freeze, {
 			requestId: Request.make(`${input.callId}:freeze`),
 			changeId: held.id,
 			title: input.title,
-			body: input.body,
+			body: signing ? [input.body.trimEnd(), TRAILER].join("\n\n") : input.body,
 			base: input.base,
 			draft: input.draft,
 			at: new Date(yield* Clock.currentTimeMillis).toISOString(),
 		})
 		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-	const live = yield* Live;
 	const settled = yield* live.live(all, {}).pipe(
 		Stream.map((rows) => rows.find((row) => row.id === held.id)),
 		Stream.filter((row): row is ChangeRow => row !== undefined && (row.stage !== "prepared" || row.publicationError !== null)),

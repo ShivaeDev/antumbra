@@ -37,14 +37,14 @@ it.glass("clears dependent choices when the backend changes", function* ({ api, 
 	yield* api.backends.listModels({
 		backend: "claude",
 		failure: null,
-		models: [{ model: "opus", name: "Opus", efforts: ["low", "high"], isDefault: true }],
+		models: [{ model: "opus", name: "Opus", defaultEffort: "high", efforts: ["low", "high"], isDefault: true }],
 	});
 	yield* api.backends.listModels({
 		backend: "codex",
 		failure: null,
 		models: [
-			{ model: "gpt", name: "GPT", efforts: ["medium"], isDefault: true },
-			{ model: "gpt-mini", name: "GPT mini", efforts: ["medium", "high"], isDefault: false },
+			{ model: "gpt", name: "GPT", defaultEffort: "medium", efforts: ["medium"], isDefault: true },
+			{ model: "gpt-mini", name: "GPT mini", defaultEffort: "medium", efforts: ["medium", "high"], isDefault: false },
 		],
 	});
 	yield* api.roleSettings.choose({ backend: "claude", model: "opus", effort: "high", role: "flagship", scope: "fleet" });

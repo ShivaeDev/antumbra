@@ -2,7 +2,7 @@ import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/ev
 import type { BackendFailure, OpenSessionOptions } from "@antumbra/runner-ports/backend.ts";
 import type { DirectTool } from "@antumbra/runner-ports/tools.ts";
 import { Effect, Option, Schema } from "effect";
-import { type AgentSettings, chosenModel } from "#agent-settings.ts";
+import type { AgentSettings } from "#agent-settings.ts";
 import { codexFailure } from "#failure.ts";
 import { rawOf } from "#mapping.ts";
 import { ThreadResponse } from "#protocol.ts";
@@ -47,7 +47,7 @@ export const openThread = (
 				.request("thread/start", {
 					cwd: options.cwd,
 					...dynamicTools(options.tools),
-					...chosenModel(settings),
+					model: settings.model,
 					...threadPolicy(options),
 				})
 				.pipe(Effect.map((response) => ["thread/start", response] as const)),
@@ -58,7 +58,7 @@ export const openThread = (
 					server.request("thread/resume", {
 						cwd: options.cwd,
 						threadId: attached,
-						...chosenModel(settings),
+						model: settings.model,
 						...threadPolicy(options),
 					}),
 				),

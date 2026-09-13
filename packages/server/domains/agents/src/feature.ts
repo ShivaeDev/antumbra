@@ -1,3 +1,5 @@
+import { backendCatalog } from "@antumbra/domain-backends/rows/backend-catalog.ts";
+import { backendModel } from "@antumbra/domain-backends/rows/backend-model.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceAssignmentWork } from "@antumbra/domain-pieces/rows/piece-assignment-work.ts";
@@ -15,6 +17,7 @@ import { voyageCaptainWork } from "@antumbra/domain-voyages/rows/voyage-captain-
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { admit } from "#commands/admit.ts";
 import { cancel } from "#commands/cancel.ts";
+import { delay } from "#commands/delay.ts";
 import { hail } from "#commands/hail.ts";
 import { hold } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
@@ -27,6 +30,7 @@ import { workNow } from "#commands/work-now.ts";
 import { agentRetired } from "#facts/agent-retired.ts";
 import { birthAdmitted } from "#facts/birth-admitted.ts";
 import { birthCancelled } from "#facts/birth-cancelled.ts";
+import { birthDelayed } from "#facts/birth-delayed.ts";
 import { birthHeld } from "#facts/birth-held.ts";
 import { birthRequested } from "#facts/birth-requested.ts";
 import { birthRetried } from "#facts/birth-retried.ts";
@@ -35,6 +39,7 @@ import { smoothingRequested } from "#facts/smoothing-requested.ts";
 import { agentRetiredMaterializer } from "#materializers/agent-retired.ts";
 import { birthAdmittedMaterializer } from "#materializers/birth-admitted.ts";
 import { birthCancelledMaterializer } from "#materializers/birth-cancelled.ts";
+import { birthDelayedMaterializer } from "#materializers/birth-delayed.ts";
 import { birthHeldMaterializer } from "#materializers/birth-held.ts";
 import { birthRequestedMaterializer } from "#materializers/birth-requested.ts";
 import { birthRetriedMaterializer } from "#materializers/birth-retried.ts";
@@ -96,9 +101,11 @@ export const agents = feature("agents", {
 		capacity,
 		voyage,
 		roleSetting,
+		backendModel,
+		backendCatalog,
 	],
-	facts: [crewRetired, agentRetired, smoothingRequested, birthRequested, birthAdmitted, birthHeld, birthCancelled, birthRetried],
-	commands: [retireCrew, retire, spawn, hail, workNow, request, admit, hold, cancel, retry, smooth],
+	facts: [crewRetired, agentRetired, smoothingRequested, birthRequested, birthAdmitted, birthHeld, birthDelayed, birthCancelled, birthRetried],
+	commands: [retireCrew, retire, spawn, hail, workNow, request, admit, hold, delay, cancel, retry, smooth],
 	materializers: [
 		crewRetiredMaterializer,
 		agentRetiredMaterializer,
@@ -106,6 +113,7 @@ export const agents = feature("agents", {
 		birthRequestedMaterializer,
 		birthAdmittedMaterializer,
 		birthHeldMaterializer,
+		birthDelayedMaterializer,
 		birthCancelledMaterializer,
 		birthRetriedMaterializer,
 	],

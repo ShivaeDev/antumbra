@@ -5,14 +5,18 @@ import { digest } from "@antumbra/domain-boards/queries/digest.ts";
 import { entries } from "@antumbra/domain-boards/queries/entries.ts";
 import { smoothingSessionFor } from "@antumbra/domain-boards/queries/smoothing-session-for.ts";
 import { byId as pieceById } from "@antumbra/domain-pieces/queries/by-id.ts";
+import { berths } from "@antumbra/domain-reclamation/queries/berths.ts";
+import { current } from "@antumbra/domain-reclamation/queries/moorage.ts";
+import { all as repos } from "@antumbra/domain-repos/queries/all.ts";
 import { binding } from "@antumbra/domain-rulings/queries/binding.ts";
 import { byId as voyageById } from "@antumbra/domain-voyages/queries/by-id.ts";
+import type { Berthing } from "@antumbra/platform-prompts/charter-berths.ts";
 import { captainCharter } from "@antumbra/platform-prompts/charter-captain.ts";
 import { crewCharter } from "@antumbra/platform-prompts/charter-crew.ts";
 import { flagshipCharter } from "@antumbra/platform-prompts/charter-flagship.ts";
 import { pieceSmootherWords, smootherWords } from "@antumbra/platform-prompts/smoother.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
-import { Effect, Layer } from "effect";
+import { Effect, Layer, Option } from "effect";
 import { pieceLines } from "#agents/pieces.ts";
 import { rulingLine } from "#agents/rulings.ts";
 import { material } from "#smoothing/material.ts";
@@ -40,6 +44,21 @@ const smoothing = Effect.fn("Agents.smootherCharter")(function* (held: Birth) {
 	return { text: yield* material({ ...bound, entries: covered }), constrainedPrompt: bound.level === "day" ? smootherWords : pieceSmootherWords };
 });
 
+const berthing = Effect.fn("Agents.berthing")(function* (agentId: string): Effect.fn.Return<Berthing, never, Live> {
+	const live = yield* Live;
+	const moorage = yield* live.read(current, { agentId });
+	if (Option.isNone(moorage)) return { berths: [], moorageRoot: null };
+	const moored = yield* live.read(berths, { agentId });
+	const registered = yield* live.read(repos, {});
+	const lines = [];
+	for (const registration of registered) {
+		const berth = moored.find((row) => row.source === registration.source && row.status !== "reclaimed" && row.status !== "stranded");
+		if (berth === undefined) continue;
+		lines.push({ branch: berth.branch, folder: berth.path, repo: registration.name });
+	}
+	return { berths: lines, moorageRoot: moorage.value.root };
+});
+
 const chartered = Effect.fn("Agents.charter")(function* (held: Birth) {
 	const live = yield* Live;
 	const voyage = held.voyageId === null ? null : yield* live.read(voyageById, { id: held.voyageId });
@@ -52,8 +71,10 @@ const chartered = Effect.fn("Agents.charter")(function* (held: Birth) {
 	const context = voyage?.context ?? "";
 	const northStar = voyage?.northStar ?? "";
 	const role = bornAs(held, voyage);
+	const berthed = yield* berthing(held.agentId);
 	if (role === "crew")
 		return crewCharter({
+			...berthed,
 			context,
 			northStar,
 			voyageLog,
@@ -63,7 +84,7 @@ const chartered = Effect.fn("Agents.charter")(function* (held: Birth) {
 			pieceTitle: piece?.title ?? held.role,
 			pieceLog: piece === null ? [] : (yield* live.read(digest, { board: pieceBoard(piece.id) })).map((entry) => entry.body),
 		});
-	const input = { context, northStar, voyageLog, rulings, pieceLines: voyage === null ? [] : yield* pieceLines(voyage.id) };
+	const input = { ...berthed, context, northStar, voyageLog, rulings, pieceLines: voyage === null ? [] : yield* pieceLines(voyage.id) };
 	return role === "flagship" ? flagshipCharter(input) : captainCharter(input);
 });
 

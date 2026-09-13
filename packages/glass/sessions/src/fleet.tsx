@@ -23,7 +23,7 @@ interface Props {
 
 const Band = ({ actions }: { readonly actions: ReactNode }) => (
 	<header className={BAND}>
-		<h1 className="min-w-0 truncate text-sm font-medium">Fleet</h1>
+		<h1 className="min-w-0 truncate text-lg font-semibold">Fleet</h1>
 		<div className="flex shrink-0 items-center gap-2">{actions}</div>
 	</header>
 );

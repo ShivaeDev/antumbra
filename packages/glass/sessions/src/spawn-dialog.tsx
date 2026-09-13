@@ -13,6 +13,7 @@ const BACKEND_DEFAULT = "backend default";
 const NOTHING = {};
 
 const placeholdersOf = (resolved: Resolution): Readonly<Record<string, string>> => ({
+	backend: `${resolved.backend.value} · default`,
 	effort: resolved.effort.value ?? BACKEND_DEFAULT,
 	model: resolved.model.value ?? BACKEND_DEFAULT,
 	role: "navigator",

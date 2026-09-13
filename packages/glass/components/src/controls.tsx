@@ -9,11 +9,22 @@ import type { Generated } from "#generated.ts";
 import { Digits, Flag, Lines, type Shown, Words } from "#inputs.tsx";
 import { Free, Listed, Several } from "#offered.tsx";
 
+export interface Kit {
+	readonly Digits: (props: { readonly shown: Shown }) => ReactNode;
+	readonly Flag: (props: { readonly shown: Shown }) => ReactNode;
+	readonly Lines: (props: { readonly shown: Shown }) => ReactNode;
+	readonly Listed: (props: { readonly empty: boolean; readonly offers: readonly Offer[]; readonly shown: Shown }) => ReactNode;
+	readonly Words: (props: { readonly shown: Shown }) => ReactNode;
+}
+
+export const ROW_KIT: Kit = { Digits, Flag, Lines, Listed, Words };
+
 const literalOffers = (literals: readonly string[]): readonly Offer[] => literals.map((literal) => ({ label: literal, value: literal }));
 
 const Chosen = (props: {
 	readonly choice: Choice;
 	readonly empty: boolean;
+	readonly kit: Kit;
 	readonly many: boolean;
 	readonly shown: Shown;
 	readonly values: Held;
@@ -28,28 +39,28 @@ const Chosen = (props: {
 	return props.choice.free ? (
 		<Free list={list} offers={offers} shown={props.shown} />
 	) : (
-		<Listed empty={props.empty} offers={offers} shown={props.shown} />
+		<props.kit.Listed empty={props.empty} offers={offers} shown={props.shown} />
 	);
 };
 
-const drawnAs = (editable: Editable, shown: Shown, values: Held): ReactNode => {
+export const drawnAs = (editable: Editable, shown: Shown, values: Held, kit: Kit): ReactNode => {
 	const shape = editable.editing;
 	if (shape.choice !== undefined) {
-		return <Chosen choice={shape.choice} empty={shape.optional} many={shape.many} shown={shown} values={values} />;
+		return <Chosen choice={shape.choice} empty={shape.optional} kit={kit} many={shape.many} shown={shown} values={values} />;
 	}
 	if (shape.literals !== undefined) {
-		return <Listed empty={shape.optional} offers={literalOffers(shape.literals)} shown={shown} />;
+		return <kit.Listed empty={shape.optional} offers={literalOffers(shape.literals)} shown={shown} />;
 	}
 	if (shape.flag) {
-		return <Flag shown={shown} />;
+		return <kit.Flag shown={shown} />;
 	}
 	if (shape.number) {
-		return <Digits shown={shown} />;
+		return <kit.Digits shown={shown} />;
 	}
 	if (shape.multiline) {
-		return <Lines shown={shown} />;
+		return <kit.Lines shown={shown} />;
 	}
-	return <Words shown={shown} />;
+	return <kit.Words shown={shown} />;
 };
 
 export const Control = (props: {
@@ -62,13 +73,16 @@ export const Control = (props: {
 	readonly titles: boolean;
 	readonly values: Held;
 }) => {
+	const named = useId();
 	const said = useId();
 	const field = useField(props.form, props.editable.name);
 	const title = titleOf(props.editable);
 	const shown: Shown = {
 		described: field.error === undefined ? undefined : said,
+		focus: false,
 		invalid: field.error !== undefined,
 		name: `${props.label} ${title}`.trim(),
+		named,
 		onBlur: field.onBlur,
 		onChange: (value) => props.change(props.editable.name, value),
 		placeholder: props.placeholder ?? "",
@@ -82,7 +96,7 @@ export const Control = (props: {
 					{title}
 				</span>
 			) : null}
-			{drawnAs(props.editable, shown, props.values)}
+			{drawnAs(props.editable, shown, props.values, ROW_KIT)}
 			{field.error === undefined ? (
 				caption
 			) : (

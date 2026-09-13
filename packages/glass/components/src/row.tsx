@@ -4,11 +4,9 @@ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId } from "react";
 import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";
-import { type Editable, emptyOf, fedByOf, type Held } from "#fields.ts";
-import { type Sending, useGenerated } from "#generated.ts";
+import type { Editable, Held } from "#fields.ts";
+import { changing, type Sending, useGenerated } from "#generated.ts";
 import { messageOf } from "#refusal.ts";
-
-const NOTHING: readonly Editable[] = [];
 
 const SENDING_WORDS = "Saving…";
 
@@ -43,15 +41,7 @@ export const Row = (props: {
 	const values = useAtomRef(form.values);
 	const dirty = useDirty(form);
 	const submit = useSubmit(form);
-	const fed = fedByOf(props.editables);
-	const change = (name: string, value: unknown): void => {
-		form.change(name, value);
-		for (const editable of fed.get(name) ?? NOTHING) {
-			if (editable.name !== name) {
-				change(editable.name, emptyOf(editable.editing));
-			}
-		}
-	};
+	const change = changing(form, props.editables);
 	const settled = AsyncResult.isFailure(submit.result) && !submit.result.waiting ? messageOf(submit.result.cause) : null;
 	const offered = props.creating || dirty;
 	const words = props.creating || !submit.submitting ? props.submit : SENDING_WORDS;

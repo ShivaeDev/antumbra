@@ -2,74 +2,43 @@ import { useField, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId } from "react";
-import { type Editable, titleOf } from "#fields.ts";
-import type { Generated } from "#generated.ts";
-import { worded } from "#inputs.tsx";
+import { drawnAs } from "#controls.tsx";
+import { DIALOG_KIT } from "#dialog-inputs.tsx";
+import { type Editable, type Held, titleOf } from "#fields.ts";
+import { changing, type Generated } from "#generated.ts";
+import type { Shown } from "#inputs.tsx";
 import { messageOf } from "#refusal.ts";
 import { Button } from "#shadcn/button.tsx";
 import { DialogClose, DialogFooter } from "#shadcn/dialog.tsx";
-import { Input } from "#shadcn/input.tsx";
 import { Label } from "#shadcn/label.tsx";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#shadcn/select.tsx";
 
-interface Shown {
-	readonly described: string | undefined;
+const Field = (props: {
+	readonly change: (name: string, value: unknown) => void;
+	readonly editable: Editable;
 	readonly first: boolean;
-	readonly invalid: boolean;
-	readonly named: string;
-	readonly onBlur: () => void;
-	readonly onChange: (value: string) => void;
+	readonly form: Generated;
 	readonly placeholder: string;
-	readonly value: string;
-}
-
-const Words = ({ shown }: { readonly shown: Shown }) => (
-	<Input
-		aria-describedby={shown.described}
-		aria-invalid={shown.invalid}
-		autoFocus={shown.first}
-		id={shown.named}
-		onBlur={shown.onBlur}
-		onChange={(event) => shown.onChange(event.target.value)}
-		placeholder={shown.placeholder}
-		value={shown.value}
-	/>
-);
-
-const Listed = ({ literals, shown }: { readonly literals: readonly string[]; readonly shown: Shown }) => (
-	<Select onValueChange={shown.onChange} value={shown.value}>
-		<SelectTrigger aria-describedby={shown.described} aria-invalid={shown.invalid} className="w-full" id={shown.named} size="sm">
-			<SelectValue placeholder={shown.placeholder} />
-		</SelectTrigger>
-		<SelectContent>
-			{literals.map((literal) => (
-				<SelectItem key={literal} value={literal}>
-					{literal}
-				</SelectItem>
-			))}
-		</SelectContent>
-	</Select>
-);
-
-const Field = (props: { readonly editable: Editable; readonly first: boolean; readonly form: Generated; readonly placeholder: string }) => {
+	readonly values: Held;
+}) => {
 	const named = useId();
 	const said = useId();
 	const field = useField(props.form, props.editable.name);
-	const literals = props.editable.editing.literals;
+	const title = titleOf(props.editable);
 	const shown: Shown = {
 		described: field.error === undefined ? undefined : said,
-		first: props.first,
+		focus: props.first,
 		invalid: field.error !== undefined,
+		name: title,
 		named,
 		onBlur: field.onBlur,
-		onChange: field.onChange,
+		onChange: (value) => props.change(props.editable.name, value),
 		placeholder: props.placeholder,
-		value: worded(field.value),
+		value: field.value,
 	};
 	return (
 		<div className="grid gap-1.5">
-			<Label htmlFor={named}>{titleOf(props.editable)}</Label>
-			{literals === undefined ? <Words shown={shown} /> : <Listed literals={literals} shown={shown} />}
+			<Label htmlFor={named}>{title}</Label>
+			{drawnAs(props.editable, shown, props.values, DIALOG_KIT)}
 			{field.error === undefined ? null : (
 				<p className="text-xs text-destructive" id={said}>
 					{field.error}
@@ -91,6 +60,7 @@ export const DialogForm = (props: {
 	const form = props.form;
 	const values = useAtomRef(form.values);
 	const submit = useSubmit(form);
+	const change = changing(form, props.editables);
 	const complete = props.editables.every((editable) => editable.editing.optional || given(values[editable.name]));
 	const refused = AsyncResult.isFailure(submit.result) && !submit.result.waiting ? messageOf(submit.result.cause) : null;
 	return (
@@ -102,7 +72,15 @@ export const DialogForm = (props: {
 			}}
 		>
 			{props.editables.map((editable, place) => (
-				<Field editable={editable} first={place === 0} form={form} key={editable.name} placeholder={props.placeholders[editable.name] ?? ""} />
+				<Field
+					change={change}
+					editable={editable}
+					first={place === 0}
+					form={form}
+					key={editable.name}
+					placeholder={props.placeholders[editable.name] ?? ""}
+					values={values}
+				/>
 			))}
 			{refused === null ? null : (
 				<p className="text-xs text-destructive" role="alert">

@@ -29,7 +29,7 @@ it.glass("adds and forgets repositories through the live registry", function* ({
 	const repeated = yield* eventually(api.repos.all({}), (rows) => rows[0]?.defaultRef === "main");
 	expect(repeated[0]?.id).toBe(first[0]?.id);
 	yield* press(document.body, "Forget");
-	yield* until(() => document.body.textContent?.includes("No repositories yet.") === true, "the forgotten registration to leave the live registry");
+	yield* until(() => document.body.querySelector('[role="status"]') !== null, "the forgotten registration to leave the live registry");
 	expect(yield* answered(api.repos.all({}))).toEqual([]);
 });
 

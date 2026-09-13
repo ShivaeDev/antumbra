@@ -18,7 +18,9 @@ const Registered = (props: { readonly api: ReposApi; readonly registered: typeof
 
 export const ReposList = (props: { readonly api: ReposApi; readonly repos: readonly (typeof repo.Row.Type)[] }) =>
 	props.repos.length === 0 ? (
-		<p className="text-xs text-muted-foreground">No repositories yet.</p>
+		<p className="text-xs text-muted-foreground" role="status">
+			No repositories yet.
+		</p>
 	) : (
 		<div className="flex max-h-64 flex-col divide-y overflow-y-auto">
 			{props.repos.map((registered) => (

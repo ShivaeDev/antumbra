@@ -14,7 +14,7 @@ type Agent = typeof agentReading.Row.Type;
 const STARTING = "Preparing to work";
 
 const OPENS =
-	"-mx-1 flex min-w-0 flex-col gap-1 rounded-md px-1 py-0.5 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-60";
+	"-m-1 flex min-w-0 flex-col gap-1 rounded-md p-1 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-60";
 
 const presenceWord = (agent: Agent): string => (agent.presence === null ? STARTING : presenceWords[agent.presence]);
 

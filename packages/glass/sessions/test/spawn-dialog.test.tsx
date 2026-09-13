@@ -11,6 +11,7 @@ it.glass("spawns an agent from the fields the command declares", function* ({ ap
 	yield* press(container, "Spawn agent");
 	yield* renderedControl(document.body, "Role");
 	expect(document.body.textContent).not.toContain("Charter");
+	expect(document.activeElement).toBe(labelled(document.body, "Role"));
 	yield* fill(document.body, "Role", "navigator");
 	yield* pick(document.body, "Backend", "codex");
 	expect(labelled(document.body, "Backend").textContent).toBe("codex");
@@ -27,6 +28,9 @@ it.glass("opens with the role empty and the crew's backend already chosen", func
 	yield* renderedControl(document.body, "Backend");
 	expect(labelled(document.body, "Backend").textContent).toBe("codex");
 	expect(labelled<HTMLInputElement>(document.body, "Role").value).toBe("");
+
+	yield* pick(document.body, "Backend", "codex \u00b7 default");
+	yield* until(() => labelled(document.body, "Backend").textContent === "codex \u00b7 default", "the backend to fall back to the crew's default");
 });
 
 it.glass("closes on Escape and on its X while the form is still empty", function* ({ api, render }) {

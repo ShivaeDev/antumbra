@@ -4,6 +4,7 @@ export const WINDOW_PLACE_CHANNEL = "antumbra:window-place";
 export const REMEMBER_PLACE_CHANNEL = "antumbra:remember-place";
 export const OPEN_WINDOW_CHANNEL = "antumbra:open-window";
 export const RESTART_CHANNEL = "antumbra:restart";
+export const RESTART_SERVER_CHANNEL = "antumbra:restart-server";
 export const APP_INFO_CHANNEL = "antumbra:app-info";
 export const READ_DRAFT_CHANNEL = "antumbra:read-draft";
 export const WRITE_DRAFT_CHANNEL = "antumbra:write-draft";

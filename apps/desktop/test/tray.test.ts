@@ -1,5 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, ManagedRuntime, Stream } from "effect";
+import { TestClock } from "effect/testing";
 import { runFleetTray, type TrayHandle, trayTitle, trayTooltip } from "#adapters/tray.ts";
 
 interface RecordedTray {
@@ -59,6 +60,25 @@ it.effect("publishes the working count of every snapshot the feed emits", () =>
 
 		expect(tray.titles()).toEqual(["1", ""]);
 		expect(tray.tooltips()).toEqual(["Antumbra — 1 agent working", "Antumbra — no agent is working"]);
+		expect(tray.destroys()).toBe(1);
+	}),
+);
+
+it.effect("keeps the tray and reads the count again when the feed loses the server", () =>
+	Effect.gen(function* () {
+		const tray = recordedTray();
+		let attempts = 0;
+		const feed = Stream.suspend(() => {
+			attempts += 1;
+			return attempts === 1 ? Stream.make(1).pipe(Stream.concat(Stream.fail(new Error("the server went away")))) : Stream.make(0);
+		});
+
+		const running = yield* Effect.forkChild(runFleetTray({ create: () => tray.handle }, feed, Effect.void));
+		yield* TestClock.adjust("1 second");
+		yield* Fiber.join(running);
+
+		expect(attempts).toBe(2);
+		expect(tray.titles()).toEqual(["1", ""]);
 		expect(tray.destroys()).toBe(1);
 	}),
 );

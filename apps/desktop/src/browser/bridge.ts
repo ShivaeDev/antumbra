@@ -79,6 +79,7 @@ export const browserBridge = (location: Address): ShellBridge | undefined => {
 			return Promise.resolve();
 		},
 		restart: () => Promise.resolve(),
+		restartServer: () => Promise.resolve(),
 		appInfo: () => Promise.resolve({ chromeVersion: chromeOf(navigator.userAgent), electronVersion: "", nodeVersion: "", productVersion: version }),
 		openExternal: (url) => {
 			window.open(url);

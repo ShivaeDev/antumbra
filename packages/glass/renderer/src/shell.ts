@@ -8,5 +8,6 @@ export interface Shell {
 	readonly remember: (place: WindowPlace) => Effect.Effect<void, unknown>;
 	readonly open: (place: WindowPlace) => Effect.Effect<void, unknown>;
 	readonly restart: Effect.Effect<void, unknown>;
+	readonly restartServer: Effect.Effect<void, unknown>;
 	readonly openExternal: (url: string) => void;
 }

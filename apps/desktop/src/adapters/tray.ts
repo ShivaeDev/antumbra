@@ -1,10 +1,11 @@
 import { Buffer } from "node:buffer";
 import process from "node:process";
-import { Effect, Stream } from "effect";
+import { Effect, Schedule, Stream } from "effect";
 import { Menu, nativeImage, Tray } from "electron";
 
 const ICON_PIXELS = 32;
 const ICON_SCALE = 2;
+const AGAIN_AFTER = Schedule.spaced("1 second");
 
 export interface TrayHandle {
 	readonly destroy: () => void;
@@ -42,7 +43,7 @@ export const runFleetTray = <E>(host: TrayHost, feed: Stream.Stream<number, E>, 
 				);
 			}),
 		);
-		yield* Stream.runForEach(feed, (count) => showCount(tray, count));
+		yield* Stream.runForEach(Stream.retry(feed, AGAIN_AFTER), (count) => showCount(tray, count));
 	}).pipe(Effect.scoped);
 
 const ringBitmap = (size: number): Buffer => {
@@ -60,7 +61,7 @@ const ringBitmap = (size: number): Buffer => {
 	return pixels;
 };
 
-const electronTrayHost = (restart: () => void): TrayHost => ({
+const electronTrayHost = (restart: () => void, restartServer: () => void): TrayHost => ({
 	create: () => {
 		const icon = nativeImage.createFromBitmap(ringBitmap(ICON_PIXELS), {
 			height: ICON_PIXELS,
@@ -69,7 +70,11 @@ const electronTrayHost = (restart: () => void): TrayHost => ({
 		});
 		icon.setTemplateImage(true);
 		const tray = new Tray(icon);
-		const menu = Menu.buildFromTemplate([{ click: restart, label: "Restart Antumbra" }]);
+		const menu = Menu.buildFromTemplate([
+			{ click: restartServer, label: "Restart the server" },
+			{ type: "separator" },
+			{ click: restart, label: "Restart Antumbra" },
+		]);
 		tray.on("right-click", () => tray.popUpContextMenu(menu));
 		return {
 			destroy: () => tray.destroy(),
@@ -82,14 +87,20 @@ const electronTrayHost = (restart: () => void): TrayHost => ({
 	},
 });
 
-export const fleetTray = <E>(feed: Stream.Stream<number, E>, activate: Effect.Effect<void, unknown>, restartEffect: Effect.Effect<void, unknown>) =>
+const firing = (act: Effect.Effect<void, unknown>, failure: string) => () => {
+	act.pipe(
+		Effect.catchCause((cause) => Effect.logError(failure, cause)),
+		Effect.runFork,
+	);
+};
+
+export const fleetTray = <E>(
+	feed: Stream.Stream<number, E>,
+	activate: Effect.Effect<void, unknown>,
+	acts: { readonly restart: Effect.Effect<void, unknown>; readonly restartServer: Effect.Effect<void, unknown> },
+) =>
 	Effect.gen(function* () {
 		if (process.platform !== "darwin") return;
-		const restart = () => {
-			restartEffect.pipe(
-				Effect.catchCause((cause) => Effect.logError("tray restart failed", cause)),
-				Effect.runFork,
-			);
-		};
-		yield* runFleetTray(electronTrayHost(restart), feed, activate);
+		const host = electronTrayHost(firing(acts.restart, "tray restart failed"), firing(acts.restartServer, "tray server restart failed"));
+		yield* runFleetTray(host, feed, activate);
 	});

@@ -10,6 +10,7 @@ export const shellOf = (bridge: ShellBridge): Shell => ({
 	remember: (place) => Effect.promise(() => bridge.rememberPlace(place)),
 	open: (place) => Effect.promise(() => bridge.openWindow(place)),
 	restart: Effect.promise(() => bridge.restart()),
+	restartServer: Effect.promise(() => bridge.restartServer()),
 	openExternal: (url) => bridge.openExternal(url),
 });
 

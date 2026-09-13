@@ -21,6 +21,7 @@ export interface ShellBridge {
 	readonly rememberPlace: (place: WindowPlace) => Promise<void>;
 	readonly openWindow: (place: WindowPlace) => Promise<void>;
 	readonly restart: () => Promise<void>;
+	readonly restartServer: () => Promise<void>;
 	readonly appInfo: () => Promise<AppInfo>;
 	readonly openExternal: (url: string) => void;
 	readonly readDraft: (ref: DraftRef) => Promise<DraftSnapshot>;

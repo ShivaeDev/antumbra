@@ -5,7 +5,13 @@ import { Cause, Effect } from "effect";
 import { useId, useState } from "react";
 import type { Shell } from "#shell.ts";
 
-const HELP = "Stops running agents and wakes them again once Antumbra is back.";
+const SERVER = "Restart the server";
+
+const SERVER_HELP = "Agents keep running; their tool calls wait until the server is back.";
+
+const APP = "Restart Antumbra";
+
+const APP_HELP = "Stops running agents and wakes them again once Antumbra is back.";
 
 const RestartActions = ({
 	confirming,
@@ -29,7 +35,7 @@ const RestartActions = ({
 	}
 	if (!confirming) {
 		return (
-			<Button onClick={onAsk} size="sm" variant="outline">
+			<Button aria-label={APP} onClick={onAsk} size="sm" variant="outline">
 				Restart
 			</Button>
 		);
@@ -46,10 +52,20 @@ const RestartActions = ({
 	);
 };
 
-export const RestartControl = ({ onError, shell }: { readonly onError: (message: string) => void; readonly shell: Pick<Shell, "restart"> }) => {
+export const RestartControl = ({
+	onError,
+	shell,
+}: {
+	readonly onError: (message: string) => void;
+	readonly shell: Pick<Shell, "restart" | "restartServer">;
+}) => {
+	const server = useId();
 	const named = useId();
 	const [confirming, setConfirming] = useState(false);
 	const [sent, setSent] = useState(false);
+	const restartServer = () => {
+		Effect.runFork(shell.restartServer.pipe(Effect.catchCause((cause) => Effect.sync(() => onError(Cause.pretty(cause))))));
+	};
 	const send = () => {
 		setSent(true);
 		Effect.runFork(
@@ -68,13 +84,23 @@ export const RestartControl = ({ onError, shell }: { readonly onError: (message:
 			<CardHeader>
 				<CardTitle className="text-sm font-medium">Restart</CardTitle>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="divide-y">
+				<SettingsRow
+					control={
+						<Button aria-label={SERVER} onClick={restartServer} size="sm" variant="outline">
+							Restart
+						</Button>
+					}
+					help={SERVER_HELP}
+					label={SERVER}
+					labelId={server}
+				/>
 				<SettingsRow
 					control={
 						<RestartActions confirming={confirming} onAsk={() => setConfirming(true)} onKeep={() => setConfirming(false)} onSend={send} sent={sent} />
 					}
-					help={HELP}
-					label="Restart Antumbra"
+					help={APP_HELP}
+					label={APP}
 					labelId={named}
 				/>
 			</CardContent>

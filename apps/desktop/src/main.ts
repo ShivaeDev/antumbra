@@ -77,13 +77,13 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 			yield* restoreWindows(shell, store);
 			yield* Effect.sync(() => shell.registry.onChanged(() => runtime.runFork(writer.note)));
 			const api = yield* ShellLifecycle;
+			const server = yield* ServerProcess;
 			yield* Effect.sync(() =>
 				runtime.runFork(
-					fleetTray(
-						api["agents.workingCount"]({}),
-						focusOrOpenConsole(shell.registry, openConsole(shell)),
-						restart.pipe(Effect.provideService(ShellLifecycle, api)),
-					),
+					fleetTray(api["agents.workingCount"]({}), focusOrOpenConsole(shell.registry, openConsole(shell)), {
+						restart: restart.pipe(Effect.provideService(ShellLifecycle, api)),
+						restartServer: server.restart,
+					}),
 				),
 			);
 			yield* Effect.logInfo("shell: console open");

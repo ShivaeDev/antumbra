@@ -1,4 +1,4 @@
-import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -33,11 +33,11 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 				sessionId: "cost-session",
 				event: {
 					type: "usage",
+					byModel: [{ inputTokens: 10, outputTokens: 20, costUsd: 0.1, model: "model-a" }],
 					inputTokens: 10,
 					outputTokens: 20,
 					costUsd: 0.1,
 					cumulativeCostUsd: 50,
-					model: "model-a",
 					raw: { source: "codex", kind: "usage", payload: "{}" },
 				},
 			},
@@ -52,11 +52,11 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 				sessionId: "cost-session",
 				event: {
 					type: "usage",
+					byModel: [{ inputTokens: 30, outputTokens: 40, cacheReadTokens: 5, model: "model-b" }],
 					inputTokens: 30,
 					outputTokens: 40,
 					cacheReadTokens: 5,
 					origin: { node: "child", spawnedBy: "spawn" },
-					model: "model-b",
 					raw: { source: "codex", kind: "usage", payload: "{}" },
 				},
 			},
@@ -72,7 +72,7 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 	expect(costs.models.find((model) => model.model === "model-b")?.total).toMatchObject({ costUsd: null, costPartial: false });
 });
 
-it.app("spend by model names the model the session was started on", function* (app) {
+it.app("a session that ran two models is two rows of spend, and its own model is untouched", function* (app) {
 	const requested = Request.make("spend");
 	const { agentId, sessionId } = identity(requested);
 	const runner = yield* connectRunner({ runnerId: "spend-runner", logId: "spend-log", backends: ["codex"], imageInputBackends: [] });
@@ -111,14 +111,53 @@ it.app("spend by model names the model the session was started on", function* (a
 				sessionId,
 				event: {
 					type: "usage",
+					byModel: [{ inputTokens: 10, outputTokens: 20, model: "gpt-6-astra" }],
 					inputTokens: 10,
 					outputTokens: 20,
-					model: "gpt-6-astra",
 					raw: { source: "codex", kind: "thread/tokenUsage/updated", payload: "{}" },
 				},
 			},
 		},
 	]);
-	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
-	expect(costs.models).toMatchObject([{ model: "gpt-6-astra", total: { inputTokens: 10, outputTokens: 20, turns: 1 } }]);
+	const first = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
+	expect(first.models).toMatchObject([{ model: "gpt-6-astra", total: { inputTokens: 10, outputTokens: 20, turns: 1 } }]);
+	yield* runner.append([
+		{
+			logId: "spend-log",
+			cursor: 2,
+			at: 102,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: {
+					type: "model.rerouted",
+					model: "gpt-6-astra-safe",
+					reason: "highRiskCyberActivity",
+					raw: { source: "codex", kind: "model/rerouted", payload: "{}" },
+				},
+			},
+		},
+		{
+			logId: "spend-log",
+			cursor: 3,
+			at: 103,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: {
+					type: "usage",
+					byModel: [{ inputTokens: 4, outputTokens: 6, model: "gpt-6-astra-safe" }],
+					inputTokens: 4,
+					outputTokens: 6,
+					raw: { source: "codex", kind: "thread/tokenUsage/updated", payload: "{}" },
+				},
+			},
+		},
+	]);
+	const costs = yield* eventually(app.api.costs.reading({ today: "1970-01-01" }), (reading) => reading.models.length === 2);
+	expect(costs.models.map((spent) => spent.model).toSorted()).toEqual(["gpt-6-astra", "gpt-6-astra-safe"]);
+	expect(costs.total).toMatchObject({ inputTokens: 14, outputTokens: 26, turns: 2 });
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ model: "gpt-6-astra" });
 });

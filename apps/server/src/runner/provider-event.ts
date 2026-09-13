@@ -10,9 +10,9 @@ export const providerEventObservation = (entry: LogEntry): FactPayload<typeof pr
 	const usage =
 		provider.type === "usage"
 			? {
+					byModel: provider.byModel,
 					inputTokens: provider.inputTokens,
 					outputTokens: provider.outputTokens,
-					...(provider.model === undefined ? {} : { model: provider.model }),
 					...(provider.costUsd === undefined ? {} : { costUsd: provider.costUsd }),
 					...(provider.cumulativeCostUsd === undefined ? {} : { cumulativeCostUsd: provider.cumulativeCostUsd }),
 					...(provider.cacheReadTokens === undefined ? {} : { cacheReadTokens: provider.cacheReadTokens }),

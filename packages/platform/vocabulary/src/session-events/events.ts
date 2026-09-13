@@ -4,7 +4,7 @@ import { RateLimitEvent } from "#session-events/rate-limit.ts";
 import { Raw, RawEvent } from "#session-events/raw.ts";
 import { SessionBackgroundEvent, SessionStateEvent } from "#session-events/state.ts";
 import { SubsessionEnded, SubsessionGap, SubsessionOpened } from "#session-events/subsessions.ts";
-import { UsageEvent } from "#session-events/usage.ts";
+import { ModelReroutedEvent, UsageEvent } from "#session-events/usage.ts";
 import { SessionInputId, SessionMessagePart } from "#session-input.ts";
 
 export const SessionOpened = Schema.Struct({
@@ -67,6 +67,7 @@ export const AgentEvent = Schema.Union([
 	ToolStarted,
 	ToolCompleted,
 	UsageEvent,
+	ModelReroutedEvent,
 	RateLimitEvent,
 	TurnCompleted,
 	SessionStateEvent,

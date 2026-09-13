@@ -8,6 +8,7 @@ const NIECE = "019ff400-2222-7373-a31e-e8a0db309022";
 const GUARDIAN = "019ff400-3333-7373-a31e-e8a0db309023";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
 const MODEL = "gpt-6-astra";
+const SAFE = "gpt-6-astra-safe";
 
 const tree = () => openThreadTree(ROOT, openThreadClaims(), MODEL);
 
@@ -202,5 +203,42 @@ describe("the tree reads what codex says about its own agents", () => {
 			type: "subsession.ended",
 		});
 		expect(ended?.type === "subsession.ended" && ended.raw.kind).toBe("thread/closed");
+	});
+});
+
+describe("a reroute moves what the thread is billed to, and nothing else", () => {
+	const rerouted = (threadId: string) => ({
+		method: "model/rerouted",
+		params: { fromModel: MODEL, reason: "highRiskCyberActivity", threadId, toModel: SAFE, turnId: TURN },
+	});
+
+	const tokens = (threadId: string) => ({
+		method: "thread/tokenUsage/updated",
+		params: {
+			threadId,
+			tokenUsage: {
+				last: { cachedInputTokens: 40, inputTokens: 100, outputTokens: 20 },
+				total: { cachedInputTokens: 80, inputTokens: 200, outputTokens: 40 },
+			},
+			turnId: TURN,
+		},
+	});
+
+	it("bills the rounds after it to the model the work went to", () => {
+		const reading = tree();
+		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: MODEL }], type: "usage" }]);
+		expect(reading.events(rerouted(ROOT))).toMatchObject([{ model: SAFE, reason: "highRiskCyberActivity", type: "model.rerouted" }]);
+		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: SAFE }], type: "usage" }]);
+	});
+
+	it("a node's reroute is its own, and a node that had none bills where its session does", () => {
+		const reading = tree();
+		reading.events(spawnedThread(CHILD, ROOT));
+		reading.events(spawnedThread(NIECE, ROOT));
+		expect(reading.events(tokens(CHILD))).toMatchObject([{ byModel: [{ model: MODEL }], origin: { node: CHILD } }]);
+		expect(reading.events(rerouted(CHILD))).toMatchObject([{ model: SAFE, origin: { node: CHILD }, type: "model.rerouted" }]);
+		expect(reading.events(tokens(CHILD))).toMatchObject([{ byModel: [{ model: SAFE }] }]);
+		expect(reading.events(tokens(NIECE))).toMatchObject([{ byModel: [{ model: MODEL }] }]);
+		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: MODEL }] }]);
 	});
 });

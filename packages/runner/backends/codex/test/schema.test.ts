@@ -106,6 +106,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"ThreadTokenUsageUpdatedNotification",
 			"ThreadStatusChangedNotification",
 			"ThreadStartedNotification",
+			"ModelReroutedNotification",
 			"ThreadClosedNotification",
 			"ItemGuardianApprovalReviewStartedNotification",
 			"ItemGuardianApprovalReviewCompletedNotification",
@@ -144,6 +145,7 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 			"thread/closed",
 			"thread/status/changed",
 			"thread/tokenUsage/updated",
+			"model/rerouted",
 			RATE_LIMITS_METHOD,
 			...MUTED_NOTIFICATIONS,
 		]) {

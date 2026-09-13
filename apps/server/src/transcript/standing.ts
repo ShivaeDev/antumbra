@@ -8,10 +8,18 @@ type OpenTool = SessionStanding["open"][number];
 
 interface Folding {
 	background: ReadonlyArray<BackgroundTask>;
+	readonly models: Map<string, number | null>;
 	readonly open: Map<string, OpenTool>;
 	state: SessionState | undefined;
 	usage: typeof UsageEvent.Type | undefined;
 }
+
+const countModels = (fold: Folding, event: typeof UsageEvent.Type): void => {
+	for (const spent of event.byModel) {
+		const already = fold.models.get(spent.model) ?? null;
+		fold.models.set(spent.model, spent.costUsd === undefined ? already : (already ?? 0) + spent.costUsd);
+	}
+};
 
 const belongsToNode = (event: AgentEvent, delegate: boolean): boolean => delegate || !("origin" in event) || event.origin === undefined;
 
@@ -25,6 +33,7 @@ const step = (fold: Folding, event: AgentEvent): void => {
 			return;
 		case "usage":
 			fold.usage = event;
+			countModels(fold, event);
 			return;
 		case "tool.started":
 			fold.open.set(event.toolId, { name: event.name });
@@ -39,11 +48,17 @@ const step = (fold: Folding, event: AgentEvent): void => {
 
 export const sessionStanding = (events: ReadonlyArray<SessionEvent>, node?: SessionTreeNode | undefined): SessionStanding => {
 	const delegate = node !== undefined && node.depth > 0;
-	const fold: Folding = { background: [], open: new Map(), state: undefined, usage: undefined };
+	const fold: Folding = { background: [], models: new Map(), open: new Map(), state: undefined, usage: undefined };
 	for (const row of events) {
 		if (belongsToNode(row.event, delegate)) {
 			step(fold, row.event);
 		}
 	}
-	return { background: fold.background, open: [...fold.open.values()], state: fold.state, usage: fold.usage };
+	return {
+		background: fold.background,
+		models: [...fold.models].map(([model, costUsd]) => ({ costUsd, model })),
+		open: [...fold.open.values()],
+		state: fold.state,
+		usage: fold.usage,
+	};
 };

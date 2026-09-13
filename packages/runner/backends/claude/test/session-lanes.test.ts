@@ -5,7 +5,6 @@ import { openSessionLanes } from "#session-lanes.ts";
 const NATIVE_ROOT = "c1f4b2a0-8d3e-4f61-9a2b-7c5d6e4f3a21";
 const CALL = "toolu_01WkF9pQ3rTvXn7mLbYcZd2E";
 const AGENT = "3f9c1d2e4a5b6c70";
-const MODEL = "claude-opus-5";
 
 const key = (subpath?: string): SessionKey => ({
 	projectKey: "-tmp-moorage",
@@ -40,7 +39,7 @@ const progress = (state: string, label: string): ProgressFrame => ({
 const agentKey = key(`subagents/workflows/wfr_7f3a2b1c/agent-${AGENT}`);
 
 it("a transcript the stream already carried is read only for what it drops", () => {
-	const lanes = openSessionLanes(MODEL);
+	const lanes = openSessionLanes();
 	const spoken = lanes.mirror({
 		entries: [line("assistant", [{ text: "thinking", type: "text" }])],
 		key: key(),
@@ -58,7 +57,7 @@ it("a transcript the stream already carried is read only for what it drops", () 
 });
 
 it("an agent that spoke before it was named is named afterwards", () => {
-	const lanes = openSessionLanes(MODEL);
+	const lanes = openSessionLanes();
 	const first = lanes.mirror({
 		entries: [line("assistant", [{ text: "reading", type: "text" }])],
 		key: agentKey,
@@ -82,7 +81,7 @@ it("an agent that spoke before it was named is named afterwards", () => {
 });
 
 it("a census that could not be taken is written down as such", () => {
-	const lanes = openSessionLanes(MODEL);
+	const lanes = openSessionLanes();
 	const events = lanes.adopted({ agents: [], failure: "socket closed" });
 	expect(events).toHaveLength(1);
 	const [gap] = events;

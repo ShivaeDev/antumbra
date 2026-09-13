@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
   merge_group:
 
@@ -67,14 +65,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/cache
         with:
-          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           path: ~/.cache/electron
           key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
-        with:
-          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm test:desktop
       - run: pnpm test:runner
       - run: pnpm test:app
@@ -124,7 +119,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/cache
         with:
-          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           path: |
             ~/Library/Caches/electron
             ~/Library/Caches/electron-builder
@@ -134,7 +128,6 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           filter: '@antumbra/desktop...'
-          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:

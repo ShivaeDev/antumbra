@@ -1,0 +1,48 @@
+name: Cache maintenance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - apps/desktop/electron-builder.yml
+      - .github/actions/**
+      - .github/workflows/cache.yml
+  workflow_dispatch:
+
+concurrency:
+  group: cache-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  warm:
+    name: warm (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            filter: ""
+            electron-paths: ~/.cache/electron
+          - os: macos-latest
+            filter: '@antumbra/desktop...'
+            electron-paths: |
+              ~/Library/Caches/electron
+              ~/Library/Caches/electron-builder
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/cache
+        with:
+          save: "true"
+          path: ${{ matrix.electron-paths }}
+          key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
+      - uses: ./.github/actions/setup
+        with:
+          filter: ${{ matrix.filter }}
+          save-cache: "true"
+      - run: pnpm --filter @antumbra/desktop exec install-electron

@@ -83,6 +83,12 @@ nothing to drop it, so it may rewrite a payload, rename a fact, or drop the fact
 follow whether or not a row shape changed, and takes the same backup a rebuild takes. A migration that fails rewrites nothing, records nothing, and
 stops startup.
 
+The journal's own tables — `journal`, `applied`, `shape`, `runner_cursor`, and `fact_migration` — change through numbered upgrade steps rather than a
+wipe. The journal package declares the steps in one ordered list, numbered from one, and startup applies every step above the database's
+`user_version`, after the tables are ensured and before fact migrations and the shape comparison, then stamps the number it reached. A step adds a
+column, creates an index, or recreates a table and copies the old one into it where SQLite cannot alter in place. A pending step takes the same backup
+a rebuild takes, and a step that fails changes nothing and stops startup.
+
 The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
 a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact
 instead of reading as ended. The server commits observed facts and the consumed cursor together, keyed by the log's identity, and a log that opens

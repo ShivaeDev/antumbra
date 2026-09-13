@@ -1,24 +1,34 @@
 import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { lifecycleClient } from "@antumbra/app-testing/lifecycle.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
+import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { hailWords } from "@antumbra/platform-prompts/hail.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
+import type { Live } from "@antumbra/server-journal/live.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
+import { type PrepareSmoother, smoothing } from "#smoothing/run.ts";
 import { chartered, crewed, opened, PIECE, RUNNER, VOYAGE } from "#test/switches/kit.ts";
-import { hailCaptain } from "#tools/voyages/hail.ts";
+import { writeSummaryTool } from "#tools/boards/summary.ts";
 
 const CREW = Request.make("crew");
-const CAPTAIN = Request.make("captain");
 const MAIL = Request.make("mail");
 const BAR = VoyageId.make("bar");
 const BAR_PIECE = PieceId.make("bar-sounding");
 const BAR_CREW = Request.make("bar-crew");
-const HAND = { agentId: "hand", sessionId: "hand-root", callId: "hail" };
+
+const prepare: PrepareSmoother<Commit | Live> = (attempt) => {
+	const context = { agentId: `smoother-${attempt.id}`, sessionId: `session-${attempt.id}`, callId: `call-${attempt.id}` };
+	return Effect.succeed({
+		agentId: context.agentId,
+		sessionId: context.sessionId,
+		start: writeSummaryTool.invoke(context, { text: "The approach changed with the tide" }).pipe(Effect.asVoid),
+		stop: Effect.void,
+	});
+};
 
 const resuming = `Resume assigned piece ${PIECE}`;
 
@@ -160,31 +170,6 @@ it.app("a restart does not wake a quieted voyage's roots", function* (app) {
 	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the quieted session's operations")).toEqual([]);
 });
 
-it.app("an agent's hail to a quieted voyage's captain lands as mail", function* (app) {
-	const { atWork } = yield* crewed(app);
-	yield* opened(app);
-	yield* app.api.agents.hail({ by: "admiral", requestId: CAPTAIN, voyageId: VOYAGE });
-	const captain = yield* atWork(CAPTAIN, 0);
-	yield* app.api.voyages.quiet({ id: VOYAGE });
-	const answer = yield* hailCaptain.invoke(HAND, { voyageId: VOYAGE });
-	expect(answer.ok).toBe(true);
-	expect(yield* answered(app.api.mail.mailbox({ agentId: captain.agentId }), "the captain's mailbox")).toMatchObject([{ body: hailWords }]);
-	yield* app.settle();
-	expect(yield* answered(app.api.sessions.operations({ sessionId: captain.sessionId }), "the captain's operations")).toEqual([]);
-});
-
-it.app("the admiral's hail wakes a quieted voyage's captain and leaves the voyage quiet", function* (app) {
-	const { atWork } = yield* crewed(app);
-	yield* opened(app);
-	yield* app.api.agents.hail({ by: "admiral", requestId: CAPTAIN, voyageId: VOYAGE });
-	const captain = yield* atWork(CAPTAIN, 0);
-	yield* app.api.voyages.quiet({ id: VOYAGE });
-	yield* app.api.agents.hail({ by: "admiral", requestId: Request.make("second"), voyageId: VOYAGE });
-	const woken = yield* eventually(app.api.sessions.operations({ sessionId: captain.sessionId }), (held) => held.length === 1, "the admiral's wake");
-	expect(woken).toMatchObject([{ kind: "wake", reason: "hail" }]);
-	expect(yield* answered(app.api.voyages.byId({ id: VOYAGE }), "the voyage to be read")).toMatchObject({ quietedAt: expect.any(String) });
-});
-
 it.app("the hold survives a rebuild from the journal", function* (app) {
 	yield* opened(app);
 	yield* app.api.voyages.quiet({ id: VOYAGE });
@@ -193,4 +178,50 @@ it.app("the hold survives a rebuild from the journal", function* (app) {
 	yield* app.api.voyages.resume({ id: VOYAGE });
 	yield* (yield* Commit).rebuild;
 	expect(yield* answered(app.api.voyages.byId({ id: VOYAGE }), "the voyage to be read")).toMatchObject({ quietedAt: null });
+});
+
+it.app("a hold the fleet and a quiet voyage share is listed under the switch that governs it", function* (app) {
+	const { atWork } = yield* crewed(app);
+	yield* opened(app);
+	yield* chartered(app);
+	yield* app.api.agents.workNow({ requestId: CREW, pieceId: PIECE });
+	yield* atWork(CREW, 0);
+	yield* app.api.settings.setFlag({ key: "resumePieces", on: false });
+	yield* app.api.pieces.launch({ id: PIECE });
+	yield* app.api.voyages.quiet({ id: VOYAGE });
+	const shared = yield* eventually(
+		app.api.holds.queues({}),
+		(view) => view.queues.some((queue) => queue.waiting.length === 1),
+		"the piece to wait on its switch",
+	);
+	expect(shared.queues).toMatchObject([{ setting: "resumePieces", held: true, waiting: [{ id: PIECE }] }]);
+	expect(shared.quieted).toMatchObject([{ id: VOYAGE, waiting: [] }]);
+
+	yield* app.api.settings.setFlag({ key: "resumePieces", on: true });
+	const moved = yield* eventually(
+		app.api.holds.queues({}),
+		(view) => view.quieted.some((held) => held.waiting.length === 1),
+		"the piece to move to the voyage that holds it",
+	);
+	expect(moved.queues).toEqual([]);
+	expect(moved.quieted).toMatchObject([{ id: VOYAGE, waiting: [{ id: PIECE }] }]);
+});
+
+it.app("a smoother Antumbra asks for waits until the voyage resumes", function* (app) {
+	yield* opened(app);
+	yield* app.api.boards.write({ board: voyageBoard(VOYAGE), body: "The tide turned", register: "rough", author: null });
+	yield* app.api.voyages.quiet({ id: VOYAGE });
+	yield* smoothing(prepare);
+	yield* app.api.boards.requestSmoothing({ voyageId: VOYAGE, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("pass") });
+	yield* app.settle();
+	expect(yield* answered(app.api.boards.smoothingState({ voyageId: VOYAGE }), "the voyage's smoothing state")).toMatchObject({ uncovered: 1 });
+	const queues = yield* answered(app.api.holds.queues({}), "the hold queues to be listed");
+	expect(queues.quieted).toMatchObject([{ id: VOYAGE, waiting: [{ title: "The day's board" }] }]);
+
+	yield* app.api.voyages.resume({ id: VOYAGE });
+	yield* eventually(
+		app.api.boards.smoothingState({ voyageId: VOYAGE }),
+		(state) => state.state === "idle" && state.uncovered === 0,
+		"the smoothing to finish",
+	);
 });

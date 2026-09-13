@@ -23,10 +23,6 @@ export type DueWake = typeof DueWake.Type;
 
 const DueWakes = Schema.Struct({ wakes: Schema.Array(DueWake), waitUntil: Schema.NullOr(Schema.Number) });
 
-type Sailed = ReadonlyMap<string, typeof voyageAgent.Row.Type.voyageId>;
-
-const voyageOf = (sailed: Sailed, agentId: string): typeof DueWake.Type.voyageId => sailed.get(agentId) ?? null;
-
 export const dueWakes = query("dueWakes", {
 	input: {},
 	output: DueWakes,
@@ -37,11 +33,10 @@ export const dueWakes = query("dueWakes", {
 		const nowMillis = yield* Clock.currentTimeMillis;
 		const alive = new Map((yield* rows.agent.where({ status: "alive" })).map((value) => [String(value.id), value.id]));
 		const sailing = new Map((yield* rows.voyageAgent.where({})).map((crew) => [String(crew.agentId), crew.voyageId]));
-		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle" });
+		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle", parentSessionId: null });
 		const wakes: DueWake[] = [];
 		let waitUntil: number | null = null;
 		for (const root of resting) {
-			if (root.parentSessionId !== null) continue;
 			if (root.stoppedAt !== null) continue;
 			const ownerId = alive.get(root.agentId);
 			if (ownerId === undefined) continue;
@@ -55,7 +50,7 @@ export const dueWakes = query("dueWakes", {
 			wakes.push({
 				agentId: ownerId,
 				sessionId: root.id,
-				voyageId: voyageOf(sailing, String(ownerId)),
+				voyageId: sailing.get(String(ownerId)) ?? null,
 				batch,
 				unreadIds: unread.map((held) => held.id),
 				waitedMillis: nowMillis - Math.min(...unread.map((held) => Date.parse(held.sentAt))),

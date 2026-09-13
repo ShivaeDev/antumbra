@@ -13,7 +13,7 @@ import { waitedWords } from "#waited.ts";
 
 const NOTHING = "Nothing is waiting on a switch.";
 const EMPTY = "Nothing is waiting yet.";
-const QUIET = "Nothing is sent to this voyage until you resume it. What it is holding goes out then.";
+const QUIET = "Nothing is sent to this voyage until you resume it, and what it is holding goes out then.";
 
 export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 	<Live query={api.holds.queues} input={{}} waiting="Reading the holds…">

@@ -6,7 +6,7 @@ import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { allows, type Switched } from "@antumbra/domain-settings/queries/flags.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
-import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
+import { quietIds, voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
 import { birthAdmitted } from "#facts/birth-admitted.ts";
@@ -44,7 +44,7 @@ export const admit = command("admit", {
 		if (!eligible(held)) return yield* reject.NotEligible({ id: held.id });
 		const flags = yield* rows.flag.where({ scope: FLEET });
 		if (!switchedOn(flags, held)) return yield* reject.Held({ reason: `${held.source} births are held` });
-		const quiet = new Set((yield* rows.voyage.where({})).filter((sailing) => sailing.quietedAt !== null).map((sailing) => sailing.id));
+		const quiet = quietIds(yield* rows.voyage.where({}));
 		const quieted = (value: typeof birth.Row.Type) => SWITCHES[value.source] !== undefined && value.voyageId !== null && quiet.has(value.voyageId);
 		if (quieted(held)) return yield* reject.Held({ reason: "the voyage is quiet" });
 		const capacities = yield* rows.capacity.where({});

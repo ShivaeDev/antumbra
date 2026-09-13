@@ -14,11 +14,13 @@ const DAILY_BOARD = "The day's board";
 export type Voyages = ReadonlyArray<typeof voyage.Row.Type>;
 
 export interface Queued {
+	readonly holding: ReadonlySet<SwitchKey>;
 	readonly switches: Record<SwitchKey, Array<typeof Waiting.Type>>;
 	readonly quieted: Map<string, Array<typeof Waiting.Type>>;
 }
 
-export const empty = (voyages: Voyages): Queued => ({
+export const empty = (voyages: Voyages, holding: ReadonlySet<SwitchKey>): Queued => ({
+	holding,
 	switches: {
 		resumePieces: [],
 		wakeOnFlashMail: [],
@@ -35,7 +37,7 @@ export const empty = (voyages: Voyages): Queued => ({
 });
 
 export const held = (queued: Queued, key: SwitchKey, voyageId: string | null, waiting: typeof Waiting.Type): void => {
-	const quieted = voyageId === null ? undefined : queued.quieted.get(voyageId);
+	const quieted = queued.holding.has(key) || voyageId === null ? undefined : queued.quieted.get(voyageId);
 	if (quieted === undefined) queued.switches[key].push(waiting);
 	else quieted.push(waiting);
 };

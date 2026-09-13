@@ -40,7 +40,7 @@ export const queues = query("queues", {
 		const agents = yield* rows.agent.where({});
 		const voyages = yield* rows.voyage.where({});
 		const crew = crewOf(agents, yield* rows.voyageAgent.where({}), voyages);
-		const queued = empty(voyages);
+		const queued = empty(voyages, new Set(SWITCH_KEYS.filter((key) => !allows(flags, key))));
 		addPieces(queued, (yield* dispatch.run({}, rows, {})).ready, now);
 		addMail(queued, (yield* dueWakes.run({}, rows, {})).wakes, crew, new Map(agents.map((waits) => [String(waits.id), waits.role])));
 		addHails(queued, yield* rows.sessionOperation.where({}), yield* rows.birth.where({}), { crew, now, voyages });

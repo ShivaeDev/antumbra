@@ -5,6 +5,7 @@ import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
 import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { list } from "@antumbra/domain-voyages/queries/list.ts";
+import { quietIds } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -18,7 +19,7 @@ export const honorRestart = Effect.fn("Lifecycle.honorRestart")(function* ({ req
 	const sessions = yield* live.read(pending, {});
 	if (sessions === null) return;
 	if (!allows(yield* live.read(flags, {}), "wakeAfterRestart")) return;
-	const quiet = new Set((yield* live.read(list, {})).filter((sailing) => sailing.quietedAt !== null).map((sailing) => String(sailing.id)));
+	const quiet = quietIds(yield* live.read(list, {}));
 	const hushed = new Set(
 		(yield* live.read(roster, {})).filter((crew) => crew.voyageIds.some((sailed) => quiet.has(sailed))).map((crew) => String(crew.id)),
 	);

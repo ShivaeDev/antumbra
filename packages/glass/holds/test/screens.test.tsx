@@ -78,7 +78,7 @@ it.glass("lists a quieted voyage with what it holds and resumes it from the sect
 	yield* api.voyages.quiet({ id: VoyageId.make("voyage") });
 	const container = yield* render(<HoldsPanel api={api} />);
 	yield* until(() => container.textContent?.includes("Reef") === true, "the quieted voyage's section");
-	expect(container.textContent).toContain("Nothing is sent to this voyage until you resume it.");
+	expect(container.textContent).toContain("Nothing is sent to this voyage until you resume it, and what it is holding goes out then.");
 	expect(container.textContent).toContain("Sound");
 	expect(container.textContent).toContain("1 waiting");
 

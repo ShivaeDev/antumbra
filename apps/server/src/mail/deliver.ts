@@ -5,6 +5,7 @@ import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { operations } from "@antumbra/domain-sessions/queries/operations.ts";
 import { allows, flags, ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { list } from "@antumbra/domain-voyages/queries/list.ts";
+import { quietIds } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
@@ -15,7 +16,7 @@ export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<D
 	const live = yield* Live;
 	const commit = yield* Commit;
 	const chosen = yield* live.read(flags, {});
-	const quiet = new Set((yield* live.read(list, {})).filter((sailing) => sailing.quietedAt !== null).map((sailing) => sailing.id));
+	const quiet = quietIds(yield* live.read(list, {}));
 	for (const wake of due) {
 		if (!allows(chosen, WAKE_SWITCHES[wake.batch.precedence])) continue;
 		if (wake.voyageId !== null && quiet.has(wake.voyageId)) continue;

@@ -17,3 +17,6 @@ export const voyage = row(
 	},
 	{ key: "id" },
 );
+
+export const quietIds = (voyages: ReadonlyArray<typeof voyage.Row.Type>): ReadonlySet<string> =>
+	new Set(voyages.filter((sailing) => sailing.quietedAt !== null).map((sailing) => String(sailing.id)));

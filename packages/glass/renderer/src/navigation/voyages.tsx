@@ -3,7 +3,6 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { TwoPane } from "@antumbra/glass-components/compositions/two-pane.tsx";
 import { AgentSession } from "@antumbra/glass-sessions/agent-session.tsx";
 import { PieceSession } from "@antumbra/glass-sessions/piece-session.tsx";
-import { PaneNote } from "@antumbra/glass-sessions/session-pane.tsx";
 import { VoyageSpend } from "@antumbra/glass-sessions/spend.tsx";
 import { VoyageDetail } from "@antumbra/glass-voyages/voyage-detail.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
@@ -11,8 +10,6 @@ import { Cause, Effect } from "effect";
 import { type ReactNode, useState } from "react";
 import { VoyagesAside } from "#navigation/voyages-aside.tsx";
 import type { RendererProps } from "#props.ts";
-
-const NOTHING_OPEN = "Nothing open yet — pick a piece or a member of the crew to read the conversation here";
 
 export const VoyagesPage = (
 	props: Pick<RendererProps, "api" | "readArtifact" | "shell"> & {
@@ -46,7 +43,7 @@ export const VoyagesPage = (
 			const close = () => props.onPlace({ ...props.place, pieceId: null });
 			return <PieceSession api={props.api} pieceId={reading} renderSession={(sessionId) => props.renderSession(sessionId, close)} />;
 		}
-		if (crew === null) return <PaneNote>{NOTHING_OPEN}</PaneNote>;
+		if (crew === null) return null;
 		return <AgentSession api={props.api} agentId={crew} renderSession={(sessionId) => props.renderSession(sessionId, () => setCrew(null))} />;
 	};
 	const chosen = (): ReactNode => {

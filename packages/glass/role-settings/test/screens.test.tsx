@@ -1,5 +1,5 @@
 import { eventually } from "@antumbra/app-testing/answers.ts";
-import { fill, labelled, named, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
+import { fill, labelled, named, pick, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { RoleDefaults } from "#defaults.tsx";
@@ -9,12 +9,11 @@ const VOYAGE = "voyage-1";
 
 const OPUS = { defaultEffort: "high", efforts: ["low", "high"], isDefault: true, model: "opus", name: "Opus" };
 
-const captions = (form: HTMLElement): readonly string[] => [...form.querySelectorAll("p")].map((said) => said.textContent ?? "");
-
 it.glass("renders fleet roles", function* ({ api, render }) {
 	const container = yield* render(<RoleDefaults api={api} />);
 	yield* renderedForm(container, "Flagship");
 	expect([...container.querySelectorAll("form")].map(named)).toEqual(["Flagship", "Captain", "Crew", "Smoother"]);
+	expect(container.textContent).toContain("Backend");
 });
 
 it.glass("saves a fleet choice", function* ({ api, render }) {
@@ -32,21 +31,19 @@ it.glass("saves a fleet choice", function* ({ api, render }) {
 	});
 });
 
-it.glass("says a role is waiting while its backend has listed no models", function* ({ api, render }) {
+it.glass("leaves the backend to decide while it has listed no models", function* ({ api, render }) {
 	const container = yield* render(<RoleDefaults api={api} />);
 	const crew = yield* renderedForm(container, "Crew");
-	expect(labelled<HTMLInputElement>(crew, "Crew Model").placeholder).toBe("waiting for the backend to list its models");
-	expect(captions(crew)).toEqual([]);
+	expect(labelled<HTMLInputElement>(crew, "Crew Model").placeholder).toBe("backend default");
 });
 
-it.glass("shows what an unset field resolves to and where it comes from", function* ({ api, render }) {
+it.glass("shows the model a role resolves to and where it comes from", function* ({ api, render }) {
 	yield* api.backends.listModels({ backend: "claude", failure: null, models: [OPUS] });
 	const container = yield* render(<RoleDefaults api={api} />);
 	const crew = yield* renderedForm(container, "Crew");
-	yield* until(() => labelled<HTMLInputElement>(crew, "Crew Model").placeholder === "opus", "the model Claude declares to resolve");
-	expect(labelled<HTMLInputElement>(crew, "Crew Effort").placeholder).toBe("high");
-	expect([...labelled<HTMLSelectElement>(crew, "Crew Backend").options].map((option) => option.text)).toContain("claude (backend default)");
-	expect(captions(crew)).toEqual(["backend default", "backend default"]);
+	yield* until(() => labelled<HTMLInputElement>(crew, "Crew Model").placeholder === "opus · backend default", "the model Claude declares to resolve");
+	expect(labelled<HTMLInputElement>(crew, "Crew Effort").placeholder).toBe("high · backend default");
+	expect(labelled(crew, "Crew Backend").textContent).toBe("claude · backend default");
 });
 
 it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, render }) {
@@ -54,10 +51,9 @@ it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, r
 	const container = yield* render(<VoyageRoleSettings api={api} voyageId={VOYAGE} />);
 	const captain = yield* renderedForm(container, "Captain");
 	const crew = yield* renderedForm(container, "Crew");
-	yield* until(() => labelled<HTMLInputElement>(captain, "Captain Model").placeholder === "gpt", "the fleet's model to be inherited");
-	expect([...labelled<HTMLSelectElement>(captain, "Captain Backend").options].map((option) => option.text)).toContain("codex (fleet default)");
-	expect(captions(captain)).toEqual(["fleet default"]);
-	yield* fill(crew, "Crew Backend", "claude");
+	yield* until(() => labelled<HTMLInputElement>(captain, "Captain Model").placeholder === "gpt · fleet default", "the fleet's model to be inherited");
+	expect(labelled(captain, "Captain Backend").textContent).toBe("codex · fleet default");
+	yield* pick(crew, "Crew Backend", "claude");
 	yield* submit(container, "Crew");
 	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
 		rows.some((row) => row.role === "crew" && row.backend === "claude"),

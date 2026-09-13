@@ -2,6 +2,8 @@ import { Schema } from "effect";
 
 export const FLEET = "fleet";
 
+const MINUTES = "min";
+
 export const FLAG_KEYS = ["foldToolCalls", "signChanges", "retireSweep", "holdEverything", "holdPieceDispatch", "holdWakes"] as const;
 
 export const FlagKey = Schema.Literals(FLAG_KEYS);
@@ -24,6 +26,7 @@ export interface CountDeclaration {
 	readonly max: number;
 	readonly min: number;
 	readonly title: string;
+	readonly unit: string | null;
 }
 
 export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {
@@ -53,9 +56,9 @@ export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {
 		title: "Retire rested agents",
 	},
 	signChanges: {
-		description: "Adds one line at the end of every pull request body that Antumbra opens.",
+		description: "Adds one line at the end of every pull request body saying it was opened through Antumbra.",
 		fallback: true,
-		title: "Sign pull requests as opened through Antumbra",
+		title: "Sign pull requests",
 	},
 };
 
@@ -65,7 +68,8 @@ export const COUNTS: Readonly<Record<CountKey, CountDeclaration>> = {
 		fallback: 60,
 		max: 1440,
 		min: 1,
-		title: "Idle before siesta, in minutes",
+		title: "Idle before siesta",
+		unit: MINUTES,
 	},
 	maxParallelSessions: {
 		description: "How many agents may be running at once.",
@@ -73,19 +77,22 @@ export const COUNTS: Readonly<Record<CountKey, CountDeclaration>> = {
 		max: 64,
 		min: 1,
 		title: "Maximum running agents",
+		unit: null,
 	},
 	retireRestMinutes: {
 		description: "How long an agent must have rested before the sweep may retire it.",
 		fallback: 15,
 		max: 1440,
 		min: 1,
-		title: "Rest before retirement, in minutes",
+		title: "Rest before retirement",
+		unit: MINUTES,
 	},
 	routineMailMinutes: {
 		description: "Routine mail waits this long before it wakes a resting agent; priority and flash mail wake one at once.",
 		fallback: 5,
 		max: 1440,
 		min: 1,
-		title: "Routine mail before a wake, in minutes",
+		title: "Routine mail before a wake",
+		unit: MINUTES,
 	},
 };

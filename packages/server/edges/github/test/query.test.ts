@@ -16,8 +16,8 @@ describe("asking about many changes at once", () => {
 		expect(query).toContain("pr_1: pullRequest(number: 24)");
 		expect(query.match(/repository\(/g)).toHaveLength(1);
 		expect(query).toContain("statusCheckRollup { state }");
-		expect(query).toContain("reviews(last: 50) { nodes { id author { login } state body url submittedAt");
-		expect(query).toContain("comments(last: 50) { nodes { id author { login } path line body url createdAt replyTo { id } } }");
+		expect(query).toContain("reviews(last: 20) { nodes { id author { login } state body url submittedAt");
+		expect(query).toContain("comments(last: 20) { nodes { id author { login } path line body url createdAt } }");
 		expect(query).toContain("comments(last: 50) { nodes { id author { login } body url createdAt } }");
 	});
 
@@ -30,9 +30,9 @@ describe("asking about many changes at once", () => {
 	});
 
 	it("splits a fleet into calls small enough for the nested feedback each pull carries", () => {
-		const refs = Array.from({ length: 50 }, (_, index) => ref("ShivaeDev", "antumbra", index + 1));
+		const refs = Array.from({ length: 60 }, (_, index) => ref("ShivaeDev", "antumbra", index + 1));
 		const chunks = chunked(refs, OBSERVE_CHUNK_SIZE);
-		expect(chunks.map((chunk) => chunk.length)).toEqual([20, 20, 10]);
+		expect(chunks.map((chunk) => chunk.length)).toEqual([25, 25, 10]);
 		expect(chunked([], OBSERVE_CHUNK_SIZE)).toEqual([]);
 	});
 });

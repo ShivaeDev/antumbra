@@ -62,7 +62,7 @@ export const unresolvedReviews = (input: SituationInput): SituationWords => ({
 	label: `Answer review comments ${input.reference}`,
 	text: `Change ${input.reference} in ${input.repo} has review comments waiting on branch ${input.headRef}.
 
-Read the unresolved threads on the change and answer every one: change the code where the reviewer is right, and say why where you disagree. Push the changes together, then say what you did on each thread.`,
+Read the unresolved threads on the change and answer every one: change the code where the reviewer is right, and say why where you disagree. Push the changes together, then say here what you did about each one; never reply on the change itself.`,
 });
 
 export const feedbackWaiting = (input: SituationInput): SituationWords => ({

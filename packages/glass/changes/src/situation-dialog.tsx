@@ -13,6 +13,12 @@ import { Effect } from "effect";
 import { useRef, useState } from "react";
 import type { ChangesApi } from "#glass.ts";
 import { useSituationDraft } from "#situation-draft.ts";
+
+const slotOf = (situation: typeof sessionSituation.Row.Type): string => {
+	const slot = `situation:${situation.changeId}:${situation.situation}`;
+	return situation.situation === "feedback_waiting" ? `${slot}:${situation.feedbackIds.join(",")}` : slot;
+};
+
 export const SituationDialog = (props: {
 	readonly api: ChangesApi;
 	readonly inputs: InputsClient;
@@ -22,12 +28,7 @@ export const SituationDialog = (props: {
 	readonly onError: (message: string) => void;
 	readonly onClose: () => void;
 }) => {
-	const draft = useSituationDraft(
-		props.drafts,
-		props.sessionId,
-		`situation:${props.situation.changeId}:${props.situation.situation}`,
-		props.situation.text,
-	);
+	const draft = useSituationDraft(props.drafts, props.sessionId, slotOf(props.situation), props.situation.text);
 	const [sending, setSending] = useState(false);
 	const inFlight = useRef(false);
 	const inputId = useRef<SessionInputId | undefined>(undefined);

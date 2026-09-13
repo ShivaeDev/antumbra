@@ -167,4 +167,19 @@ it.glass("reads the waiting comments on the button and hands the session's draft
 	expect(draft).toContain("octocat reviewed\n> The empty reef needs a test before this lands.");
 	expect(draft).toContain("octocat commented on src/reef.ts:42\n> This reads the first tide before one is recorded.");
 	expect(draft).toContain("https://github.com/example/reef/pull/41#discussion_c1");
+	yield* press(document.body, "Send");
+	let delivery = yield* run(runner.next);
+	while (delivery.type !== "Deliver") delivery = yield* run(runner.next);
+	yield* run(
+		runner.append([
+			{
+				at: 200,
+				cursor: 1,
+				event: { type: "InputAccepted", requestId: delivery.requestId, sessionId, inputId: delivery.input.id },
+				logId: "feedback-runner",
+			},
+		]),
+	);
+	yield* run(runner.reply(delivery.requestId, { type: "Accepted" }));
+	yield* until(() => container.textContent?.includes("comments on #41") === false, "the situation to clear once the words are forwarded");
 });

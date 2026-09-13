@@ -1,5 +1,5 @@
 import { LogEntry, type LogEvent } from "@antumbra/platform-runner/log.ts";
-import { Clock, Context, Effect, Hash, PubSub, Schema, Stream } from "effect";
+import { Clock, Context, Effect, PubSub, Schema, Stream } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 
 export interface Log {
@@ -14,40 +14,46 @@ export class RunnerLog extends Context.Service<RunnerLog, Log>()("@antumbra/runn
 
 export interface LogFile {
 	readonly sql: SqlClient;
-	readonly setAside: (epoch: number) => Effect.Effect<void>;
+	readonly backup: Effect.Effect<void>;
 }
 export class LogDatabase extends Context.Service<LogDatabase, LogFile>()("@antumbra/runner-fabric/LogDatabase") {}
 
-const ENTRIES = `CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`;
-const REQUESTS = `CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`;
-const SHAPE = `CREATE TABLE IF NOT EXISTS log_shape (logId TEXT PRIMARY KEY, hash TEXT NOT NULL)`;
-const logShape = Hash.string([ENTRIES, REQUESTS].join("; ")).toString(36);
-
 const Stored = Schema.Struct({ cursor: Schema.Int, at: Schema.Number, event: Schema.fromJsonString(LogEntry.fields.event) });
 const decode = Schema.decodeUnknownEffect(Schema.Array(Stored));
+const Identity = Schema.Struct({ logId: Schema.String });
 
-const recorded = Effect.fn("RunnerLog.recorded")(function* (sql: SqlClient) {
-	const tables = yield* Effect.orDie(sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('runner_log', 'log_shape')`);
-	const names = tables.map((table) => String(table.name));
-	const rows = names.includes("log_shape") ? yield* Effect.orDie(sql`SELECT logId, hash FROM log_shape`) : [];
-	return { present: names.includes("runner_log"), identity: rows[0] };
+const upgrade = Effect.fn("RunnerLog.upgrade")(function* (seed: string) {
+	const { sql, backup } = yield* LogDatabase;
+	const versions = yield* Effect.orDie(sql`PRAGMA user_version`);
+	const version = yield* Schema.decodeUnknownEffect(Schema.Struct({ user_version: Schema.Int }))(versions[0]).pipe(Effect.orDie);
+	if (version.user_version < 1) {
+		const tables = yield* Effect.orDie(sql`SELECT name FROM sqlite_master WHERE type = 'table'`);
+		const existing = tables.some((table) => table.name === "runner_log");
+		if (existing) yield* backup;
+		yield* sql
+			.withTransaction(
+				Effect.gen(function* () {
+					yield* sql`CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`;
+					yield* sql`CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))`;
+					yield* sql`CREATE TABLE IF NOT EXISTS log_shape (logId TEXT PRIMARY KEY, hash TEXT NOT NULL)`;
+					const identities = yield* sql`SELECT logId FROM log_shape`;
+					if (identities.length === 0) {
+						const epoch = yield* Clock.currentTimeMillis;
+						const logId = existing ? seed : `${seed}:${epoch}`;
+						yield* sql`INSERT INTO log_shape ${sql.insert({ logId, hash: "" })}`;
+					}
+					yield* sql`PRAGMA user_version = 1`;
+				}),
+			)
+			.pipe(Effect.orDie);
+	}
+	const identities = yield* Effect.orDie(sql`SELECT logId FROM log_shape`);
+	return yield* Schema.decodeUnknownEffect(Identity)(identities[0]).pipe(Effect.orDie);
 });
 
 export const makeLog = Effect.fn("RunnerLog.make")(function* (seed: string) {
-	const { sql, setAside } = yield* LogDatabase;
-	const { present, identity } = yield* recorded(sql);
-	const kept = identity !== undefined && identity.hash === logShape ? identity : undefined;
-	const epoch = yield* Clock.currentTimeMillis;
-	if (present && kept === undefined) {
-		yield* setAside(epoch);
-		yield* Effect.orDie(sql.unsafe(`DROP TABLE runner_log`));
-	}
-	for (const statement of [ENTRIES, REQUESTS, SHAPE]) yield* Effect.orDie(sql.unsafe(statement));
-	const logId = kept === undefined ? `${seed}:${epoch}` : String(kept.logId);
-	if (kept === undefined) {
-		yield* Effect.orDie(sql`DELETE FROM log_shape`);
-		yield* Effect.orDie(sql`INSERT INTO log_shape ${sql.insert({ logId, hash: logShape })}`);
-	}
+	const { sql } = yield* LogDatabase;
+	const { logId } = yield* upgrade(seed);
 	const changed = yield* PubSub.unbounded<void>();
 	const entries = (rows: ReadonlyArray<unknown>) =>
 		decode(rows).pipe(

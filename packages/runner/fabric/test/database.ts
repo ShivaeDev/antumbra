@@ -7,6 +7,6 @@ export const file = (options: { readonly filename: string; readonly seed: string
 	Layer.effect(RunnerLog)(
 		Effect.gen(function* () {
 			const sql = yield* SqliteClient.make({ filename: options.filename });
-			return yield* makeLog(options.seed).pipe(Effect.provideService(LogDatabase, { sql, setAside: () => Effect.void }));
+			return yield* makeLog(options.seed).pipe(Effect.provideService(LogDatabase, { sql, backup: Effect.void }));
 		}),
 	).pipe(Layer.provide(reactivityLayer));

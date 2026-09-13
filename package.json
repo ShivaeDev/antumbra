@@ -27,6 +27,7 @@
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
 		"journal": "node script/journal.ts",
+		"fixture": "node script/fixture.ts",
 		"pr": "node script/pr.ts",
 		"ready": "node script/ready.ts",
 		"wt": "node script/wt.ts",

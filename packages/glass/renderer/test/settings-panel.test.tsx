@@ -26,7 +26,7 @@ const shell = (restartServer: Effect.Effect<void>): Shell => ({
 
 const screen = (api: Api, host: Shell): ReactNode => (
 	<Navigation api={api} onError={() => undefined} place={place} shell={host}>
-		{() => <SettingsPanel api={api} onError={() => undefined} shell={host} />}
+		{() => <SettingsPanel api={api} onError={() => undefined} rebuildProjections={Effect.void} shell={host} />}
 	</Navigation>
 );
 

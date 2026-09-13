@@ -13,15 +13,17 @@ Capture takes consistent SQLite copies and preserves their existing schemas. It 
 
 ## Open and experiment
 
-`pnpm run fixture open <number-or-label>` extracts a fresh copy and opens the browser glass. Each checkout owns one viewer in its gitignored
-`.fixtures/open/` directory. Opening another fixture replaces only that checkout's viewer. Ports are allocated independently of the live app.
+`pnpm run fixture open <number-or-label>` extracts a fresh copy, starts the viewer and prints its URL. Open that URL in your chosen browser. Agents
+use the integrated browser explicitly. Each checkout owns one viewer in its gitignored `.fixtures/open/` directory. Opening another fixture replaces
+only that checkout's viewer. Ports are allocated independently of the live app.
 
 Settings and other local edits work. Execution requests record intent, but no background reconciler, provider, Git operation or GitHub observer runs.
 The fixture banner identifies the capture and the absence of execution. Transcripts come from captured Antumbra logs, without a connected runner.
 Time-dependent views use the real clock.
 
-`pnpm run fixture stop` stops the viewer and preserves its working copy. `pnpm run fixture start` starts that copy again. Glass hot reload and server
-code restarts preserve experimental edits. Opening the original fixture again discards those edits and starts fresh.
+`pnpm run fixture stop` stops the viewer and preserves its working copy. `pnpm run fixture start` starts that copy again or reuses its running viewer
+and prints its URL. Neither `open` nor `start` launches a browser. Glass hot reload and server code restarts preserve experimental edits. Opening the
+original fixture again discards those edits and starts fresh.
 
 ## Check an upgrade
 

@@ -43,6 +43,7 @@ export const sessionStoppedMaterializer = materializer(sessionStopped, {
 			detail: null,
 			requestedAt: fact.stoppedAt,
 			sequence: fact.seq,
+			gatedBy: null,
 		});
 		yield* rows.session.update(fact.sessionId, { stoppedAt: fact.stoppedAt });
 	}),

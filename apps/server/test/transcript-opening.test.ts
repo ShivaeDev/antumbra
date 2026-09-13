@@ -33,7 +33,7 @@ const smoothing = Effect.fn("transcript.smoothing")(function* (api: App["api"], 
 		crewModel: null,
 		crewEffort: null,
 	});
-	yield* api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("opening-pass") });
+	yield* api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("opening-pass") });
 	yield* api.boards.bindSmoothingSession({
 		requestId: Request.make("opening-binding"),
 		attemptId: "opening-pass",

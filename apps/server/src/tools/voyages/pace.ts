@@ -1,6 +1,5 @@
 import { frontier } from "@antumbra/domain-rulings/queries/frontier.ts";
-import { COUNTS } from "@antumbra/domain-settings/ids.ts";
-import { counts } from "@antumbra/domain-settings/queries/counts.ts";
+import { COUNTS, counts } from "@antumbra/domain-settings/queries/counts.ts";
 import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { progress } from "@antumbra/domain-voyages/queries/progress.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

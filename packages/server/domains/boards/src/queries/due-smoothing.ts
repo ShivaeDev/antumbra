@@ -22,13 +22,13 @@ export const dueSmoothing = query("dueSmoothing", {
 		const demands: Array<typeof Demand.Type> = [];
 		for (const held of voyages) {
 			if (!attempts.some((attempt) => attempt.pieceId === null && attempt.voyageId === held.id && localDay(new Date(attempt.requestedAt)) >= today))
-				demands.push({ voyageId: held.id, pieceId: null, throughToday: false });
+				demands.push({ voyageId: held.id, pieceId: null, throughToday: false, by: "antumbra" });
 		}
 		const concluded = new Set((yield* rows.pieceProgress.where({ concluded: true })).map((progress) => progress.id));
 		for (const held of yield* rows.piece.where({})) {
 			if (!concluded.has(held.id) || attempts.some((attempt) => attempt.pieceId === held.id)) continue;
 			if (span(yield* rows.boardEntry.where({ board: pieceBoard(held.id) })) !== undefined)
-				demands.push({ voyageId: held.voyageId, pieceId: held.id, throughToday: false });
+				demands.push({ voyageId: held.voyageId, pieceId: held.id, throughToday: false, by: "antumbra" });
 		}
 		return demands;
 	}),

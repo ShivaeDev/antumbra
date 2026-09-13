@@ -37,7 +37,7 @@ export const hail = command("hail", {
 		return {
 			wakeSessionId,
 			id: ids.birthId,
-			source: "direct" as const,
+			source: input.by === "agent" ? ("hail" as const) : ("direct" as const),
 			agentId: ids.agentId,
 			sessionId: ids.sessionId,
 			voyageId: input.voyageId,

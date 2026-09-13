@@ -10,10 +10,17 @@ export const resting = reconciler("resting", {
 	watch: rest,
 	ports: [],
 	due: (reading, now) => {
+		const waits: number[] = [];
+		for (const retirement of reading.retirements) {
+			if (retirement.waitUntil !== null) waits.push(retirement.waitUntil);
+		}
+		for (const siesta of reading.siestas) {
+			if (!siesta.held) waits.push(siesta.waitUntil);
+		}
 		let next: number | undefined;
-		for (const held of [...reading.retirements, ...reading.siestas]) {
-			if (held.waitUntil === null || held.waitUntil <= now) continue;
-			if (next === undefined || held.waitUntil < next) next = held.waitUntil;
+		for (const at of waits) {
+			if (at <= now) continue;
+			if (next === undefined || at < next) next = at;
 		}
 		return next;
 	},
@@ -26,7 +33,7 @@ export const resting = reconciler("resting", {
 				.pipe(Effect.catchTags({ AlreadyDone: () => Effect.void, Unknown: () => Effect.void, Working: () => Effect.void }));
 		}
 		for (const held of reading.siestas) {
-			if (held.waitUntil > now) continue;
+			if (held.held || held.waitUntil > now) continue;
 			yield* reconciling
 				.commit(request, {
 					sessionId: SessionId.make(held.sessionId),

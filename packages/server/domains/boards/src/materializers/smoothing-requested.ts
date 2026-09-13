@@ -12,6 +12,7 @@ export const smoothingRequestedMaterializer = materializer(smoothingRequested, {
 			pieceId: fact.pieceId,
 			throughToday: fact.throughToday,
 			requestedAt: fact.requestedAt,
+			by: fact.by,
 			status: "requested",
 			detail: null,
 		});

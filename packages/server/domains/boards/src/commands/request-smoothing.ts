@@ -4,9 +4,9 @@ import { command } from "@antumbra/platform-feature/command.ts";
 import { Clock, Effect, Option, Schema } from "effect";
 import { smoothingRequested } from "#facts/smoothing-requested.ts";
 
-const { voyageId, pieceId, throughToday } = smoothingRequested.payload;
+const { voyageId, pieceId, throughToday, by } = smoothingRequested.payload;
 export const requestSmoothing = command("requestSmoothing", {
-	input: { voyageId, pieceId, throughToday },
+	input: { voyageId, pieceId, throughToday, by },
 	reads: [voyage, piece],
 	emits: smoothingRequested,
 	rejections: { UnknownVoyage: { id: Schema.String }, WrongPiece: { id: Schema.String } },
@@ -21,6 +21,7 @@ export const requestSmoothing = command("requestSmoothing", {
 			voyageId: input.voyageId,
 			pieceId: input.pieceId,
 			throughToday: input.throughToday,
+			by: input.by,
 			requestedAt: new Date(yield* Clock.currentTimeMillis).toISOString(),
 		};
 	}),

@@ -60,7 +60,9 @@ export const VoyagesPage = (
 				onHail={hail}
 				onWorkNow={(pieceId) => run(props.api.agents.workNow({ pieceId: PieceId.make(pieceId) }))}
 				onRetireCrew={(pieceId) => run(props.api.agents.retireCrew({ pieceId: PieceId.make(pieceId) }))}
-				onSmooth={(voyageId) => run(props.api.boards.requestSmoothing({ voyageId: VoyageId.make(voyageId), pieceId: null, throughToday: true }))}
+				onSmooth={(voyageId) =>
+					run(props.api.boards.requestSmoothing({ voyageId: VoyageId.make(voyageId), pieceId: null, throughToday: true, by: "admiral" }))
+				}
 				renderSpend={(voyageId) => <VoyageSpend api={props.api} voyageId={voyageId} />}
 				openArtifact={(artifactId) => run(props.shell.open({ role: "artifact", artifactId }))}
 			/>

@@ -1,3 +1,5 @@
+import { SWITCH_KEYS } from "@antumbra/domain-settings/ids.ts";
+import { allows } from "@antumbra/domain-settings/queries/flags.ts";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
 import type { SettingsApi } from "@antumbra/glass-settings/glass.ts";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
@@ -17,7 +19,7 @@ export const Navigation = (props: {
 	const [place, setPlace] = useState(props.place);
 	const settings = useLive(props.api.settings.flags, {});
 	const flags = AsyncResult.isSuccess(settings) ? settings.value : [];
-	const held = flags.some((flag) => flag.on && (flag.key === "holdEverything" || flag.key === "holdPieceDispatch" || flag.key === "holdWakes"));
+	const held = SWITCH_KEYS.some((key) => !allows(flags, key));
 	const foldToolCalls = flags.some((flag) => flag.key === "foldToolCalls" && flag.on);
 	useEffect(
 		() =>

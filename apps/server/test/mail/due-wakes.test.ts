@@ -4,7 +4,7 @@ import { HAND, messageOf, sending } from "#test/mail/kit.ts";
 import { ROOT, working } from "#test/mail/resting.ts";
 
 it.app("priority mail waits for active work to rest without being marked read", function* (app) {
-	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
+	yield* app.api.settings.setFlag({ key: "holdEverything", on: true });
 	const runner = yield* working(app);
 	yield* app.api.mail.send(sending("shoal"));
 	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
@@ -16,7 +16,7 @@ it.app("priority mail waits for active work to rest without being marked read", 
 });
 
 it.app("routine mail waits for its threshold and includes earlier unread mail in the batch", function* (app) {
-	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
+	yield* app.api.settings.setFlag({ key: "holdEverything", on: true });
 	const runner = yield* working(app);
 	yield* runner.rest(2);
 	yield* app.api.mail.send({ ...sending("old"), precedence: "flash" });

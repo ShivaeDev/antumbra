@@ -2,6 +2,7 @@ import { clear } from "@antumbra/domain-lifecycle/commands/clear.ts";
 import { pending } from "@antumbra/domain-lifecycle/queries/pending.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
+import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -14,6 +15,7 @@ export const honorRestart = Effect.fn("Lifecycle.honorRestart")(function* ({ req
 	const live = yield* Live;
 	const sessions = yield* live.read(pending, {});
 	if (sessions === null) return;
+	if (!allows(yield* live.read(flags, {}), "wakeAfterRestart")) return;
 	const consumed = yield* commit.commit(clear, { requestId: Request.make(requestId) }).pipe(
 		Effect.as(true),
 		Effect.catchTag("AlreadyDone", () => Effect.succeed(false)),

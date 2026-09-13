@@ -7,11 +7,11 @@ import { flag } from "#rows/flag.ts";
 export const flagSetMaterializer = materializer(flagSet, {
 	writes: [flag],
 	run: Effect.fn("settings.FlagSet")(function* (fact, rows) {
-		const set = { key: fact.key, on: fact.on, scope: FLEET };
-		const stored = yield* rows.flag.find(fact.key);
-		if (Option.isNone(stored)) {
-			return yield* rows.flag.insert(set);
+		for (const key of fact.keys) {
+			const set = { key, on: fact.on, scope: FLEET };
+			const stored = yield* rows.flag.find(key);
+			if (Option.isNone(stored)) yield* rows.flag.insert(set);
+			else yield* rows.flag.update(key, set);
 		}
-		yield* rows.flag.update(fact.key, set);
 	}),
 });

@@ -63,7 +63,11 @@ const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
 
 export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
 	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
-		Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true }),
+		Effect.forEach(
+			attempts.filter((attempt) => !attempt.held),
+			(attempt) => smoothAttempt(attempt, prepare),
+			{ discard: true },
+		),
 	);
 	const day = yield* Effect.forkScoped(Effect.forever(Effect.scoped(watchDay())));
 	return { refresh: pending.refresh, await: Effect.raceAllFirst([pending.await, Effect.asVoid(Fiber.join(day))]) };

@@ -1,5 +1,6 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { bindSmoothingSession } from "#commands/bind-smoothing-session.ts";
@@ -12,7 +13,7 @@ import { write } from "#commands/write.ts";
 import { noteWritten } from "#facts/note-written.ts";
 import { pieceSummaryWritten } from "#facts/piece-summary-written.ts";
 import { smoothingFinished } from "#facts/smoothing-finished.ts";
-import { smoothingRequested } from "#facts/smoothing-requested.ts";
+import { askedByAntumbra, smoothingRequested } from "#facts/smoothing-requested.ts";
 import { smoothingSessionBound } from "#facts/smoothing-session-bound.ts";
 import { smoothingSessionFinished } from "#facts/smoothing-session-finished.ts";
 import { summaryWritten } from "#facts/summary-written.ts";
@@ -36,7 +37,7 @@ import { smoothingAttempt } from "#rows/smoothing-attempt.ts";
 import { smoothingSession } from "#rows/smoothing-session.ts";
 
 export const boards = feature("boards", {
-	rows: [boardEntry, piece, voyage, smoothingAttempt, pieceProgress, smoothingSession],
+	rows: [boardEntry, piece, voyage, smoothingAttempt, pieceProgress, smoothingSession, flag],
 	facts: [noteWritten, summaryWritten, pieceSummaryWritten, smoothingRequested, smoothingFinished, smoothingSessionBound, smoothingSessionFinished],
 	commands: [write, summarize, summarizePiece, requestSmoothing, finishSmoothing, bindSmoothingSession, finishSmoothingSession],
 	materializers: [
@@ -48,5 +49,6 @@ export const boards = feature("boards", {
 		smoothingSessionBoundMaterializer,
 		smoothingSessionFinishedMaterializer,
 	],
+	migrations: [askedByAntumbra],
 	queries: [display, entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
 });

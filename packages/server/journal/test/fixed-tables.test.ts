@@ -31,9 +31,10 @@ const storedUnderTheOlderShape = Effect.gen(function* () {
 	}
 }).pipe(Effect.orDie);
 
-const facts = `SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`;
+const facts = `SELECT "seq", "at", "requestId", "name" FROM "journal" ORDER BY "seq"`;
+const payloads = `SELECT "payload" FROM "journal" ORDER BY "seq"`;
 
-it.effect("an older journal file gains the subject column and its index, keeps its facts, and upgrades once", () =>
+it.effect("an older journal file gains the subject column and its index, migrates its facts, and upgrades once", () =>
 	Effect.gen(function* () {
 		yield* storedUnderTheOlderShape;
 		const database = yield* Database;
@@ -43,6 +44,12 @@ it.effect("an older journal file gains the subject column and its index, keeps i
 		const before = yield* database.read.unsafe(facts);
 		yield* start(database.write, registry, database.backup);
 		expect(yield* database.read.unsafe(facts)).toEqual(before);
+		const stored = yield* database.read.unsafe<{ readonly payload: string }>(payloads);
+		expect(stored.map((fact) => JSON.parse(fact.payload))).toEqual([
+			{ key: "maxParallelSessions", count: 9 },
+			{ keys: ["signChanges"], on: false },
+			{ key: "idleSiestaMinutes", count: 45 },
+		]);
 		expect(yield* database.read`SELECT "subject" FROM "journal" ORDER BY "seq"`).toEqual([{ subject: null }, { subject: null }, { subject: null }]);
 		expect(yield* database.read`SELECT "name" FROM sqlite_master WHERE "type" = 'index' AND "name" = 'journal_subject'`).toEqual([
 			{ name: "journal_subject" },

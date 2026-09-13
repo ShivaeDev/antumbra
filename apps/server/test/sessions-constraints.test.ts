@@ -27,7 +27,7 @@ it.app("waking a smoother retains its constraint and the settings it was admitte
 		crewModel: null,
 		crewEffort: null,
 	});
-	yield* api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("constrained-pass") });
+	yield* api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("constrained-pass") });
 	yield* api.boards.bindSmoothingSession({
 		requestId: Request.make("constrained-binding"),
 		attemptId: "constrained-pass",

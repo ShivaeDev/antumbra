@@ -1,4 +1,5 @@
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { clear } from "#commands/clear.ts";
 import { record } from "#commands/record.ts";
@@ -9,7 +10,7 @@ import { restartRecordedMaterializer } from "#materializers/restart-recorded.ts"
 import { pending } from "#queries/pending.ts";
 import { restart } from "#rows/restart.ts";
 export const lifecycle = feature("lifecycle", {
-	rows: [restart, session],
+	rows: [restart, session, flag],
 	facts: [restartRecorded, restartCleared],
 	commands: [record, clear],
 	materializers: [restartRecordedMaterializer, restartClearedMaterializer],

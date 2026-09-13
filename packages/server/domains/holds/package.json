@@ -30,6 +30,9 @@
 		"effect": "catalog:",
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/domain-mail": "workspace:*",
-		"@antumbra/domain-settings": "workspace:*"
+		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/domain-boards": "workspace:*",
+		"@antumbra/domain-lifecycle": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*"
 	}
 }

@@ -25,6 +25,7 @@ export const birthRequestedMaterializer = materializer(birthRequested, {
 				detail: null,
 				requestedAt: at,
 				sequence: fact.seq,
+				gatedBy: fact.source === "hail" ? "wakeOnHail" : null,
 			});
 			return;
 		}

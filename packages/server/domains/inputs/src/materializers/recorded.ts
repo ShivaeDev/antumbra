@@ -29,6 +29,7 @@ export const recorded = materializer(inputRecorded, {
 			detail: null,
 			requestedAt: new Date(fact.at).toISOString(),
 			sequence: fact.seq,
+			gatedBy: null,
 		});
 	}),
 });

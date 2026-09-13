@@ -1,8 +1,15 @@
+import type { SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import { Schema } from "effect";
 import { MessagePrecedence, type message } from "#rows/message.ts";
 
 export const MailBatch = Schema.Struct({ count: Schema.Number, precedence: MessagePrecedence });
 export type MailBatch = typeof MailBatch.Type;
+
+export const WAKE_SWITCHES = {
+	flash: "wakeOnFlashMail",
+	priority: "wakeOnPriorityMail",
+	routine: "wakeOnRoutineMail",
+} as const satisfies Record<MessagePrecedence, SwitchKey>;
 const URGENCY: Record<MessagePrecedence, number> = { flash: 2, priority: 1, routine: 0 };
 
 export const quietEnd = (unread: ReadonlyArray<typeof message.Row.Type>, quietMillis: number): number | undefined => {

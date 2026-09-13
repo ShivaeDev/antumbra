@@ -13,7 +13,13 @@ it.app("a failed voyage pass still counts today and becomes due on the next loca
 		Effect.map(answered(app.api.boards.dueSmoothing({ now: at.toISOString() })), (demands) =>
 			demands.some((demand) => demand.voyageId === reef && demand.pieceId === null),
 		);
-	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: false, requestId: Id.Request.make("pass-today") });
+	yield* app.api.boards.requestSmoothing({
+		voyageId: reef,
+		pieceId: null,
+		throughToday: false,
+		by: "antumbra",
+		requestId: Id.Request.make("pass-today"),
+	});
 	yield* app.api.boards.finishSmoothing({ id: "pass-today", status: "failed", detail: "the smoother wrote no summary" });
 	expect(yield* demanded(now)).toBe(false);
 	now.setDate(now.getDate() + 1);
@@ -28,7 +34,13 @@ it.app("a concluded piece with uncovered notes is attempted once even when that 
 	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(false);
 	yield* app.api.pieces.landVerdict({ id: soundings, verdict: "delivered" });
 	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(true);
-	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: soundings, throughToday: false, requestId: Id.Request.make("pass-piece") });
+	yield* app.api.boards.requestSmoothing({
+		voyageId: reef,
+		pieceId: soundings,
+		throughToday: false,
+		by: "antumbra",
+		requestId: Id.Request.make("pass-piece"),
+	});
 	yield* app.api.boards.finishSmoothing({ id: "pass-piece", status: "failed", detail: "the smoother did not answer in time" });
 	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(false);
 });
@@ -40,11 +52,17 @@ it.app("a manual voyage pass includes concluded pieces then today's uncovered vo
 	yield* app.api.boards.write(noting("shoal", "piece detail", soundingsBoard));
 	yield* app.api.boards.write(noting("tide", "voyage detail"));
 	const now = new Date(yield* Clock.currentTimeMillis);
-	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: false, requestId: Id.Request.make("automatic") });
+	yield* app.api.boards.requestSmoothing({
+		voyageId: reef,
+		pieceId: null,
+		throughToday: false,
+		by: "antumbra",
+		requestId: Id.Request.make("automatic"),
+	});
 	expect(yield* answered(app.api.boards.smoothingTargets({ id: "automatic", now: now.toISOString() }))).toMatchObject([
 		{ pieceId: soundings, level: "piece", entries: [{ body: "piece detail" }] },
 	]);
-	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: true, requestId: Id.Request.make("manual") });
+	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: true, by: "antumbra", requestId: Id.Request.make("manual") });
 	expect(yield* answered(app.api.boards.smoothingTargets({ id: "manual", now: now.toISOString() }))).toMatchObject([
 		{ pieceId: soundings, level: "piece", coversFrom: 1, coversTo: 1 },
 		{ pieceId: null, level: "day", title: localDay(now), entries: [{ body: "voyage detail" }] },

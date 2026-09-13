@@ -5,6 +5,7 @@ import { Context, Effect, Layer, type Scope } from "effect";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import { watchChanges } from "#changes/watch.ts";
 import { features } from "#features.ts";
+import { reconcile as restarts } from "#lifecycle/reconcile.ts";
 import { reconcile as mail } from "#mail/reconcile.ts";
 import { reconcile as resources } from "#resources/reconcile.ts";
 import { audit } from "#sessions/audit.ts";
@@ -24,6 +25,7 @@ const opened = () => [
 	{ name: "releasing", open: resumeCapacity() },
 	{ name: "reclaiming", open: resources() },
 	{ name: "mailing", open: mail() },
+	{ name: "restarting", open: restarts() },
 	{ name: "watching", open: watchChanges },
 	{ name: "notifying", open: rulingReconciliation },
 	{ name: "smoothing", open: smoothing(prepareSmoother) },

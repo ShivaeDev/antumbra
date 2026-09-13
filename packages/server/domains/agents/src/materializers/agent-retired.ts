@@ -22,6 +22,7 @@ export const agentRetiredMaterializer = materializer(agentRetired, {
 				detail: null,
 				requestedAt: at,
 				sequence: fact.seq,
+				gatedBy: null,
 			});
 		}
 	}),

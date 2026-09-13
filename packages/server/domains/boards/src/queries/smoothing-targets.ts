@@ -1,5 +1,8 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
+import { FLEET } from "@antumbra/domain-settings/ids.ts";
+import { allows } from "@antumbra/domain-settings/queries/flags.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { BoardId, pieceBoard, voyageBoard } from "#ids.ts";
@@ -49,11 +52,17 @@ export const smoothingTargets = query("smoothingTargets", {
 	}),
 });
 
+export const PendingAttempt = Schema.Struct({ ...smoothingAttempt.fields, held: Schema.Boolean });
+
 export const pendingSmoothing = query("pendingSmoothing", {
 	input: {},
-	output: Schema.Array(smoothingAttempt.Row),
-	reads: [smoothingAttempt],
+	output: Schema.Array(PendingAttempt),
+	reads: [smoothingAttempt, flag],
 	run: Effect.fn("boards.pendingSmoothing")(function* (_input, rows) {
-		return (yield* rows.smoothingAttempt.where({ status: "requested" })).toSorted((left, right) => left.requestedAt.localeCompare(right.requestedAt));
+		const spawning = allows(yield* rows.flag.where({ scope: FLEET }), "spawnSmoother");
+		const requested = yield* rows.smoothingAttempt.where({ status: "requested" });
+		return requested
+			.toSorted((left, right) => left.requestedAt.localeCompare(right.requestedAt))
+			.map((attempt) => ({ ...attempt, held: attempt.by !== "admiral" && !spawning }));
 	}),
 });

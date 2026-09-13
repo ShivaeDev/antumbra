@@ -1,87 +1,148 @@
-import { agent } from "@antumbra/domain-agents/rows/agent.ts";
+import { dispatch } from "@antumbra/domain-agents/queries/dispatch.ts";
+import { rest } from "@antumbra/domain-agents/queries/rest.ts";
+import type { birth } from "@antumbra/domain-agents/rows/birth.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
-import { DueWake, dueWakes } from "@antumbra/domain-mail/queries/due-wakes.ts";
-import { ready } from "@antumbra/domain-pieces/queries/ready.ts";
-import { FLAGS, FLEET, FlagKey } from "@antumbra/domain-settings/ids.ts";
+import { type PendingAttempt, pendingSmoothing } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
+import { pending as pendingRestart } from "@antumbra/domain-lifecycle/queries/pending.ts";
+import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
+import { type DueWake, dueWakes } from "@antumbra/domain-mail/queries/due-wakes.ts";
+import type { piece } from "@antumbra/domain-pieces/rows/piece.ts";
+import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
+import { FLEET, SWITCH_KEYS, SwitchKey } from "@antumbra/domain-settings/ids.ts";
+import { allows, FLAGS } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Clock, Effect, Schema } from "effect";
-export const Waiting = Schema.Struct({
-	id: Schema.String,
-	title: Schema.String,
-	voyage: Schema.NullOr(Schema.String),
-	mail: Schema.NullOr(DueWake.fields.batch),
-	waitedMillis: Schema.Number,
-});
+import { type Crew, crewOf, voyageName, Waiting, waitingSession } from "#queries/waiting.ts";
+
+const DAILY_BOARD = "The day's board";
+
+type Queued = Record<SwitchKey, Array<typeof Waiting.Type>>;
+type Voyages = ReadonlyArray<typeof voyage.Row.Type>;
+
 export const HoldQueue = Schema.Struct({
-	kind: Schema.Literals(["dispatch", "wake"]),
-	setting: FlagKey,
+	setting: SwitchKey,
 	title: Schema.String,
 	description: Schema.String,
-	quiet: Schema.String,
-	own: Schema.Boolean,
+	on: Schema.Boolean,
 	held: Schema.Boolean,
 	waiting: Schema.Array(Waiting),
 });
+
+const empty = (): Queued => ({
+	resumePieces: [],
+	wakeOnFlashMail: [],
+	wakeOnPriorityMail: [],
+	wakeOnRoutineMail: [],
+	wakeAfterRestart: [],
+	wakeOnHail: [],
+	spawnForPiece: [],
+	spawnOnHail: [],
+	spawnSmoother: [],
+	sendToSiesta: [],
+});
+
+const addPieces = (queued: Queued, ready: (typeof dispatch.output.Type)["ready"], now: number): void => {
+	for (const target of ready) {
+		queued[target.root === null ? "spawnForPiece" : "resumePieces"].push({
+			id: target.piece.id,
+			title: target.piece.title,
+			voyage: target.voyage.name,
+			mail: null,
+			waitedMillis: target.piece.launchedAt === null ? null : now - Date.parse(target.piece.launchedAt),
+		});
+	}
+};
+
+const addMail = (queued: Queued, wakes: ReadonlyArray<DueWake>, crew: Crew, roles: ReadonlyMap<string, string>): void => {
+	for (const wake of wakes) {
+		queued[WAKE_SWITCHES[wake.batch.precedence]].push({
+			id: wake.sessionId,
+			title: roles.get(wake.agentId) ?? wake.agentId,
+			voyage: crew.voyages.get(wake.agentId) ?? null,
+			mail: wake.batch,
+			waitedMillis: wake.waitedMillis,
+		});
+	}
+};
+
+const addHails = (
+	queued: Queued,
+	operations: ReadonlyArray<typeof sessionOperation.Row.Type>,
+	births: ReadonlyArray<typeof birth.Row.Type>,
+	seen: { readonly crew: Crew; readonly now: number; readonly voyages: Voyages },
+): void => {
+	for (const operation of operations) {
+		if (operation.gatedBy !== "wakeOnHail" || operation.status !== "requested") continue;
+		queued.wakeOnHail.push(waitingSession(seen.crew, operation.sessionId, operation.id, seen.now - Date.parse(operation.requestedAt)));
+	}
+	for (const born of births) {
+		if (born.source !== "hail" || (born.status !== "requested" && born.status !== "waiting")) continue;
+		queued.spawnOnHail.push({
+			id: born.id,
+			title: born.role,
+			voyage: voyageName(seen.voyages, born.voyageId),
+			mail: null,
+			waitedMillis: seen.now - Date.parse(born.requestedAt),
+		});
+	}
+};
+
+const addSmoothing = (
+	queued: Queued,
+	attempts: ReadonlyArray<typeof PendingAttempt.Type>,
+	pieces: ReadonlyArray<typeof piece.Row.Type>,
+	seen: { readonly now: number; readonly voyages: Voyages },
+): void => {
+	for (const attempt of attempts) {
+		if (!attempt.held) continue;
+		queued.spawnSmoother.push({
+			id: attempt.id,
+			title: pieces.find((held) => held.id === attempt.pieceId)?.title ?? DAILY_BOARD,
+			voyage: voyageName(seen.voyages, attempt.voyageId),
+			mail: null,
+			waitedMillis: seen.now - Date.parse(attempt.requestedAt),
+		});
+	}
+};
+
 export const queues = query("queues", {
 	input: {},
 	output: Schema.Struct({ everything: Schema.Boolean, queues: Schema.Array(HoldQueue) }),
-	reads: [...ready.reads, ...dueWakes.reads, agent, voyageAgent, voyage, flag],
+	reads: [...dispatch.reads, ...dueWakes.reads, ...rest.reads, ...pendingSmoothing.reads, ...pendingRestart.reads, voyageAgent, voyage, flag],
 	run: Effect.fn("holds.queues")(function* (_input, rows) {
 		const flags = yield* rows.flag.where({ scope: FLEET });
-		const held = (key: "holdEverything" | "holdPieceDispatch" | "holdWakes") => flags.find((flag) => flag.key === key)?.on ?? FLAGS[key].fallback;
-		const everything = held("holdEverything");
+		const everything = flags.find((held) => held.key === "holdEverything")?.on ?? FLAGS.holdEverything.fallback;
 		const now = yield* Clock.currentTimeMillis;
-		const dispatch = (yield* ready.run({}, rows, {})).map(({ piece, voyage }) => ({
-			id: piece.id,
-			title: piece.title,
-			voyage: voyage.name,
-			mail: null,
-			waitedMillis: now - Date.parse(piece.launchedAt ?? new Date(now).toISOString()),
-		}));
 		const agents = yield* rows.agent.where({});
-		const crews = yield* rows.voyageAgent.where({});
 		const voyages = yield* rows.voyage.where({});
-		const names = new Map(
-			crews.flatMap((crew) => {
-				const name = voyages.find((voyage) => voyage.id === crew.voyageId)?.name;
-				return name === undefined ? [] : [[String(crew.agentId), name] as const];
-			}),
-		);
-		const wakes = [...(yield* dueWakes.run({}, rows, {})).wakes]
-			.sort((a, b) => b.waitedMillis - a.waitedMillis)
-			.map((wake) => ({
-				id: wake.sessionId,
-				title: agents.find((agent) => agent.id === wake.agentId)?.role ?? wake.agentId,
-				voyage: names.get(wake.agentId) ?? null,
-				mail: wake.batch,
-				waitedMillis: wake.waitedMillis,
-			}));
-		return {
-			everything,
-			queues: [
-				{
-					kind: "dispatch",
-					setting: "holdPieceDispatch",
-					title: "Piece dispatch",
-					description: "Pieces that are launched and ready, waiting for an agent to be spawned on them.",
-					quiet: "No launched piece is waiting for an agent.",
-					own: held("holdPieceDispatch"),
-					held: everything || held("holdPieceDispatch"),
-					waiting: dispatch,
-				},
-				{
-					kind: "wake",
-					setting: "holdWakes",
-					title: "Wakes",
-					description: "Agents at rest with mail due, waiting for the wake that carries it.",
-					quiet: "No resting agent has mail due.",
-					own: held("holdWakes"),
-					held: everything || held("holdWakes"),
-					waiting: wakes,
-				},
-			],
-		};
+		const crew = crewOf(agents, yield* rows.voyageAgent.where({}), voyages);
+		const queued = empty();
+		addPieces(queued, (yield* dispatch.run({}, rows, {})).ready, now);
+		addMail(queued, (yield* dueWakes.run({}, rows, {})).wakes, crew, new Map(agents.map((held) => [String(held.id), held.role])));
+		addHails(queued, yield* rows.sessionOperation.where({}), yield* rows.birth.where({}), { crew, now, voyages });
+		addSmoothing(queued, yield* pendingSmoothing.run({}, rows, {}), yield* rows.piece.where({}), { now, voyages });
+		for (const sessionId of (yield* pendingRestart.run({}, rows, {})) ?? []) {
+			queued.wakeAfterRestart.push(waitingSession(crew, sessionId, sessionId, null));
+		}
+		for (const siesta of (yield* rest.run({}, rows, {})).siestas) {
+			if (siesta.waitUntil > now) continue;
+			queued.sendToSiesta.push(waitingSession(crew, siesta.sessionId, siesta.sessionId, now - Date.parse(siesta.idleSince)));
+		}
+		const listed: Array<typeof HoldQueue.Type> = [];
+		for (const key of SWITCH_KEYS) {
+			const on = flags.find((held) => held.key === key)?.on ?? FLAGS[key].fallback;
+			if (on && queued[key].length === 0) continue;
+			listed.push({
+				setting: key,
+				title: FLAGS[key].title,
+				description: FLAGS[key].description,
+				on,
+				held: !allows(flags, key),
+				waiting: queued[key].toSorted((left, right) => (right.waitedMillis ?? 0) - (left.waitedMillis ?? 0)),
+			});
+		}
+		return { everything, queues: listed };
 	}),
 });

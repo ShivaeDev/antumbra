@@ -1,5 +1,6 @@
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { QuayPanel } from "@antumbra/glass-changes/quay-panel.tsx";
+import { TwoPane } from "@antumbra/glass-components/compositions/two-pane.tsx";
 import { HoldsPanel } from "@antumbra/glass-holds/holds.tsx";
 import { RulingsPanel } from "@antumbra/glass-rulings/rulings.tsx";
 import { CostsPanel } from "@antumbra/glass-sessions/costs.tsx";
@@ -8,7 +9,6 @@ import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
 import { Flagship } from "@antumbra/glass-voyages/flagship.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import { Cause, Effect } from "effect";
-import { SessionBeside } from "#navigation/session-beside.tsx";
 import { VoyagesPage } from "#navigation/voyages.tsx";
 import type { RendererProps } from "#props.ts";
 import { SettingsPanel } from "#settings/settings.tsx";
@@ -52,18 +52,19 @@ export const ConsoleMain = (
 			return <Flagship api={props.api} renderSession={session} onHail={hail} />;
 		case "fleet":
 			return (
-				<SessionBeside
-					session={props.place.sessionId === null ? null : session(props.place.sessionId, () => props.onPlace({ ...props.place, sessionId: null }))}
-				>
-					<FleetPanel
-						api={props.api}
-						onOpenTranscript={openTranscript}
-						sessionId={props.place.sessionId ?? undefined}
-						onSession={(sessionId) => props.onPlace({ ...props.place, sessionId })}
-						onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId })}
-						onVoyage={(voyageId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId: null })}
-					/>
-				</SessionBeside>
+				<TwoPane
+					list={
+						<FleetPanel
+							api={props.api}
+							onOpenTranscript={openTranscript}
+							sessionId={props.place.sessionId ?? undefined}
+							onSession={(sessionId) => props.onPlace({ ...props.place, sessionId })}
+							onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId })}
+							onVoyage={(voyageId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId: null })}
+						/>
+					}
+					pane={props.place.sessionId === null ? null : session(props.place.sessionId, () => props.onPlace({ ...props.place, sessionId: null }))}
+				/>
 			);
 		case "settings":
 			return <SettingsPanel {...props} />;

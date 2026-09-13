@@ -3,7 +3,7 @@ import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
 import { KEY } from "#adapters/pane-width.ts";
-import { SessionBeside } from "#navigation/session-beside.tsx";
+import { TwoPane } from "#compositions/two-pane.tsx";
 
 const remembering = (stored?: string): void => {
 	const saved = new Map<string, string>(stored === undefined ? [] : [[KEY, stored]]);
@@ -21,7 +21,7 @@ const remembering = (stored?: string): void => {
 const pane = (container: HTMLElement): HTMLElement =>
 	container.querySelector("output")?.parentElement ?? Effect.runSync(Effect.die("the session pane is missing"));
 
-const beside = <SessionBeside session={<output>a session</output>}>the reading</SessionBeside>;
+const beside = <TwoPane list="the reading" pane={<output>a session</output>} />;
 
 it.glass("drags the session pane wider and opens at that width again", function* ({ render }) {
 	remembering();

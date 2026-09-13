@@ -2,6 +2,7 @@ import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { ArtifactWindow } from "@antumbra/glass-artifacts/artifact-window.tsx";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
 import { ExternalLinkContext } from "@antumbra/glass-components/external-link.tsx";
+import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { TranscriptView } from "@antumbra/glass-sessions/transcript.tsx";
 import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { useAtomValue } from "@effect/atom-react";
@@ -36,11 +37,13 @@ export const Surface = (props: RendererProps) => {
 	const located = useAtomValue(place);
 	return (
 		<ExternalLinkContext value={props.shell.openExternal}>
-			{AsyncResult.match(located, {
-				onInitial: () => <Notice words="taking a sight…" />,
-				onFailure: () => <PlacedSurface {...props} place={undefined} />,
-				onSuccess: ({ value }) => <PlacedSurface {...props} place={value} />,
-			})}
+			<TooltipProvider delayDuration={300}>
+				{AsyncResult.match(located, {
+					onInitial: () => <Notice words="taking a sight…" />,
+					onFailure: () => <PlacedSurface {...props} place={undefined} />,
+					onSuccess: ({ value }) => <PlacedSurface {...props} place={value} />,
+				})}
+			</TooltipProvider>
 		</ExternalLinkContext>
 	);
 };

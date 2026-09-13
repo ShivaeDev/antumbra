@@ -1602,6 +1602,9 @@ importers:
       '@antumbra/domain-repos':
         specifier: workspace:*
         version: link:../../server/domains/repos
+      '@antumbra/domain-role-settings':
+        specifier: workspace:*
+        version: link:../../server/domains/role-settings
       '@antumbra/domain-sessions':
         specifier: workspace:*
         version: link:../../server/domains/sessions

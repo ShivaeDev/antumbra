@@ -28,6 +28,6 @@ export const operationRetriedMaterializer = materializer(operationRetried, {
 	writes: [sessionOperation],
 	run: Effect.fn("Sessions.operationRetried")(function* (fact, rows) {
 		yield* rows.sessionOperation.update(fact.previousId, { status: "cancelled" });
-		yield* rows.sessionOperation.insert({ ...fact.operation, requestedAt: new Date(fact.at).toISOString() });
+		yield* rows.sessionOperation.insert({ ...fact.operation, requestedAt: new Date(fact.at).toISOString(), sequence: fact.seq });
 	}),
 });

@@ -6,6 +6,6 @@ export const operationRequestedMaterializer = materializer(operationRequested, {
 	writes: [sessionOperation],
 	run: Effect.fn("sessions.operationRequested")(function* (fact, rows) {
 		const { id, sessionId, kind, inputId, reason, status, detail, requestedAt } = fact;
-		yield* rows.sessionOperation.insert({ id, sessionId, kind, inputId, reason, status, detail, requestedAt });
+		yield* rows.sessionOperation.insert({ id, sessionId, kind, inputId, reason, status, detail, requestedAt, sequence: fact.seq });
 	}),
 });

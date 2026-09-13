@@ -22,9 +22,10 @@ export const runnerOperation = Effect.fn("Sessions.runnerOperation")(function* (
 			return { type: "Stop", ...identity, reason: operation.reason } satisfies Operation;
 		case "wake":
 		case "steer": {
+			const said = operation.reason.trim();
 			const input: Input =
 				operation.inputId === null
-					? { id: operation.id, parts: [{ type: "text", text: operation.reason.trim() === "" ? wakeWords : operation.reason }] }
+					? { id: operation.id, parts: [{ type: "text", text: said === "" ? wakeWords : said }] }
 					: yield* edge.input(operation.inputId, root.id);
 			if (attached) return { type: "Deliver", ...identity, act: "steer", input } satisfies Operation;
 			if (root.nativeRef === null) {

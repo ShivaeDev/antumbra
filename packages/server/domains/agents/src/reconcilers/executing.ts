@@ -1,3 +1,5 @@
+import { charter } from "@antumbra/domain-sessions/commands/charter.ts";
+import { opening } from "@antumbra/domain-sessions/queries/opening.ts";
 import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
 import { reconciler } from "@antumbra/platform-feature/reconciler.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -16,13 +18,31 @@ export const executing = reconciler("executing", {
 	ports: [Charter, Provisioning, RunnerOperations, ToolCatalog],
 	run: Effect.fn("Agents.executing")(function* (held, reconciling) {
 		const ports = reconciling.ports;
+		const charterId = `${held.id}:charter`;
+		const chartering = Effect.gen(function* () {
+			const stored = yield* reconciling.read(opening, { id: held.sessionId });
+			if (stored !== null) return stored;
+			const composed = yield* ports.charter.compose(held);
+			yield* reconciling
+				.commit(charter, {
+					requestId: Request.make(charterId),
+					sessionId: held.sessionId,
+					inputId: charterId,
+					standingOrders: composed.constrainedPrompt,
+					charter: composed.text,
+				})
+				.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+			const recorded = yield* reconciling.read(opening, { id: held.sessionId });
+			if (recorded === null) return yield* Effect.die(new Error(`Session ${held.sessionId} kept no record of the charter it was given`));
+			return recorded;
+		});
 		const handoff = Effect.gen(function* () {
 			const runnerId = yield* ports.runnerOperations.runnerFor(held.backend);
 			const requestId = Request.make(held.operationRequestId);
 			const cwd = held.cwd ?? (yield* ports.provisioning.prepare(held.agentId, requestId, runnerId));
 			const voyage = held.voyageId === null ? null : yield* reconciling.read(byId, { id: held.voyageId });
 			const toolSet = yield* ports.toolCatalog.freeze(bornAs(held, voyage));
-			const chartered = yield* ports.charter.compose(held);
+			const chartered = yield* chartering;
 			const refused = yield* ports.runnerOperations.start(runnerId, {
 				requestId: held.operationRequestId,
 				sessionId: held.sessionId,
@@ -31,10 +51,10 @@ export const executing = reconciler("executing", {
 				cwd,
 				model: held.model,
 				effort: held.effort,
-				constrainedPrompt: chartered.constrainedPrompt,
+				constrainedPrompt: chartered.standingOrders,
 				toolSet,
-				charterId: `${held.id}:charter`,
-				charter: chartered.text,
+				charterId: chartered.inputId,
+				charter: chartered.charter,
 			});
 			if (refused !== null) return yield* new BirthHeld({ reason: refused });
 		});

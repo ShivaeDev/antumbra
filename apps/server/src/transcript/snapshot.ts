@@ -7,6 +7,7 @@ import { sessionActivity } from "#transcript/activity.ts";
 import { deriveTranscript } from "#transcript/derive.ts";
 import { subsessionDisplayName } from "#transcript/nodes.ts";
 import { readLog } from "#transcript/read-log.ts";
+import { withServedTurns } from "#transcript/served.ts";
 import { sessionStanding } from "#transcript/standing.ts";
 import type { SessionTreeNode } from "#transcript/types.ts";
 
@@ -35,7 +36,7 @@ export const snapshot = Effect.fn("Transcript.snapshot")(function* (sources: typ
 	const node = nodes.find((node) => node.id === id);
 	const standing = sessionStanding(events, node);
 	return {
-		items: deriveTranscript(events, nodes),
+		items: withServedTurns(deriveTranscript(events, nodes), sources.opening, sources.instructions),
 		standing,
 		activity: sessionActivity(standing, node, presence(sources.nodes.find((node) => node.id === id))),
 		unavailable: parts.flatMap((part) => part.unavailable),

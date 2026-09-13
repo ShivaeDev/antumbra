@@ -20,6 +20,7 @@ export const retried = materializer(inputRetried, {
 			status: "requested",
 			detail: null,
 			requestedAt: new Date(fact.at).toISOString(),
+			sequence: fact.seq,
 		});
 	}),
 });

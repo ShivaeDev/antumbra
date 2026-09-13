@@ -5,7 +5,10 @@ import { Effect, Schema } from "effect";
 import { ChangeId } from "#ids.ts";
 import { quayChange } from "#rows/quay-change.ts";
 
-export const QuayStatus = Schema.Literals(["all", "alongside", "checksRunning", "draft", "landed", "needsAttention"]);
+export const QuayStatus = Schema.Literals(["all", "alongside", "archived", "checksRunning", "draft", "landed", "needsAttention"]);
+
+const listedAt = (row: typeof quayChange.Row.Type): number => Date.parse(row.archivedAt ?? row.activityAt);
+
 export const browse = query("browse", {
 	input: { query: Schema.String, repositoryId: Schema.NullOr(RepoId), status: QuayStatus, selectedId: Schema.NullOr(ChangeId) },
 	output: Schema.Struct({
@@ -18,13 +21,13 @@ export const browse = query("browse", {
 	}),
 	reads: [quayChange, repo],
 	run: Effect.fn("changes.browse")(function* (input, rows) {
-		const all = (yield* rows.quayChange.where({})).toSorted((left, right) => Date.parse(right.activityAt) - Date.parse(left.activityAt));
+		const all = (yield* rows.quayChange.where({})).toSorted((left, right) => listedAt(right) - listedAt(left));
 		const query = input.query.trim().toLocaleLowerCase();
 		const repositories = (yield* rows.repo.where({})).map((row) => ({ id: row.id, name: row.name }));
 		const found = all.filter(
 			(row) =>
 				(input.repositoryId === null || row.repoId === input.repositoryId) &&
-				(input.status === "all" || row.group === input.status) &&
+				(input.status === "all" ? row.group !== "archived" : row.group === input.status) &&
 				(query === "" ||
 					[
 						row.title,
@@ -40,7 +43,7 @@ export const browse = query("browse", {
 		return {
 			rows: found,
 			total: all.length,
-			waiting: all.filter((row) => row.group !== "landed").length,
+			waiting: all.filter((row) => row.group !== "archived" && row.group !== "landed").length,
 			selected: all.find((row) => row.id === input.selectedId) ?? null,
 			repositories: repositories.toSorted((left, right) => left.name.localeCompare(right.name)),
 			sightedAt:

@@ -10,6 +10,7 @@ import { pieceChange } from "#rows/piece-change.ts";
 import { quayChange } from "#rows/quay-change.ts";
 
 const group = (held: ChangeRow): typeof quayChange.Row.Type.group => {
+	if (held.archivedAt !== null) return "archived";
 	if (held.stage === "landed" || held.stage === "withdrawn") return "landed";
 	if (held.draftAt !== null) return "draft";
 	if (held.checks === "red" || held.review === "changes_requested" || held.mergeable === "conflict") return "needsAttention";

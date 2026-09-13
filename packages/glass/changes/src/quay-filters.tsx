@@ -4,8 +4,7 @@ import { CONTROL, TEXT_CONTROL } from "@antumbra/glass-components/classes.ts";
 import { groupTitle, QUAY_GROUPS } from "#groups.ts";
 export type Filters = { readonly query: string; readonly repositoryId: RepoId | null; readonly status: "all" | keyof typeof groupTitle };
 export const INITIAL: Filters = { query: "", repositoryId: null, status: "all" };
-const statusOf = (value: string): Filters["status"] =>
-	value === "alongside" || value === "needsAttention" || value === "checksRunning" || value === "draft" || value === "landed" ? value : "all";
+const statusOf = (value: string): Filters["status"] => QUAY_GROUPS.find((group) => group === value) ?? "all";
 export const QuayFilters = (props: {
 	readonly filters: Filters;
 	readonly onFilters: (filters: Filters) => void;

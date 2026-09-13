@@ -3,7 +3,7 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect } from "effect";
+import { Clock, Effect } from "effect";
 export const pieceId = PieceId.make("piece:reef");
 export const repoId = RepoId.make("repo:reef");
 const voyageId = VoyageId.make("voyage:reef");
@@ -24,6 +24,8 @@ export const observed = {
 	title: "Soundings",
 	url: "https://github.com/example/reef/pull/41",
 } as const;
+export const recorded = (daysAgo: number): Effect.Effect<string> =>
+	Effect.map(Clock.currentTimeMillis, (now) => new Date(now - daysAgo * 24 * 60 * 60 * 1000).toISOString());
 export const ready = Effect.fnUntraced(function* (api: Api) {
 	yield* api.voyages.open({
 		requestId: Request.make(voyageId),

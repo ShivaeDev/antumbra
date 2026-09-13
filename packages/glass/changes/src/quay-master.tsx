@@ -19,10 +19,10 @@ const QuayRows = ({ items, selectedId, onSelect }: Listing) => (
 	</ul>
 );
 
-const LandedRows = (props: Listing) =>
+const SettledRows = ({ title, ...props }: Listing & { readonly title: string }) =>
 	props.items.length === 0 ? null : (
 		<section className="mt-5 flex flex-col gap-2">
-			<SectionHeading title="Landed" />
+			<SectionHeading title={title} />
 			<QuayRows {...props} />
 		</section>
 	);
@@ -35,7 +35,7 @@ export const QuayMaster = (props: {
 	readonly onSelect: (id: string) => void;
 }) => {
 	const listing = { onSelect: props.onSelect, selectedId: props.selectedId };
-	const waiting = props.view.rows.filter((item) => item.group !== "landed");
+	const waiting = props.view.rows.filter((item) => item.group !== "archived" && item.group !== "landed");
 	return (
 		<aside
 			className={`min-h-0 w-full flex-col overflow-y-auto border-border md:flex md:w-80 md:shrink-0 md:border-r ${props.selectedId === undefined ? "flex" : "hidden"}`}
@@ -50,7 +50,8 @@ export const QuayMaster = (props: {
 				</Button>
 				<nav aria-label="Pull requests">
 					<QuayRows {...listing} items={waiting} />
-					<LandedRows {...listing} items={props.view.rows.filter((item) => item.group === "landed")} />
+					<SettledRows {...listing} title="Landed" items={props.view.rows.filter((item) => item.group === "landed")} />
+					<SettledRows {...listing} title="Archived" items={props.view.rows.filter((item) => item.group === "archived")} />
 				</nav>
 				{props.view.rows.length === 0 && props.view.total > 0 ? (
 					<p className="text-xs text-muted-foreground">No pull requests match these filters.</p>

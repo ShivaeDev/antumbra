@@ -18,6 +18,9 @@ const OriginSession = ({ item, onOpenSession }: { readonly item: QuayChange; rea
 	if (sessionId === null) {
 		return <span className="text-xs text-muted-foreground">No linked session</span>;
 	}
+	if (item.archivedAt !== null) {
+		return <span className="font-mono text-xs text-muted-foreground">Session {sessionId}</span>;
+	}
 	return (
 		<Button
 			aria-label="Open originating session"

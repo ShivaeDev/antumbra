@@ -4,7 +4,7 @@ import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { ChangeOutcomes } from "#change-outcomes.tsx";
 import { QuayPanel } from "#quay-panel.tsx";
-import { changeId, observed, pieceId, ready, repoId } from "#test/kit.ts";
+import { changeId, observed, pieceId, ready, recorded, repoId } from "#test/kit.ts";
 
 const repositoryOptions = (container: HTMLElement): readonly string[] =>
 	[...labelled<HTMLSelectElement>(container, "Repository").options].map((option) => option.textContent ?? "");
@@ -65,7 +65,7 @@ it.glass("keeps a merged change under Landed and offers every registered reposit
 		host: "github",
 		observation: { ...observed, activityAt: 3000, checks: "green", raw: { state: "merged" }, stage: "landed" },
 		attachment: { _tag: "Observed" },
-		observedAt: new Date(4000).toISOString(),
+		observedAt: yield* recorded(0),
 	});
 	yield* until(() => headed(container, "Landed"), "the Landed section to appear");
 	expect(container.textContent).toContain("merged");
@@ -74,4 +74,26 @@ it.glass("keeps a merged change under Landed and offers every registered reposit
 	yield* api.repos.register({ source: "https://github.com/example/shoal.git", defaultRef: "main" });
 	yield* until(() => repositoryOptions(container).includes("shoal"), "the newly registered repository to reach the filter");
 	expect(repositoryOptions(container)).toEqual(["All repositories", "reef", "shoal"]);
+});
+
+it.glass("moves a change landed seven days ago out of the quay and into the Archived filter", function* ({ api, render }) {
+	yield* ready(api);
+	const container = yield* render(<QuayPanel api={api} onSelect={() => undefined} onOpenSession={() => undefined} />);
+	yield* until(() => container.textContent?.includes("1 of 1 pull requests") === true, "the Quay to show its change");
+
+	yield* api.changes.observe({
+		host: "github",
+		observation: { ...observed, activityAt: 3000, checks: "green", raw: { state: "merged" }, stage: "landed" },
+		attachment: { _tag: "Observed" },
+		observedAt: yield* recorded(7),
+	});
+	yield* fill(container, "Status", "archived");
+	yield* until(() => headed(container, "Archived"), "the Archived section to appear");
+	expect(container.textContent).toContain("merged");
+	expect(container.textContent).toMatch(/Archived \d{4}-\d{2}-\d{2}/);
+
+	yield* fill(container, "Status", "all");
+	yield* until(() => !headed(container, "Archived"), "the archive to leave the default view");
+	expect(headed(container, "Landed")).toBe(false);
+	expect(container.textContent).toContain("0 of 0 pull requests");
 });

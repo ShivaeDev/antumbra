@@ -51,6 +51,10 @@
 	--warning: oklch(78% 0.14 68); /* #f2a548 */
 	--info: oklch(72% 0.13 264); /* #7ba3f6 */
 
+	--state-live: var(--success);
+	--state-failed: var(--destructive);
+	--state-attention: var(--primary);
+
 	--radius: 0.375rem;
 
 	--scrollbar-thumb: var(--rule-strong);

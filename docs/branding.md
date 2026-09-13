@@ -31,8 +31,9 @@ Three rules follow, and they are the ones to hold on to:
 
 ## Colour
 
-Tokens live in `packages/renderer/src/styles/tokens.css` and are exposed to Tailwind in `packages/renderer/src/styles/bridge.css`. Values are authored
-in OKLCH so lightness steps are perceptually even; the hex beside each is for comparing against a design tool, not for use in code.
+Tokens live in `packages/glass/components/src/styles/tokens.css` and are exposed to Tailwind in `packages/glass/components/src/styles/bridge.css`.
+Values are authored in OKLCH so lightness steps are perceptually even; the hex beside each is for comparing against a design tool, not for use in
+code.
 
 ### The ladder
 
@@ -74,6 +75,15 @@ block.
 | `--success`     | `#71c791` | Something finished the way it was meant to.         |
 | `--info`        | `#7ba3f6` | Neutral fact worth marking. Carries no urgency.     |
 
+A status chip reads a state, not a severity, so three more tokens name what a state means and point back at the colours above. Every other state is
+`--muted-foreground`.
+
+| Token               | Resolves to     | Meaning                                     |
+| ------------------- | --------------- | ------------------------------------------- |
+| `--state-live`      | `--success`     | Work is running, alive, landed or merged.   |
+| `--state-failed`    | `--destructive` | Work failed, conflicted or was interrupted. |
+| `--state-attention` | `--primary`     | The state is waiting on a person.           |
+
 Every foreground token clears WCAG AA against `--ground` (body text at 15.5:1, muted at 6.4:1, the faintest at 4.4:1, and each status colour above
 6.7:1). If you introduce a colour, check it before you commit it.
 
@@ -101,26 +111,30 @@ Weight does the emphasis: `font-medium` for anything that leads. Headings carry 
 them to the surrounding weight; any `font-*` utility still overrides it. Bold is essentially unused, and italics are not part of the system.
 
 Agent-authored Markdown — Reports and Artifacts — is a primary surface, not an afterthought. Its treatment lives in
-`packages/renderer/src/styles/prose.css` under a single `.markdown` class, which restores the heading ladder, list markers, code fills and table rules
-that preflight strips. Anything that renders Markdown should wear that class.
+`packages/glass/components/src/styles/prose.css` under a single `.markdown` class, which restores the heading ladder, list markers, code fills and
+table rules that preflight strips. Anything that renders Markdown should wear that class.
 
 ## Components
 
-Components are vendored, not installed. They live in `packages/renderer/src/components/ui/`, written in the shadcn idiom — a `cva` variant table, a
-Radix primitive underneath where behaviour is involved, and `cn()` from `#lib/utils.ts` merging the caller's classes last. `components.json` records
-the conventions so the layout stays predictable.
+Components live in `packages/glass/components/src/ui/`, written in the shadcn idiom — a `cva` variant table, a Radix primitive underneath where
+behaviour is involved, and `cn()` from `#class-names.ts` merging the caller's classes last. When one needs to change, change it here rather than
+wrapping it somewhere else.
 
-Vendored means you may edit them. When a component needs to change, change it here rather than wrapping it somewhere else.
+The glass is moving to the stock set, which the shadcn CLI generates into `packages/glass/components/src/shadcn/` from the conventions recorded in
+`components.json` beside it. Those files stay as the CLI writes them, so the set can be generated again and compared with the registry.
 
 Two house rules constrain how they are written:
 
 - Every source file stays under 150 lines. A component that outgrows the cap is split by responsibility — `dialog.tsx` and `dialog-sections.tsx`,
   `select.tsx` and `select-parts.tsx` — never compressed to fit.
-- Motion is defined in `packages/renderer/src/styles/motion.css`, not pulled from an animation library. Overlay surfaces fade and scale by 3% over
-  about 120ms, and `prefers-reduced-motion` collapses that to nothing.
+- Motion is defined in `packages/glass/components/src/styles/motion.css`, not pulled from an animation library. Overlay surfaces fade and scale by 3%
+  over about 120ms, and `prefers-reduced-motion` collapses that to nothing.
 
-Sizes are deliberately small: the default control height is 28px (`h-7`), which is the density this kind of tool wants. Reach for `lg` only when a
+Sizes are deliberately small: the control height in `ui/` is 28px (`h-7`), which is the density this kind of tool wants. Reach for `lg` only when a
 control is genuinely the point of the screen.
+
+The stock set puts that height at 32px (`h-8`): a small button, a small select trigger, an input, a one-row text area and a clickable row all measure
+the same. Screens move to the set one at a time, so both heights are in the product until the last screen has moved.
 
 ## Copy
 

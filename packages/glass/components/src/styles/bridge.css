@@ -23,6 +23,9 @@
 	--color-success: var(--success);
 	--color-warning: var(--warning);
 	--color-info: var(--info);
+	--color-state-live: var(--state-live);
+	--color-state-failed: var(--state-failed);
+	--color-state-attention: var(--state-attention);
 	--color-border: var(--border);
 	--color-border-strong: var(--border-strong);
 	--color-input: var(--input);

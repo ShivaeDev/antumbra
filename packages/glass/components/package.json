@@ -42,6 +42,7 @@
 		"clsx": "catalog:",
 		"lucide-react": "catalog:",
 		"mermaid": "catalog:",
+		"radix-ui": "catalog:",
 		"react-markdown": "catalog:",
 		"remark-gfm": "catalog:",
 		"tailwind-merge": "catalog:",

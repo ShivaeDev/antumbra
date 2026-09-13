@@ -13,7 +13,6 @@ it.app("reads default flags", function* (app) {
 	}
 	expect(answer.map(({ key, on }) => ({ key, on }))).toEqual([
 		{ key: "foldToolCalls", on: false },
-		{ key: "signChanges", on: true },
 		{ key: "retireSweep", on: true },
 		{ key: "holdEverything", on: false },
 		...SWITCHES_ON,
@@ -28,7 +27,6 @@ it.app("preserves other settings when replacing a flag", function* (app) {
 	const answer = yield* answered(app.api.settings.flags({}));
 	expect(answer.map(({ key, on }) => ({ key, on }))).toEqual([
 		{ key: "foldToolCalls", on: false },
-		{ key: "signChanges", on: true },
 		{ key: "retireSweep", on: false },
 		{ key: "holdEverything", on: true },
 		...SWITCHES_ON,

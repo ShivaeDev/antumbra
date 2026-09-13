@@ -47,7 +47,7 @@ it.effect("an older journal file gains the subject column and its index, migrate
 		const stored = yield* database.read.unsafe<{ readonly payload: string }>(payloads);
 		expect(stored.map((fact) => JSON.parse(fact.payload))).toEqual([
 			{ key: "maxParallelSessions", count: 9 },
-			{ keys: ["signChanges"], on: false },
+			{ keys: ["retireSweep"], on: false },
 			{ key: "idleSiestaMinutes", count: 45 },
 		]);
 		expect(yield* database.read`SELECT "subject" FROM "journal" ORDER BY "seq"`).toEqual([{ subject: null }, { subject: null }, { subject: null }]);
@@ -58,7 +58,7 @@ it.effect("an older journal file gains the subject column and its index, migrate
 			{ key: "idleSiestaMinutes", count: 45 },
 			{ key: "maxParallelSessions", count: 9 },
 		]);
-		expect(yield* database.read`SELECT "key" FROM "flag"`).toEqual([{ key: "signChanges" }]);
+		expect(yield* database.read`SELECT "key" FROM "flag"`).toEqual([{ key: "retireSweep" }]);
 		expect(yield* database.read`PRAGMA user_version`).toEqual([{ user_version: 1 }]);
 		const backups = yield* files.readDirectory(`${data.path}/backups`);
 		expect(backups).toHaveLength(1);

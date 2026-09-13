@@ -10,6 +10,8 @@ const FOLDED: Readonly<Record<string, readonly SwitchKey[]>> = {
 	holdWakes: ["wakeOnFlashMail", "wakeOnPriorityMail", "wakeOnRoutineMail", "wakeOnHail"],
 };
 
+const SIGNING = "signChanges";
+
 export const foldedHolds = migration(1, {
 	fact: flagSet.name,
 	rewrite: (stored) => {
@@ -17,5 +19,13 @@ export const foldedHolds = migration(1, {
 		const folded = FOLDED[String(stored.payload.key)];
 		if (folded === undefined) return Effect.succeed({ ...stored, payload: { keys: [stored.payload.key], on: held } });
 		return Effect.succeed({ ...stored, payload: { keys: folded, on: !held } });
+	},
+});
+
+export const signingDropped = migration(2, {
+	fact: flagSet.name,
+	rewrite: (stored) => {
+		const keys = stored.payload.keys;
+		return Effect.succeed(Array.isArray(keys) && keys.includes(SIGNING) ? undefined : stored);
 	},
 });

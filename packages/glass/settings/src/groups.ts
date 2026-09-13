@@ -22,9 +22,4 @@ export const GROUPS: readonly Group[] = [
 		keys: ["maxParallelSessions", "idleSiestaMinutes", "retireSweep", "retireRestMinutes", "routineMailMinutes"],
 		title: "Agents",
 	},
-	{
-		description: "What goes into the pull requests Antumbra opens.",
-		keys: ["signChanges"],
-		title: "Pull requests",
-	},
 ];

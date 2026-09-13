@@ -116,9 +116,10 @@ it.app("refuses to open a change once the berth has left its work branch", funct
 	);
 });
 
-it.app("signs the body it opens with one trailer line", function* (app) {
+it.app("tags the body it opens with one trailer line, with no setting that could turn the tag off", function* (app) {
 	const { branch, evidence, runner, sessionId } = yield* berthed(app);
 	const host = yield* ScriptedHost;
+	expect(yield* app.rows.flag.count({})).toBe(0);
 	const opening = yield* Effect.forkChild(runner.tool({ sessionId, callId: "open", name: "open_change", input: proposal }));
 	const capture = yield* runner.next;
 	yield* runner.reply(capture.requestId, { type: "ChangeCaptured", evidence });
@@ -147,20 +148,5 @@ it.app("publishes the commits the berth gained after the change was first submit
 	const pending = yield* host.nextOpen;
 	expect(pending.request.headSha).toBe("sha-2");
 	yield* pending.accept(seen(branch, "sha-2"));
-	expect(yield* Fiber.join(opening)).toMatchObject({ ok: true });
-});
-
-it.app("leaves the body unsigned when the fleet turns the signature off", function* (app) {
-	const { branch, evidence, runner, sessionId } = yield* berthed(app);
-	const host = yield* ScriptedHost;
-	yield* app.api.settings.setFlag({ key: "signChanges", on: false });
-	const opening = yield* Effect.forkChild(runner.tool({ sessionId, callId: "open", name: "open_change", input: proposal }));
-	const capture = yield* runner.next;
-	yield* runner.reply(capture.requestId, { type: "ChangeCaptured", evidence });
-	const push = yield* runner.next;
-	yield* runner.reply(push.requestId, { type: "Accepted" });
-	const pending = yield* host.nextOpen;
-	expect(pending.request.body).toBe(proposal.body);
-	yield* pending.accept(seen(branch, "sha-1"));
 	expect(yield* Fiber.join(opening)).toMatchObject({ ok: true });
 });

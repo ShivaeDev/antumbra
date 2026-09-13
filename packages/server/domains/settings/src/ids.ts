@@ -18,7 +18,7 @@ export const SWITCH_KEYS = [
 export const SwitchKey = Schema.Literals(SWITCH_KEYS);
 export type SwitchKey = typeof SwitchKey.Type;
 
-export const FLAG_KEYS = ["foldToolCalls", "signChanges", "retireSweep", "holdEverything", ...SWITCH_KEYS] as const;
+export const FLAG_KEYS = ["foldToolCalls", "retireSweep", "holdEverything", ...SWITCH_KEYS] as const;
 
 export const FlagKey = Schema.Literals(FLAG_KEYS);
 export type FlagKey = typeof FlagKey.Type;

@@ -6,6 +6,7 @@ import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
 import type { RpcClientError } from "effect/unstable/rpc/RpcClientError";
 import { createElement, type ReactNode } from "react";
+import { Reconnections } from "#reconnection.tsx";
 import type { Dialing } from "#serving.ts";
 import { deferred, queriesOf } from "#wire.ts";
 import { type Wiring, WiringContext, wiringOf } from "#wiring.ts";
@@ -20,7 +21,11 @@ export interface Glass<Features extends readonly FeatureShape[]> {
 export type Built<Features extends readonly FeatureShape[]> = Effect.Effect<Api<Features, RpcClientError>, never, Scope.Scope>;
 
 const around = (registry: AtomRegistry.AtomRegistry, wiring: Wiring, children: ReactNode): ReactNode =>
-	createElement(RegistryContext.Provider, { value: registry }, createElement(WiringContext.Provider, { value: wiring }, children));
+	createElement(
+		RegistryContext.Provider,
+		{ value: registry },
+		createElement(WiringContext.Provider, { value: wiring }, createElement(Reconnections, null, children)),
+	);
 
 export function served<const Features extends readonly FeatureShape[]>(features: Features, built: Built<Features>): Glass<Features>;
 export function served(features: readonly FeatureShape[], built: Effect.Effect<unknown, never, Scope.Scope>): unknown {

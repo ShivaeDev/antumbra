@@ -80,3 +80,25 @@ it("leaves a query that answers alone", () => {
 	expect(subscriptions).toBe(1);
 	expect(seen.at(-1)).toMatchObject({ _tag: "Success", value: "aboard" });
 });
+
+it("keeps the last answer on hand while the connection comes back", () => {
+	let subscriptions = 0;
+	const seen = watched(() =>
+		Stream.suspend(() => {
+			subscriptions += 1;
+			if (subscriptions === 1) return Stream.concat(Stream.make("aboard"), Stream.fail(dropped));
+			return subscriptions === 2 ? Stream.fail(dropped) : Stream.make("back aboard");
+		}),
+	);
+	const aboard = { _tag: "Failure", previousSuccess: { _tag: "Some", value: { value: "aboard" } } };
+
+	expect(seen.at(-1)).toMatchObject(aboard);
+
+	vi.advanceTimersByTime(1000);
+
+	expect(seen.at(-1)).toMatchObject(aboard);
+
+	vi.advanceTimersByTime(1000);
+
+	expect(seen.at(-1)).toMatchObject({ _tag: "Success", value: "back aboard" });
+});

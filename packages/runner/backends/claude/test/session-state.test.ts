@@ -47,14 +47,13 @@ const usage: ResultMessage["usage"] = {
 	speed: "standard",
 };
 
-// `modelUsage` is the running total for the whole query, so a fixture states each model's total so far, not the turn's own share.
 interface Spent {
 	readonly canonical?: string;
 	readonly model: string;
-	readonly tokens: number;
+	readonly totalTokens: number;
 }
 
-const OPUS: ReadonlyArray<Spent> = [{ model: "claude-opus-5", tokens: 19150 }];
+const OPUS: ReadonlyArray<Spent> = [{ model: "claude-opus-5", totalTokens: 19150 }];
 
 const modelUsage = (spent: ReadonlyArray<Spent>) =>
 	Object.fromEntries(
@@ -66,7 +65,7 @@ const modelUsage = (spent: ReadonlyArray<Spent>) =>
 				...(entry.canonical === undefined ? {} : { canonicalModel: entry.canonical }),
 				contextWindow: 200000,
 				costUSD: 0,
-				inputTokens: entry.tokens,
+				inputTokens: entry.totalTokens,
 				maxOutputTokens: 64000,
 				outputTokens: 0,
 				webSearchRequests: 0,
@@ -167,15 +166,15 @@ describe("the harness's own account of a session is kept", () => {
 		const mapping = openSessionMapping(SESSION_MODEL);
 		const [first] = mapping.frame(
 			result(0.01, [
-				{ model: "claude-opus-5", tokens: 19150 },
-				{ model: "claude-haiku-5", tokens: 400 },
+				{ model: "claude-opus-5", totalTokens: 19150 },
+				{ model: "claude-haiku-5", totalTokens: 400 },
 			]),
 		);
 		expect(first).toMatchObject({ model: "claude-opus-5" });
 		const [second] = mapping.frame(
 			result(0.02, [
-				{ model: "claude-opus-5", tokens: 19150 },
-				{ model: "claude-haiku-5", tokens: 1200 },
+				{ model: "claude-opus-5", totalTokens: 19150 },
+				{ model: "claude-haiku-5", totalTokens: 1200 },
 			]),
 		);
 		expect(second).toMatchObject({ model: "claude-haiku-5" });
@@ -183,7 +182,7 @@ describe("the harness's own account of a session is kept", () => {
 
 	it("names a model by the id the provider prices it under, not by the alias it was asked for", () => {
 		const mapping = openSessionMapping(SESSION_MODEL);
-		const [event] = mapping.frame(result(0.01, [{ canonical: "claude-opus-4-7", model: "opus", tokens: 19150 }]));
+		const [event] = mapping.frame(result(0.01, [{ canonical: "claude-opus-4-7", model: "opus", totalTokens: 19150 }]));
 		expect(event).toMatchObject({ model: "claude-opus-4-7" });
 	});
 

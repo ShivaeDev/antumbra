@@ -9,6 +9,7 @@ const Variant = Schema.Struct({
 	properties: Schema.optional(
 		Schema.Struct({
 			method: Schema.optional(EnumNode),
+			params: Schema.optional(Schema.Struct({ $ref: Schema.optional(Schema.String) })),
 			thread_spawn: Schema.optional(Schema.Unknown),
 			type: Schema.optional(EnumNode),
 		}),

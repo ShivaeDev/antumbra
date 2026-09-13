@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export const PINNED_CLI_VERSION = "0.148.0-alpha.9";
+export const PINNED_CLI_VERSION = "0.154.0-alpha.6.2";
 
 export const InitializeResponse = Schema.Struct({ userAgent: Schema.String });
 

@@ -23,3 +23,6 @@ mac:
   target:
     - dmg
   identity: null
+dmg:
+  format: ULFO
+  writeUpdateInfo: false

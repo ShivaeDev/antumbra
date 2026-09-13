@@ -1,19 +1,39 @@
 name: Setup
 description: Install pnpm, Node, and the frozen lockfile.
 
+inputs:
+  filter:
+    description: Optional workspace filter for installation.
+    default: ""
+  save-cache:
+    description: Whether this job owns the default-branch pnpm cache.
+    default: "false"
+
 runs:
   using: composite
   steps:
-    - uses: actions/cache@v4
-      with:
-        path: ~/.cache/electron
-        key: electron-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-        restore-keys: |
-          electron-cache-${{ runner.os }}-
     - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v4
       with:
         node-version: 24
-        cache: pnpm
-    - run: pnpm install --frozen-lockfile
+    - id: store
+      run: |
+        echo "path=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+        echo "arch=$(node -p process.arch)" >> "$GITHUB_OUTPUT"
       shell: bash
+    - uses: ./.github/actions/cache
+      with:
+        save: ${{ inputs.save-cache }}
+        path: ${{ steps.store.outputs.path }}
+        key: node-cache-${{ runner.os }}-${{ steps.store.outputs.arch }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          node-cache-${{ runner.os }}-${{ steps.store.outputs.arch }}-pnpm-
+    - run: |
+        if [ -n "$INSTALL_FILTER" ]; then
+          pnpm install --frozen-lockfile --filter "$INSTALL_FILTER"
+        else
+          pnpm install --frozen-lockfile
+        fi
+      shell: bash
+      env:
+        INSTALL_FILTER: ${{ inputs.filter }}

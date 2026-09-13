@@ -210,12 +210,6 @@ importers:
       '@anthropic-ai/claude-agent-sdk':
         specifier: 'catalog:'
         version: 0.3.225(@anthropic-ai/sdk@0.116.0(zod@4.4.3))(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(zod@4.4.3)
-      '@antumbra/domain-mail':
-        specifier: workspace:*
-        version: link:../../packages/server/domains/mail
-      '@antumbra/platform-feature':
-        specifier: workspace:*
-        version: link:../../packages/platform/feature
       '@earendil-works/pi-coding-agent':
         specifier: 'catalog:'
         version: 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(ws@8.21.3)(zod@4.4.3)

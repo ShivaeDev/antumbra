@@ -8,12 +8,14 @@ import { Commit } from "@antumbra/server-journal/commit.ts";
 import { type ObservedFact, observation } from "@antumbra/server-journal/observe.ts";
 import { Effect, Option, Schema } from "effect";
 import { inputObservation } from "#adapters/inputs/observation.ts";
+import { RunnerConnections } from "#runner/connections.ts";
 import { providerEventObservation } from "#runner/provider-event.ts";
 import { observation as resourceObservation } from "#runner/resources.ts";
-import { observation as sessionObservation } from "#runner/session-observation.ts";
+import { observation as sessionObservation, subjectOf } from "#runner/session-observation.ts";
 
 export const append = Effect.fn("RunnerLog.append")(function* (input: { readonly logId: string; readonly entries: readonly LogEntry[] }) {
 	const commit = yield* Commit;
+	const connections = yield* RunnerConnections;
 	for (const entry of input.entries) {
 		const facts: ObservedFact[] = [];
 		if (entry.event.type === "CapacityObserved") {
@@ -23,7 +25,10 @@ export const append = Effect.fn("RunnerLog.append")(function* (input: { readonly
 		const resource = resourceObservation(entry.event);
 		if (Option.isSome(resource)) facts.push(resource.value);
 		const session = sessionObservation(entry);
-		if (session !== null) facts.push(observation(observed, session));
+		if (session !== null) {
+			const news = yield* connections.news(input.logId, subjectOf(session), JSON.stringify(session));
+			if (news) facts.push(observation(observed, session));
+		}
 		const provider = providerEventObservation(entry);
 		if (provider !== null) facts.push(observation(providerEvent, provider));
 		const delivery = inputObservation(entry);

@@ -4,6 +4,8 @@ import type { FactPayload } from "@antumbra/platform-feature/fact.ts";
 import type { LogEntry } from "@antumbra/platform-runner/log.ts";
 import { providerObservation } from "#runner/provider-observation.ts";
 
+export const subjectOf = (payload: FactPayload<typeof observed>): string => `${payload.sessionId}:${payload.nodeRef ?? ""}`;
+
 export const observation = (entry: LogEntry): FactPayload<typeof observed> | null => {
 	const event = entry.event;
 	if (!("sessionId" in event)) return null;

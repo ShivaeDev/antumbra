@@ -1,3 +1,5 @@
+import { sessionOpening } from "@antumbra/domain-sessions/rows/session-opening.ts";
+import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { birth } from "#rows/birth.ts";
@@ -7,7 +9,7 @@ const AdmittedBirth = Schema.Struct({ ...birth.fields, backend: Schema.String, m
 export const admitted = query("admitted", {
 	input: {},
 	output: Schema.Array(AdmittedBirth),
-	reads: [birth],
+	reads: [birth, sessionOpening, voyage],
 	run: Effect.fn("Agents.admitted")(function* (_input, rows) {
 		const found = yield* rows.birth.where({ status: "admitted" });
 		const ready: Array<typeof AdmittedBirth.Type> = [];

@@ -5,7 +5,7 @@ import { ChangeId } from "#ids.ts";
 import { adoption, chartering, opening, recorded, registration, request, seen } from "#test/kit.ts";
 
 const DAY_MILLIS = 24 * 60 * 60 * 1000;
-const DUE_PASS_MILLIS = 5_000;
+const REMAINING_MILLIS = 5_000;
 const shoal = { ...seen("open"), externalId: "42", headRef: "work/shoal" };
 
 it.app("archives a landed change once seven days have passed and leaves a younger one at the quay", function* (app) {
@@ -21,7 +21,7 @@ it.app("archives a landed change once seven days have passed and leaves a younge
 		host: "github",
 		observation: seen("landed", 3000),
 		attachment: { _tag: "Observed" },
-		observedAt: yield* recorded(7 * DAY_MILLIS - DUE_PASS_MILLIS),
+		observedAt: yield* recorded(7 * DAY_MILLIS - REMAINING_MILLIS),
 	});
 	yield* app.api.changes.observe({
 		requestId: request("observe:shoal"),
@@ -33,7 +33,7 @@ it.app("archives a landed change once seven days have passed and leaves a younge
 	const landed = yield* eventually(app.api.changes.quay({}), (rows) => rows.length === 2);
 	expect(landed.map((row) => row.group)).toEqual(["landed", "landed"]);
 
-	yield* app.clock.advance(DUE_PASS_MILLIS);
+	yield* app.clock.advance(REMAINING_MILLIS);
 	const quay = yield* eventually(app.api.changes.quay({}), (rows) => rows.some((row) => row.group === "archived"));
 	expect(quay.find((row) => row.id === older)).toMatchObject({ group: "archived", stage: "landed" });
 	expect(quay.find((row) => row.id === younger)).toMatchObject({ group: "landed", stage: "landed" });
@@ -45,7 +45,7 @@ it.app("archives a landed change once seven days have passed and leaves a younge
 
 	const archivedAt = (yield* app.rows.change.get(older)).archivedAt;
 	expect(archivedAt).not.toBeNull();
-	yield* app.clock.advance(DUE_PASS_MILLIS);
+	yield* app.clock.advance(REMAINING_MILLIS);
 	expect(yield* Effect.flip(app.commit.changes.archive({ changeId: older, requestId: request(`archive:${older}`) }))).toMatchObject({
 		_tag: "AlreadyDone",
 	});

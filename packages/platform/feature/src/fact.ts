@@ -9,6 +9,7 @@ const reserved = Object.keys(stamp);
 export interface FactShape {
 	readonly name: string;
 	readonly payload: Fields;
+	readonly subject: string | undefined;
 	readonly Payload: Schema.ConstraintCodec<unknown, unknown>;
 	readonly Fact: Schema.ConstraintCodec<unknown, unknown>;
 }
@@ -24,11 +25,15 @@ export type FactPayload<Fact extends FactShape> = Fact["Payload"]["Type"];
 
 export type FactValue<Fact extends FactShape> = Fact["Fact"]["Type"];
 
-export function fact<Name extends string, const Payload extends Fields>(name: Name, payload: Payload): FactDefinition<Name, Payload>;
-export function fact(name: string, payload: Fields): unknown {
+export function fact<Name extends string, const Payload extends Fields>(
+	name: Name,
+	payload: Payload,
+	observes?: { readonly subject: keyof Payload & string },
+): FactDefinition<Name, Payload>;
+export function fact(name: string, payload: Fields, observes?: { readonly subject: string }): unknown {
 	for (const field of reserved) {
 		if (field in payload)
 			Effect.runSync(Effect.die(new Error(`the fact "${name}" declares the field "${field}", which the journal stamps on every fact`)));
 	}
-	return { Fact: Schema.Struct({ ...payload, ...stamp }), name, Payload: Schema.Struct(payload), payload };
+	return { Fact: Schema.Struct({ ...payload, ...stamp }), name, Payload: Schema.Struct(payload), payload, subject: observes?.subject };
 }

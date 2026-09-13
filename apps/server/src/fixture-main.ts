@@ -43,7 +43,7 @@ const main = Effect.gen(function* () {
 	);
 	const listener = HttpRouter.serve(transport, { disableListenLog: true }).pipe(
 		Layer.provideMerge(app),
-		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: "127.0.0.1", port: settings.port })),
+		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: "127.0.0.1", port: settings.port, disablePreemptiveShutdown: true })),
 	);
 	yield* Effect.gen(function* () {
 		const server = yield* HttpServer.HttpServer;

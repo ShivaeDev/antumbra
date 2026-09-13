@@ -1,7 +1,17 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
 	"files": {
-		"includes": ["**", "!**/dist", "!**/out", "!**/coverage", "!**/release", "!!.worktrees", "!!.local", "!packages/runner/backends/codex/src/schema"]
+		"includes": [
+			"**",
+			"!**/dist",
+			"!**/out",
+			"!**/coverage",
+			"!**/release",
+			"!!.worktrees",
+			"!!.local",
+			"!!.fixtures",
+			"!packages/runner/backends/codex/src/schema"
+		]
 	},
 	"formatter": {
 		"enabled": true,

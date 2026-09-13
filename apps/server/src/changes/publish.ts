@@ -4,6 +4,7 @@ import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
 import { flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
+import { ANTUMBRA_TRAILER } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
@@ -57,8 +58,6 @@ export const publish = Effect.fn("changes.publish")(function* (held: ChangeRow) 
 	});
 	return yield* readChange(held.id);
 });
-const TRAILER = "Opened through Antumbra";
-
 export const openLocal = Effect.fn("changes.openLocal")(function* (
 	input: LocalChangeInput & { readonly title: string; readonly body: string; readonly base: string | null; readonly draft: boolean },
 ) {
@@ -72,7 +71,7 @@ export const openLocal = Effect.fn("changes.openLocal")(function* (
 			requestId: Request.make(`${input.callId}:freeze`),
 			changeId: held.id,
 			title: input.title,
-			body: signing ? [input.body.trimEnd(), TRAILER].join("\n\n") : input.body,
+			body: signing ? [input.body.trimEnd(), ANTUMBRA_TRAILER].join("\n\n") : input.body,
 			base: input.base,
 			draft: input.draft,
 			at: new Date(yield* Clock.currentTimeMillis).toISOString(),

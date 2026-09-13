@@ -6,6 +6,15 @@ import { ChangeId } from "#ids.ts";
 
 export const sessionSituation = row(
 	"sessionSituation",
-	{ id: Schema.String, sessionId: SessionId, changeId: ChangeId, reference: Schema.String, situation: ChangeSituation, text: Schema.String },
+	{
+		id: Schema.String,
+		sessionId: SessionId,
+		changeId: ChangeId,
+		reference: Schema.String,
+		situation: ChangeSituation,
+		label: Schema.String,
+		text: Schema.String,
+		feedbackIds: Schema.Array(Schema.String),
+	},
 	{ key: "id", scope: "sessionId" },
 );

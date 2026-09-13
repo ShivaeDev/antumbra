@@ -34,6 +34,13 @@ the domain model. A second host can map its own vocabulary onto the same durable
 Opening publishes prepared work through the registered host. Adopting starts watching a Change already opened outside Antumbra by its stable address.
 Both acts reconcile exact durable identity so retries converge instead of creating parallel stories.
 
+What a person writes on a Change—a plain comment, a review's own words, a remark on one line of one file—is evidence like every other reading, not
+mail and not permission to wake an Agent. Antumbra records each of those items once against the Change and shows the session that produced the work a
+situation naming how many are waiting. The admiral opens it, reads the draft the app wrote from those words, changes anything that should be said
+differently, and sends it; the items count as forwarded and the situation clears until new words arrive. Sessions never comment, review, or reply on
+the host themselves—the admiral carries what reviewers say. Anything Antumbra publishes as the admiral carries a visible tag, and a tagged post is
+never read back as feedback.
+
 ## GitHub mapping
 
 For GitHub, the durable Change maps to a pull request and its branch:

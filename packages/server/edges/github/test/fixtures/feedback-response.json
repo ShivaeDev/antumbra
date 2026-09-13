@@ -1,0 +1,104 @@
+{
+	"data": {
+		"r_0": {
+			"pr_0": {
+				"number": 970,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/970",
+				"title": "A hand-made RPC group takes its prefix from the feature it extends",
+				"state": "CLOSED",
+				"isDraft": false,
+				"mergeStateStatus": "CLEAN",
+				"reviewDecision": null,
+				"headRefOid": "fb37832952f915a6a80373b950274f825fd1ed3b",
+				"headRefName": "fix/rpc-namespaces",
+				"baseRefName": "main",
+				"updatedAt": "2026-09-12T18:41:25Z",
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				},
+				"reviews": {
+					"nodes": []
+				},
+				"comments": {
+					"nodes": [
+						{
+							"id": "IC_kwDOT1wvoc8AAAABUKNc7Q",
+							"author": {
+								"login": "marvin-bitterlich"
+							},
+							"body": "Superseded: the start pipeline moves onto declared reconcilers and ports (kit in #972, starts in the next PR); no hand-made group under a feature name remains to prefix.",
+							"url": "https://github.com/ShivaeDev/antumbra/pull/970#issuecomment-5647850733",
+							"createdAt": "2026-09-12T18:30:02Z"
+						}
+					]
+				}
+			},
+			"pr_1": {
+				"number": 999,
+				"url": "https://github.com/ShivaeDev/antumbra/pull/999",
+				"title": "Claude session state reaches the transcript",
+				"state": "MERGED",
+				"isDraft": false,
+				"mergeStateStatus": "UNKNOWN",
+				"reviewDecision": null,
+				"headRefOid": "3977d227a5317715277caafe985d5e97b1918d4b",
+				"headRefName": "work/fk30gxz56k/antumbra",
+				"baseRefName": "main",
+				"updatedAt": "2026-09-13T15:08:33Z",
+				"commits": {
+					"nodes": [
+						{
+							"commit": {
+								"statusCheckRollup": {
+									"state": "SUCCESS"
+								}
+							}
+						}
+					]
+				},
+				"reviews": {
+					"nodes": [
+						{
+							"id": "PRR_kwDOT1wvoc8AAAABNWfa0g",
+							"author": {
+								"login": "marvin-bitterlich"
+							},
+							"state": "COMMENTED",
+							"body": "Changes requested before merge.\n\nThe change is right and the mechanism checks out: the CLI gates the message on that environment variable, and the SDK's flag-settings layer carries it without replacing the user's own settings.\n\nWhat is missing is evidence a reviewer can check. Both new tests feed hand-built frames into the mapping, which already handled those shapes; nothing proves the flag reaches the spawned CLI or that the CLI produces the frame. Add a test that starts the backend against a fake executable in place of the real CLI and asserts the variable is present in the child's environment (the Codex backend tests have a fake app-server to copy the shape from). The duplicated state-word cases can fold into the existing \"keeps every state word\" test.\n\nAlso: drop the \"Review outcome\" section. The pull request format has four sections; a review that found something either got fixed or is a Callout, and one that found nothing adds nothing to the body.",
+							"url": "https://github.com/ShivaeDev/antumbra/pull/999#pullrequestreview-5190965970",
+							"submittedAt": "2026-09-13T14:03:30Z",
+							"comments": {
+								"nodes": []
+							}
+						}
+					]
+				},
+				"comments": {
+					"nodes": []
+				}
+			},
+			"pr_2": null
+		}
+	},
+	"errors": [
+		{
+			"type": "NOT_FOUND",
+			"path": ["r_0", "pr_2"],
+			"locations": [
+				{
+					"line": 1,
+					"column": 987
+				}
+			],
+			"message": "Could not resolve to a PullRequest with the number of 999999."
+		}
+	]
+}

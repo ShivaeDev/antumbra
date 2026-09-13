@@ -16,8 +16,11 @@ interface ObservePlan {
 	readonly selections: ReadonlyArray<ObserveSelection>;
 }
 
-// Leave ample room beneath GitHub's GraphQL node limit.
-export const OBSERVE_CHUNK_SIZE = 50;
+// A pull request costs 2601 of GitHub's 500,000 nodes: one commit, fifty reviews, fifty comments under each of them, and fifty issue comments.
+export const FEEDBACK_WINDOW = 50;
+export const OBSERVE_CHUNK_SIZE = 20;
+
+const REVIEW_FIELDS = `id author { login } state body url submittedAt comments(last: ${FEEDBACK_WINDOW}) { nodes { id author { login } path line body url createdAt replyTo { id } } }`;
 
 const PULL_FIELDS = [
 	"number",
@@ -32,6 +35,8 @@ const PULL_FIELDS = [
 	"baseRefName",
 	"updatedAt",
 	"commits(last: 1) { nodes { commit { statusCheckRollup { state } } } }",
+	`reviews(last: ${FEEDBACK_WINDOW}) { nodes { ${REVIEW_FIELDS} } }`,
+	`comments(last: ${FEEDBACK_WINDOW}) { nodes { id author { login } body url createdAt } }`,
 ].join(" ");
 
 export const chunked = <A>(items: ReadonlyArray<A>, size: number): ReadonlyArray<ReadonlyArray<A>> => {

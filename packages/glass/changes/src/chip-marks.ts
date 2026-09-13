@@ -19,6 +19,7 @@ const CHECK_MARKS: Readonly<Record<ChangeView["checks"], string>> = {
 const REVIEW_MARKS: Readonly<Record<ChangeView["review"], string>> = {
 	approved: "✓",
 	changes_requested: "✎",
+	commented: "❞",
 	none: "",
 	pending: "…",
 };

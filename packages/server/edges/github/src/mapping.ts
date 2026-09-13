@@ -1,7 +1,7 @@
 import type { ChangeChecks, ChangeMergeable, ChangeReview, ChangeStage } from "@antumbra/platform-vocabulary/change.ts";
-import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
+import type { Feedback, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Effect } from "effect";
-import type { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, UnknownGitHubWord } from "#dialect.ts";
+import type { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, GitHubReviewState, UnknownGitHubWord } from "#dialect.ts";
 import { GhOutputInvalid } from "#errors.ts";
 import type { ObservedNode } from "#payload.ts";
 
@@ -30,6 +30,14 @@ const REVIEWS: Readonly<Record<Known<GitHubReviewDecision>, ChangeReview>> = {
 	REVIEW_REQUIRED: "pending",
 };
 
+// A dismissed review no longer carries its verdict, but the words the reviewer wrote still stand.
+const VERDICTS: Readonly<Record<Exclude<Known<GitHubReviewState>, "PENDING">, ChangeReview>> = {
+	APPROVED: "approved",
+	CHANGES_REQUESTED: "changes_requested",
+	COMMENTED: "commented",
+	DISMISSED: "commented",
+};
+
 const CHECKS: Readonly<Record<Known<GitHubCheckState>, ChangeChecks>> = {
 	ERROR: "red",
 	EXPECTED: "pending",
@@ -51,6 +59,53 @@ const known = <A extends string>(observed: ObservedNode, field: string, word: A 
 				}),
 			);
 
+const login = (author: { readonly login: string } | null): string => (author === null ? "ghost" : author.login);
+
+const feedbackOf = (observed: ObservedNode) =>
+	Effect.gen(function* () {
+		const items: Feedback[] = [];
+		for (const review of observed.node.reviews.nodes) {
+			const state = yield* known(observed, "reviews.state", review.state);
+			if (state === "PENDING" || review.submittedAt === null) continue;
+			items.push({
+				at: Date.parse(review.submittedAt),
+				author: login(review.author),
+				body: review.body,
+				id: review.id,
+				kind: "review",
+				line: null,
+				path: null,
+				url: review.url,
+				verdict: VERDICTS[state],
+			});
+			for (const comment of review.comments.nodes)
+				items.push({
+					at: Date.parse(comment.createdAt),
+					author: login(comment.author),
+					body: comment.body,
+					id: comment.id,
+					kind: "inline",
+					line: comment.line,
+					path: comment.path,
+					url: comment.url,
+					verdict: null,
+				});
+		}
+		for (const comment of observed.node.comments.nodes)
+			items.push({
+				at: Date.parse(comment.createdAt),
+				author: login(comment.author),
+				body: comment.body,
+				id: comment.id,
+				kind: "comment",
+				line: null,
+				path: null,
+				url: comment.url,
+				verdict: null,
+			});
+		return items;
+	});
+
 export const mapPullRequest = (observed: ObservedNode) =>
 	Effect.gen(function* () {
 		const { node } = observed;
@@ -64,6 +119,7 @@ export const mapPullRequest = (observed: ObservedNode) =>
 			baseRef: node.baseRefName,
 			checks: checkState === null ? "none" : CHECKS[checkState],
 			externalId: String(node.number),
+			feedback: yield* feedbackOf(observed),
 			headRef: node.headRefName,
 			headSha: node.headRefOid,
 			isDraft: node.isDraft,

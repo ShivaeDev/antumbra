@@ -25,6 +25,12 @@
 							}
 						}
 					]
+				},
+				"reviews": {
+					"nodes": []
+				},
+				"comments": {
+					"nodes": []
 				}
 			},
 			"pr_1": {
@@ -51,6 +57,12 @@
 							}
 						}
 					]
+				},
+				"reviews": {
+					"nodes": []
+				},
+				"comments": {
+					"nodes": []
 				}
 			},
 			"pr_2": {
@@ -77,6 +89,12 @@
 							}
 						}
 					]
+				},
+				"reviews": {
+					"nodes": []
+				},
+				"comments": {
+					"nodes": []
 				}
 			},
 			"pr_3": {
@@ -103,6 +121,12 @@
 							}
 						}
 					]
+				},
+				"reviews": {
+					"nodes": []
+				},
+				"comments": {
+					"nodes": []
 				}
 			},
 			"pr_4": null

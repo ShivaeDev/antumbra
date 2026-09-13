@@ -29,6 +29,7 @@ it.app("a pending Change keeps a reported Piece landing until the host lands it"
 		review: "approved",
 		mergeable: "clean",
 		stage: "open",
+		feedback: [],
 		raw: {},
 		title: "Survey",
 		url: "https://github.com/example/reef/pull/41",

@@ -7,7 +7,11 @@ import { quayChange } from "#rows/quay-change.ts";
 
 export const QuayStatus = Schema.Literals(["all", "alongside", "archived", "checksRunning", "draft", "landed", "needsAttention"]);
 
-const listedAt = (row: typeof quayChange.Row.Type): number => Date.parse(row.archivedAt ?? row.activityAt);
+const listedAt = (row: typeof quayChange.Row.Type): number => {
+	if (row.archivedAt === null) return Date.parse(row.activityAt);
+	const landed = row.landedAt ?? row.withdrawnAt;
+	return Date.parse(landed ?? row.activityAt);
+};
 
 export const browse = query("browse", {
 	input: { query: Schema.String, repositoryId: Schema.NullOr(RepoId), status: QuayStatus, selectedId: Schema.NullOr(ChangeId) },

@@ -2,12 +2,13 @@ import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { ChangeId } from "#ids.ts";
-import { adoption, chartering, opening, registration, request, seen } from "#test/kit.ts";
+import { adoption, chartering, opening, recorded, registration, request, seen } from "#test/kit.ts";
 
-const recordedDaysAgo = (days: number): string => new Date(-days * 24 * 60 * 60 * 1000).toISOString();
+const DAY_MILLIS = 24 * 60 * 60 * 1000;
+const DUE_PASS_MILLIS = 5_000;
 const shoal = { ...seen("open"), externalId: "42", headRef: "work/shoal" };
 
-it.app("archives a change seven days after Antumbra recorded it landing and keeps a younger one at the quay", function* (app) {
+it.app("archives a landed change once seven days have passed and leaves a younger one at the quay", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.repos.register(registration);
@@ -20,16 +21,19 @@ it.app("archives a change seven days after Antumbra recorded it landing and keep
 		host: "github",
 		observation: seen("landed", 3000),
 		attachment: { _tag: "Observed" },
-		observedAt: recordedDaysAgo(7),
+		observedAt: yield* recorded(7 * DAY_MILLIS - DUE_PASS_MILLIS),
 	});
 	yield* app.api.changes.observe({
 		requestId: request("observe:shoal"),
 		host: "github",
 		observation: { ...shoal, stage: "landed", activityAt: 3000 },
 		attachment: { _tag: "Observed" },
-		observedAt: recordedDaysAgo(6),
+		observedAt: yield* recorded(6 * DAY_MILLIS),
 	});
+	const landed = yield* eventually(app.api.changes.quay({}), (rows) => rows.length === 2);
+	expect(landed.map((row) => row.group)).toEqual(["landed", "landed"]);
 
+	yield* app.clock.advance(DUE_PASS_MILLIS);
 	const quay = yield* eventually(app.api.changes.quay({}), (rows) => rows.some((row) => row.group === "archived"));
 	expect(quay.find((row) => row.id === older)).toMatchObject({ group: "archived", stage: "landed" });
 	expect(quay.find((row) => row.id === younger)).toMatchObject({ group: "landed", stage: "landed" });
@@ -41,7 +45,7 @@ it.app("archives a change seven days after Antumbra recorded it landing and keep
 
 	const archivedAt = (yield* app.rows.change.get(older)).archivedAt;
 	expect(archivedAt).not.toBeNull();
-	yield* app.clock.advance(5_000);
+	yield* app.clock.advance(DUE_PASS_MILLIS);
 	expect(yield* Effect.flip(app.commit.changes.archive({ changeId: older, requestId: request(`archive:${older}`) }))).toMatchObject({
 		_tag: "AlreadyDone",
 	});

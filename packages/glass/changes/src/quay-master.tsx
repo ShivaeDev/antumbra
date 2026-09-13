@@ -2,7 +2,7 @@ import type { browse } from "@antumbra/domain-changes/queries/browse.ts";
 import { SectionHeading } from "@antumbra/glass-components/section.tsx";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import type { QuayChange } from "#glass.ts";
-import { type Filters, INITIAL, QuayFilters } from "#quay-filters.tsx";
+import { type Filters, INITIAL, QuayFilters, unfiltered } from "#quay-filters.tsx";
 import { QuayListRow } from "#quay-list-row.tsx";
 
 interface Listing {
@@ -54,7 +54,9 @@ export const QuayMaster = (props: {
 					<SettledRows {...listing} title="Archived" items={props.view.rows.filter((item) => item.group === "archived")} />
 				</nav>
 				{props.view.rows.length === 0 && props.view.total > 0 ? (
-					<p className="text-xs text-muted-foreground">No pull requests match these filters.</p>
+					<p className="text-xs text-muted-foreground">
+						{unfiltered(props.filters) ? "Everything at the quay is archived." : "No pull requests match these filters."}
+					</p>
 				) : null}
 			</div>
 		</aside>

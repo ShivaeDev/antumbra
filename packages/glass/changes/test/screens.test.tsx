@@ -11,6 +11,8 @@ const repositoryOptions = (container: HTMLElement): readonly string[] =>
 
 const headed = (container: HTMLElement, title: string): boolean => [...container.querySelectorAll("h2")].some((node) => node.textContent === title);
 
+const stamps = (container: HTMLElement): readonly string[] => [...container.querySelectorAll("time")].map((node) => node.textContent ?? "");
+
 it.glass("filters the live Quay while retaining the selected detail and piece change link", function* ({ api, render }) {
 	yield* ready(api);
 	const container = yield* render(
@@ -78,8 +80,9 @@ it.glass("keeps a merged change under Landed and offers every registered reposit
 
 it.glass("moves a change landed seven days ago out of the quay and into the Archived filter", function* ({ api, render }) {
 	yield* ready(api);
-	const container = yield* render(<QuayPanel api={api} onSelect={() => undefined} onOpenSession={() => undefined} />);
+	const container = yield* render(<QuayPanel api={api} selectedId={changeId} onSelect={() => undefined} onOpenSession={() => undefined} />);
 	yield* until(() => container.textContent?.includes("1 of 1 pull requests") === true, "the Quay to show its change");
+	expect(container.textContent).toContain("Latest host activity");
 
 	yield* api.changes.observe({
 		host: "github",
@@ -87,13 +90,13 @@ it.glass("moves a change landed seven days ago out of the quay and into the Arch
 		attachment: { _tag: "Observed" },
 		observedAt: yield* recorded(7),
 	});
+	yield* until(() => container.textContent?.includes("Everything at the quay is archived.") === true, "the quay to report its work archived");
+	expect(headed(container, "Landed")).toBe(false);
+	expect(container.textContent).not.toContain("Latest host activity");
+	expect(stamps(container)).toEqual([(yield* recorded(0)).slice(0, 10)]);
+
 	yield* fill(container, "Status", "archived");
 	yield* until(() => headed(container, "Archived"), "the Archived section to appear");
 	expect(container.textContent).toContain("merged");
 	expect(container.textContent).toMatch(/Archived \d{4}-\d{2}-\d{2}/);
-
-	yield* fill(container, "Status", "all");
-	yield* until(() => !headed(container, "Archived"), "the archive to leave the default view");
-	expect(headed(container, "Landed")).toBe(false);
-	expect(container.textContent).toContain("0 of 0 pull requests");
 });

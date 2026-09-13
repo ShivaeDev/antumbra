@@ -38,9 +38,9 @@ import { changePreparedMaterializer } from "#materializers/change-prepared.ts";
 import { proposalFrozenMaterializer } from "#materializers/proposal-frozen.ts";
 import { adoptions } from "#queries/adoptions.ts";
 import { all } from "#queries/all.ts";
+import { archivable } from "#queries/archivable.ts";
 import { browse } from "#queries/browse.ts";
 import { byPiece } from "#queries/by-piece.ts";
-import { dueArchives } from "#queries/due-archives.ts";
 import { links } from "#queries/links.ts";
 import { publishing } from "#queries/publishing.ts";
 import { quay } from "#queries/quay.ts";
@@ -118,6 +118,6 @@ export const changes = feature("changes", {
 		changeDismissedMaterializer,
 		proposalFrozenMaterializer,
 	],
-	queries: [byPiece, hostCapabilities, browse, sessionSituations, adoptions, world, quay, all, links, watchable, publishing, dueArchives],
+	queries: [byPiece, hostCapabilities, browse, sessionSituations, adoptions, world, quay, all, links, watchable, publishing, archivable],
 	reconcilers: [archiving],
 });

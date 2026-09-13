@@ -3,7 +3,10 @@ import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { Clock, Effect } from "effect";
 export const request = (name: string) => Request.make(name);
+export const recorded = (agoMillis: number): Effect.Effect<string> =>
+	Effect.map(Clock.currentTimeMillis, (now) => new Date(now - agoMillis).toISOString());
 export const voyageId = VoyageId.make("voyage:reef");
 export const pieceId = PieceId.make("piece:reef");
 export const repoId = RepoId.make("repo:reef");

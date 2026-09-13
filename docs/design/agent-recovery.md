@@ -161,8 +161,12 @@ Session closure, Agent retirement, or resource reclamation; startup reconciles t
 Restarting the server alone is a separate act that cuts nothing. The server closes its commit path and exits, and the shell starts it again on the
 same endpoint; no drain is sent, no Session is closed, and nothing is recorded for a wake, because no turn was cut. The runner keeps its provider
 sessions, reconnects on its own, and flushes its log after the server's committed cursor, so a tool call in flight waits for the connection and
-completes once it is back. The glass says it is reconnecting where its content would be and comes back by itself. Only a person asks for this; the
-shell's restart-on-exit is unchanged, and swapping the server for a new build is a further act that does not exist yet.
+completes once it is back. The glass keeps what it last read: every reading that has already answered holds its values and comes back by itself, and
+the window says once that it is reconnecting, in the navigation rail or in the session header of a transcript window. The Settings screen also dims
+its cards and puts them out of reach, so settings that cannot be changed until the server is back do not look live; the Restart rows sit outside that
+region and stay pressable, because they speak to the shell. A reading that has never answered still says where its content would be that it is
+reconnecting. Only a person asks for this; the shell's restart-on-exit is unchanged, and swapping the server for a new build is a further act that
+does not exist yet.
 
 Authentication requirements, exhausted provider capacity, and unsafe resource state park the Intent as waiting, with the reason on its row. It stays
 parked until an explicit retry — the admiral retrying a provider, or another send to the same Session — moves it back to queued, and the attempt then

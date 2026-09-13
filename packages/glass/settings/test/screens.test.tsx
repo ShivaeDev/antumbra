@@ -39,8 +39,8 @@ it.glass("lists the Wakes group as Hold everything and the ten switches, in orde
 
 it.glass("renders every setting the fleet has", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
-	const flags = yield* answered(api.settings.flags({}));
-	const counts = yield* answered(api.settings.counts({}));
+	const flags = yield* answered(api.settings.flags({}), "the fleet's flags");
+	const counts = yield* answered(api.settings.counts({}), "the fleet's counts");
 	for (const reading of [...flags, ...counts]) {
 		yield* renderedControl(container, reading.title);
 		expect(container.textContent).toContain(reading.description);
@@ -60,7 +60,11 @@ it.glass("saves a flag as it is switched", function* ({ api, render }) {
 	expect(labelled(container, "Hold everything").getAttribute("role")).toBe("switch");
 	expect(reads(container, "Hold everything")).toBe("false");
 	yield* click(labelled(container, "Hold everything"));
-	const saved = yield* eventually(api.settings.flags({}), (flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on));
+	const saved = yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
+		"the hold-everything flag to switch on",
+	);
 	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 	yield* until(() => reads(container, "Hold everything") === "true", "the switch to read on");
 });
@@ -77,7 +81,11 @@ it.glass("returns a switch to the server's value when its save fails, and keeps 
 
 	yield* server.back;
 	yield* click(labelled(container, "Hold everything"));
-	const saved = yield* eventually(api.settings.flags({}), (flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on));
+	const saved = yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
+		"the hold-everything flag to switch on",
+	);
 	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 	yield* until(() => refusalIn(container) === null, "the refusal to go");
 	expect(reads(container, "Hold everything")).toBe("true");
@@ -96,7 +104,11 @@ it.glass("returns the switch after a second failed save as well as the first", f
 	yield* server.back;
 	yield* click(labelled(container, "Hold everything"));
 	yield* until(() => reads(container, "Hold everything") === "true", "the saved switch to read on");
-	const saved = yield* eventually(api.settings.flags({}), (flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on));
+	const saved = yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
+		"the hold-everything flag to switch on",
+	);
 	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 });
 
@@ -108,8 +120,10 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 	expect(labelled<HTMLInputElement>(container, "Maximum running agents").type).toBe("number");
 	yield* fill(container, "Maximum running agents", "12");
 	yield* submit(container, "Maximum running agents");
-	const saved = yield* eventually(api.settings.counts({}), (counts) =>
-		counts.some((count) => count.key === "maxParallelSessions" && count.count === 12),
+	const saved = yield* eventually(
+		api.settings.counts({}),
+		(counts) => counts.some((count) => count.key === "maxParallelSessions" && count.count === 12),
+		"the running-agent limit to save as 12",
 	);
 	expect(saved.find((count) => count.key === "maxParallelSessions")?.count).toBe(12);
 });

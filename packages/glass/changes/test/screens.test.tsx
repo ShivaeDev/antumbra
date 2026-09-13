@@ -55,15 +55,19 @@ it.glass("offers adoption and keeps a host refusal editable for retry", function
 	yield* submit(document.body, "Adopt change");
 	const retry = yield* renderedForm(container, "Retry adoption");
 	expect(container.textContent).toContain("ChangeHostRefused: no change at this URL");
-	const refused = (yield* answered(api.changes.adoptions({})))[0];
+	const refused = (yield* answered(api.changes.adoptions({}), "the refused adoption"))[0];
 	expect(refused).toBeDefined();
 	if (refused === undefined) return;
 	expect(refused.url).toBe("https://github.com/example/reef/pull/99");
 	yield* fill(retry, "Retry adoption Pull request URL", CORRECTED);
 	yield* submit(container, "Retry adoption");
-	const corrected = yield* eventually(api.changes.adoptions({}), (rows) => rows[0]?.url === CORRECTED);
+	const corrected = yield* eventually(
+		api.changes.adoptions({}),
+		(rows) => rows[0]?.url === CORRECTED,
+		"the adoption to carry the corrected pull request URL",
+	);
 	expect(corrected[0]).toMatchObject({ id: refused.id });
-	expect((yield* answered(api.changes.quay({}))).length).toBe(1);
+	expect((yield* answered(api.changes.quay({}), "the quay")).length).toBe(1);
 });
 
 it.glass("adopts the corrected pull request when a refused adoption is retried", function* ({ api, render, run }) {
@@ -83,7 +87,7 @@ it.glass("adopts the corrected pull request when a refused adoption is retried",
 	yield* submit(container, "Retry adoption");
 	yield* until(() => container.textContent?.includes("2 of 2 pull requests") === true, "the corrected pull request to reach the quay");
 	expect(container.textContent).toContain("Shoals#100");
-	expect(yield* answered(api.changes.adoptions({}))).toEqual([]);
+	expect(yield* answered(api.changes.adoptions({}), "the pending adoptions")).toEqual([]);
 });
 
 it.glass("keeps a merged change under Landed and offers every registered repository", function* ({ api, render }) {

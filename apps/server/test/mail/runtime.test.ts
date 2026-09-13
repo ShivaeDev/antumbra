@@ -10,14 +10,18 @@ it.app("turning the priority-mail switch back on delivers due mail without marki
 	yield* runner.rest(2);
 	yield* app.api.settings.setFlag({ key: "wakeOnPriorityMail", on: false });
 	yield* app.api.mail.send(sending("shoal"));
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toHaveLength(1);
-	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }))).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toHaveLength(1);
+	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read")).toEqual([]);
 	yield* app.api.settings.setFlag({ key: "wakeOnPriorityMail", on: true });
-	const delivered = yield* eventually(app.api.mail.mailbox({ agentId: HAND }), (mail) => mail.every((held) => held.deliveredAt !== null));
+	const delivered = yield* eventually(
+		app.api.mail.mailbox({ agentId: HAND }),
+		(mail) => mail.every((held) => held.deliveredAt !== null),
+		"every held mail to be delivered",
+	);
 	expect(delivered.map((held) => held.readAt)).toEqual([null]);
-	const operations = yield* answered(app.api.sessions.operations({ sessionId: ROOT }));
+	const operations = yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read");
 	expect(operations).toMatchObject([{ kind: "wake", reason: mailWords({ count: 1, precedence: "priority" }), status: "requested" }]);
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toEqual([]);
 });
 
 it.app("a routine mail timer submits the wake when its quiet interval ends", function* (app) {
@@ -26,9 +30,13 @@ it.app("a routine mail timer submits the wake when its quiet interval ends", fun
 	yield* app.api.settings.setCount({ key: "routineMailMinutes", count: 1 });
 	yield* app.api.mail.send({ ...sending("shoal"), precedence: "routine" });
 	yield* app.clock.advance(55_000);
-	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }))).toEqual([]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read")).toEqual([]);
 	yield* app.clock.advance(5_000);
-	const delivered = yield* eventually(app.api.mail.mailbox({ agentId: HAND }), (mail) => mail.every((held) => held.deliveredAt !== null));
+	const delivered = yield* eventually(
+		app.api.mail.mailbox({ agentId: HAND }),
+		(mail) => mail.every((held) => held.deliveredAt !== null),
+		"every held mail to be delivered",
+	);
 	expect(delivered[0]?.readAt).toBeNull();
 });
 
@@ -36,14 +44,24 @@ it.app("new mail waits behind a requested wake then wakes the resting agent agai
 	const runner = yield* working(app);
 	yield* runner.rest(2);
 	yield* app.api.mail.send(sending("shoal"));
-	yield* eventually(app.api.mail.mailbox({ agentId: HAND }), (mail) => mail.every((held) => held.deliveredAt !== null));
-	const first = (yield* answered(app.api.sessions.operations({ sessionId: ROOT })))[0];
+	yield* eventually(
+		app.api.mail.mailbox({ agentId: HAND }),
+		(mail) => mail.every((held) => held.deliveredAt !== null),
+		"every held mail to be delivered",
+	);
+	const first = (yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read"))[0];
 	if (first === undefined) return yield* Effect.die("The first mail wake was not submitted");
 	yield* app.api.mail.send(sending("channel"));
-	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }))).toHaveLength(1);
-	expect((yield* answered(app.api.mail.unread({ agentId: HAND }))).filter((held) => held.deliveredAt === null)).toHaveLength(1);
+	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read")).toHaveLength(1);
+	expect(
+		(yield* answered(app.api.mail.unread({ agentId: HAND }), "the unread mail to be listed")).filter((held) => held.deliveredAt === null),
+	).toHaveLength(1);
 	yield* runner.accept(3, first.id);
 	yield* runner.rest(4);
-	const next = yield* eventually(app.api.sessions.operations({ sessionId: ROOT }), (operations) => operations.length === 2);
+	const next = yield* eventually(
+		app.api.sessions.operations({ sessionId: ROOT }),
+		(operations) => operations.length === 2,
+		"a second session operation",
+	);
 	expect(next[1]?.reason).toBe(mailWords({ count: 2, precedence: "priority" }));
 });

@@ -9,7 +9,7 @@ import { CommandForm } from "#form.tsx";
 const FIXED = ["role"] as const;
 
 it.glass("submits to the newly selected target", function* ({ api, render }) {
-	const rows = yield* answered(api.roleSettings.defaults({}));
+	const rows = yield* answered(api.roleSettings.defaults({}), "the role defaults to be read");
 	const captain = yield* Effect.fromNullishOr(rows.find((row) => row.role === "captain"));
 	const crew = yield* Effect.fromNullishOr(rows.find((row) => row.role === "crew"));
 	const container = yield* render(<CommandForm command={api.roleSettings.choose} fixed={FIXED} row={captain} />);
@@ -20,13 +20,17 @@ it.glass("submits to the newly selected target", function* ({ api, render }) {
 	expect(labelled<HTMLInputElement>(container, "Crew Model").value).toBe("");
 	yield* fill(container, "Crew Model", "new-model");
 	yield* submit(container, "Crew");
-	const saved = yield* eventually(api.roleSettings.defaults({}), (settings) => settings.some((row) => row.model === "new-model"));
+	const saved = yield* eventually(
+		api.roleSettings.defaults({}),
+		(settings) => settings.some((row) => row.model === "new-model"),
+		"a role row to save with model new-model",
+	);
 	expect(saved.find((row) => row.role === "crew")?.model).toBe("new-model");
 	expect(saved.find((row) => row.role === "captain")?.model).toBeNull();
 });
 
 it.glass("uses the current completion callback", function* ({ api, render }) {
-	const rows = yield* answered(api.roleSettings.defaults({}));
+	const rows = yield* answered(api.roleSettings.defaults({}), "the role defaults to be read");
 	const crew = yield* Effect.fromNullishOr(rows.find((row) => row.role === "crew"));
 	const completion = yield* Deferred.make<string>();
 	const container = yield* render(
@@ -38,8 +42,10 @@ it.glass("uses the current completion callback", function* ({ api, render }) {
 		<CommandForm command={api.roleSettings.choose} fixed={FIXED} row={crew} sent={() => Effect.runSync(Deferred.succeed(completion, "current"))} />,
 	);
 	yield* submit(container, "Crew");
-	const saved = yield* eventually(api.roleSettings.defaults({}), (settings) =>
-		settings.some((row) => row.role === "crew" && row.model === "new-model"),
+	const saved = yield* eventually(
+		api.roleSettings.defaults({}),
+		(settings) => settings.some((row) => row.role === "crew" && row.model === "new-model"),
+		"the crew row to save with model new-model",
 	);
 	expect(saved.find((row) => row.role === "crew")?.model).toBe("new-model");
 	expect(yield* Deferred.await(completion)).toBe("current");
@@ -73,6 +79,10 @@ it.glass("refreshes clean values and preserves an edited draft", function* ({ ap
 	yield* until(() => container.querySelector("output")?.textContent === "updated-model", "the updated row to reach the mounted form");
 	expect(labelled<HTMLInputElement>(container, "Crew Model").value).toBe("draft-model");
 	yield* submit(container, "Crew");
-	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "crew" && row.model === "draft-model"));
+	const saved = yield* eventually(
+		api.roleSettings.defaults({}),
+		(rows) => rows.some((row) => row.role === "crew" && row.model === "draft-model"),
+		"the crew row to save with model draft-model",
+	);
 	expect(saved.find((row) => row.role === "crew")).toMatchObject({ backend: "codex", model: "draft-model" });
 });

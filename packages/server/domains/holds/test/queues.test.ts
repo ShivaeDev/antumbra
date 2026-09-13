@@ -32,7 +32,7 @@ it.app("keeps ready pieces visible while held and removes them when gated", func
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.pieces.launch({ id: PieceId.make("piece") });
 	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
-	const held = yield* answered(app.api.holds.queues({}));
+	const held = yield* answered(app.api.holds.queues({}), "the held queues to be listed");
 	expect(held.queues).toMatchObject([{ setting: "spawnForPiece", held: true, waiting: [{ id: "piece", title: "Sound", voyage: "Reef" }] }]);
 	yield* app.api.rulings.request({
 		requester: { kind: "authority", by: "admiral" },
@@ -46,6 +46,6 @@ it.app("keeps ready pieces visible while held and removes them when gated", func
 		gates: [PieceId.make("piece")],
 		recommendation: null,
 	});
-	const gated = yield* answered(app.api.holds.queues({}));
+	const gated = yield* answered(app.api.holds.queues({}), "the held queues to be listed");
 	expect(gated.queues).toMatchObject([{ setting: "spawnForPiece", held: true, waiting: [] }]);
 });

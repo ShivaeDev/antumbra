@@ -52,6 +52,6 @@ it.glass("returns committed sequences from the command hook", function* ({ api, 
 	yield* render(<Sender api={api} choice={{ ...choice, backend: "claude" }} />);
 	yield* press(container, "Choose");
 	yield* until(() => Number(container.querySelector("output")?.textContent) > first, "the next committed sequence to appear");
-	const saved = yield* answered(api.roleSettings.defaults({}));
+	const saved = yield* answered(api.roleSettings.defaults({}), "the role defaults to be read");
 	expect(saved.find((row) => row.role === "captain")).toMatchObject({ backend: "claude", model: "gpt", effort: "high" });
 });

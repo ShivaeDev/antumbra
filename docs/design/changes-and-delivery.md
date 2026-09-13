@@ -38,8 +38,8 @@ What a person writes on a Change—a plain comment, a review's own words, a rema
 mail and not permission to wake an Agent. Antumbra records each of those items once against the Change and shows the session that produced the work a
 situation naming how many are waiting. The admiral opens it, reads the draft the app wrote from those words, changes anything that should be said
 differently, and sends it; the items count as forwarded and the situation clears until new words arrive. Sessions never comment, review, or reply on
-the host themselves—the admiral carries what reviewers say. Whatever Antumbra itself writes on a host carries the `Opened through Antumbra` line,
-whether or not the fleet signs its pull requests, so Antumbra never reads its own words back as feedback.
+the host themselves—the admiral carries what reviewers say. Whatever Antumbra itself writes on a host always carries the `Opened through Antumbra`
+line, so a reader always knows the post is the system's own and Antumbra never reads its own words back as feedback.
 
 ## GitHub mapping
 

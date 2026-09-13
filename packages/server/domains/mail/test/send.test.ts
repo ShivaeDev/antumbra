@@ -8,7 +8,7 @@ it.app("sent mail waits unread and undelivered in the order it was sent", functi
 	yield* app.clock.advance(60_000);
 	yield* app.api.mail.send(sending("northern channel"));
 
-	const waiting = yield* answered(app.api.mail.unread({ agentId: HAND }));
+	const waiting = yield* answered(app.api.mail.unread({ agentId: HAND }), "the agent's unread mail to be listed");
 	expect(waiting.map((held) => held.id)).toEqual([messageOf("eastern approach"), messageOf("northern channel")]);
 	expect(waiting[0]).toMatchObject({ authorAgentId: null, deliveredAt: null, precedence: "priority", readAt: null, toAgentId: HAND });
 });
@@ -19,7 +19,9 @@ it.app("sends one message however often the request that named it arrives", func
 
 	expect(again).toBe(first);
 	expect(yield* app.rows.message.count({})).toBe(1);
-	expect((yield* answered(app.api.mail.unread({ agentId: HAND })))[0]?.body).toBe(sending("eastern approach").body);
+	expect((yield* answered(app.api.mail.unread({ agentId: HAND }), "the agent's unread mail to be listed"))[0]?.body).toBe(
+		sending("eastern approach").body,
+	);
 });
 
 it.app("refuses a message with nothing said in it and stores nothing", function* (app) {

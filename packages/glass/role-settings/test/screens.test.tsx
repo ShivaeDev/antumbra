@@ -21,7 +21,11 @@ it.glass("saves a fleet choice", function* ({ api, render }) {
 	const flagship = yield* renderedForm(container, "Flagship");
 	yield* fill(flagship, "Flagship Model", "opus");
 	yield* submit(container, "Flagship");
-	const saved = yield* eventually(api.roleSettings.defaults({}), (rows) => rows.some((row) => row.role === "flagship" && row.model === "opus"));
+	const saved = yield* eventually(
+		api.roleSettings.defaults({}),
+		(rows) => rows.some((row) => row.role === "flagship" && row.model === "opus"),
+		"the flagship row to save with model opus",
+	);
 	expect(saved.find((row) => row.role === "flagship")).toMatchObject({
 		backend: null,
 		effort: null,
@@ -55,8 +59,10 @@ it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, r
 	expect(labelled(captain, "Captain Backend").textContent).toBe("codex · fleet default");
 	yield* pick(crew, "Crew Backend", "claude");
 	yield* submit(container, "Crew");
-	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
-		rows.some((row) => row.role === "crew" && row.backend === "claude"),
+	const saved = yield* eventually(
+		api.roleSettings.forVoyage({ voyageId: VOYAGE }),
+		(rows) => rows.some((row) => row.role === "crew" && row.backend === "claude"),
+		"the voyage's crew row to save with the claude backend",
 	);
 	expect(saved.find((row) => row.role === "crew")).toMatchObject({
 		backend: "claude",
@@ -75,8 +81,10 @@ it.glass("names the backend a role falls back to once it has chosen its own", fu
 	yield* until(() => labelled(crew, "Crew Backend").textContent === "claude", "the backend the role chose for itself");
 	yield* pick(crew, "Crew Backend", "codex · fleet default");
 	yield* submit(container, "Crew");
-	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
-		rows.some((row) => row.role === "crew" && row.backend === null),
+	const saved = yield* eventually(
+		api.roleSettings.forVoyage({ voyageId: VOYAGE }),
+		(rows) => rows.some((row) => row.role === "crew" && row.backend === null),
+		"the voyage's crew row to save with a null backend",
 	);
 	expect(saved.find((row) => row.role === "crew")?.backend).toBe(null);
 });

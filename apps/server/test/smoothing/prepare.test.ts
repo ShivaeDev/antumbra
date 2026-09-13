@@ -82,8 +82,12 @@ it.app("prepares an actual constrained birth, waits for logged acceptance, and c
 	entries.push(ended);
 	yield* runner.append([ended]);
 	yield* runner.reply(stop.requestId, { type: "Accepted" });
-	yield* eventually(app.api.boards.smoothingState({ voyageId }), (state) => state.state === "idle" && state.uncovered === 0);
-	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({
+	yield* eventually(
+		app.api.boards.smoothingState({ voyageId }),
+		(state) => state.state === "idle" && state.uncovered === 0,
+		"the smoothing state to fall idle with nothing uncovered",
+	);
+	expect(yield* answered(app.api.agents.smoother({ voyageId }), "the voyage's smoother to be read")).toMatchObject({
 		id: start.options.agentId,
 		status: "alive",
 		currentSessionId: null,

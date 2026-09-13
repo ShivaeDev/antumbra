@@ -49,7 +49,7 @@ it.app("the report tool lands on its bound Piece and the voyage reads the full r
 	const landedId = ReportId.make(requestId(context));
 
 	expect(yield* landReportTool.invoke(context, { body: landing.body, title: landing.title })).toEqual({ ok: true, text: "report landed" });
-	expect(yield* answered(app.api.reports.byId({ id: landedId }))).toMatchObject({
+	expect(yield* answered(app.api.reports.byId({ id: landedId }), "the landed report to be read")).toMatchObject({
 		authorAgentId: context.agentId,
 		pieceIds: [soundings],
 		body: landing.body,
@@ -90,5 +90,5 @@ it.app("a report tool without a bound Piece refuses landing", function* (app) {
 		ok: false,
 		text: "you are not on a piece",
 	});
-	expect(yield* answered(app.api.reports.byId({ id: reportId }))).toBeNull();
+	expect(yield* answered(app.api.reports.byId({ id: reportId }), "the report to be read")).toBeNull();
 });

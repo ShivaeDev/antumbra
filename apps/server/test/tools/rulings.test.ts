@@ -64,13 +64,13 @@ it.app("holds a blocking tool until answered and does not duplicate its answer a
 	});
 	yield* rulingReconciliation;
 	const waiting = yield* request.invoke(context, input).pipe(Effect.forkChild);
-	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1);
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1, "one open ruling to be listed");
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 
 	const rulingId = RulingId.make(requestId(context));
 	yield* app.api.rulings.answer({ rulingId, answer: "Take the north", choiceId: null, by: "admiral", byAgentId: null });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("your hold is over") });
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 	expect((yield* app.rows.message.where({})).filter((message) => message.id === `ruling:${rulingId}`)).toEqual([]);
 });
 
@@ -84,7 +84,7 @@ it.app("parking releases the tool without generating a duplicate notice", functi
 		input: JSON.stringify(input),
 	});
 	const waiting = yield* request.invoke(context, input).pipe(Effect.forkChild);
-	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1);
+	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1, "one open ruling to be listed");
 	yield* app.api.rulings.park({ rulingId: RulingId.make(requestId(context)), note: "Wait for daylight" });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("Wait for daylight") });
 	yield* (yield* Commit).commit(answerTool, {
@@ -95,8 +95,8 @@ it.app("parking releases the tool without generating a duplicate notice", functi
 		input: JSON.stringify(input),
 		answer: { ok: true, text: "parked" },
 	});
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
-	expect(yield* answered(app.api.rulings.open({}))).toHaveLength(1);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
+	expect(yield* answered(app.api.rulings.open({}), "the open rulings to be listed")).toHaveLength(1);
 });
 
 it.app("delivers a nonblocking answer once as priority mail", function* (app) {
@@ -105,10 +105,14 @@ it.app("delivers a nonblocking answer once as priority mail", function* (app) {
 	expect(yield* request.invoke(context, { ...input, urgency: "pressing" })).toMatchObject({ ok: true });
 	const rulingId = RulingId.make(requestId(context));
 	yield* app.api.rulings.answer({ rulingId, answer: "Take the north", choiceId: null, by: "admiral", byAgentId: null });
-	yield* eventually(app.api.rulings.byId({ id: rulingId }), (found) => Option.isSome(found) && found.value.deliveredAt !== null);
+	yield* eventually(
+		app.api.rulings.byId({ id: rulingId }),
+		(found) => Option.isSome(found) && found.value.deliveredAt !== null,
+		"the ruling to be delivered",
+	);
 	const notices = (yield* app.rows.message.where({})).filter((message) => message.id === `ruling:${rulingId}`);
 	expect(notices).toMatchObject([{ precedence: "priority", toAgentId: context.agentId, body: expect.stringContaining("Take the north") }]);
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 });
 
 it.app("asks the blocking requester for context and holds their reply until the ruling", function* (app) {
@@ -122,7 +126,7 @@ it.app("asks the blocking requester for context and holds their reply until the 
 		input: JSON.stringify(input),
 	});
 	const waiting = yield* request.invoke(context, input).pipe(Effect.forkChild);
-	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1);
+	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1, "one open ruling to be listed");
 	const rulingId = RulingId.make(requestId(context));
 	yield* app.api.rulings.addContext({ rulingId, authorAgentId: null, body: "How deep is north?" });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("How deep is north?") });
@@ -145,10 +149,14 @@ it.app("asks the blocking requester for context and holds their reply until the 
 		input: JSON.stringify(replyInput),
 	});
 	const reply = yield* replyTool.invoke(replyContext, replyInput).pipe(Effect.forkChild);
-	yield* eventually(app.api.rulings.byId({ id: rulingId }), (found) => Option.isSome(found) && found.value.contexts.length === 2);
+	yield* eventually(
+		app.api.rulings.byId({ id: rulingId }),
+		(found) => Option.isSome(found) && found.value.contexts.length === 2,
+		"the ruling to carry two contexts",
+	);
 	yield* app.api.rulings.answer({ rulingId, answer: "Take the north", choiceId: null, by: "admiral", byAgentId: null });
 	expect(yield* Fiber.join(reply)).toMatchObject({ ok: true, text: expect.stringContaining("your hold is over") });
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 });
 
 it.app("waits for a missing flagship captain and delivers the ascent once they are hailed", function* (app) {
@@ -166,14 +174,14 @@ it.app("waits for a missing flagship captain and delivers the ascent once they a
 		gates: [],
 		recommendation: null,
 	});
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 	yield* rulingReconciliation;
 	const captain = Request.make("captain");
 	yield* (yield* Commit).commit(hail, { requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "agent" });
 	const captainId = identity(captain).agentId;
-	yield* eventually(app.api.mail.mailbox({ agentId: captainId }), (messages) => messages.length === 1);
+	yield* eventually(app.api.mail.mailbox({ agentId: captainId }), (messages) => messages.length === 1, "one message in the captain's mailbox");
 	expect(yield* app.rows.message.where({ toAgentId: captainId })).toMatchObject([
 		{ id: `ruling-ascent:ascent:${captainId}`, precedence: "priority" },
 	]);
-	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
+	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 });

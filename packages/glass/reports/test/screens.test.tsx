@@ -81,7 +81,7 @@ it.glass("keeps an open report on the page while the server is away", function* 
 		pieceId: soundings,
 		title: "Reef soundings",
 	});
-	const landed = yield* eventually(api.reports.byPiece({ pieceId: soundings }), (reports) => reports.length === 1);
+	const landed = yield* eventually(api.reports.byPiece({ pieceId: soundings }), (reports) => reports.length === 1, "the landed report");
 	const container = yield* render(
 		<>
 			<ReportReferences api={api} reports={landed.map((report) => ({ id: report.id, title: report.title }))} />

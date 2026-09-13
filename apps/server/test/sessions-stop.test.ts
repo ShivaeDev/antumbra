@@ -54,21 +54,23 @@ it.app("a stopped session keeps its ready piece until you send to it", function*
 	const quay = yield* berth(app);
 	yield* quay.open(0, WORKER, agentId, sessionId);
 	yield* quay.stop(2, sessionId);
-	yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "stopped");
+	yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "stopped", "the agent to stop");
 	yield* app.api.pieces.launch({ id: pieceId });
-	expect((yield* answered(app.api.agents.dispatch({}))).ready).toEqual([]);
-	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId })))).toEqual([]);
+	expect((yield* answered(app.api.agents.dispatch({}), "the dispatch to answer")).ready).toEqual([]);
+	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed"))).toEqual([]);
 
 	const inputs = yield* inputApi;
 	yield* Effect.forkScoped(inputs.submit({ id: INPUT, sessionId, parts: [{ type: "text", text: "Carry on with the survey" }] }));
-	yield* eventually(app.api.sessions.reading({ id: sessionId }), (held) => held?.stoppedAt === null);
-	const delivery = (yield* eventually(app.api.sessions.operations({ sessionId }), (operations) =>
-		operations.some((operation) => operation.inputId === INPUT),
+	yield* eventually(app.api.sessions.reading({ id: sessionId }), (held) => held?.stoppedAt === null, "the session to resume");
+	const delivery = (yield* eventually(
+		app.api.sessions.operations({ sessionId }),
+		(operations) => operations.some((operation) => operation.inputId === INPUT),
+		"the input to reach an operation",
 	)).find((operation) => operation.inputId === INPUT);
 	if (delivery === undefined) return yield* Effect.die("The message never reached the session");
 	yield* quay.append(6, { type: "InputAccepted", sessionId, requestId: delivery.id, inputId: INPUT });
 	yield* quay.rest(7, sessionId);
-	const resumed = yield* eventually(app.api.sessions.operations({ sessionId }), (operations) => wakes(operations).length === 1);
+	const resumed = yield* eventually(app.api.sessions.operations({ sessionId }), (operations) => wakes(operations).length === 1, "one wake operation");
 	expect(wakes(resumed)).toMatchObject([{ reason: `Resume assigned piece ${pieceId}`, status: "requested" }]);
 });
 
@@ -83,26 +85,28 @@ it.app("mail reaches a stopped agent's board but never wakes it", function* (app
 		body: "the shoal is closed to deep draught",
 		precedence: "priority",
 	});
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
-	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId })))).toEqual([]);
-	expect(yield* answered(app.api.mail.unread({ agentId }))).toMatchObject([{ deliveredAt: null, readAt: null }]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toEqual([]);
+	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed"))).toEqual([]);
+	expect(yield* answered(app.api.mail.unread({ agentId }), "the agent's unread mail to be listed")).toMatchObject([
+		{ deliveredAt: null, readAt: null },
+	]);
 });
 
 it.app("the tray counts a stopped session until its turn ends", function* (app) {
 	const quay = yield* berth(app);
 	const { agentId, sessionId } = yield* quay.spawn(HAND, "hand");
-	expect(yield* answered(app.api.agents.workingCount({}))).toBe(1);
+	expect(yield* answered(app.api.agents.workingCount({}), "the working agent count to answer")).toBe(1);
 	yield* app.api.sessions.stop({
 		requestId: Request.make("stop"),
 		sessionId: SessionId.make(sessionId),
 		reason: "admiral",
 		requestedAt: new Date(2).toISOString(),
 	});
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ canInterrupt: false, state: "stopped" });
-	expect(yield* answered(app.api.agents.workingCount({}))).toBe(1);
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent to be read")).toMatchObject({ canInterrupt: false, state: "stopped" });
+	expect(yield* answered(app.api.agents.workingCount({}), "the working agent count to answer")).toBe(1);
 	yield* quay.append(2, { type: "SessionInterrupted", sessionId, requestId: "stop" });
 	yield* quay.rest(3, sessionId);
-	expect(yield* eventually(app.api.agents.workingCount({}), (count) => count === 0)).toBe(0);
+	expect(yield* eventually(app.api.agents.workingCount({}), (count) => count === 0, "the working agent count to fall to zero")).toBe(0);
 });
 
 it.app("a restart does not wake a session you stopped", function* (app) {
@@ -116,11 +120,11 @@ it.app("a restart does not wake a session you stopped", function* (app) {
 	});
 	const lifecycle = yield* lifecycleClient;
 	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
-	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual([sessionId]);
+	expect(yield* answered(app.api.lifecycle.pending({}), "the pending sessions to be listed")).toEqual([sessionId]);
 	yield* quay.append(2, { type: "SessionInterrupted", sessionId, requestId: "stop" });
 	yield* quay.rest(3, sessionId);
 	yield* lifecycle("lifecycle.honorRestart", { requestId: "honor" });
-	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId })))).toEqual([]);
+	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed"))).toEqual([]);
 });
 
 it.app("an agent's hail to a stopped captain lands as mail, and your own hail resumes it", function* (app) {
@@ -132,12 +136,16 @@ it.app("an agent's hail to a stopped captain lands as mail, and your own hail re
 	yield* quay.stop(2, sessionId);
 	const answer = yield* hailCaptain.invoke({ agentId: "flagship", sessionId: "flagship-root", callId: "hail" }, { voyageId });
 	expect(answer.ok).toBe(true);
-	expect(yield* answered(app.api.mail.unread({ agentId }))).toMatchObject([{ body: hailWords, precedence: "priority" }]);
-	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId })))).toEqual([]);
+	expect(yield* answered(app.api.mail.unread({ agentId }), "the agent's unread mail to be listed")).toMatchObject([
+		{ body: hailWords, precedence: "priority" },
+	]);
+	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed"))).toEqual([]);
 
 	yield* app.api.agents.hail({ requestId: Request.make("hail-again"), voyageId, by: "admiral" });
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ stoppedAt: null });
-	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId })))).toMatchObject([{ reason: "hail", status: "requested" }]);
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({ stoppedAt: null });
+	expect(wakes(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed"))).toMatchObject([
+		{ reason: "hail", status: "requested" },
+	]);
 });
 
 it.app("an operation that waited on capacity is not retried into a stopped session", function* (app) {
@@ -161,7 +169,11 @@ it.app("an operation that waited on capacity is not retried into a stopped sessi
 		reason: "mail",
 		requestedAt: new Date(2).toISOString(),
 	});
-	yield* eventually(app.api.sessions.operations({ sessionId }), (operations) => operations.some((operation) => operation.status === "waiting"));
+	yield* eventually(
+		app.api.sessions.operations({ sessionId }),
+		(operations) => operations.some((operation) => operation.status === "waiting"),
+		"an operation to wait",
+	);
 	yield* quay.stop(3, sessionId);
 	const refused = yield* Effect.flip(app.api.sessions.retry({ id: SessionOperationId.make("wake") }));
 	expect(refused).toMatchObject({ _tag: "Unavailable", message: "The session is stopped" });

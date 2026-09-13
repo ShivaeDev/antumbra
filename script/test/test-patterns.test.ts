@@ -116,8 +116,8 @@ import { expect } from "vitest";
 import { fill } from "@antumbra/app-testing/glass/dom.ts";
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
 fill(form, "Name", "Reef");
-answered(query);
-eventually(query, matches);
+answered(query, "the query to answer");
+eventually(query, matches, "a matching answer");
 `),
 		).toEqual([]);
 	});

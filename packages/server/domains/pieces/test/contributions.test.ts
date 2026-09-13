@@ -44,14 +44,22 @@ it.app("a pending Change keeps a reported Piece landing until the host lands it"
 		observedAt: new Date(2000).toISOString(),
 	});
 	yield* app.api.reports.land({ pieceId, authorAgentId: null, title: "Survey", body: "The work is ready for review" });
-	expect(yield* answered(app.api.pieces.progress({ id: pieceId }))).toMatchObject({ state: "landing", settledDone: false, concluded: false });
+	expect(yield* answered(app.api.pieces.progress({ id: pieceId }), "the piece's progress to be read")).toMatchObject({
+		state: "landing",
+		settledDone: false,
+		concluded: false,
+	});
 	yield* app.api.changes.observe({
 		host: "github",
 		observation: { ...observation, stage: "landed", activityAt: 3000 },
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(4000).toISOString(),
 	});
-	expect(yield* answered(app.api.pieces.progress({ id: pieceId }))).toMatchObject({ state: "done", settledDone: true, concluded: true });
+	expect(yield* answered(app.api.pieces.progress({ id: pieceId }), "the piece's progress to be read")).toMatchObject({
+		state: "done",
+		settledDone: true,
+		concluded: true,
+	});
 });
 
 it.app("working evidence stays active while settled outcomes release dependents", function* (app) {
@@ -62,16 +70,21 @@ it.app("working evidence stays active while settled outcomes release dependents"
 	yield* app.api.pieces.launch({ id: pieceOf("charts") });
 	const surveyor = Id.Request.make("birth:surveyor");
 	yield* app.api.agents.workNow({ requestId: surveyor, pieceId: pieceOf("soundings") });
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }))).toMatchObject({ state: "active", eligible: true });
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }), "the soundings piece's progress to be read")).toMatchObject({
+		state: "active",
+		eligible: true,
+	});
 	yield* app.api.reports.land({ pieceId: pieceOf("soundings"), authorAgentId: null, title: "Survey", body: "The soundings are charted" });
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }))).toMatchObject({
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }), "the soundings piece's progress to be read")).toMatchObject({
 		state: "active",
 		settledDone: true,
 		concluded: false,
 		eligible: false,
 	});
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }))).toMatchObject({ state: "ready" });
-	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }), "the charts piece's progress to be read")).toMatchObject({
+		state: "ready",
+	});
+	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the voyage's progress to be read")).toMatchObject({
 		state: "underWay",
 		concluded: false,
 		counts: { active: 1, ready: 1 },
@@ -96,7 +109,7 @@ it.app("working evidence stays active while settled outcomes release dependents"
 		},
 		{ logId: "log", cursor: 1, at: 101, event: { type: "InputAccepted", ...logged, inputId: "charter" } },
 	]);
-	expect(yield* answered(app.api.agents.canRetireCrew({ pieceId: pieceOf("soundings") }))).toBe(false);
+	expect(yield* answered(app.api.agents.canRetireCrew({ pieceId: pieceOf("soundings") }), "the soundings piece's crew to be retirable")).toBe(false);
 	yield* runner.append([
 		{
 			logId: "log",
@@ -110,10 +123,13 @@ it.app("working evidence stays active while settled outcomes release dependents"
 			},
 		},
 	]);
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }))).toMatchObject({ state: "done", concluded: true });
-	expect(yield* answered(app.api.agents.canRetireCrew({ pieceId: pieceOf("soundings") }))).toBe(true);
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("soundings") }), "the soundings piece's progress to be read")).toMatchObject({
+		state: "done",
+		concluded: true,
+	});
+	expect(yield* answered(app.api.agents.canRetireCrew({ pieceId: pieceOf("soundings") }), "the soundings piece's crew to be retirable")).toBe(true);
 	yield* app.api.agents.retireCrew({ pieceId: pieceOf("soundings") });
-	expect(yield* answered(app.api.agents.byPiece({ pieceId: pieceOf("soundings") }))).toMatchObject([
+	expect(yield* answered(app.api.agents.byPiece({ pieceId: pieceOf("soundings") }), "the soundings piece's crew to be listed")).toMatchObject([
 		{ id: identity(surveyor).agentId, status: "retired" },
 	]);
 });

@@ -9,10 +9,12 @@ it.app("lists oldest first and reads by id", function* (app) {
 	yield* TestClock.adjust("1 minute");
 	yield* app.api.voyages.open({ ...opening, name: "Sound the shallows" });
 
-	const listed = yield* answered(app.api.voyages.list({}));
+	const listed = yield* answered(app.api.voyages.list({}), "the voyages to be listed");
 	expect(listed.map((row) => row.name)).toEqual(["Flagship", "Chart the reef", "Sound the shallows"]);
 
 	const reef = listed[1];
-	expect(yield* answered(app.api.voyages.byId({ id: VoyageId.make(reef?.id ?? "") }))).toMatchObject({ name: "Chart the reef" });
-	expect(yield* answered(app.api.voyages.byId({ id: VoyageId.make("voyage-nowhere") }))).toBeNull();
+	expect(yield* answered(app.api.voyages.byId({ id: VoyageId.make(reef?.id ?? "") }), "the voyage to be read")).toMatchObject({
+		name: "Chart the reef",
+	});
+	expect(yield* answered(app.api.voyages.byId({ id: VoyageId.make("voyage-nowhere") }), "the voyage to be read")).toBeNull();
 });

@@ -57,10 +57,10 @@ const filteredHeadExpression = (node: ts.Expression, checker: ts.TypeChecker): b
 };
 
 export const queryAnswerProblem = (node: ts.CallExpression, checker: ts.TypeChecker): string | undefined => {
-	if (filteredHead(node, checker)) return "Use eventually(stream, predicate) for the first matching live-query answer.";
+	if (filteredHead(node, checker)) return "Use eventually(stream, predicate, description) for the first matching live-query answer.";
 	const first = node.arguments[0];
 	if (first !== undefined && effectValueIs(node.expression, checker, "Option", "getOrThrow") && firstAnswer(first, checker)) {
-		return "Use answered(stream) for the first live-query answer.";
+		return "Use answered(stream, description) for the first live-query answer.";
 	}
 	return undefined;
 };

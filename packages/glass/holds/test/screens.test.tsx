@@ -40,7 +40,7 @@ it.glass("says nothing is waiting and persists the global hold through the switc
 	yield* until(() => switchOf(container, "All queues") !== null, "the hold switches");
 	expect(container.textContent).toContain("Nothing is waiting on a switch.");
 	yield* click(labelled(container, "All queues"));
-	yield* eventually(api.holds.queues({}), (view) => view.everything);
+	yield* eventually(api.holds.queues({}), (view) => view.everything, "the global hold to take effect");
 	yield* until(() => reads(container, "All queues") === "false", "the hold to persist");
 });
 
@@ -56,7 +56,11 @@ it.glass("lists what a held switch is keeping back and sends again when it goes 
 	expect(container.textContent).toContain("Reef");
 	expect(reads(container, "Spawn an agent for a launched piece")).toBe("false");
 	yield* click(labelled(container, "Spawn an agent for a launched piece"));
-	yield* eventually(api.settings.flags({}), (flags) => flags.some((setting) => setting.key === "spawnForPiece" && setting.on));
+	yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((setting) => setting.key === "spawnForPiece" && setting.on),
+		"the piece-spawn switch to switch on",
+	);
 });
 
 it.glass("keeps a held switch on the page before anything is waiting", function* ({ api, render }) {

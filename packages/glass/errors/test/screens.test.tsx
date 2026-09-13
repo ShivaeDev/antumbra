@@ -16,7 +16,11 @@ it.glass("lists a stopped loop with its trace and resumes it", function* ({ api,
 	yield* press(container, "Stack trace");
 	expect(container.querySelector("pre")?.textContent).toBe(TRACE);
 	yield* press(container, "Resume");
-	const settled = yield* eventually(api.supervision.stoppedLoops({}), (rows) => rows.every((row) => row.state === "resumed"));
+	const settled = yield* eventually(
+		api.supervision.stoppedLoops({}),
+		(rows) => rows.every((row) => row.state === "resumed"),
+		"every stopped loop to be resumed",
+	);
 	expect(settled.map((row) => row.loop)).toEqual(["charting"]);
 	yield* until(() => container.textContent?.includes("resumed") === true, "the resumed badge");
 });

@@ -14,7 +14,7 @@ it.app("lands a report and its Piece outcome together, and pushes its reference 
 	yield* app.settle();
 
 	expect((yield* watched.seen).at(-1)).toMatchObject([{ id: reportId, title: landing.title, authorAgentId: landing.authorAgentId }]);
-	expect(yield* answered(app.api.reports.byId({ id: reportId }))).toMatchObject({
+	expect(yield* answered(app.api.reports.byId({ id: reportId }), "the report to be read")).toMatchObject({
 		id: reportId,
 		title: landing.title,
 		body: landing.body,
@@ -31,14 +31,18 @@ it.app("refuses an orphan report without leaving report, link, or outcome rows",
 	expect(yield* app.rows.report.count({})).toBe(0);
 	expect(yield* app.rows.pieceReport.count({})).toBe(0);
 	expect(yield* app.rows.pieceOutcome.count({})).toBe(0);
-	expect(yield* answered(app.api.reports.byId({ id: reportId }))).toBeNull();
+	expect(yield* answered(app.api.reports.byId({ id: reportId }), "the report to be read")).toBeNull();
 });
 
 it.app("keeps report contents unchanged and lists only the requested Piece's reports", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.reports.land({ ...landing, authorAgentId: null, body: "", title: "  " });
-	expect(yield* answered(app.api.reports.byId({ id: reportId }))).toMatchObject({ authorAgentId: null, body: "", title: "  " });
-	expect(yield* answered(app.api.reports.byPiece({ pieceId: PieceId.make("other") }))).toEqual([]);
-	expect(yield* answered(app.api.reports.byId({ id: ReportId.make("unknown") }))).toBeNull();
+	expect(yield* answered(app.api.reports.byId({ id: reportId }), "the report to be read")).toMatchObject({
+		authorAgentId: null,
+		body: "",
+		title: "  ",
+	});
+	expect(yield* answered(app.api.reports.byPiece({ pieceId: PieceId.make("other") }), "the piece's reports to be listed")).toEqual([]);
+	expect(yield* answered(app.api.reports.byId({ id: ReportId.make("unknown") }), "the unknown report to be read")).toBeNull();
 });

@@ -4,7 +4,9 @@ import { expect } from "vitest";
 import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 const wiredTo = (app: App) =>
-	Effect.map(answered(app.api.pieces.edges({ voyageId: reef })), (wires) => wires.map((wire) => `${wire.from} -> ${wire.to}`));
+	Effect.map(answered(app.api.pieces.edges({ voyageId: reef }), "the voyage's edges to be listed"), (wires) =>
+		wires.map((wire) => `${wire.from} -> ${wire.to}`),
+	);
 
 const charted = Effect.fnUntraced(function* (app: App) {
 	yield* app.api.voyages.open(opening);

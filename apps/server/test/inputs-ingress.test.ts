@@ -57,7 +57,7 @@ it.app("publishes ordered image input through RPC and serves its thumbnail only 
 	const operation = yield* runner.next;
 	if (operation.type !== "Deliver") return yield* Effect.die(new Error(`Expected Deliver, got ${operation.type}`));
 	expect(operation.input.parts.map((part) => part.type)).toEqual(["image", "text"]);
-	const stored = yield* answered(api.inputs.reading({ sessionId, id: inputId }));
+	const stored = yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read");
 	expect(stored?.status).toBe("pending");
 	const image = stored?.parts[0];
 	if (image?.type !== "image") return yield* Effect.die(new Error("image metadata was not recorded"));
@@ -100,7 +100,7 @@ it.app("retains ambiguous input evidence and refuses a same-identity retry", fun
 	]);
 	yield* runner.reply(operation.requestId, { type: "Accepted" });
 	expect(yield* Fiber.join(submitted)).toMatchObject({ _tag: "InputAmbiguous", inputId });
-	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("ambiguous");
+	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read"))?.status).toBe("ambiguous");
 	expect(yield* Effect.flip(inputs.submit(draft))).toMatchObject({ _tag: "InputAmbiguous", inputId });
 });
 
@@ -109,14 +109,14 @@ it.app("refuses images from a text-only backend before recording input intent", 
 	const inputs = yield* inputApi;
 	const refused = yield* Effect.flip(inputs.submit({ id: inputId, sessionId, parts: [{ type: "image", name: "soundings.png", bytes: imageBytes }] }));
 	expect(refused).toMatchObject({ _tag: "InputRefused" });
-	expect(yield* answered(api.inputs.reading({ sessionId, id: inputId }))).toBeNull();
+	expect(yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read")).toBeNull();
 });
 
 it.app("keeps observed image capability after runner disconnect and model refresh", function* ({ api }) {
 	yield* Effect.scoped(connect(true));
-	expect(yield* answered(api.inputs.support({ sessionId }))).toEqual({ imageInput: true });
+	expect(yield* answered(api.inputs.support({ sessionId }), "the input support to be read")).toEqual({ imageInput: true });
 	yield* api.backends.listModels({ backend: "claude", failure: null, models: [] });
-	expect(yield* answered(api.inputs.support({ sessionId }))).toEqual({ imageInput: true });
+	expect(yield* answered(api.inputs.support({ sessionId }), "the input support to be read")).toEqual({ imageInput: true });
 });
 
 it.app("returns a durable queued receipt while provider capacity blocks delivery", function* ({ api }) {
@@ -141,7 +141,7 @@ it.app("returns a durable queued receipt while provider capacity blocks delivery
 	const inputs = yield* inputApi;
 	const draft = { id: inputId, sessionId, parts: [{ type: "text", text: "Continue after capacity returns" }] } as const;
 	expect(yield* inputs.submit(draft)).toEqual({ id: inputId, status: "queued_for_wake" });
-	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("queued_for_wake");
+	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read"))?.status).toBe("queued_for_wake");
 	expect(yield* inputs.submit(draft)).toEqual({ id: inputId, status: "queued_for_wake" });
 });
 
@@ -175,7 +175,7 @@ it.app("retries a known refusal with the same input identity and fresh delivery 
 			event: { type: "InputFailed", requestId: refused.requestId, sessionId, inputId, reason: "Late duplicate refusal" },
 		},
 	]);
-	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("pending");
+	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read"))?.status).toBe("pending");
 	yield* runner.append([
 		{
 			logId: "log:input-ingress",

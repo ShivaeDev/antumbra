@@ -58,9 +58,21 @@ it.app("a smoother Antumbra asks for waits on its spawn switch while one the adm
 		by: "admiral",
 		requestId: Request.make("pressed-pass"),
 	});
-	yield* eventually(app.api.boards.smoothingState({ voyageId: PRESSED }), (state) => state.state === "idle" && state.uncovered === 0);
-	expect(yield* answered(app.api.boards.smoothingState({ voyageId: DAILY }))).toMatchObject({ uncovered: 1 });
-	expect((yield* answered(app.api.holds.queues({}))).queues).toMatchObject([{ setting: "spawnSmoother", held: true }]);
+	yield* eventually(
+		app.api.boards.smoothingState({ voyageId: PRESSED }),
+		(state) => state.state === "idle" && state.uncovered === 0,
+		"the pressed voyage's smoothing to finish",
+	);
+	expect(yield* answered(app.api.boards.smoothingState({ voyageId: DAILY }), "the daily voyage's smoothing state to be read")).toMatchObject({
+		uncovered: 1,
+	});
+	expect((yield* answered(app.api.holds.queues({}), "the hold queues to be listed")).queues).toMatchObject([
+		{ setting: "spawnSmoother", held: true },
+	]);
 	yield* app.api.settings.setFlag({ key: "spawnSmoother", on: true });
-	yield* eventually(app.api.boards.smoothingState({ voyageId: DAILY }), (state) => state.state === "idle" && state.uncovered === 0);
+	yield* eventually(
+		app.api.boards.smoothingState({ voyageId: DAILY }),
+		(state) => state.state === "idle" && state.uncovered === 0,
+		"the daily voyage's smoothing to finish",
+	);
 });

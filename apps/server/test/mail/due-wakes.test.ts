@@ -7,12 +7,15 @@ it.app("priority mail waits for active work to rest without being marked read", 
 	yield* app.api.settings.setFlag({ key: "holdEverything", on: true });
 	const runner = yield* working(app);
 	yield* app.api.mail.send(sending("shoal"));
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toEqual([]);
 	yield* runner.rest(2);
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toMatchObject([
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toMatchObject([
 		{ agentId: HAND, sessionId: ROOT, batch: { count: 1, precedence: "priority" }, unreadIds: [messageOf("shoal")] },
 	]);
-	expect((yield* answered(app.api.mail.unread({ agentId: HAND })))[0]).toMatchObject({ readAt: null, deliveredAt: null });
+	expect((yield* answered(app.api.mail.unread({ agentId: HAND }), "the unread mail to be listed"))[0]).toMatchObject({
+		readAt: null,
+		deliveredAt: null,
+	});
 });
 
 it.app("routine mail waits for its threshold and includes earlier unread mail in the batch", function* (app) {
@@ -23,9 +26,11 @@ it.app("routine mail waits for its threshold and includes earlier unread mail in
 	yield* app.api.mail.markDelivered({ agentId: HAND, ids: [messageOf("old")] });
 	yield* app.clock.advance(60_000);
 	yield* app.api.mail.send({ ...sending("new"), precedence: "routine" });
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toEqual([]);
 	yield* app.clock.advance(300_000);
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toMatchObject([{ batch: { count: 2, precedence: "flash" }, waitedMillis: 360_000 }]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toMatchObject([
+		{ batch: { count: 2, precedence: "flash" }, waitedMillis: 360_000 },
+	]);
 	yield* app.api.mail.markDelivered({ agentId: HAND, ids: [messageOf("old"), messageOf("new")] });
-	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}), "the due wakes to be listed")).wakes).toEqual([]);
 });

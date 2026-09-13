@@ -12,7 +12,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	const roles = app.api.roleSettings;
 	yield* app.api.backends.listModels({ backend: FIRST_BACKEND, failure: null, models: [listed] });
 
-	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
+	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }), "the crew role to resolve")).toEqual({
 		backend: { source: "backend", value: FIRST_BACKEND },
 		effort: { source: "backend", value: "high" },
 		fallback: { source: "backend", value: FIRST_BACKEND },
@@ -20,7 +20,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	});
 
 	yield* roles.choose({ backend: "codex", effort: "medium", model: "gpt-5", role: "crew", scope: FLEET });
-	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
+	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }), "the crew role to resolve")).toEqual({
 		backend: { source: "fleet", value: "codex" },
 		effort: { source: "fleet", value: "medium" },
 		fallback: { source: "fleet", value: "codex" },
@@ -28,7 +28,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	});
 
 	yield* roles.choose({ backend: null, effort: null, model: "gpt-5-codex", role: "crew", scope: reef });
-	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
+	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }), "the crew role to resolve")).toEqual({
 		backend: { source: "fleet", value: "codex" },
 		effort: { source: "fleet", value: "medium" },
 		fallback: { source: "fleet", value: "codex" },
@@ -41,7 +41,7 @@ it.app("resolves a fleet default from the backend it names rather than the fleet
 	yield* app.api.backends.listModels({ backend: "codex", failure: null, models: [{ ...listed, defaultEffort: null, model: "gpt-5" }] });
 	yield* roles.choose({ backend: "codex", effort: null, model: null, role: "flagship", scope: FLEET });
 
-	expect(yield* answered(roles.resolve({ role: "flagship", voyageId: null }))).toEqual({
+	expect(yield* answered(roles.resolve({ role: "flagship", voyageId: null }), "the flagship role to resolve")).toEqual({
 		backend: { source: "chosen", value: "codex" },
 		effort: { source: "backend", value: null },
 		fallback: { source: "backend", value: FIRST_BACKEND },
@@ -54,7 +54,7 @@ it.app("drops inherited model and effort when the backend changes", function* (a
 	yield* roles.choose({ backend: "codex", effort: "medium", model: "gpt-5", role: "crew", scope: FLEET });
 
 	yield* roles.choose({ backend: "claude", effort: null, model: null, role: "crew", scope: reef });
-	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
+	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }), "the crew role to resolve")).toEqual({
 		backend: { source: "chosen", value: "claude" },
 		effort: { source: "backend", value: null },
 		fallback: { source: "fleet", value: "codex" },
@@ -62,7 +62,9 @@ it.app("drops inherited model and effort when the backend changes", function* (a
 	});
 
 	yield* roles.choose({ backend: "claude", effort: null, model: "opus", role: "crew", scope: reef });
-	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toMatchObject({ model: { source: "chosen", value: "opus" } });
+	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }), "the crew role to resolve")).toMatchObject({
+		model: { source: "chosen", value: "opus" },
+	});
 });
 
 it.app("resolves settings within their scope", function* (app) {
@@ -70,14 +72,14 @@ it.app("resolves settings within their scope", function* (app) {
 	yield* roles.choose({ backend: "codex", effort: null, model: null, role: "flagship", scope: FLEET });
 	yield* roles.choose({ backend: "claude", effort: null, model: null, role: "captain", scope: reef });
 
-	expect(yield* answered(roles.resolve({ role: "captain", voyageId: shallows }))).toMatchObject({
+	expect(yield* answered(roles.resolve({ role: "captain", voyageId: shallows }), "the captain role to resolve")).toMatchObject({
 		backend: { source: "backend", value: FIRST_BACKEND },
 	});
-	expect(yield* answered(roles.forVoyage({ voyageId: reef }))).toMatchObject([
+	expect(yield* answered(roles.forVoyage({ voyageId: reef }), "the reef voyage's role settings to be listed")).toMatchObject([
 		{ backend: "claude", role: "captain", scope: reef },
 		{ backend: null, role: "crew", scope: reef },
 	]);
-	expect(yield* answered(roles.forVoyage({ voyageId: shallows }))).toMatchObject([
+	expect(yield* answered(roles.forVoyage({ voyageId: shallows }), "the shallows voyage's role settings to be listed")).toMatchObject([
 		{ backend: null, role: "captain", scope: shallows },
 		{ backend: null, role: "crew", scope: shallows },
 	]);

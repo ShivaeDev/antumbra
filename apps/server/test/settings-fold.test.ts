@@ -46,15 +46,26 @@ it.effect("a database that held piece dispatch and wakes boots with those switch
 
 it.effect("a database that held neither boots with every switch on, and other flags keep their value", () =>
 	Effect.gen(function* () {
-		yield* stored({ key: "holdPieceDispatch", on: false }, { key: "holdWakes", on: false }, { key: "signChanges", on: false });
+		yield* stored({ key: "holdPieceDispatch", on: false }, { key: "holdWakes", on: false }, { key: "retireSweep", on: false });
 		expect(yield* booted).toEqual([
 			{ key: "resumePieces", on: "true" },
-			{ key: "signChanges", on: "false" },
+			{ key: "retireSweep", on: "false" },
 			{ key: "spawnForPiece", on: "true" },
 			{ key: "wakeOnFlashMail", on: "true" },
 			{ key: "wakeOnHail", on: "true" },
 			{ key: "wakeOnPriorityMail", on: "true" },
 			{ key: "wakeOnRoutineMail", on: "true" },
+		]);
+	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
+);
+
+it.effect("a database that stored the pull request signature boots with no trace of it", () =>
+	Effect.gen(function* () {
+		const database = yield* Database;
+		yield* stored({ key: "signChanges", on: false }, { key: "retireSweep", on: false });
+		expect(yield* booted).toEqual([{ key: "retireSweep", on: "false" }]);
+		expect(yield* database.read`SELECT "payload" FROM "journal" ORDER BY "seq"`).toEqual([
+			{ payload: JSON.stringify({ keys: ["retireSweep"], on: false }) },
 		]);
 	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
 );

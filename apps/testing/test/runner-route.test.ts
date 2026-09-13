@@ -46,8 +46,10 @@ const exchange = Effect.gen(function* () {
 	const reactivity = yield* Reactivity;
 	const registration = { runnerId: "runner:socket", logId: "log:socket", backends: ["claude"], imageInputBackends: [] };
 	const incoming = yield* calls["runner.operations"](registration).pipe(Stream.toQueue({ capacity: "unbounded" }));
-	yield* eventually(reactivity.stream(["runner:connected"], operations.connected), (runners) =>
-		runners.some((runner) => runner.runnerId === registration.runnerId),
+	yield* eventually(
+		reactivity.stream(["runner:connected"], operations.connected),
+		(runners) => runners.some((runner) => runner.runnerId === registration.runnerId),
+		"the runner to appear as connected",
 	);
 	const discovery = yield* Queue.take(incoming);
 	if (discovery.type !== "ListModels") return yield* Effect.die(new Error(`Expected model discovery, received ${discovery.type}`));

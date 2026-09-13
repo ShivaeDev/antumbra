@@ -55,7 +55,7 @@ describe("CI test shards", () => {
 		expect(workspacePackageNames).not.toContain("runner");
 		expect(workspacePackageNames).not.toContain("desktop");
 		expect(workspacePackageNames).not.toContain("runner-local");
-		expect(workflow).toContain("script/vitest.workspace.ts");
+		expect(workflow).toContain("pnpm test:packages");
 		expect(workflow).toContain("matrix.shard");
 		expect(workflow).toContain("pnpm test:desktop");
 		expect(workflow).toContain("pnpm test:runner");

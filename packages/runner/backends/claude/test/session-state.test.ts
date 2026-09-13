@@ -47,25 +47,38 @@ const usage: ResultMessage["usage"] = {
 	speed: "standard",
 };
 
-const result = (totalCostUsd: number, models: ReadonlyArray<string> = ["claude-opus-5"]): SDKMessage => ({
-	duration_api_ms: 9000,
-	duration_ms: 12300,
-	is_error: false,
-	modelUsage: Object.fromEntries(
-		models.map((model) => [
-			model,
+// `modelUsage` is the running total for the whole query, so a fixture states each model's total so far, not the turn's own share.
+interface Spent {
+	readonly canonical?: string;
+	readonly model: string;
+	readonly tokens: number;
+}
+
+const OPUS: ReadonlyArray<Spent> = [{ model: "claude-opus-5", tokens: 19150 }];
+
+const modelUsage = (spent: ReadonlyArray<Spent>) =>
+	Object.fromEntries(
+		spent.map((entry) => [
+			entry.model,
 			{
-				cacheCreationInputTokens: usage.cache_creation_input_tokens,
-				cacheReadInputTokens: usage.cache_read_input_tokens,
+				cacheCreationInputTokens: 0,
+				cacheReadInputTokens: 0,
+				...(entry.canonical === undefined ? {} : { canonicalModel: entry.canonical }),
 				contextWindow: 200000,
-				costUSD: totalCostUsd,
-				inputTokens: usage.input_tokens,
+				costUSD: 0,
+				inputTokens: entry.tokens,
 				maxOutputTokens: 64000,
-				outputTokens: usage.output_tokens,
+				outputTokens: 0,
 				webSearchRequests: 0,
 			},
 		]),
-	),
+	);
+
+const result = (totalCostUsd: number, spent: ReadonlyArray<Spent> = OPUS): SDKMessage => ({
+	duration_api_ms: 9000,
+	duration_ms: 12300,
+	is_error: false,
+	modelUsage: modelUsage(spent),
 	num_turns: 1,
 	permission_denials: [],
 	result: "done",
@@ -150,9 +163,34 @@ describe("the harness's own account of a session is kept", () => {
 		expect(after).toMatchObject({ costUsd: 0.02, cumulativeCostUsd: 0.02 });
 	});
 
-	it("names the model the session was started on when more than one answered", () => {
+	it("names the model that spent the most of the turn's own tokens", () => {
 		const mapping = openSessionMapping(SESSION_MODEL);
-		const [event] = mapping.frame(result(0.01, ["claude-opus-5", "claude-haiku-5"]));
-		expect(event).toMatchObject({ model: SESSION_MODEL });
+		const [first] = mapping.frame(
+			result(0.01, [
+				{ model: "claude-opus-5", tokens: 19150 },
+				{ model: "claude-haiku-5", tokens: 400 },
+			]),
+		);
+		expect(first).toMatchObject({ model: "claude-opus-5" });
+		const [second] = mapping.frame(
+			result(0.02, [
+				{ model: "claude-opus-5", tokens: 19150 },
+				{ model: "claude-haiku-5", tokens: 1200 },
+			]),
+		);
+		expect(second).toMatchObject({ model: "claude-haiku-5" });
+	});
+
+	it("names a model by the id the provider prices it under, not by the alias it was asked for", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
+		const [event] = mapping.frame(result(0.01, [{ canonical: "claude-opus-4-7", model: "opus", tokens: 19150 }]));
+		expect(event).toMatchObject({ model: "claude-opus-4-7" });
+	});
+
+	it("names the model the session was started on when no model spent anything this turn", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
+		mapping.frame(result(0.01));
+		const [second] = mapping.frame(result(0.02));
+		expect(second).toMatchObject({ model: SESSION_MODEL });
 	});
 });

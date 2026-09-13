@@ -11,6 +11,7 @@ export const backendModel = row(
 		model: Schema.String,
 		name: Schema.String,
 		isDefault: Schema.Boolean,
+		defaultEffort: Schema.NullOr(Schema.String),
 		efforts: Schema.Array(Schema.String),
 	},
 	{ key: "id", scope: "backend" },

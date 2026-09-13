@@ -53,6 +53,7 @@ const drawnAs = (editable: Editable, shown: Shown, values: Held): ReactNode => {
 };
 
 export const Control = (props: {
+	readonly caption: string | undefined;
 	readonly change: (name: string, value: unknown) => void;
 	readonly editable: Editable;
 	readonly form: Generated;
@@ -73,6 +74,7 @@ export const Control = (props: {
 		placeholder: props.placeholder ?? "",
 		value: field.value,
 	};
+	const caption = props.caption === undefined || field.value !== "" ? null : <p className={TITLE}>{props.caption}</p>;
 	return (
 		<div className={CELL}>
 			{props.titles ? (
@@ -81,7 +83,9 @@ export const Control = (props: {
 				</span>
 			) : null}
 			{drawnAs(props.editable, shown, props.values)}
-			{field.error === undefined ? null : (
+			{field.error === undefined ? (
+				caption
+			) : (
 				<p className={ALERT} id={said}>
 					{field.error}
 				</p>

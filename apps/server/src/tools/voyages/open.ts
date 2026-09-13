@@ -8,7 +8,7 @@ import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Schema } from "effect";
-import { rolePart } from "#tools/voyages/role.ts";
+import { resolvedPart } from "#tools/voyages/role.ts";
 import { openVoyageSpec } from "#tools/voyages/specs.ts";
 
 const isBackend = Schema.is(AgentBackendTagSchema);
@@ -53,6 +53,6 @@ export const openVoyage = bind(openVoyageSpec, (context, input) => {
 				crew: yield* live.read(resolve, { voyageId, role: "crew" }),
 			};
 		}),
-		(voyage) => [`opened voyage ${voyage.id}`, rolePart("captain", voyage.captain, "unnamed"), rolePart("crew", voyage.crew, "unnamed")].join(" · "),
+		(voyage) => [`opened voyage ${voyage.id}`, resolvedPart("captain", voyage.captain), resolvedPart("crew", voyage.crew)].join(" · "),
 	);
 });

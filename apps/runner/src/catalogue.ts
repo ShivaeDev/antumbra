@@ -1,5 +1,6 @@
 import type { Operation, OperationResult } from "@antumbra/platform-runner/operations.ts";
 import { BackendRegistry } from "@antumbra/runner-fabric/ports.ts";
+import { BackendFailure } from "@antumbra/runner-ports/backend.ts";
 import { Effect } from "effect";
 
 export const listModels = Effect.fn("Runner.listModels")(function* (
@@ -9,6 +10,10 @@ export const listModels = Effect.fn("Runner.listModels")(function* (
 	const backend = registry.backends.get(operation.backend);
 	if (backend === undefined) return { type: "ModelsListed", backend: operation.backend, models: [], failure: "backend is not registered" };
 	return yield* backend.listModels.pipe(
+		Effect.filterOrFail(
+			(models) => models.some((model) => model.isDefault),
+			() => new BackendFailure({ detail: "listed no default model", tag: operation.backend }),
+		),
 		Effect.match({
 			onFailure: (failure) => ({ type: "ModelsListed" as const, backend: operation.backend, models: [], failure: failure.message }),
 			onSuccess: (models) => ({ type: "ModelsListed" as const, backend: operation.backend, models, failure: null }),

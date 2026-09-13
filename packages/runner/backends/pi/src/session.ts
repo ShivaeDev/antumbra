@@ -34,7 +34,7 @@ export const openPiSession = (runtime: PiRuntime, options: OpenSessionOptions): 
 			constrainedPrompt: options.constrainedPrompt,
 			cwd: options.cwd,
 			effort,
-			model: Option.getOrUndefined(options.model),
+			model: options.model,
 			resume: Option.getOrUndefined(options.resume),
 			tools: piTools(options.tools, call),
 		});

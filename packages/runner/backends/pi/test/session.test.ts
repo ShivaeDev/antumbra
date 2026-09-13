@@ -8,7 +8,7 @@ import { type FakePi, makeFakePi, SESSION_FILE } from "#test/fake.ts";
 const options = (overrides: Partial<OpenSessionOptions> = {}): OpenSessionOptions => ({
 	cwd: "/moorage",
 	effort: Option.none(),
-	model: Option.none(),
+	model: "anthropic/claude-sonnet-4-5",
 	resume: Option.none(),
 	sessionId: "antumbra-session",
 	tools: [],
@@ -61,7 +61,7 @@ describe("a pi session", () => {
 		Effect.scoped(
 			Effect.gen(function* () {
 				const fake = makeFakePi();
-				yield* opened(fake, { effort: Option.some("xhigh"), model: Option.some("anthropic/claude-sonnet-4-5") });
+				yield* opened(fake, { effort: Option.some("xhigh"), model: "anthropic/claude-sonnet-4-5" });
 				expect(fake.opened[0]).toMatchObject({ cwd: "/moorage", effort: "xhigh", model: "anthropic/claude-sonnet-4-5" });
 			}),
 		),

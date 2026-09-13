@@ -15,6 +15,11 @@ const seated = (role: "captain" | "crew", backend: string, model: string, effort
 	effort,
 	id: roleSettingId(reef, role),
 	model,
+	resolved: {
+		backend: { source: "chosen", value: backend },
+		effort: { source: "chosen", value: effort },
+		model: { source: "chosen", value: model },
+	},
 	role,
 	scope: reef,
 });

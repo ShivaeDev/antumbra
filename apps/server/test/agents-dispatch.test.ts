@@ -1,3 +1,4 @@
+import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
@@ -11,6 +12,7 @@ it.app("dispatch queues eligible work once and cancels its pending birth when pa
 	const dependant = PieceId.make("dependant");
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 1 });
 	const occupying = Request.make("occupying");
+	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn({ requestId: occupying, role: "crew", backend: "claude", model: null, effort: null });
 	yield* eventually(app.api.agents.admitted({}), (births) => births.some((birth) => birth.id === identity(occupying).birthId));
 	yield* app.api.voyages.open({

@@ -10,9 +10,9 @@ it.effect("names every provider's models provider/model and offers the variants 
 		Effect.gen(function* () {
 			const server = yield* makeOpencodeServer(makeFakeOpencode().connect, makeToolSessions([]));
 			expect(yield* listOpencodeModels(server)).toEqual([
-				{ efforts: ["low", "high", "max"], id: "opencode-go/gpt-5.6-luna", isDefault: true, name: "GPT-5.6 Luna" },
-				{ efforts: [], id: "opencode-go/qwen3.7-max", isDefault: false, name: "Qwen3.7 Max" },
-				{ efforts: [], id: "opencode/big-pickle", isDefault: true, name: "Big Pickle" },
+				{ defaultEffort: null, efforts: ["low", "high", "max"], id: "opencode-go/gpt-5.6-luna", isDefault: true, name: "GPT-5.6 Luna" },
+				{ defaultEffort: null, efforts: [], id: "opencode-go/qwen3.7-max", isDefault: false, name: "Qwen3.7 Max" },
+				{ defaultEffort: null, efforts: [], id: "opencode/big-pickle", isDefault: false, name: "Big Pickle" },
 			]);
 		}),
 	),

@@ -18,10 +18,7 @@ type CatalogModel = Awaited<ReturnType<ModelRuntime["getAvailable"]>>[number];
 
 const available = (): Promise<readonly CatalogModel[]> => ModelRuntime.create().then((runtime) => runtime.getAvailable());
 
-const chosenModel = async (runtime: ModelRuntime, id: string | undefined): Promise<CatalogModel | undefined> => {
-	if (id === undefined) {
-		return undefined;
-	}
+const chosenModel = async (runtime: ModelRuntime, id: string): Promise<CatalogModel> => {
 	const separator = id.indexOf("/");
 	const models = await runtime.getAvailable();
 	const found =
@@ -98,7 +95,7 @@ const open =
 			resourceLoader,
 			sessionManager: sessions(request),
 			...chosenTools(request),
-			...(model === undefined ? {} : { model }),
+			model,
 			...(request.effort === undefined ? {} : { thinkingLevel: request.effort }),
 		});
 		return adopt(session);

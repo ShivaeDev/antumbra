@@ -1,7 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
 
-const codex = { efforts: ["low", "high"], isDefault: true, model: "gpt-5", name: "GPT-5" };
+const codex = { defaultEffort: "low", efforts: ["low", "high"], isDefault: true, model: "gpt-5", name: "GPT-5" };
 
 it.app("reads model efforts and returns none for an unknown model", function* (app) {
 	const catalogue = app.api.backends;

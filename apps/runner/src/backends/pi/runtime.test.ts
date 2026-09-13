@@ -19,7 +19,7 @@ const request = (constrainedPrompt: string | undefined, tools: ReadonlyArray<Dir
 	constrainedPrompt,
 	cwd: "/moorage",
 	effort: undefined,
-	model: undefined,
+	model: "anthropic/claude-sonnet-4-5",
 	resume: undefined,
 	tools: piTools(tools, () => Promise.resolve({ ok: true, text: "" })),
 });

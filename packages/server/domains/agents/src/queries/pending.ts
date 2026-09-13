@@ -1,3 +1,5 @@
+import { backendCatalog } from "@antumbra/domain-backends/rows/backend-catalog.ts";
+import { backendModel } from "@antumbra/domain-backends/rows/backend-model.ts";
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { roleSetting } from "@antumbra/domain-role-settings/rows/role-setting.ts";
@@ -11,7 +13,7 @@ import { birth } from "#rows/birth.ts";
 export const pending = query("pending", {
 	input: {},
 	output: Schema.Array(birth.Row),
-	reads: [pieceProgress, birth, agent, capacity, session, count, flag, roleSetting],
+	reads: [pieceProgress, birth, agent, capacity, session, count, flag, roleSetting, backendModel, backendCatalog],
 	run: Effect.fn("Agents.pending")(function* (_input, rows) {
 		return (yield* rows.birth.where({ status: "requested" })).toSorted(
 			(a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id),

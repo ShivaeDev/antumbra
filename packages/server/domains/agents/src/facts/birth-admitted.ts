@@ -6,6 +6,6 @@ import { birth } from "#rows/birth.ts";
 export const birthAdmitted = fact("BirthAdmitted", {
 	id: BirthId,
 	backend: Schema.String,
-	model: birth.fields.model,
+	model: Schema.String,
 	effort: birth.fields.effort,
 });

@@ -13,6 +13,7 @@ const catalogue = (response: unknown): Effect.Effect<ReadonlyArray<ModelChoice>,
 		onSome: ({ data }) =>
 			Effect.succeed(
 				data.map((model) => ({
+					defaultEffort: model.defaultReasoningEffort,
 					efforts: model.supportedReasoningEfforts.map((offered) => offered.reasoningEffort),
 					id: model.model,
 					isDefault: model.isDefault,

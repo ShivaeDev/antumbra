@@ -12,7 +12,7 @@ import { inputObservation } from "#adapters/inputs/observation.ts";
 import { RunnerConnections } from "#runner/connections.ts";
 import { providerEventObservation } from "#runner/provider-event.ts";
 import { observation as resourceObservation } from "#runner/resources.ts";
-import { observation as sessionObservation, subjectOf } from "#runner/session-observation.ts";
+import { observation as sessionObservation } from "#runner/session-observation.ts";
 
 const moored = (commit: CommitService, event: LogEvent): Effect.Effect<void> =>
 	event.type === "MoorageProvisioned"
@@ -32,10 +32,7 @@ export const append = Effect.fn("RunnerLog.append")(function* (input: { readonly
 		const resource = resourceObservation(entry.event);
 		if (Option.isSome(resource)) facts.push(resource.value);
 		const session = sessionObservation(entry);
-		if (session !== null) {
-			const news = yield* connections.news(input.logId, subjectOf(session), JSON.stringify(session));
-			if (news) facts.push(observation(observed, session));
-		}
+		if (session !== null && (yield* connections.news(input.logId, session))) facts.push(observation(observed, session));
 		const provider = providerEventObservation(entry);
 		if (provider !== null) facts.push(observation(providerEvent, provider));
 		const delivery = inputObservation(entry);
@@ -49,6 +46,7 @@ export const append = Effect.fn("RunnerLog.append")(function* (input: { readonly
 			},
 			facts,
 		);
+		if (session !== null) yield* connections.landed(input.logId, session);
 	}
 	return yield* commit.cursor(input.logId);
 });

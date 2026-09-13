@@ -13,7 +13,7 @@ import { piece } from "#example/rows/piece.ts";
 import * as Journal from "#journal.ts";
 import { start } from "#startup.ts";
 
-const JOURNAL = `CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL)`;
+const JOURNAL = `CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL, "subject" TEXT)`;
 
 const piecesWith = (migrations: readonly MigrationShape[]) =>
 	feature("pieces", {

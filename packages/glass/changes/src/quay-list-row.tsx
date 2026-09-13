@@ -3,7 +3,7 @@ import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { QuayChange } from "#glass.ts";
 import { groupVariant, stateLabel } from "#groups.ts";
 import { changeNumber } from "#marks.ts";
-import { whenLabel } from "#time.ts";
+import { dayLabel, whenLabel } from "#time.ts";
 
 const WorkLine = ({ item }: { readonly item: QuayChange }) => {
 	if (item.pieces.length > 1) {
@@ -44,7 +44,9 @@ export const QuayListRow = ({
 						{item.repoName}
 					</Badge>
 					<Badge variant={groupVariant[item.group]}>{stateLabel(item)}</Badge>
-					<span className="ml-auto shrink-0 text-2xs text-muted-foreground">{whenLabel(item.activityAt)}</span>
+					<span className="ml-auto shrink-0 text-2xs text-muted-foreground">
+						{item.archivedAt === null ? whenLabel(item.activityAt) : `Archived ${dayLabel(item.archivedAt)}`}
+					</span>
 				</span>
 				<span className="truncate text-2xs text-muted-foreground">
 					<WorkLine item={item} />

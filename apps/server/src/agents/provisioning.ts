@@ -40,7 +40,7 @@ const prepare = Effect.fn("Agents.prepareMoorage")(function* (agentId: AgentId, 
 	);
 	const result = yield* runners.execute(runnerId, { type: "Provision", requestId: `${requestId}:provision`, agentId, plan });
 	if (result.type === "Refused") return yield* new BirthHeld({ reason: result.reason });
-	yield* commit.commit(ready, { requestId: Request.make(`${requestId}:ready`), agentId }).pipe(
+	yield* commit.commit(ready, { requestId: Request.make(`${requestId}:provision`), agentId }).pipe(
 		Effect.catchTag("AlreadyDone", () => Effect.void),
 		Effect.mapError((failure) => new BirthHeld({ reason: failure._tag })),
 	);

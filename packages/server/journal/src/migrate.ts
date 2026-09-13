@@ -42,6 +42,7 @@ export const rewriteFacts = Effect.fn("journal.rewriteFacts")(function* (sql: Sq
 			const kept = yield* migration.rewrite(stored);
 			if (kept === undefined) {
 				yield* sql`DELETE FROM "journal" WHERE "seq" = ${stored.seq}`;
+				yield* sql`DELETE FROM "applied" WHERE "seq" = ${stored.seq}`;
 				continue;
 			}
 			const changes = { at: kept.at, name: kept.name, payload: JSON.stringify(kept.payload), requestId: kept.requestId };

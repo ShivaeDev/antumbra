@@ -14,6 +14,7 @@ import * as Journal from "#journal.ts";
 import { start } from "#startup.ts";
 
 const JOURNAL = `CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL, "subject" TEXT)`;
+const APPLIED = `CREATE TABLE "applied" ("requestId" TEXT PRIMARY KEY, "seq" INTEGER NOT NULL)`;
 
 const piecesWith = (migrations: readonly MigrationShape[]) =>
 	feature("pieces", {
@@ -65,6 +66,13 @@ const seeded = (...facts: readonly { readonly name: string; readonly payload: Re
 		yield* sql`INSERT INTO "journal" ${sql.insert(entries)}`;
 	}).pipe(Effect.orDie);
 
+const claimed = (...seqs: readonly number[]) =>
+	Effect.gen(function* () {
+		const { write: sql } = yield* Database;
+		yield* sql.unsafe(APPLIED);
+		yield* sql`INSERT INTO "applied" ${sql.insert(seqs.map((seq) => ({ requestId: `request-${seq}`, seq })))}`;
+	}).pipe(Effect.orDie);
+
 const startWith = (migrations: readonly MigrationShape[], backup: Effect.Effect<void> = Effect.void) =>
 	Effect.gen(function* () {
 		const database = yield* Database;
@@ -99,6 +107,17 @@ it.effect("a migration dropping a fact leaves no journal entry and no row", () =
 		yield* startWith([withdrawnDropped]);
 		expect(yield* database.read`SELECT "seq" FROM "journal"`).toEqual([{ seq: 1 }]);
 		expect(yield* database.read`SELECT "id" FROM "piece"`).toEqual([{ id: "piece-1" }]);
+	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
+);
+
+it.effect("a migration dropping a fact drops the request that claimed it and leaves a kept fact's claim", () =>
+	Effect.gen(function* () {
+		const database = yield* Database;
+		yield* seeded(charterOf("piece-1", "read the chart"), charterOf("piece-2", "withdrawn"));
+		yield* claimed(1, 2);
+		yield* startWith([withdrawnDropped]);
+		expect(yield* database.read`SELECT "seq" FROM "journal"`).toEqual([{ seq: 1 }]);
+		expect(yield* database.read`SELECT "requestId", "seq" FROM "applied"`).toEqual([{ requestId: "request-1", seq: 1 }]);
 	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
 );
 

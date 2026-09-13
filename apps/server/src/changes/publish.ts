@@ -1,7 +1,6 @@
 import { freeze } from "@antumbra/domain-changes/commands/freeze.ts";
 import { all } from "@antumbra/domain-changes/queries/all.ts";
 import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
-import { flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { ANTUMBRA_TRAILER } from "@antumbra/platform-vocabulary/change-host.ts";
@@ -64,14 +63,12 @@ export const openLocal = Effect.fn("changes.openLocal")(function* (
 	const held = yield* prepareLocal(input);
 	const commit = yield* Commit;
 	const live = yield* Live;
-	const chosen = yield* live.read(flags, {});
-	const signing = chosen.some((flag) => flag.key === "signChanges" && flag.on);
 	yield* commit
 		.commit(freeze, {
 			requestId: Request.make(`${input.callId}:freeze`),
 			changeId: held.id,
 			title: input.title,
-			body: signing ? [input.body.trimEnd(), ANTUMBRA_TRAILER].join("\n\n") : input.body,
+			body: [input.body.trimEnd(), ANTUMBRA_TRAILER].join("\n\n"),
 			base: input.base,
 			draft: input.draft,
 			at: new Date(yield* Clock.currentTimeMillis).toISOString(),

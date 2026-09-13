@@ -1553,6 +1553,9 @@ importers:
       '@antumbra/glass-components':
         specifier: workspace:*
         version: link:../components
+      '@antumbra/glass-form':
+        specifier: workspace:*
+        version: link:../form
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../../platform/vocabulary
@@ -1748,6 +1751,9 @@ importers:
       '@antumbra/glass-components':
         specifier: workspace:*
         version: link:../components
+      '@antumbra/glass-form':
+        specifier: workspace:*
+        version: link:../form
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(react@19.2.8)(scheduler@0.27.0)

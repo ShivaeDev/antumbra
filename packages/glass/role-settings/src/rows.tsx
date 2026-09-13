@@ -1,22 +1,71 @@
 import type { RoleDefault } from "@antumbra/domain-role-settings/queries/defaults.ts";
-import { CommandForm } from "@antumbra/glass-components/form.tsx";
+import { RoleGrid } from "@antumbra/glass-components/compositions/role-grid.tsx";
+import { capitalised, editablesOf, identityOf, titleOf, valuesOf } from "@antumbra/glass-components/fields.ts";
+import { changing, sending, useGenerated } from "@antumbra/glass-components/generated.ts";
+import { SaveAction } from "@antumbra/glass-components/save-action.tsx";
+import { SettingsField } from "@antumbra/glass-components/settings-field.tsx";
+import { useWrong } from "@antumbra/glass-components/wrong.ts";
+import { useSubmit } from "@antumbra/glass-form/react.ts";
+import { useAtomRef } from "@effect/atom-react";
+import { type ReactNode, useId, useMemo } from "react";
 import type { Choose } from "#glass.ts";
-import { captionsOf, placeholdersOf } from "#resolved.ts";
+import { placeholdersOf } from "#resolved.ts";
 
-const FIXED = ["role"] as const;
+const COLUMNS = ["Backend", "Model", "Effort"] as const;
 
-export const RoleForms = (props: { readonly choose: Choose; readonly rows: readonly (typeof RoleDefault.Type)[] }) => (
-	<div className="flex flex-col gap-1">
-		{props.rows.map((row, place) => (
-			<CommandForm
-				captions={captionsOf(row.resolved)}
-				command={props.choose}
-				fixed={FIXED}
-				key={String(row.id)}
-				placeholders={placeholdersOf(row.resolved)}
-				row={row}
-				titles={place === 0}
-			/>
-		))}
-	</div>
-);
+const FIXED = ["scope", "role"] as const;
+
+const KEPT = () => undefined;
+
+const RoleRow = (props: { readonly choose: Choose; readonly labelId: string; readonly row: typeof RoleDefault.Type }) => {
+	const said = useId();
+	const editables = useMemo(() => editablesOf(props.choose.command, FIXED), [props.choose]);
+	const send = useMemo(() => sending(props.choose), [props.choose]);
+	const form = useGenerated(editables, identityOf(props.choose.command, props.row, editables), valuesOf(editables, props.row), send, KEPT);
+	const values = useAtomRef(form.values);
+	const change = changing(form, editables);
+	const submit = useSubmit(form);
+	const wrong = useWrong(form, editables, submit.result);
+	const placeholders = placeholdersOf(props.row.resolved);
+	const named = capitalised(props.row.role);
+	return (
+		<form
+			aria-labelledby={props.labelId}
+			className="contents"
+			onSubmit={(event) => {
+				event.preventDefault();
+				submit.run();
+			}}
+		>
+			{editables.map((editable) => (
+				<SettingsField
+					change={change}
+					editable={editable}
+					form={form}
+					key={editable.name}
+					label={`${named} ${titleOf(editable)}`}
+					named={`${said}${editable.name}`}
+					placeholder={placeholders[editable.name] ?? ""}
+					said={said}
+					values={values}
+				/>
+			))}
+			<SaveAction form={form} />
+			{wrong === null ? null : (
+				<p className="col-span-full text-xs text-destructive" id={said} role="alert">
+					{wrong}
+				</p>
+			)}
+		</form>
+	);
+};
+
+export const RoleForms = (props: { readonly choose: Choose; readonly rows: readonly (typeof RoleDefault.Type)[] }) => {
+	const prefix = useId();
+	const rows: { cells: ReactNode; label: string; labelId: string }[] = [];
+	for (const row of props.rows) {
+		const labelId = `${prefix}${row.role}`;
+		rows.push({ cells: <RoleRow choose={props.choose} labelId={labelId} row={row} />, label: capitalised(row.role), labelId });
+	}
+	return <RoleGrid columns={COLUMNS} rows={rows} />;
+};

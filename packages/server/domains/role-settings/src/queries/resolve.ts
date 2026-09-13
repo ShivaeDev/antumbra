@@ -2,7 +2,7 @@ import { backendModel } from "@antumbra/domain-backends/rows/backend-model.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
-import { type RoleSettingSource, RoleSettingSourceSchema } from "@antumbra/platform-vocabulary/role-setting.ts";
+import { type Inherited, InheritedSchema, type RoleSettingSource, RoleSettingSourceSchema } from "@antumbra/platform-vocabulary/role-setting.ts";
 import { Effect, Schema } from "effect";
 import { FLEET } from "#ids.ts";
 import { roleSetting } from "#rows/role-setting.ts";
@@ -13,6 +13,7 @@ const Named = Schema.Struct({ value: Schema.NullOr(Schema.String), source: RoleS
 
 export const Resolution = Schema.Struct({
 	backend: Schema.Struct({ value: Schema.String, source: RoleSettingSourceSchema }),
+	fallback: Schema.Struct({ value: Schema.String, source: InheritedSchema }),
 	model: Named,
 	effort: Named,
 });
@@ -23,11 +24,9 @@ export const UNCHOSEN = { backend: null, effort: null, model: null };
 type Chosen = Pick<typeof roleSetting.Row.Type, "backend" | "effort" | "model">;
 type Offered = typeof backendModel.Row.Type;
 
-const sourceOf = (chosen: string | null, inherited: string | null): RoleSettingSource => {
-	if (chosen !== null) return "chosen";
-	if (inherited !== null) return "fleet";
-	return "backend";
-};
+const inheritedSource = (inherited: string | null): Inherited => (inherited === null ? "backend" : "fleet");
+
+const sourceOf = (chosen: string | null, inherited: string | null): RoleSettingSource => (chosen === null ? inheritedSource(inherited) : "chosen");
 
 const named = (chosen: string | null, inherited: string | null, declared: string | null): typeof Named.Type => ({
 	source: sourceOf(chosen, inherited),
@@ -45,6 +44,7 @@ export const resolution = (chosen: Chosen, standing: Chosen, catalogue: readonly
 	return {
 		backend: { source: sourceOf(chosen.backend, standing.backend), value: backend },
 		effort: named(chosen.effort, inherited.effort, running?.defaultEffort ?? null),
+		fallback: { source: inheritedSource(standing.backend), value: fleetBackend },
 		model,
 	};
 };

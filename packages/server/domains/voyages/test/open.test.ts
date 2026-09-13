@@ -18,6 +18,7 @@ const seated = (role: "captain" | "crew", backend: string, model: string, effort
 	resolved: {
 		backend: { source: "chosen", value: backend },
 		effort: { source: "chosen", value: effort },
+		fallback: { source: "backend", value: "claude" },
 		model: { source: "chosen", value: model },
 	},
 	role,

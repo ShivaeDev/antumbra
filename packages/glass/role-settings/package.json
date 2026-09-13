@@ -29,6 +29,7 @@
 		"@antumbra/domain-role-settings": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
+		"@antumbra/glass-form": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",

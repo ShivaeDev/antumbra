@@ -12,12 +12,13 @@ import { Free, Listed, Several } from "#offered.tsx";
 export interface Kit {
 	readonly Digits: (props: { readonly shown: Shown }) => ReactNode;
 	readonly Flag: (props: { readonly shown: Shown }) => ReactNode;
+	readonly Free: (props: { readonly list: string; readonly offers: readonly Offer[]; readonly shown: Shown }) => ReactNode;
 	readonly Lines: (props: { readonly shown: Shown }) => ReactNode;
 	readonly Listed: (props: { readonly empty: boolean; readonly offers: readonly Offer[]; readonly shown: Shown }) => ReactNode;
 	readonly Words: (props: { readonly shown: Shown }) => ReactNode;
 }
 
-export const ROW_KIT: Kit = { Digits, Flag, Lines, Listed, Words };
+export const ROW_KIT: Kit = { Digits, Flag, Free, Lines, Listed, Words };
 
 const literalOffers = (literals: readonly string[]): readonly Offer[] => literals.map((literal) => ({ label: literal, value: literal }));
 
@@ -37,7 +38,7 @@ const Chosen = (props: {
 		return <Several offers={offers} shown={props.shown} />;
 	}
 	return props.choice.free ? (
-		<Free list={list} offers={offers} shown={props.shown} />
+		<props.kit.Free list={list} offers={offers} shown={props.shown} />
 	) : (
 		<props.kit.Listed empty={props.empty} offers={offers} shown={props.shown} />
 	);
@@ -64,7 +65,6 @@ export const drawnAs = (editable: Editable, shown: Shown, values: Held, kit: Kit
 };
 
 export const Control = (props: {
-	readonly caption: string | undefined;
 	readonly change: (name: string, value: unknown) => void;
 	readonly editable: Editable;
 	readonly form: Generated;
@@ -88,7 +88,6 @@ export const Control = (props: {
 		placeholder: props.placeholder ?? "",
 		value: field.value,
 	};
-	const caption = props.caption === undefined || field.value !== "" ? null : <p className={TITLE}>{props.caption}</p>;
 	return (
 		<div className={CELL}>
 			{props.titles ? (
@@ -97,9 +96,7 @@ export const Control = (props: {
 				</span>
 			) : null}
 			{drawnAs(props.editable, shown, props.values, ROW_KIT)}
-			{field.error === undefined ? (
-				caption
-			) : (
+			{field.error === undefined ? null : (
 				<p className={ALERT} id={said}>
 					{field.error}
 				</p>

@@ -1,9 +1,12 @@
-import { labelled, settle } from "@antumbra/app-testing/glass/dom.ts";
+import { click, labelled, settle } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
+import { useState } from "react";
 import { KEY } from "#adapters/pane-width.ts";
 import { TwoPane } from "#compositions/two-pane.tsx";
+
+const LIST = "the reading";
 
 const remembering = (stored?: string): void => {
 	const saved = new Map<string, string>(stored === undefined ? [] : [[KEY, stored]]);
@@ -18,10 +21,54 @@ const remembering = (stored?: string): void => {
 	});
 };
 
+const sized = (target: Element, width: number): ResizeObserverEntry => ({
+	borderBoxSize: [],
+	contentBoxSize: [],
+	contentRect: new DOMRectReadOnly(0, 0, width, 0),
+	devicePixelContentBoxSize: [],
+	target,
+});
+
+const observing = (): ((width: number) => void) => {
+	let announce: ((width: number) => void) | undefined;
+	class Watcher implements ResizeObserver {
+		readonly told: ResizeObserverCallback;
+		constructor(told: ResizeObserverCallback) {
+			this.told = told;
+		}
+		observe(target: Element): void {
+			announce = (width) => this.told([sized(target, width)], this);
+		}
+		unobserve(): void {
+			announce = undefined;
+		}
+		disconnect(): void {
+			announce = undefined;
+		}
+	}
+	Object.defineProperty(globalThis, "ResizeObserver", { configurable: true, value: Watcher });
+	return (width) => {
+		if (announce !== undefined) announce(width);
+	};
+};
+
 const pane = (container: HTMLElement): HTMLElement =>
 	container.querySelector("output")?.parentElement ?? Effect.runSync(Effect.die("the session pane is missing"));
 
-const beside = <TwoPane list="the reading" pane={<output>a session</output>} />;
+const beside = <TwoPane list={LIST} pane={<output>a session</output>} />;
+
+const Console = () => {
+	const [open, setOpen] = useState(true);
+	const session = (
+		<output>
+			a session
+			<button aria-label="Close" onClick={() => setOpen(false)} type="button">
+				Close
+			</button>
+		</output>
+	);
+	return <TwoPane list={LIST} pane={open ? session : null} />;
+};
 
 it.glass("drags the session pane wider and opens at that width again", function* ({ render }) {
 	remembering();
@@ -68,4 +115,31 @@ it.glass("keeps the width it was dragged to when the drag is cancelled", functio
 	yield* render(<p>elsewhere</p>);
 	const reopened = yield* render(beside);
 	expect(pane(reopened).style.width).toBe("708px");
+});
+
+it.glass("yields the session down to the list's floor and gives back the reader's width when the window widens", function* ({ render }) {
+	remembering();
+	const resize = observing();
+	const container = yield* render(beside);
+	expect(pane(container).style.width).toBe("608px");
+	yield* settle(() => resize(900));
+	expect(pane(container).style.width).toBe("516px");
+	yield* settle(() => resize(1600));
+	expect(pane(container).style.width).toBe("608px");
+	expect(globalThis.localStorage.getItem(KEY)).toBeNull();
+});
+
+it.glass("shows the session alone under the two floors and comes back to the list when it closes", function* ({ render }) {
+	remembering();
+	const resize = observing();
+	const container = yield* render(<Console />);
+	yield* settle(() => resize(703));
+	expect(container.textContent).not.toContain(LIST);
+	expect(container.querySelector("output")).not.toBeNull();
+	expect(pane(container).style.width).toBe("");
+	expect(container.querySelector('[aria-label="Resize the session"]')).toBeNull();
+
+	yield* click(labelled(container, "Close"));
+	expect(container.textContent).toContain(LIST);
+	expect(container.querySelector("output")).toBeNull();
 });

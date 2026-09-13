@@ -8,6 +8,6 @@ const saying = (description: string, seen: string): string => `Timed out after $
 
 export const deadline = (description: string, seen?: () => string): Effect.Effect<never> =>
 	Effect.callback<never>((resume) => {
-		const timer = setTimeout(() => resume(Effect.die(saying(description, seen?.() ?? ""))), boundMillis);
+		const timer = setTimeout(() => resume(Effect.suspend(() => Effect.die(saying(description, seen?.() ?? "")))), boundMillis);
 		return Effect.sync(() => clearTimeout(timer));
 	});

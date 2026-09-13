@@ -214,7 +214,7 @@ it.app("failed start waits and explicit retry has a new deduplicated edge reques
 	});
 	yield* app.api.agents.retry({ id: born("one").birthId, requestId: Id.Request.make("retry") });
 	expect(
-		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted"),
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the retried birth to be admitted"),
 	).toMatchObject({
 		operationRequestId: "retry",
 		agentId: born("one").agentId,

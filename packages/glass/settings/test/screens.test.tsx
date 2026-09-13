@@ -56,7 +56,7 @@ it.glass("saves a flag as it is switched", function* ({ api, render }) {
 	const saved = yield* eventually(
 		api.settings.flags({}),
 		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
-		"the holdEverything flag to switch on",
+		"the hold-everything flag to switch on",
 	);
 	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
 });
@@ -72,7 +72,7 @@ it.glass("replaces a saved count", function* ({ api, render }) {
 	const saved = yield* eventually(
 		api.settings.counts({}),
 		(counts) => counts.some((count) => count.key === "maxParallelSessions" && count.count === 12),
-		"the maxParallelSessions count to save as 12",
+		"the running-agent limit to save as 12",
 	);
 	expect(saved.find((count) => count.key === "maxParallelSessions")?.count).toBe(12);
 });

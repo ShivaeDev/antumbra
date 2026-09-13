@@ -1,7 +1,19 @@
 import { Effect, Option, Stream } from "effect";
 import { deadline } from "#waiting.ts";
 
-const lastSeen = (seen: Option.Option<unknown>): string => (Option.isNone(seen) ? "; nothing was seen" : `; last saw ${JSON.stringify(seen.value)}`);
+const shown = (value: unknown): string => {
+	const visited = new WeakSet<object>();
+	const written = JSON.stringify(value, (_key, part: unknown) => {
+		if (typeof part === "bigint") return `${part}n`;
+		if (typeof part !== "object" || part === null) return part;
+		if (visited.has(part)) return "[circular]";
+		visited.add(part);
+		return part;
+	});
+	return written ?? String(value);
+};
+
+const lastSeen = (seen: Option.Option<unknown>): string => (Option.isNone(seen) ? "; nothing was seen" : `; last saw ${shown(seen.value)}`);
 
 export const eventually = <Value, Failure, Requirements>(
 	stream: Stream.Stream<Value, Failure, Requirements>,

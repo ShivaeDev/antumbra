@@ -8,7 +8,7 @@ const reporter = fileURLToPath(new URL("./flakes/adapters/reporter.ts", import.m
 
 const budget = ["--testTimeout=20000"];
 
-const retried = ["--retry=2", "--reporter=default", `--reporter=${reporter}`];
+const retried = ["--retry=2", "--reporter=default", "--reporter=github-actions", `--reporter=${reporter}`];
 
 const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;

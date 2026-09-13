@@ -56,7 +56,7 @@ it.glass("lists what a held switch is keeping back and sends again when it goes 
 	yield* eventually(
 		api.settings.flags({}),
 		(flags) => flags.some((setting) => setting.key === "spawnForPiece" && setting.on),
-		"the spawnForPiece flag to switch on",
+		"the piece-spawn switch to switch on",
 	);
 });
 

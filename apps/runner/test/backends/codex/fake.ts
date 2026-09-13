@@ -40,7 +40,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const answer = (method: string, params: unknown, nextTurn: () => number): unknown => {
 	switch (method) {
 		case "initialize":
-			return { userAgent: "fake/0.148.0-alpha.9 (test)" };
+			return { userAgent: "fake/0.154.0-alpha.6.2 (test)" };
 		case "thread/start":
 		case "thread/resume":
 			return {

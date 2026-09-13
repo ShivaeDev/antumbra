@@ -94,3 +94,15 @@ it("keeps every turn's own numbers, on the turn they belong to", () => {
 	expect(labels(streamed(usage, completed, usage, completed))).toEqual([turn, turn]);
 	expect(labels(streamed(usage))).toEqual([]);
 });
+
+it("reads a turn's cache share from tokens the turn counted once", () => {
+	const cached = { cacheReadTokens: 99_712, cacheWriteTokens: 0, inputTokens: 2_731, outputTokens: 487 };
+	const usage: AgentEvent = {
+		...cached,
+		byModel: [{ ...cached, model: "gpt-6-astra" }],
+		raw: raw("result/success", "{}"),
+		type: "usage",
+	};
+	const completed: AgentEvent = { durationMs: 1000, raw: raw("result/success", "{}"), status: "completed", type: "turn.completed" };
+	expect(labels(streamed(usage, completed))).toEqual(["turn completed · gpt-6-astra · 1.0s · 97% cache · in 2,731 · out 487"]);
+});

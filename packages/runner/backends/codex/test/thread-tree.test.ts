@@ -137,6 +137,31 @@ describe("the tree reads what codex says about its own agents", () => {
 		});
 	});
 
+	it.each(["sendMessage", "followupTask", "interruptAgent", "listAgents"])("%s uses the tool fold and interrupted is unsuccessful", (tool) => {
+		const reading = tree();
+		const payload = {
+			agentsStates: {},
+			id: "collab_new",
+			receiverThreadIds: [CHILD],
+			senderThreadId: ROOT,
+			status: "inProgress",
+			tool,
+			type: "collabAgentToolCall",
+		};
+		expect(reading.events(item("item/started", ROOT, payload))).toMatchObject([{ name: tool, type: "tool.started" }]);
+		expect(reading.events(item("item/completed", ROOT, { ...payload, status: "interrupted" }))).toMatchObject([
+			{ ok: false, toolId: "collab_new", type: "tool.completed" },
+		]);
+	});
+
+	it("completed activity neither opens nor ends a subsession", () => {
+		const reading = tree();
+		expect(reading.events(activity(ROOT, CHILD, "completed"))).toMatchObject([{ type: "raw" }]);
+		expect(reading.events(activity(ROOT, CHILD, "started"))).toMatchObject([{ type: "subsession.opened" }]);
+		expect(reading.events(activity(ROOT, CHILD, "completed"))).toMatchObject([{ type: "raw" }]);
+		expect(reading.events(activity(ROOT, CHILD, "interrupted"))).toMatchObject([{ outcome: "interrupted", type: "subsession.ended" }]);
+	});
+
 	it("the announcement names the node, its parent thread, and its spawning call", () => {
 		const reading = tree();
 		reading.events(collabCall("item/started", ROOT, CHILD));

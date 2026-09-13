@@ -69,12 +69,11 @@ const WebSearchItem = Schema.Struct({
 	type: Schema.Literal("webSearch"),
 });
 
-// Codex reports sub-agent lifecycle as started, interacted, or interrupted.
 const SubAgentActivityItem = Schema.Struct({
 	...item,
 	agentPath: Schema.String,
 	agentThreadId: Schema.String,
-	kind: Schema.Literals(["started", "interacted", "interrupted"]),
+	kind: Schema.Literals(["started", "interacted", "interrupted", "completed"]),
 	type: Schema.Literal("subAgentActivity"),
 });
 
@@ -84,8 +83,18 @@ const CollabAgentToolCallItem = Schema.Struct({
 	prompt: Schema.optional(Schema.NullOr(Schema.String)),
 	receiverThreadIds: Schema.Array(Schema.String),
 	senderThreadId: Schema.String,
-	status: Schema.Literals(["inProgress", "completed", "failed"]),
-	tool: Schema.Literals(["spawnAgent", "sendInput", "resumeAgent", "wait", "closeAgent"]),
+	status: Schema.Literals(["inProgress", "completed", "failed", "interrupted"]),
+	tool: Schema.Literals([
+		"spawnAgent",
+		"sendInput",
+		"resumeAgent",
+		"wait",
+		"closeAgent",
+		"sendMessage",
+		"followupTask",
+		"interruptAgent",
+		"listAgents",
+	]),
 	type: Schema.Literal("collabAgentToolCall"),
 });
 

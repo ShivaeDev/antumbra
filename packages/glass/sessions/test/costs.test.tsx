@@ -73,3 +73,9 @@ it.glass("a session whose models did not all price their turns reads as a floor"
 	);
 	expect(container.textContent).toContain("session ≥ $0.62");
 });
+
+it.glass("normalized Codex usage counts each token once", function* ({ render }) {
+	const codex = { cacheReadTokens: 99712, cacheWriteTokens: 0, inputTokens: 2731, outputTokens: 487 };
+	const inline = yield* render(<SpendInline total={{ ...unpriced, ...codex }} />);
+	expect(inline.textContent).toContain("103K tokens");
+});

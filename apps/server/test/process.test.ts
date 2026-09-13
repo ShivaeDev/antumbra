@@ -12,15 +12,23 @@ import { transport } from "@antumbra/platform-rpc/transport.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
-import { Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
+import { Config, Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
 import { ChildProcess } from "effect/unstable/process";
 import * as RpcMessage from "effect/unstable/rpc/RpcMessage";
 import * as RpcSerialization from "effect/unstable/rpc/RpcSerialization";
 import * as Socket from "effect/unstable/socket/Socket";
-import { expect } from "vitest";
+import { beforeEach, expect } from "vitest";
 import { isolatedTemp } from "#test/isolated.ts";
 
-const temp = isolatedTemp();
+let temp: string;
+
+beforeEach(({ skip }) => {
+	if (Effect.runSync(Config.string("GITHUB_ACTIONS").pipe(Config.withDefault(""))) !== "true") {
+		skip("This test spawns a real Antumbra server and runs only on a GitHub Actions runner.");
+	}
+	temp = isolatedTemp();
+});
+
 const entry = fileURLToPath(new URL("../src/main.ts", import.meta.url));
 const TOKEN = "app-level-test-token";
 const PATIENCE = "5 seconds";

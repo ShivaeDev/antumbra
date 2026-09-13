@@ -1,9 +1,10 @@
 import { Effect, Option, Result, type Schema, SchemaParser } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";
-import * as AtomRef from "effect/unstable/reactivity/AtomRef";
+import type * as AtomRef from "effect/unstable/reactivity/AtomRef";
 import { draft } from "#draft.ts";
 import { type FieldMessages, literalChoices, messagesByField, noMessages } from "#messages.ts";
+import { fromRef } from "#refs.ts";
 import {
 	type Config,
 	checkOf,
@@ -19,7 +20,7 @@ import {
 	type Name,
 	type Submitter,
 } from "#shape.ts";
-import { fromRef, statusOf } from "#status.ts";
+import { statusOf } from "#status.ts";
 
 export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, config: Config<F, A, E, R, ER>): Form<F, A, E, ER> => {
 	const { initialValues, onSubmit, runtime } = config;

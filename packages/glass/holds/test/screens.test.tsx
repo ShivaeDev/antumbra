@@ -66,3 +66,19 @@ it.glass("keeps a held switch on the page before anything is waiting", function*
 	expect(container.textContent).toContain("0 waiting");
 	expect(container.textContent).toContain("Nothing is waiting yet.");
 });
+
+it.glass("keeps its switches and takes no touch while the server is away", function* ({ api, render, server }) {
+	yield* api.settings.setFlag({ key: "spawnSmoother", on: false });
+	const container = yield* render(<HoldsPanel api={api} />);
+	yield* until(() => switchOf(container, "Spawn a smoother") !== null, "the hold switches");
+
+	yield* server.away;
+	yield* until(() => container.querySelector('[aria-busy="true"]') !== null, "the panel to hold the reading it has");
+	expect(container.querySelector("[inert]")?.contains(switchOf(container, "Spawn a smoother"))).toBe(true);
+	expect(reads(container, "Spawn a smoother")).toBe("false");
+	expect(reads(container, "All queues")).toBe("true");
+
+	yield* server.back;
+	yield* until(() => container.querySelector('[aria-busy="true"]') === null, "the panel to take the reading again");
+	expect(reads(container, "Spawn a smoother")).toBe("false");
+});

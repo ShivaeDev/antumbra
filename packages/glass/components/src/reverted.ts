@@ -3,10 +3,9 @@ import { useEffect } from "react";
 import type { Generated } from "#generated.ts";
 
 export const useReverted = <Sent, Failure>(form: Generated, sent: AsyncResult.AsyncResult<Sent, Failure>): void => {
-	const refused = AsyncResult.isFailure(sent) && !sent.waiting;
 	useEffect(() => {
-		if (refused) {
+		if (AsyncResult.isFailure(sent) && !sent.waiting) {
 			form.revert();
 		}
-	}, [form, refused]);
+	}, [form, sent]);
 };

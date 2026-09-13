@@ -1,18 +1,12 @@
-import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AtomRef from "effect/unstable/reactivity/AtomRef";
 import { type FieldMessages, noMessages, withoutField } from "#messages.ts";
+import { fromRef } from "#refs.ts";
 
 interface State {
 	readonly failures: FieldMessages;
 	readonly submitted: boolean;
 	readonly touched: Readonly<Record<string, true>>;
 }
-
-export const fromRef = <A>(ref: AtomRef.ReadonlyRef<A>): Atom.Atom<A> =>
-	Atom.readable((get) => {
-		get.addFinalizer(ref.subscribe((value) => get.setSelf(value)));
-		return ref.value;
-	});
 
 export const statusOf = () => {
 	const state = AtomRef.make<State>({ failures: noMessages, submitted: false, touched: {} });

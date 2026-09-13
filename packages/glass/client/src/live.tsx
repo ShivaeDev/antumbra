@@ -21,7 +21,7 @@ const failed = (
 	</span>
 );
 
-const lastRead = <A,>(result: AsyncResult.AsyncResult<A, unknown>): Option.Option<A> => {
+export const lastRead = <A,>(result: AsyncResult.AsyncResult<A, unknown>): Option.Option<A> => {
 	if (AsyncResult.isSuccess(result)) return Option.some(result.value);
 	if (!AsyncResult.isFailure(result) || !lostConnection(result)) return Option.none();
 	return Option.map(result.previousSuccess, (success) => success.value);

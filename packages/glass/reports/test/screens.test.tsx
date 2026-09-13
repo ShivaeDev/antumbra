@@ -1,10 +1,16 @@
+import { eventually } from "@antumbra/app-testing/answers.ts";
 import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { RECONNECTING, Reconnecting } from "@antumbra/glass-client/reconnection.tsx";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { ReportOutcomes, ReportReferences } from "#report-outcomes.tsx";
+
+const UNREACHED = "The server could not be reached";
+
+const said = (container: HTMLElement): string | null | undefined => container.querySelector('[role="status"]')?.textContent;
 
 const reef = VoyageId.make("voyage:reef");
 const soundings = PieceId.make("piece:soundings");
@@ -56,4 +62,41 @@ it.glass("a missing report names the failed reading and can be closed", function
 	yield* until(() => container.textContent?.includes("no such report: missing") === true, "the missing report message");
 	yield* click(labelled(container, "Close"));
 	expect(container.textContent).not.toContain("no such report");
+});
+
+it.glass("keeps an open report on the page while the server is away", function* ({ api, render, server }) {
+	yield* api.voyages.open(opening);
+	yield* api.pieces.charter({
+		charter: "sound the reef",
+		dependsOn: [],
+		expectation: "soundings land",
+		requestId: Id.Request.make(soundings),
+		role: "hand",
+		title: "Soundings",
+		voyageId: reef,
+	});
+	yield* api.reports.land({
+		authorAgentId: null,
+		body: "The **eastern shoal** is steeper than charted.",
+		pieceId: soundings,
+		title: "Reef soundings",
+	});
+	const landed = yield* eventually(api.reports.byPiece({ pieceId: soundings }), (reports) => reports.length === 1);
+	const container = yield* render(
+		<>
+			<ReportReferences api={api} reports={landed.map((report) => ({ id: report.id, title: report.title }))} />
+			<Reconnecting />
+		</>,
+	);
+	yield* press(container, "Reef soundings");
+	yield* until(() => container.textContent?.includes("steeper than charted") === true, "the report body");
+
+	yield* server.away;
+	yield* until(() => said(container) === RECONNECTING, "the pane to hold the report it read");
+	expect(container.textContent).toContain("steeper than charted");
+	expect(container.textContent).not.toContain(UNREACHED);
+
+	yield* server.back;
+	yield* until(() => said(container) === "", "the pane to take the report again");
+	expect(container.textContent).toContain("steeper than charted");
 });

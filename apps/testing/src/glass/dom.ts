@@ -51,8 +51,26 @@ export const write = (control: Writable, value: string): Effect.Effect<void> =>
 		control.dispatchEvent(new Event(control instanceof HTMLSelectElement ? "change" : "input", { bubbles: true }));
 	});
 
+function narrowed<Element extends HTMLElement>(found: HTMLElement | undefined): Element | undefined;
+function narrowed(found: unknown): unknown {
+	return found;
+}
+
+const labelling = (container: HTMLElement, label: string): HTMLElement | undefined => {
+	for (const element of container.querySelectorAll("label")) {
+		if (element.textContent?.trim() === label) return document.getElementById(element.htmlFor) ?? undefined;
+	}
+	return undefined;
+};
+
+const carrying = (container: HTMLElement, label: string): HTMLElement | undefined =>
+	container.querySelector<HTMLElement>(`[aria-label="${label}"]`) ?? labelling(container, label);
+
 export const labelled = <Element extends HTMLElement>(container: HTMLElement, label: string): Element =>
-	container.querySelector<Element>(`[aria-label="${label}"]`) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
+	narrowed<Element>(carrying(container, label)) ?? Effect.runSync(Effect.die(`no control labelled ${label}`));
+
+export const renderedControl = (container: HTMLElement, label: string): Effect.Effect<void> =>
+	until(() => carrying(container, label) !== undefined, `the control labelled "${label}" to render`);
 
 const offers = (control: Writable, value: string): boolean =>
 	!(control instanceof HTMLSelectElement) || [...control.options].some((option) => option.value === value);
@@ -93,6 +111,24 @@ export const submit = (container: HTMLElement, name: string): Effect.Effect<void
 			return yield* Effect.die(`no submit button in form "${name}"`);
 		}
 		yield* click(button);
+	});
+
+const pointing = (kind: string): PointerEvent => new PointerEvent(kind, { bubbles: true, button: 0, pointerId: 1, pointerType: "mouse" });
+
+const offer = (label: string): HTMLElement | undefined =>
+	[...document.body.querySelectorAll<HTMLElement>('[data-slot="select-item"]')].find((candidate) => candidate.textContent?.trim() === label);
+
+export const pick = (container: HTMLElement, label: string, value: string): Effect.Effect<void> =>
+	Effect.gen(function* () {
+		const trigger = labelled(container, label);
+		yield* settle(() => trigger.dispatchEvent(pointing("pointerdown")));
+		yield* until(() => offer(value) !== undefined, `"${label}" to offer "${value}"`);
+		const chosen = offer(value);
+		if (chosen === undefined) return yield* Effect.die(`no option "${value}"`);
+		yield* settle(() => {
+			chosen.dispatchEvent(pointing("pointerup"));
+			chosen.click();
+		});
 	});
 
 export const choose = (control: HTMLSelectElement, values: readonly string[]): Effect.Effect<void> =>

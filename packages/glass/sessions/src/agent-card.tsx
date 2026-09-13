@@ -1,8 +1,7 @@
 import type { agentReading } from "@antumbra/domain-agents/rows/agent-reading.ts";
-import { CommandAct } from "@antumbra/glass-components/act.tsx";
-import { cn } from "@antumbra/glass-components/class-names.ts";
-import { SUBJECT } from "@antumbra/glass-components/classes.ts";
-import { Card } from "@antumbra/glass-components/ui/card.tsx";
+import { ActButton } from "@antumbra/glass-components/act-button.tsx";
+import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
+import { Card, CardAction, CardContent, CardFooter, CardHeader } from "@antumbra/glass-components/shadcn/card.tsx";
 import { AgentBerths } from "#agent-berths.tsx";
 import { AgentSessions } from "#agent-sessions.tsx";
 import { AgentVoyage, AgentWork } from "#agent-work.tsx";
@@ -13,6 +12,9 @@ import { presenceWords } from "#presence.ts";
 type Agent = typeof agentReading.Row.Type;
 
 const STARTING = "Preparing to work";
+
+const OPENS =
+	"-mx-1 flex min-w-0 flex-col gap-1 rounded-md px-1 py-0.5 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-60";
 
 const presenceWord = (agent: Agent): string => (agent.presence === null ? STARTING : presenceWords[agent.presence]);
 
@@ -26,38 +28,40 @@ export const AgentCard = (props: {
 	readonly onVoyage: (id: string) => void;
 }) => {
 	const conversation = props.agent.currentSessionId;
-	const words = conversation === null ? props.agent.standing : presenceWord(props.agent);
+	const words = (conversation === null ? props.agent.standing : presenceWord(props.agent)).toLowerCase();
 	const open = conversation === null ? undefined : () => props.onSession(conversation);
 	const showing = conversation !== null && conversation === props.sessionId;
 	return (
-		<Card className={cn("gap-0 p-0 transition-colors", showing ? "border-border-strong bg-accent" : "hover:border-border-strong")}>
-			<div className="flex min-w-0 items-start gap-2 px-2.5 pt-2">
-				<span className="min-w-0 flex-1">
-					<AgentVoyage
-						api={props.api}
-						onPiece={props.onPiece}
-						onVoyage={props.onVoyage}
-						pieceIds={props.agent.pieceIds}
-						voyageIds={props.agent.voyageIds}
-					/>
-				</span>
-				{props.agent.canRetire ? <CommandAct command={props.api.agents.retire} input={{ id: props.agent.id }} label="Retire" /> : null}
-			</div>
-			<button
-				aria-current={showing ? "true" : undefined}
-				aria-label={open === undefined ? `${props.agent.role}, ${words}` : `Open ${props.agent.role}`}
-				className={cn(SUBJECT, "gap-0.5 px-2.5 py-1.5 disabled:pointer-events-none disabled:opacity-60")}
-				disabled={open === undefined}
-				onClick={open}
-				type="button"
-			>
-				<span className="flex w-full min-w-0 items-center gap-2">
-					<span className="min-w-0 flex-1 truncate text-sm font-medium">{props.agent.role}</span>
-					<span className="shrink-0 text-xs text-muted-foreground">{words}</span>
-				</span>
-				<AgentWork api={props.api} pieceIds={props.agent.pieceIds} />
-			</button>
-			<div className="flex min-w-0 flex-col gap-2 px-2.5 pb-2">
+		<Card className="transition-colors hover:border-border-strong data-selected:bg-accent" data-selected={showing ? "" : undefined}>
+			<CardHeader>
+				<AgentVoyage
+					api={props.api}
+					onPiece={props.onPiece}
+					onVoyage={props.onVoyage}
+					pieceIds={props.agent.pieceIds}
+					voyageIds={props.agent.voyageIds}
+				/>
+				<button
+					aria-current={showing ? "true" : undefined}
+					aria-label={open === undefined ? `${props.agent.role}, ${words}` : `Open ${props.agent.role}`}
+					className={OPENS}
+					disabled={open === undefined}
+					onClick={open}
+					type="button"
+				>
+					<span className="flex w-full min-w-0 items-center gap-2">
+						<span className="min-w-0 truncate text-sm font-medium">{props.agent.role}</span>
+						<StatusBadge state={words} />
+					</span>
+					<AgentWork api={props.api} pieceIds={props.agent.pieceIds} />
+				</button>
+				{props.agent.canRetire ? (
+					<CardAction>
+						<ActButton command={props.api.agents.retire} input={{ id: props.agent.id }} label="Retire" />
+					</CardAction>
+				) : null}
+			</CardHeader>
+			<CardContent className="flex min-w-0 flex-col gap-3 empty:hidden">
 				<AgentSessions
 					api={props.api}
 					agent={props.agent}
@@ -66,8 +70,10 @@ export const AgentCard = (props: {
 					onOpenTranscript={props.onOpenTranscript}
 				/>
 				<AgentBerths api={props.api} agentId={props.agent.id} />
+			</CardContent>
+			<CardFooter className="border-t">
 				<Diagnostics api={props.api} agent={props.agent} />
-			</div>
+			</CardFooter>
 		</Card>
 	);
 };

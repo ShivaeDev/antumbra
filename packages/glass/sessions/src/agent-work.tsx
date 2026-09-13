@@ -5,10 +5,10 @@ import { ChevronRightIcon } from "lucide-react";
 import type { SessionsApi } from "#glass.ts";
 
 export const AgentWork = (props: { readonly api: SessionsApi; readonly pieceIds: readonly string[] }) => (
-	<span className="flex min-w-0 flex-col gap-0.5">
+	<span className="flex min-w-0 flex-col gap-1">
 		{props.pieceIds.map((id) => (
 			<Live key={id} query={props.api.pieces.byId} input={{ id: PieceId.make(id) }}>
-				{(piece) => (piece === null ? null : <span className="truncate text-xs">{piece.title}</span>)}
+				{(piece) => (piece === null ? null : <span className="line-clamp-2 text-xs text-muted-foreground">{piece.title}</span>)}
 			</Live>
 		))}
 	</span>
@@ -42,9 +42,8 @@ const Breadcrumb = (props: { readonly api: SessionsApi; readonly voyageId: strin
 			voyage === null ? null : (
 				<button
 					aria-label={`Open voyage ${voyage.name}`}
-					className="inline-flex w-fit min-w-0 items-center gap-0.5 rounded-sm text-2xs text-link outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/60"
+					className="-mx-1 inline-flex w-fit min-w-0 items-center gap-1 rounded-md px-1 text-xs text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60"
 					onClick={props.onOpen}
-					title="Open voyage"
 					type="button"
 				>
 					<span className="truncate">{voyage.name}</span>

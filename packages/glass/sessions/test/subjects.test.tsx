@@ -50,8 +50,8 @@ const smoothing = Effect.fnUntraced(function* (api: Api) {
 	yield* api.agents.smooth({ requestId: SMOOTHER, agentId: ids.agentId, sessionId: ids.sessionId, voyageId, cwd: null });
 });
 
-const groupsOf = (container: HTMLElement): readonly (string | null)[] =>
-	[...container.querySelectorAll("section > header")].map((header) => header.textContent);
+const groupsOf = (container: HTMLElement): readonly (string | null | undefined)[] =>
+	[...container.querySelectorAll("h2")].map((heading) => heading.parentElement?.textContent);
 
 it.glass("an agent card opens that agent's session and leaves the fleet only through its voyage", function* ({ api, render }) {
 	yield* charted(api);
@@ -138,8 +138,8 @@ it.glass("an agent with no open conversation cannot be opened from its card", fu
 	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
 	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
 	yield* api.agents.retire({ id: identity(CREW).agentId });
-	yield* until(() => container.querySelector('[aria-label="hand, Retired"]') !== null, "the card to say the agent is retired");
-	expect(labelled<HTMLButtonElement>(container, "hand, Retired").disabled).toBe(true);
+	yield* until(() => container.querySelector('[aria-label="hand, retired"]') !== null, "the card to say the agent is retired");
+	expect(labelled<HTMLButtonElement>(container, "hand, retired").disabled).toBe(true);
 	expect(container.querySelector('[aria-label="Open hand"]')).toBeNull();
 });
 

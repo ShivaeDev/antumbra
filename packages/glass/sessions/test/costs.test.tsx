@@ -2,7 +2,9 @@ import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import type { SessionModelSpend, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { UsageTotal } from "@antumbra/domain-sessions/rows/usage.ts";
 import { expect } from "vitest";
+import { tokensOf } from "#costs/format.ts";
 import { SessionStandingBar } from "#session-standing.tsx";
+import { usageLabel } from "#transcript/usage-label.ts";
 import { SpendTable } from "#views/costs-table.tsx";
 import { SpendInline } from "#views/spend-inline.tsx";
 
@@ -76,4 +78,12 @@ it.glass("a session whose models did not all price their turns reads as a floor"
 	);
 	expect(container.textContent).toContain("session ≥ $0.6200");
 	expect(container.querySelector('[title="opus $0.6200 · haiku cost not reported"]')).not.toBeNull();
+});
+
+it.glass("normalized Codex usage shows its cache share and counts each token once", function* ({ render }) {
+	const usage = { inputTokens: 2731, cacheReadTokens: 99712, cacheWriteTokens: 0, outputTokens: 487, byModel: [] };
+	const container = yield* render(<SpendInline total={{ ...unpriced, ...usage }} />);
+	expect(container.textContent).toContain("103K tokens");
+	expect(usageLabel(usage)).toContain("97% cache");
+	expect(tokensOf({ ...unpriced, ...usage })).toBe(102930);
 });

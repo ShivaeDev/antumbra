@@ -65,7 +65,7 @@ it.glass("keeps a merged change under Landed and offers every registered reposit
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(4000).toISOString(),
 	});
-	yield* until(() => container.querySelector("#quay-landed-heading") !== null, "the Landed section to appear");
+	yield* until(() => container.querySelector('section[aria-label="Landed"]') !== null, "the Landed section to appear");
 	expect(container.textContent).toContain("merged");
 	expect(container.textContent).toContain("1 of 1 pull requests");
 

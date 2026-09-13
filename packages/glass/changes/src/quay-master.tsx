@@ -1,4 +1,5 @@
 import type { browse } from "@antumbra/domain-changes/queries/browse.ts";
+import { SectionHeading } from "@antumbra/glass-components/section.tsx";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import type { QuayChange } from "#glass.ts";
 import { type Filters, INITIAL, QuayFilters } from "#quay-filters.tsx";
@@ -20,10 +21,8 @@ const QuayRows = ({ items, selectedId, onSelect }: Listing) => (
 
 const LandedRows = (props: Listing) =>
 	props.items.length === 0 ? null : (
-		<section aria-labelledby="quay-landed-heading" className="mt-3 flex flex-col gap-1">
-			<h3 className="border-border border-t pt-2 text-2xs text-muted-foreground" id="quay-landed-heading">
-				Landed
-			</h3>
+		<section aria-label="Landed" className="mt-5 flex flex-col gap-2">
+			<SectionHeading title="Landed" />
 			<QuayRows {...props} />
 		</section>
 	);

@@ -12,17 +12,17 @@ it("counts only the tokens a turn reports", () => {
 	expect(listPrice("gpt-6-astra", { inputTokens: 200_000, outputTokens: 100_000 })).toBeCloseTo(2 + 5, 6);
 });
 
-it("bills a round past the context threshold at the long rates", () => {
-	const short = { cacheReadTokens: 0, cacheWriteTokens: 0, inputTokens: 272_000, outputTokens: 0 };
-	const long = { ...short, inputTokens: 272_001 };
-	expect(listPrice("gpt-6-astra", short)).toBeCloseTo(2.72, 6);
-	expect(listPrice("gpt-6-astra", long)).toBeCloseTo(5.44002, 6);
+it("measures the threshold against the whole prompt, not the new tokens alone", () => {
+	const resumed = { cacheReadTokens: 280_000, cacheWriteTokens: 0, inputTokens: 5_000, outputTokens: 1_000 };
+	const brief = { ...resumed, cacheReadTokens: 260_000 };
+	expect(listPrice("gpt-6-astra", resumed)).toBeCloseTo(0.735, 6);
+	expect(listPrice("gpt-6-astra", brief)).toBeCloseTo(0.36, 6);
 });
 
-it("keeps the short rates at any size for a model that publishes no long ones", () => {
-	const long = { inputTokens: 400_000, outputTokens: 0 };
-	expect(listPrice("gpt-5.6-cyber", long)).toBeCloseTo(5, 6);
-	expect(listPrice("claude-opus-5", long)).toBeCloseTo(2, 6);
+it("keeps the short rates at any prompt size for a model that publishes no long ones", () => {
+	const long = { cacheReadTokens: 400_000, inputTokens: 0, outputTokens: 0 };
+	expect(listPrice("gpt-5.6-cyber", long)).toBeCloseTo(0.5, 6);
+	expect(listPrice("claude-opus-5", long)).toBeCloseTo(0.2, 6);
 });
 
 it("prices a model by what it is, not by the provider it was reached through", () => {

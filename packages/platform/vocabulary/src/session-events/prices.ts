@@ -14,7 +14,7 @@ interface Spent {
 
 const PER_MILLION = 1_000_000;
 
-// A round with more input tokens than this bills at the long-context rates of the models that publish them.
+// A prompt larger than this bills at the long-context rates of the models that publish them.
 const LONG_CONTEXT_TOKENS = 272_000;
 
 // Dollars per million tokens, as each provider publishes them. A model absent here is one Antumbra cannot price, and its turns read as unreported.
@@ -50,7 +50,8 @@ const bare = (model: string): string => model.slice(model.lastIndexOf("/") + 1);
 
 export const listPrice = (model: string, spent: Spent): number | undefined => {
 	const named = bare(model);
-	const price = (spent.inputTokens > LONG_CONTEXT_TOKENS ? LONG[named] : undefined) ?? LIST[named];
+	const prompt = spent.inputTokens + (spent.cacheReadTokens ?? 0) + (spent.cacheWriteTokens ?? 0);
+	const price = (prompt > LONG_CONTEXT_TOKENS ? LONG[named] : undefined) ?? LIST[named];
 	if (price === undefined) {
 		return undefined;
 	}

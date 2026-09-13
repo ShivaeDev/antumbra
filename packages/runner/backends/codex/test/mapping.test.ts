@@ -16,7 +16,7 @@ const tokens = (last: Record<string, number>) => ({
 });
 
 const SHORT = { cachedInputTokens: 40_000, cacheWriteInputTokens: 10_000, inputTokens: 100_000, outputTokens: 20_000 };
-const LONG = { cachedInputTokens: 400_000, cacheWriteInputTokens: 100_000, inputTokens: 1_000_000, outputTokens: 200_000 };
+const RESUMED = { cachedInputTokens: 280_000, cacheWriteInputTokens: 0, inputTokens: 285_000, outputTokens: 1_000 };
 
 describe("codex notifications map onto the neutral vocabulary", () => {
 	it("agentMessage completes into an agent message; its start is silent", () => {
@@ -188,9 +188,9 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 		});
 	});
 
-	it("bills a round past the context threshold at the long rates", () => {
-		const [event] = toAgentEvents(tokens(LONG), MODEL);
-		expect(event).toMatchObject({ byModel: [{ costUsd: 28.3, model: MODEL }], costUsd: 28.3, inputTokens: 500_000 });
+	it("bills a resumed round at the long rates, because the whole prompt crosses the threshold", () => {
+		const [event] = toAgentEvents(tokens(RESUMED), MODEL);
+		expect(event).toMatchObject({ byModel: [{ costUsd: 0.735, model: MODEL }], cacheReadTokens: 280_000, costUsd: 0.735, inputTokens: 5_000 });
 	});
 
 	it("leaves a round on a model outside the list unpriced", () => {

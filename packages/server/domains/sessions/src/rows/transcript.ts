@@ -8,6 +8,7 @@ export const TranscriptMessage = Schema.Struct({
 	parts: Schema.Array(SessionMessagePart),
 	role: Schema.Literals(["agent", "user"]),
 	seq: Schema.Number,
+	served: Schema.optional(Schema.Literals(["charter", "wake"])),
 	text: Schema.String,
 });
 export type TranscriptMessage = typeof TranscriptMessage.Type;

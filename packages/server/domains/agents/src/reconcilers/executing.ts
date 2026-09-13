@@ -1,3 +1,4 @@
+import { charter } from "@antumbra/domain-sessions/commands/charter.ts";
 import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
 import { reconciler } from "@antumbra/platform-feature/reconciler.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -23,6 +24,14 @@ export const executing = reconciler("executing", {
 			const voyage = held.voyageId === null ? null : yield* reconciling.read(byId, { id: held.voyageId });
 			const toolSet = yield* ports.toolCatalog.freeze(bornAs(held, voyage));
 			const chartered = yield* ports.charter.compose(held);
+			yield* reconciling
+				.commit(charter, {
+					requestId: Request.make(`${held.operationRequestId}:charter`),
+					sessionId: held.sessionId,
+					standingOrders: chartered.constrainedPrompt,
+					charter: chartered.text,
+				})
+				.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 			const refused = yield* ports.runnerOperations.start(runnerId, {
 				requestId: held.operationRequestId,
 				sessionId: held.sessionId,

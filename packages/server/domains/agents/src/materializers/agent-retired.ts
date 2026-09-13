@@ -21,6 +21,7 @@ export const agentRetiredMaterializer = materializer(agentRetired, {
 				status: "requested",
 				detail: null,
 				requestedAt: at,
+				sequence: fact.seq,
 			});
 		}
 	}),

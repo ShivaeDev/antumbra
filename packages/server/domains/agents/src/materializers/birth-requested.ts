@@ -22,6 +22,7 @@ export const birthRequestedMaterializer = materializer(birthRequested, {
 				status: "requested",
 				detail: null,
 				requestedAt: at,
+				sequence: fact.seq,
 			});
 			return;
 		}

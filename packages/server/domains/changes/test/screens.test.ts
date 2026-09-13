@@ -49,6 +49,7 @@ it.app("pushes a host observation into the live Quay and lists every registered 
 	const views = yield* live.seen;
 	expect(views.length).toBeGreaterThan(before);
 	expect(views.at(-1)?.rows).toMatchObject([{ group: "landed", stage: "landed" }]);
+	expect(views.at(-1)).toMatchObject({ total: 1, waiting: 0 });
 
 	yield* app.api.repos.register({ requestId: request("repo:shoal"), defaultRef: "main", source: "https://github.com/example/shoal.git" });
 	yield* app.settle();

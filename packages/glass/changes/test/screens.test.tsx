@@ -9,6 +9,8 @@ import { changeId, observed, pieceId, ready, repoId } from "#test/kit.ts";
 const repositoryOptions = (container: HTMLElement): readonly string[] =>
 	[...labelled<HTMLSelectElement>(container, "Repository").options].map((option) => option.textContent ?? "");
 
+const headed = (container: HTMLElement, title: string): boolean => [...container.querySelectorAll("h2")].some((node) => node.textContent === title);
+
 it.glass("filters the live Quay while retaining the selected detail and piece change link", function* ({ api, render }) {
 	yield* ready(api);
 	const container = yield* render(
@@ -65,9 +67,9 @@ it.glass("keeps a merged change under Landed and offers every registered reposit
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(4000).toISOString(),
 	});
-	yield* until(() => container.querySelector('section[aria-label="Landed"]') !== null, "the Landed section to appear");
+	yield* until(() => headed(container, "Landed"), "the Landed section to appear");
 	expect(container.textContent).toContain("merged");
-	expect(container.textContent).toContain("1 of 1 pull requests");
+	expect(container.textContent).toContain("0 of 0 pull requests");
 
 	yield* api.repos.register({ source: "https://github.com/example/shoal.git", defaultRef: "main" });
 	yield* until(() => repositoryOptions(container).includes("shoal"), "the newly registered repository to reach the filter");

@@ -1,5 +1,5 @@
 import { failAdoption } from "@antumbra/domain-changes/commands/adoption-failed.ts";
-import { observeHostCapability } from "@antumbra/domain-changes/commands/host-capability.ts";
+import { hostCapabilities, observeHostCapability } from "@antumbra/domain-changes/commands/host-capability.ts";
 import { failPublication } from "@antumbra/domain-changes/commands/publication-failed.ts";
 import { pendingAdoptions } from "@antumbra/domain-changes/queries/pending-adoptions.ts";
 import { publishing } from "@antumbra/domain-changes/queries/publishing.ts";
@@ -8,32 +8,55 @@ import type { ChangeHost } from "@antumbra/platform-change-host/port.ts";
 import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Live } from "@antumbra/server-journal/live.ts";
 import { each, run } from "@antumbra/server-journal/reconcile.ts";
-import { Effect } from "effect";
+import { Effect, Ref } from "effect";
 import { adoptExternal } from "#changes/adopt.ts";
 import { recordObservation } from "#changes/observations.ts";
 import { publish } from "#changes/publish.ts";
 import { readWorld } from "#changes/read.ts";
 
 const OBSERVE_INTERVAL_MILLIS = 60_000;
+const OBSERVE_BACKOFF_CAP_MILLIS = 900_000;
+
+const recordCapability = Effect.fn("changes.recordCapability")(function* (host: ChangeHost) {
+	const seen = yield* host.capability;
+	const live = yield* Live;
+	const held = (yield* live.read(hostCapabilities, {})).find((row) => row.host === host.tag);
+	if (held !== undefined && held.available === seen.available && held.detail === seen.detail) return;
+	const commit = yield* Commit;
+	yield* commit
+		.commit(observeHostCapability, { requestId: Request.make(make()), host: host.tag, ...seen })
+		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
+});
+
+const observePass = Effect.fn("changes.observePass")(function* (host: ChangeHost, snapshot: typeof world.output.Type) {
+	if (!snapshot.repos.some((repo) => host.supports(repo))) return;
+	yield* recordCapability(host);
+	const repos = new Map(snapshot.repos.map((row) => [row.id, row]));
+	const open = snapshot.changes.filter((row) => row.host === host.tag && row.stage === "open");
+	const refs = open.flatMap((row) => {
+		const repo = repos.get(row.repoId);
+		return repo === undefined || row.externalId === null ? [] : [{ repo, externalId: row.externalId }];
+	});
+	if (refs.length === 0) return;
+	yield* Effect.forEach(yield* host.observe(refs), (seen) => recordObservation(host.tag, seen), { discard: true });
+});
+
 const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
+	const wait = yield* Ref.make(OBSERVE_INTERVAL_MILLIS);
 	const observer = yield* run(world, {}, (snapshot) =>
-		Effect.gen(function* () {
-			const capability = yield* host.capability;
-			const commit = yield* Commit;
-			yield* commit
-				.commit(observeHostCapability, { requestId: Request.make(make()), host: host.tag, ...capability })
-				.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-			const repos = new Map(snapshot.repos.map((row) => [row.id, row]));
-			const open = snapshot.changes.filter((row) => row.host === host.tag && row.stage === "open");
-			const refs = open.flatMap((row) => {
-				const repo = repos.get(row.repoId);
-				return repo === undefined || row.externalId === null ? [] : [{ repo, externalId: row.externalId }];
-			});
-			if (refs.length > 0) yield* Effect.forEach(yield* host.observe(refs), (seen) => recordObservation(host.tag, seen), { discard: true });
-		}).pipe(Effect.catch((error) => Effect.logWarning("change observation failed", { host: host.tag, error }))),
+		observePass(host, snapshot).pipe(
+			Effect.andThen(Ref.set(wait, OBSERVE_INTERVAL_MILLIS)),
+			Effect.catch((error) =>
+				Effect.andThen(
+					Ref.update(wait, (held) => Math.min(held * 2, OBSERVE_BACKOFF_CAP_MILLIS)),
+					Effect.logWarning("change observation failed", { host: host.tag, error }),
+				),
+			),
+		),
 	);
-	yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.sleep(OBSERVE_INTERVAL_MILLIS), observer.refresh)));
+	yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.flatMap(Ref.get(wait), Effect.sleep), observer.refresh)));
 	return observer;
 });
 const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(function* (row: Parameters<typeof publish>[0], error: unknown) {

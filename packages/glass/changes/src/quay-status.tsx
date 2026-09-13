@@ -1,6 +1,6 @@
 import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
 import type { QuayChange } from "#glass.ts";
-import { groupTitle, groupVariant } from "#groups.ts";
+import { groupVariant, stateLabel } from "#groups.ts";
 import { type ChangeMark, changeMarks } from "#marks.ts";
 
 const MARK_VARIANTS: Readonly<Record<ChangeMark["tone"], "destructive" | "info" | "outline" | "success" | "warning">> = {
@@ -17,7 +17,7 @@ export const QuayStatus = ({ item }: { readonly item: QuayChange }) => (
 			<h3 className="text-xs font-medium" id="quay-status-heading">
 				Status
 			</h3>
-			<Badge variant={groupVariant[item.group]}>{groupTitle[item.group]}</Badge>
+			<Badge variant={groupVariant[item.group]}>{stateLabel(item)}</Badge>
 		</div>
 		<div className="grid gap-2 sm:grid-cols-3">
 			{changeMarks(item).map((mark) => (

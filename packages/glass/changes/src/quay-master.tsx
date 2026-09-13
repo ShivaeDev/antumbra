@@ -21,7 +21,7 @@ const QuayRows = ({ items, selectedId, onSelect }: Listing) => (
 
 const LandedRows = (props: Listing) =>
 	props.items.length === 0 ? null : (
-		<section aria-label="Landed" className="mt-5 flex flex-col gap-2">
+		<section className="mt-5 flex flex-col gap-2">
 			<SectionHeading title="Landed" />
 			<QuayRows {...props} />
 		</section>
@@ -35,6 +35,7 @@ export const QuayMaster = (props: {
 	readonly onSelect: (id: string) => void;
 }) => {
 	const listing = { onSelect: props.onSelect, selectedId: props.selectedId };
+	const waiting = props.view.rows.filter((item) => item.group !== "landed");
 	return (
 		<aside
 			className={`min-h-0 w-full flex-col overflow-y-auto border-border md:flex md:w-80 md:shrink-0 md:border-r ${props.selectedId === undefined ? "flex" : "hidden"}`}
@@ -42,13 +43,13 @@ export const QuayMaster = (props: {
 			<QuayFilters filters={props.filters} onFilters={props.setFilters} repositories={props.view.repositories} />
 			<div className="p-2">
 				<p aria-live="polite" className="text-2xs text-muted-foreground">
-					{props.view.rows.length} of {props.view.total} pull requests
+					{waiting.length} of {props.view.waiting} pull requests
 				</p>
 				<Button onClick={() => props.setFilters(INITIAL)} variant="link">
 					Clear filters
 				</Button>
 				<nav aria-label="Pull requests">
-					<QuayRows {...listing} items={props.view.rows.filter((item) => item.group !== "landed")} />
+					<QuayRows {...listing} items={waiting} />
 					<LandedRows {...listing} items={props.view.rows.filter((item) => item.group === "landed")} />
 				</nav>
 				{props.view.rows.length === 0 && props.view.total > 0 ? (

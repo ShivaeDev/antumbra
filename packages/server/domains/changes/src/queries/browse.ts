@@ -11,6 +11,7 @@ export const browse = query("browse", {
 	output: Schema.Struct({
 		rows: Schema.Array(quayChange.Row),
 		total: Schema.Number,
+		waiting: Schema.Number,
 		selected: Schema.NullOr(quayChange.Row),
 		repositories: Schema.Array(Schema.Struct({ id: RepoId, name: Schema.String })),
 		sightedAt: Schema.NullOr(Schema.String),
@@ -39,6 +40,7 @@ export const browse = query("browse", {
 		return {
 			rows: found,
 			total: all.length,
+			waiting: all.filter((row) => row.group !== "landed").length,
 			selected: all.find((row) => row.id === input.selectedId) ?? null,
 			repositories: repositories.toSorted((left, right) => left.name.localeCompare(right.name)),
 			sightedAt:

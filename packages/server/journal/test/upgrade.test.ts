@@ -90,6 +90,22 @@ it.effect("rebuilds a projection whose shape changed through production material
 	}).pipe(Effect.provide(disk), Effect.orDie),
 );
 
+it.effect("a step pending on a database already at the current shape takes one backup, and the next start takes none", () =>
+	Effect.gen(function* () {
+		const database = yield* Database;
+		const fs = yield* FileSystem.FileSystem;
+		const directory = yield* DataDirectory;
+		const registry = yield* registryOf(definition);
+		yield* start(database.write, registry, database.backup);
+		yield* database.write.unsafe(`PRAGMA user_version = 0`);
+		yield* start(database.write, registry, database.backup);
+		const backups = yield* fs.readDirectory(`${directory.path}/backups`);
+		expect(backups).toHaveLength(1);
+		yield* start(database.write, registry, database.backup);
+		expect(yield* fs.readDirectory(`${directory.path}/backups`)).toEqual(backups);
+	}).pipe(Effect.provide(disk), Effect.orDie),
+);
+
 it.effect("a fresh journal creates no rebuild backup", () =>
 	Effect.gen(function* () {
 		const database = yield* Database;

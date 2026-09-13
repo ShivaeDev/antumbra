@@ -45,6 +45,7 @@ catalog:
   remark-gfm: 4.0.1
   rolldown: 1.2.2
   sharp: 0.35.3
+  sonner: 2.0.8
   tailwind-merge: 3.6.0
   tailwindcss: 4.3.3
   typescript: npm:@typescript/typescript6@6.0.2

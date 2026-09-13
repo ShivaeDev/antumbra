@@ -77,3 +77,11 @@
 		background-color: var(--scrollbar-thumb-hover);
 	}
 }
+
+/* Unlayered and this specific to outrank the stylesheet sonner appends at runtime. */
+.toaster[data-sonner-toaster][data-sonner-theme] {
+	--normal-bg: var(--popover);
+	--normal-text: var(--popover-foreground);
+	--normal-border: var(--border);
+	--border-radius: var(--radius);
+}

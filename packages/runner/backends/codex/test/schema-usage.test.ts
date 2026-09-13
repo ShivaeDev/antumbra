@@ -22,8 +22,11 @@ describe("the numbers and flags this record shows a reader are the pin's", () =>
 		expect(bundle.definitions.ThreadSettings?.required ?? []).toContain("model");
 	});
 
-	it("nothing the pin sends names the model a spawned thread runs on", () => {
-		expect(bundle.definitions.Thread?.properties ?? {}).not.toHaveProperty("model");
+	it("thread metadata can name a configured model while spawn sources and status carry none", () => {
+		expect(bundle.definitions.Thread?.properties ?? {}).toHaveProperty("model", {
+			description: expect.any(String),
+			type: ["string", "null"],
+		});
 		const spawn = (bundle.definitions.SubAgentSource?.oneOf ?? []).find((variant) => variant.title === "ThreadSpawnSubAgentSource");
 		expect(JSON.stringify(spawn)).not.toContain("model");
 		expect(JSON.stringify(bundle.definitions.ThreadStatus)).not.toContain("model");

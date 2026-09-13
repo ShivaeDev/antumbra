@@ -47,7 +47,7 @@ const tokenUsage = (raw: RawPayload, params: unknown, threadModel: string): Agen
 			const spent = {
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
 				...(tokenUsage.last.cacheWriteInputTokens === undefined ? {} : { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
-				inputTokens: tokenUsage.last.inputTokens,
+				inputTokens: Math.max(0, tokenUsage.last.inputTokens - tokenUsage.last.cachedInputTokens - (tokenUsage.last.cacheWriteInputTokens ?? 0)),
 				outputTokens: tokenUsage.last.outputTokens,
 			};
 			return [{ ...spent, byModel: [{ ...spent, model: threadModel }], raw, type: "usage" }];

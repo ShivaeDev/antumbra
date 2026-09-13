@@ -70,6 +70,8 @@ const keepsake = Effect.gen(function* () {
 const keepsakeRecreated: UpgradeStep = {
 	number: 1,
 	apply: Effect.fn("test.keepsakeRecreated")(function* (sql: SqlClient) {
+		const columns = yield* sql`SELECT "name" FROM pragma_table_info('keepsake')`;
+		if (!columns.some((column) => column.name === "reason")) return;
 		yield* sql`CREATE TABLE "keepsake_upgraded" ("id" TEXT PRIMARY KEY, "note" TEXT NOT NULL)`;
 		yield* sql`INSERT INTO "keepsake_upgraded" ("id", "note") SELECT "id", "reason" FROM "keepsake"`;
 		yield* sql`DROP TABLE "keepsake"`;
@@ -90,7 +92,7 @@ const kept = [
 	{ id: "two", note: "also kept" },
 ];
 
-it.effect("a step that recreates a table copies its rows into the new shape and runs once", () =>
+it.effect("a step that recreates a table copies its rows into the new shape and leaves it alone once recorded", () =>
 	Effect.gen(function* () {
 		const database = yield* Database;
 		yield* keepsake;
@@ -98,8 +100,14 @@ it.effect("a step that recreates a table copies its rows into the new shape and 
 		yield* start(database.write, registry, Effect.void, [keepsakeRecreated]);
 		expect(yield* database.read`SELECT "id", "note" FROM "keepsake" ORDER BY "id"`).toEqual(kept);
 		expect(yield* database.read`PRAGMA user_version`).toEqual([{ user_version: 1 }]);
+		yield* database.write`INSERT INTO "keepsake" ${database.write.insert({ id: "three", note: "written after the upgrade" })}`;
 		yield* start(database.write, registry, Effect.void, [keepsakeRecreated]);
-		expect(yield* database.read`SELECT "id", "note" FROM "keepsake" ORDER BY "id"`).toEqual(kept);
+		expect(yield* database.read`SELECT "id", "note" FROM "keepsake" ORDER BY "id"`).toEqual([
+			{ id: "one", note: "kept" },
+			{ id: "three", note: "written after the upgrade" },
+			{ id: "two", note: "also kept" },
+		]);
+		expect(yield* database.read`PRAGMA user_version`).toEqual([{ user_version: 1 }]);
 	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
 );
 

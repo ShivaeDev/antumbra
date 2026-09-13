@@ -77,3 +77,17 @@ it.glass("a session whose models did not all price their turns reads as a floor"
 	expect(container.textContent).toContain("session ≥ $0.6200");
 	expect(container.querySelector('[title="opus $0.6200 · haiku cost not reported"]')).not.toBeNull();
 });
+
+it.glass("normalized Codex usage shows its cache share and counts each token once", function* ({ render }) {
+	const codex = { cacheReadTokens: 99712, cacheWriteTokens: 0, inputTokens: 2731, outputTokens: 487 };
+	const bar = yield* render(
+		<SessionStandingBar
+			activity={{ live: true }}
+			standing={{ ...standing([], { costPartial: false, costUsd: null }), usage: { ...codex, byModel: [] } }}
+		/>,
+	);
+	expect(bar.textContent).toContain("97% cache");
+
+	const inline = yield* render(<SpendInline total={{ ...unpriced, ...codex }} />);
+	expect(inline.textContent).toContain("103K tokens");
+});

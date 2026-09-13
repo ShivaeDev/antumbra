@@ -24,14 +24,21 @@ const raw = { source: "test-runner", kind: "provider", payload: "{}" };
 it.app("charter acceptance advances work while sleeping retains the conversation", function* (app) {
 	const runner = yield* connectRunner(registration);
 	yield* runner.append([{ ...source, cursor: 0, event: start }]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ executionStatus: "idle", charterDeliveredAt: null });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({
+		executionStatus: "idle",
+		charterDeliveredAt: null,
+	});
 	yield* runner.append([{ ...source, cursor: 1, event: { type: "InputAccepted", ...identity, inputId: "charter" } }]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({
 		executionStatus: "active",
 		charterDeliveredAt: new Date(100).toISOString(),
 	});
 	yield* runner.append([{ ...source, cursor: 2, event: { type: "SessionSlept", ...identity } }]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ attached: false, status: "open", nativeRef: "native" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({
+		attached: false,
+		status: "open",
+		nativeRef: "native",
+	});
 });
 
 it.app("sleep waits for tools and rejects a delegated node as an operation target", function* (app) {
@@ -56,7 +63,7 @@ it.app("sleep waits for tools and rejects a delegated node as an operation targe
 			},
 		},
 	]);
-	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be listed");
 	const child = nodes.find((node) => node.parentSessionId !== null);
 	if (child === undefined) return yield* Effect.die("Missing delegated session");
 	expect(yield* Effect.flip(app.api.sessions.request({ ...sleep, sessionId: child.id }))).toMatchObject({ _tag: "Unavailable" });
@@ -97,7 +104,7 @@ it.app("late delegated discovery retains attribution and its gap when the node e
 			},
 		},
 	]);
-	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const nodes = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be listed");
 	expect(nodes).toHaveLength(2);
 	expect(nodes.find((node) => node.nativeRef === "child")).toMatchObject({
 		parentSessionId: sessionId,
@@ -129,7 +136,9 @@ it.app("an uncertain provider handoff remains held and cannot be resent by retry
 		},
 	]);
 	yield* runner.reply("send", { type: "Accepted" });
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([expect.objectContaining({ id: "send", status: "ambiguous" })]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toEqual([
+		expect.objectContaining({ id: "send", status: "ambiguous" }),
+	]);
 	expect(yield* Effect.flip(app.api.sessions.retry({ id: SessionOperationId.make("send") }))).toMatchObject({ _tag: "Unavailable" });
 });
 
@@ -147,6 +156,8 @@ it.app("stop completion remains accepted after a late refusal", function* (app) 
 	expect(yield* runner.next).toMatchObject({ type: "Stop", requestId: "stop" });
 	yield* runner.append([{ ...source, cursor: 1, event: { type: "SessionEnded", sessionId, requestId: "stop", reason: "retired" } }]);
 	yield* runner.reply("stop", { type: "Refused", reason: "late stale refusal" });
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([expect.objectContaining({ id: "stop", status: "accepted" })]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ status: "closed", attached: false });
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toEqual([
+		expect.objectContaining({ id: "stop", status: "accepted" }),
+	]);
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({ status: "closed", attached: false });
 });

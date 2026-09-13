@@ -34,7 +34,7 @@ it.app("attaches host evidence only to the exact prepared branch and head", func
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(3000).toISOString(),
 	});
-	expect((yield* answered(app.api.changes.all({})))[0]?.stage).toBe("prepared");
+	expect((yield* answered(app.api.changes.all({}), "all changes to be listed"))[0]?.stage).toBe("prepared");
 	yield* app.api.changes.observe({
 		requestId: request("observe:exact"),
 		host: "github",
@@ -42,7 +42,11 @@ it.app("attaches host evidence only to the exact prepared branch and head", func
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(3000).toISOString(),
 	});
-	expect((yield* answered(app.api.changes.all({})))[0]).toMatchObject({ id: preparation.requestId, stage: "open", externalId: "41" });
+	expect((yield* answered(app.api.changes.all({}), "all changes to be listed"))[0]).toMatchObject({
+		id: preparation.requestId,
+		stage: "open",
+		externalId: "41",
+	});
 	expect(yield* app.rows.change.count({})).toBe(1);
 });
 
@@ -69,10 +73,10 @@ it.app("keeps a publication failure actionable and retries the same frozen propo
 		attemptId: proposal.requestId,
 		message: "GitHub login required",
 	});
-	expect(yield* answered(app.api.changes.publishing({}))).toEqual([]);
-	expect((yield* answered(app.api.changes.quay({})))[0]?.publicationError).toBe("GitHub login required");
+	expect(yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed")).toEqual([]);
+	expect((yield* answered(app.api.changes.quay({}), "the quay to be listed"))[0]?.publicationError).toBe("GitHub login required");
 	yield* app.api.changes.freeze({ ...proposal, requestId: request("publish:retry"), title: "Later title", body: "Later body" });
-	expect((yield* answered(app.api.changes.publishing({})))[0]).toMatchObject({
+	expect((yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed"))[0]).toMatchObject({
 		title: "Frozen title",
 		body: "Frozen body",
 		publicationError: null,
@@ -84,7 +88,7 @@ it.app("keeps a publication failure actionable and retries the same frozen propo
 		attemptId: proposal.requestId,
 		message: "Old attempt failed",
 	});
-	expect((yield* answered(app.api.changes.publishing({})))[0]?.publicationError).toBeNull();
+	expect((yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed"))[0]?.publicationError).toBeNull();
 });
 
 it.app("shows an adoption refusal and allows correcting its URL without losing the request", function* (app) {
@@ -98,7 +102,11 @@ it.app("shows an adoption refusal and allows correcting its URL without losing t
 		url: "https://github.com/example/reef/pull/0",
 		message: "Pull request not found",
 	});
-	expect((yield* answered(app.api.changes.adoptions({})))[0]?.error).toBe("Pull request not found");
+	expect((yield* answered(app.api.changes.adoptions({}), "the adoption requests to be listed"))[0]?.error).toBe("Pull request not found");
 	yield* app.api.changes.retryAdoption({ requestId: request("adoption:retry"), id: "adoption:request", url: seen("open").url });
-	expect((yield* answered(app.api.changes.adoptions({})))[0]).toMatchObject({ id: "adoption:request", url: seen("open").url, error: null });
+	expect((yield* answered(app.api.changes.adoptions({}), "the adoption requests to be listed"))[0]).toMatchObject({
+		id: "adoption:request",
+		url: seen("open").url,
+		error: null,
+	});
 });

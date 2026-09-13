@@ -48,7 +48,7 @@ it.app("a census admits the missing nested child once and preserves its parent a
 	];
 	const census = censusOf((node) => node === "branch", sweep);
 	yield* append([...census.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: census.nodes }]);
-	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read");
 	expect(tree).toHaveLength(3);
 	const branch = tree.find((node) => node.nativeRef === "branch");
 	const leaf = tree.find((node) => node.nativeRef === "leaf");
@@ -67,7 +67,7 @@ it.app("a census admits the missing nested child once and preserves its parent a
 	expect(yield* app.rows.sessionGap.where({ sessionId: branch.id })).toEqual([]);
 	const repeated = censusOf(() => true, sweep);
 	yield* append([...repeated.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: repeated.nodes }]);
-	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }))).toHaveLength(3);
+	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read")).toHaveLength(3);
 	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toHaveLength(1);
 });
 
@@ -75,7 +75,7 @@ it.app("an unreadable census records uncertainty without inventing a child", fun
 	const append = yield* connect();
 	const census = censusUnreadable("native-root", "provider unavailable");
 	yield* append([...census.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: census.nodes }]);
-	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }))).toHaveLength(1);
+	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read")).toHaveLength(1);
 	const rootGaps = yield* app.rows.sessionGap.where({ sessionId });
 	expect(rootGaps).toMatchObject([{ kind: "unknown", detail: expect.stringContaining("could not be checked") }]);
 });
@@ -108,7 +108,7 @@ it.app("node audit completion preserves a missing transcript line and does not r
 		{ type: "SessionNodeAudited", sessionId, nodeRef: "complete" },
 		{ type: "SessionNodeAudited", sessionId, nodeRef: "gapped" },
 	]);
-	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read");
 	expect(tree.find((node) => node.nativeRef === "complete")).toMatchObject({ completeness: "complete", status: "closed", outcome: "completed" });
 	const gapped = tree.find((node) => node.nativeRef === "gapped");
 	if (gapped === undefined) return yield* Effect.die("audited node missing");
@@ -117,7 +117,10 @@ it.app("node audit completion preserves a missing transcript line and does not r
 		{ detail: "1 of 1 transcript lines the provider stored for this node never reached the record" },
 	]);
 	expect(yield* app.rows.sessionEvent.where({ sessionId: gapped.id })).toHaveLength(2);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native-root", executionStatus: "idle" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the root session to be read")).toMatchObject({
+		nativeRef: "native-root",
+		executionStatus: "idle",
+	});
 });
 
 it.app("a late announcement reparents an already recorded child without moving its words to the root", function* (app) {
@@ -128,7 +131,7 @@ it.app("a late announcement reparents an already recorded child without moving i
 		provider({ type: "subsession.opened", subsessionRef: "leaf", spawnedBy: "leaf-call", parentRef: "branch", kind: "auditor", raw }),
 		provider({ type: "subsession.ended", subsessionRef: "leaf", outcome: "interrupted", raw }),
 	]);
-	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }));
+	const tree = yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read");
 	const branch = tree.find((node) => node.nativeRef === "branch");
 	const leaf = tree.find((node) => node.nativeRef === "leaf");
 	if (branch === undefined || leaf === undefined) return yield* Effect.die("delegated nodes missing");
@@ -137,5 +140,5 @@ it.app("a late announcement reparents an already recorded child without moving i
 	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toMatchObject([{ kind: "adopted-late" }]);
 	expect(yield* app.rows.sessionEvent.where({ sessionId: leaf.id })).toMatchObject([{ cursor: 1 }]);
 	expect((yield* app.rows.sessionEvent.where({ sessionId })).map((event) => event.cursor)).toEqual([2, 3, 4]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native-root" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the root session to be read")).toMatchObject({ nativeRef: "native-root" });
 });

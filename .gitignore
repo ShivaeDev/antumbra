@@ -9,3 +9,4 @@ coverage/
 .playwright-mcp/
 .local/
 .fixtures/
+.flakes/

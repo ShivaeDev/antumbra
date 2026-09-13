@@ -28,7 +28,7 @@ it.app("one runner acceptance updates its input and session before advancing the
 			},
 		},
 	]);
-	expect((yield* answered(api.sessions.reading({ id: sessionId })))?.executionStatus).toBe("idle");
+	expect((yield* answered(api.sessions.reading({ id: sessionId }), "the session to be read"))?.executionStatus).toBe("idle");
 
 	const inputs = yield* inputApi;
 	const submitted = yield* Effect.forkScoped(inputs.submit({ id: inputId, sessionId, parts: [{ type: "text", text: "Continue sounding" }] }));
@@ -49,8 +49,8 @@ it.app("one runner acceptance updates its input and session before advancing the
 		},
 	};
 	expect(yield* runner.append([accepted])).toBe(2);
-	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId })))?.status).toBe("accepted");
-	expect((yield* answered(api.sessions.reading({ id: sessionId })))?.executionStatus).toBe("active");
+	expect((yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read"))?.status).toBe("accepted");
+	expect((yield* answered(api.sessions.reading({ id: sessionId }), "the session to be read"))?.executionStatus).toBe("active");
 	expect(yield* runner.cursor).toBe(2);
 	yield* runner.reply(operation.requestId, { type: "Accepted" });
 	expect(yield* Fiber.join(submitted)).toEqual({ id: inputId, status: "accepted" });

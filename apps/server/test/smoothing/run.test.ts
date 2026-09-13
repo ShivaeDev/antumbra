@@ -47,8 +47,8 @@ it.app("runs a constrained summary pass through its bound domain tool and closes
 		}),
 	);
 	expect(stopped).toBe(true);
-	expect(yield* answered(app.api.boards.smoothingState({ voyageId }))).toEqual({ state: "idle", uncovered: 0 });
-	expect(yield* answered(app.api.boards.digest({ board: voyageBoard(voyageId) }))).toMatchObject([
+	expect(yield* answered(app.api.boards.smoothingState({ voyageId }), "the smoothing state to be read")).toEqual({ state: "idle", uncovered: 0 });
+	expect(yield* answered(app.api.boards.digest({ board: voyageBoard(voyageId) }), "the board's digest to be read")).toMatchObject([
 		{ kind: "summary", body: "The approach changed with the tide" },
 	]);
 });
@@ -67,7 +67,7 @@ it.app("records an empty answer as a failed pass and leaves source notes standin
 			stop: Effect.void,
 		}),
 	);
-	expect(yield* answered(app.api.boards.smoothingState({ voyageId }))).toEqual({ state: "failed", uncovered: 1 });
+	expect(yield* answered(app.api.boards.smoothingState({ voyageId }), "the smoothing state to be read")).toEqual({ state: "failed", uncovered: 1 });
 });
 
 it.app("stops a silent smoother after the existing ten-minute patience", function* (app) {

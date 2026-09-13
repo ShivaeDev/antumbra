@@ -5,7 +5,7 @@ import { chartering, opening, pieceOf } from "#test/kit.ts";
 
 const soundings = pieceOf("soundings");
 
-const read = (app: App) => answered(app.api.pieces.byId({ id: soundings }));
+const read = (app: App) => answered(app.api.pieces.byId({ id: soundings }), "the piece to be read");
 
 it.app("a piece launches, parks and unparks, and repeating an act leaves it where it stands", function* (app) {
 	yield* app.api.voyages.open(opening);

@@ -22,7 +22,7 @@ it.glass("opens a Voyage from navigation and selects its live list entry", funct
 	yield* fill(opening, "Open voyage Name", "Chart the reef");
 	yield* fill(opening, "Open voyage North star", "Every shoal is known");
 	yield* submit(document.body, "Open voyage");
-	const voyages = yield* eventually(api.voyages.list({}), (rows) => rows.length === 2);
+	const voyages = yield* eventually(api.voyages.list({}), (rows) => rows.length === 2, "the newly opened voyage to reach the list");
 	const charted = voyages.find((row) => row.kind === "voyage");
 	expect(charted).toMatchObject({ name: "Chart the reef", northStar: "Every shoal is known" });
 	yield* until(() => document.querySelector('[role="dialog"]') === null, "the successful opening to close its dialog");

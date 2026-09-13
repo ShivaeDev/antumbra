@@ -13,7 +13,7 @@ it.app("registers a repository and reuses its identity when the default ref chan
 		ok: true,
 		text: `already registered repo ${requestId(context)} chart · ${source} · default ref develop`,
 	});
-	const registered = yield* answered(app.api.repos.all({}));
+	const registered = yield* answered(app.api.repos.all({}), "the repos to be listed");
 	expect(registered).toHaveLength(1);
 	expect(registered[0]).toMatchObject({ id: requestId(context), source, defaultRef: "develop" });
 });

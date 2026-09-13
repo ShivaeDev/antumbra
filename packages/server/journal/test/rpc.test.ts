@@ -33,7 +33,9 @@ it.app("the client resolves repeated requests without another write", function* 
 	const requestId = Id.Request.make("count-change");
 	const seq = yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 9, requestId });
 	expect(yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 12, requestId })).toBe(seq);
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 9 }),
+	);
 });
 
 it.app("commands without request ids apply independently", function* (app) {
@@ -44,7 +46,9 @@ it.app("commands without request ids apply independently", function* (app) {
 	const applied = yield* Effect.orDie(database.write`SELECT * FROM "applied"`);
 	expect(applied.length).toBe(before.length + 2);
 	expect(new Set(applied.map((entry) => String(entry.requestId))).size).toBe(applied.length);
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 12 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 12 }),
+	);
 });
 
 it.app("RPC queries publish committed changes", function* (app) {
@@ -71,5 +75,7 @@ it.app("RPC refuses a wrong token and accepts the configured token", function* (
 	const refused = yield* Effect.flip(call.pipe(Effect.provideService(ClientToken, { token: "wrong" })));
 	expect(refused).toBeInstanceOf(Unauthorized);
 	expect(yield* call).toBeGreaterThan(0);
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 9 }),
+	);
 });

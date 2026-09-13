@@ -17,10 +17,14 @@ it.app("a hail from an agent waits on the hail-wake switch before the captain is
 	yield* app.api.settings.setFlag({ key: "wakeOnHail", on: false });
 	const watching = yield* app.live(pending, {});
 	yield* app.api.agents.hail({ by: "agent", requestId: HAIL, voyageId: VOYAGE });
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toMatchObject([{ kind: "wake", reason: "hail", status: "requested" }]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toMatchObject([
+		{ kind: "wake", reason: "hail", status: "requested" },
+	]);
 	yield* app.settle();
 	expect((yield* watching.seen).at(-1)).toEqual([]);
-	expect((yield* answered(app.api.holds.queues({}))).queues).toMatchObject([{ setting: "wakeOnHail", held: true, waiting: [{ title: "captain" }] }]);
+	expect((yield* answered(app.api.holds.queues({}), "the hold queues to be listed")).queues).toMatchObject([
+		{ setting: "wakeOnHail", held: true, waiting: [{ title: "captain" }] },
+	]);
 	yield* app.api.settings.setFlag({ key: "wakeOnHail", on: true });
 	yield* app.settle();
 	expect((yield* watching.seen).at(-1)).toMatchObject([{ kind: "wake", reason: "hail", gatedBy: "wakeOnHail" }]);
@@ -40,7 +44,7 @@ it.app("a hail waiting on its switch does not keep the captain from its mail", f
 		requestId: MAIL,
 		toAgentId: agentId,
 	});
-	const operations = yield* eventually(app.api.sessions.operations({ sessionId }), (held) => held.length === 2);
+	const operations = yield* eventually(app.api.sessions.operations({ sessionId }), (held) => held.length === 2, "two operations");
 	expect(operations.filter((operation) => operation.gatedBy === null)).toMatchObject([
 		{ kind: "wake", reason: mailWords({ count: 1, precedence: "priority" }) },
 	]);

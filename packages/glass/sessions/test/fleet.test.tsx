@@ -35,7 +35,7 @@ it.glass("gives the list its own header band beside a session and leaves the gro
 it.glass("folds the smoothers into a group of their own that opens when the reader asks", function* ({ api, render }) {
 	yield* crewed(api);
 	yield* smoothing(api);
-	yield* eventually(api.agents.roster({}), (rows) => rows.length === 2);
+	yield* eventually(api.agents.roster({}), (rows) => rows.length === 2, "the crew and the smoother to reach the roster");
 	const container = yield* render(<FleetPanel {...nowhere} api={api} />);
 	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
 	expect(groupsOf(container)).toEqual([

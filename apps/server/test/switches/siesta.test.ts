@@ -12,8 +12,8 @@ it.app("an idle agent stays awake while the siesta switch is off, and is put to 
 	yield* app.api.agents.spawn({ requestId: LONE, role: "crew", backend: "claude", model: null, effort: null });
 	const { sessionId } = yield* atWork(LONE, 0);
 	yield* app.clock.advance(61_000);
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toEqual([]);
 	yield* app.api.settings.setFlag({ key: "sendToSiesta", on: true });
-	const slept = yield* eventually(app.api.sessions.operations({ sessionId }), (operations) => operations.length === 1);
+	const slept = yield* eventually(app.api.sessions.operations({ sessionId }), (operations) => operations.length === 1, "one operation");
 	expect(slept).toMatchObject([{ kind: "sleep" }]);
 });

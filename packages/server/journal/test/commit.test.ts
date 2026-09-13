@@ -14,7 +14,9 @@ it.app("commits store provenance and update public readings", function* (app) {
 	expect(facts).toHaveLength(1);
 	expect(facts[0]).toMatchObject({ at: 1_700_000, name: "CountSet", requestId, seq });
 	expect(JSON.parse(String(facts[0]?.payload))).toEqual({ count: 9, key: "maxParallelSessions" });
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 9 }),
+	);
 });
 
 it.app("rejected commands leave durable state unchanged", function* (app) {
@@ -26,7 +28,9 @@ it.app("rejected commands leave durable state unchanged", function* (app) {
 	expect(rejection).toMatchObject({ _tag: "OutOfRange", key: "maxParallelSessions" });
 	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toEqual(facts);
 	expect(yield* Effect.orDie(database.write`SELECT * FROM "applied"`)).toEqual(applied);
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 9 }),
+	);
 });
 
 it.app("commits reject repeated requests without writing again", function* (app) {
@@ -40,5 +44,7 @@ it.app("commits reject repeated requests without writing again", function* (app)
 	expect(refused).toMatchObject({ requestId, seq });
 	expect(yield* Effect.orDie(database.write`SELECT * FROM "journal"`)).toEqual(facts);
 	expect(yield* Effect.orDie(database.write`SELECT * FROM "applied"`)).toEqual(applied);
-	expect(yield* answered(app.api.settings.counts({}))).toContainEqual(expect.objectContaining({ key: "maxParallelSessions", count: 9 }));
+	expect(yield* answered(app.api.settings.counts({}), "the settings counts to be listed")).toContainEqual(
+		expect.objectContaining({ key: "maxParallelSessions", count: 9 }),
+	);
 });

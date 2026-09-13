@@ -16,7 +16,7 @@ it.glass("spawns an agent from the fields the command declares", function* ({ ap
 	yield* pick(document.body, "Backend", "codex");
 	expect(labelled(document.body, "Backend").textContent).toBe("codex");
 	yield* press(document.body, "Spawn");
-	const roster = yield* eventually(api.agents.roster({}), (rows) => rows.length === 1);
+	const roster = yield* eventually(api.agents.roster({}), (rows) => rows.length === 1, "the spawned agent to reach the roster");
 	expect(roster[0]).toMatchObject({ role: "navigator", status: "spawning" });
 	yield* until(() => !open(), "the spawn dialog to close");
 });

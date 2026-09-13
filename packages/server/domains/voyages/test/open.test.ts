@@ -37,20 +37,20 @@ it.app("seats both roles and changes only the chosen role", function* (app) {
 		requestId: REEF_REQUEST,
 	});
 
-	expect(yield* answered(app.api.voyages.byId({ id: reef }))).toMatchObject({
+	expect(yield* answered(app.api.voyages.byId({ id: reef }), "the reef voyage to be read")).toMatchObject({
 		context: "the reef is uncharted",
 		kind: "voyage",
 		name: "Chart the reef",
 		northStar: "every shoal is known",
 	});
-	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }))).toEqual([
+	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }), "the reef voyage's role settings to be listed")).toEqual([
 		seated("captain", "claude", "opus", "high"),
 		seated("crew", "codex", "gpt-5", "medium"),
 	]);
 
 	yield* app.api.roleSettings.choose({ backend: "codex", effort: "medium", model: "gpt-5-codex", role: "crew", scope: reef });
 
-	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }))).toEqual([
+	expect(yield* answered(app.api.roleSettings.forVoyage({ voyageId: reef }), "the reef voyage's role settings to be listed")).toEqual([
 		seated("captain", "claude", "opus", "high"),
 		seated("crew", "codex", "gpt-5-codex", "medium"),
 	]);

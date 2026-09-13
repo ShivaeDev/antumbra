@@ -13,19 +13,29 @@ it.app("filters the Quay without losing its selected change or landed piece outc
 	yield* app.api.repos.register(registration);
 	yield* app.api.changes.adopt(adoption);
 	const id = ChangeId.make(adoption.requestId);
-	const view = yield* answered(app.api.changes.browse({ query: "does not match", repositoryId: null, status: "all", selectedId: id }));
-	expect(view).toMatchObject({ rows: [], total: 1, selected: { id }, repositories: [{ id: repoId, name: "reef" }] });
-	expect((yield* answered(app.api.changes.browse({ query: "Reef", repositoryId: repoId, status: "alongside", selectedId: null }))).rows).toHaveLength(
-		1,
+	const view = yield* answered(
+		app.api.changes.browse({ query: "does not match", repositoryId: null, status: "all", selectedId: id }),
+		"the browse view of all changes to render",
 	);
+	expect(view).toMatchObject({ rows: [], total: 1, selected: { id }, repositories: [{ id: repoId, name: "reef" }] });
+	expect(
+		(yield* answered(
+			app.api.changes.browse({ query: "Reef", repositoryId: repoId, status: "alongside", selectedId: null }),
+			"the browse view filtered to alongside changes to render",
+		)).rows,
+	).toHaveLength(1);
 	yield* app.api.changes.observe({
 		host: "github",
 		observation: seen("landed", 3000),
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(4000).toISOString(),
 	});
-	expect((yield* answered(app.api.changes.byPiece({ pieceId })))[0]).toMatchObject({ id, stage: "landed", repoName: "reef" });
-	expect(yield* answered(app.api.changes.quay({}))).toMatchObject([{ id, group: "landed", stage: "landed" }]);
+	expect((yield* answered(app.api.changes.byPiece({ pieceId }), "the piece's changes to be listed"))[0]).toMatchObject({
+		id,
+		stage: "landed",
+		repoName: "reef",
+	});
+	expect(yield* answered(app.api.changes.quay({}), "the quay to be listed")).toMatchObject([{ id, group: "landed", stage: "landed" }]);
 });
 
 it.app("pushes a host observation into the live Quay and lists every registered repository", function* (app) {
@@ -83,13 +93,13 @@ it.app("shows situations only while the assigned session and external change are
 			},
 		},
 	]);
-	const situations = yield* answered(app.api.changes.sessionSituations({ sessionId }));
+	const situations = yield* answered(app.api.changes.sessionSituations({ sessionId }), "the session's situations to be listed");
 	expect(situations.map((row) => row.situation)).toEqual(["merge_conflicts", "checks_failed", "unresolved_reviews"]);
 	expect(situations[0]).toMatchObject({ reference: "#41" });
 	expect(situations[0]?.text).toContain("reef");
 	expect(situations[0]?.text).toContain("work/reef");
 	yield* runner.append([{ ...source, cursor: 1, event: { type: "SessionEnded", ...logged, reason: "stopped" } }]);
-	expect(yield* answered(app.api.changes.sessionSituations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.changes.sessionSituations({ sessionId }), "the session's situations to be listed")).toEqual([]);
 });
 
 it.app("gathers what reviewers wrote into one situation that clears when the admiral forwards it", function* (app) {
@@ -132,7 +142,7 @@ it.app("gathers what reviewers wrote into one situation that clears when the adm
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(3000).toISOString(),
 	});
-	const waiting = (yield* answered(app.api.changes.sessionSituations({ sessionId })))[0];
+	const waiting = (yield* answered(app.api.changes.sessionSituations({ sessionId }), "the session's situations to be listed"))[0];
 	expect(waiting).toMatchObject({ feedbackIds: ["r1", "c1", "i1"], label: "3 comments on #41", situation: "feedback_waiting" });
 	expect(waiting?.text).toContain("Change #41 in reef has 3 new comments on branch work/reef, quoted below.");
 	expect(waiting?.text).toContain("octocat reviewed\n> The empty reef needs a test before this lands.");
@@ -140,7 +150,7 @@ it.app("gathers what reviewers wrote into one situation that clears when the adm
 	expect(waiting?.text).toContain("octocat commented\n> Can this land today?");
 
 	yield* app.api.changes.forwardFeedback({ requestId: request("forward"), changeId, ids: waiting?.feedbackIds ?? [] });
-	expect(yield* answered(app.api.changes.sessionSituations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.changes.sessionSituations({ sessionId }), "the session's situations to be listed")).toEqual([]);
 
 	yield* app.api.changes.observe({
 		requestId: request("observe:later"),
@@ -149,7 +159,7 @@ it.app("gathers what reviewers wrote into one situation that clears when the adm
 		attachment: { _tag: "Observed" },
 		observedAt: new Date(6000).toISOString(),
 	});
-	const returned = (yield* answered(app.api.changes.sessionSituations({ sessionId })))[0];
+	const returned = (yield* answered(app.api.changes.sessionSituations({ sessionId }), "the session's situations to be listed"))[0];
 	expect(returned).toMatchObject({ feedbackIds: ["i2"], label: "1 comment on #41" });
 	expect(returned?.text).toContain("has 1 new comment on branch work/reef");
 });

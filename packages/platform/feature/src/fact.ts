@@ -25,10 +25,15 @@ export type FactPayload<Fact extends FactShape> = Fact["Payload"]["Type"];
 
 export type FactValue<Fact extends FactShape> = Fact["Fact"]["Type"];
 
+type Identity<Payload extends Fields> = {
+	[Key in keyof Payload]: Payload[Key]["Type"] extends string | number ? Key : never;
+}[keyof Payload] &
+	string;
+
 export function fact<Name extends string, const Payload extends Fields>(
 	name: Name,
 	payload: Payload,
-	observes?: { readonly subject: keyof Payload & string },
+	observes?: { readonly subject: Identity<Payload> },
 ): FactDefinition<Name, Payload>;
 export function fact(name: string, payload: Fields, observes?: { readonly subject: string }): unknown {
 	for (const field of reserved) {

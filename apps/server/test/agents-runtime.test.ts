@@ -79,3 +79,41 @@ it.app("raising the running budget admits the next held birth", function* (app) 
 		birthOf("second"),
 	]);
 });
+
+it.app("a moorage the runner reports ready passes the same guards as the command", function* (app) {
+	const requested = Request.make("moored");
+	const { agentId } = identity(requested);
+	const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] });
+	yield* runner.append([
+		{
+			logId: "log",
+			cursor: 0,
+			at: 0,
+			event: { type: "MoorageProvisioned", requestId: "stray:provision", agentId: "stray", plan: { root: "/stray", berths: [] } },
+		},
+	]);
+	expect(Option.isNone(yield* answered(app.api.reclamation.current({ agentId: "stray" })))).toBe(true);
+	yield* app.api.agents.spawn({ requestId: requested, role: "crew", backend: "claude", model: "chosen-model", effort: "high" });
+	const plan = yield* runner.next;
+	yield* runner.reply(plan.requestId, { type: "MooragePlanned", plan: { root: "/prepared/moored", berths: [] } });
+	const provision = yield* runner.next;
+	expect(provision.type).toBe("Provision");
+	yield* runner.append([
+		{
+			logId: "log",
+			cursor: 1,
+			at: 0,
+			event: {
+				type: "MoorageProvisioned",
+				requestId: provision.requestId,
+				agentId,
+				plan: { root: "/prepared/moored", berths: [] },
+			},
+		},
+	]);
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({ root: "/prepared/moored", status: "ready" });
+	yield* runner.reply(provision.requestId, { type: "Accepted" });
+	const start = yield* runner.next;
+	expect(start.type).toBe("Start");
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({ status: "ready" });
+});

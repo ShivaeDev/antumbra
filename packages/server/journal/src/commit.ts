@@ -10,7 +10,7 @@ import { codecOf, type Registry } from "#app.ts";
 import { materialize } from "#materialize.ts";
 import { type Observation, type ObservationMetadata, type ObservedFact, observe, observeBatch, readCursor } from "#observe.ts";
 import { readHandle } from "#read-handle.ts";
-import { repeatOf } from "#repeat.ts";
+import { repeatOf, subjectOf } from "#repeat.ts";
 
 export interface CommitService {
 	readonly observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => Effect.Effect<number>;
@@ -80,9 +80,10 @@ const transact = Effect.fn("journal.commit")(function* (
 	const at = yield* Clock.currentTimeMillis;
 	const encoded = yield* Effect.orDie(Schema.encodeUnknownEffect(command.emits.Payload)(payload));
 	const stored = JSON.stringify(encoded);
-	let seq = yield* repeatOf(context.sql, command.emits, stored);
+	const subject = yield* subjectOf(command.emits, encoded);
+	let seq = yield* repeatOf(context.sql, command.emits, subject, stored);
 	if (seq === undefined) {
-		seq = yield* append(context, { at, name: command.emits.name, payload: stored, requestId: input.requestId });
+		seq = yield* append(context, { at, name: command.emits.name, payload: stored, requestId: input.requestId, subject });
 		yield* materialize(context.sql, context.registry, command.emits.name, { ...payload, at, requestId: input.requestId, seq }, dirty);
 	}
 	yield* context.sql`INSERT INTO "applied" ${context.sql.insert({ requestId: input.requestId, seq })}`;

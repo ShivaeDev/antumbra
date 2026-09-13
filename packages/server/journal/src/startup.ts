@@ -6,8 +6,9 @@ import { materialize } from "#materialize.ts";
 import { pendingMigrations, rewriteFacts, storedFact } from "#migrate.ts";
 import { indexDdl, shapeOf, tableDdl } from "#table.ts";
 
-const JOURNAL = `CREATE TABLE IF NOT EXISTS "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL)`;
-const LATEST = `CREATE INDEX IF NOT EXISTS "journal_latest" ON "journal" ("name", "seq" DESC)`;
+const JOURNAL = `CREATE TABLE IF NOT EXISTS "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL, "subject" TEXT)`;
+const SUBJECT = `ALTER TABLE "journal" ADD COLUMN "subject" TEXT`;
+const LATEST = `CREATE INDEX IF NOT EXISTS "journal_subject" ON "journal" ("name", "subject", "seq" DESC)`;
 const APPLIED = `CREATE TABLE IF NOT EXISTS "applied" ("requestId" TEXT PRIMARY KEY, "seq" INTEGER NOT NULL)`;
 const SHAPES = `CREATE TABLE IF NOT EXISTS "shape" ("name" TEXT PRIMARY KEY, "hash" TEXT NOT NULL)`;
 const CURSORS = `CREATE TABLE IF NOT EXISTS "runner_cursor" ("logId" TEXT PRIMARY KEY, "cursor" INTEGER NOT NULL, "seq" INTEGER NOT NULL)`;
@@ -25,7 +26,10 @@ export const start = (sql: SqlClient, registry: Registry, backup: Effect.Effect<
 		if (rebuilds && stored.length > 0) yield* backup;
 		yield* sql.withTransaction(
 			Effect.gen(function* () {
-				for (const statement of [JOURNAL, LATEST, APPLIED, SHAPES, CURSORS, MIGRATIONS]) yield* sql.unsafe(statement);
+				yield* sql.unsafe(JOURNAL);
+				const columns = yield* sql`SELECT "name" FROM pragma_table_info('journal')`;
+				if (!columns.some((column) => column.name === "subject")) yield* sql.unsafe(SUBJECT);
+				for (const statement of [LATEST, APPLIED, SHAPES, CURSORS, MIGRATIONS]) yield* sql.unsafe(statement);
 				const rewritten = yield* rewriteFacts(sql, pending);
 				if (!rebuilds) return;
 				for (const row of stored) yield* sql`DROP TABLE ${sql(String(row.name))}`;

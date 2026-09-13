@@ -4,7 +4,7 @@ import { Effect, Schema } from "effect";
 import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import type { CommitContext } from "#commit.ts";
 import { materialize } from "#materialize.ts";
-import { repeatOf } from "#repeat.ts";
+import { repeatOf, subjectOf } from "#repeat.ts";
 
 export interface ObservationMetadata {
 	readonly logId: string;
@@ -20,14 +20,9 @@ export interface Observation<Payload> extends ObservationMetadata {
 export interface ObservedFact {
 	readonly fact: FactShape;
 	readonly payload: unknown;
-	readonly answers: Request | undefined;
 }
 
-export const observation = <Fact extends FactShape>(fact: Fact, payload: FactPayload<Fact>, answers?: Request): ObservedFact => ({
-	answers,
-	fact,
-	payload,
-});
+export const observation = <Fact extends FactShape>(fact: Fact, payload: FactPayload<Fact>): ObservedFact => ({ fact, payload });
 
 export const readCursor = (sql: SqlClient, logId: string): Effect.Effect<number> =>
 	Effect.map(sql`SELECT "cursor" FROM "runner_cursor" WHERE "logId" = ${logId}`, (rows) => Number(rows[0]?.cursor ?? -1)).pipe(Effect.orDie);
@@ -39,16 +34,15 @@ const store = Effect.fn("journal.storeObserved")(function* (
 	dirty: (key: string) => void,
 ) {
 	const sql = context.sql;
-	const answers = entry.answers;
-	const done = answers === undefined ? undefined : (yield* sql`SELECT "seq" FROM "applied" WHERE "requestId" = ${answers}`)[0];
-	if (done !== undefined) return undefined;
-	const payload = JSON.stringify(yield* Schema.encodeUnknownEffect(entry.fact.Payload)(entry.payload));
-	if ((yield* repeatOf(sql, entry.fact, payload)) !== undefined) return undefined;
-	const requestId = answers ?? record.requestId;
-	const written = yield* sql`INSERT INTO "journal" ${sql.insert({ name: entry.fact.name, payload, at: record.at, requestId })} RETURNING "seq"`;
+	const encoded = yield* Schema.encodeUnknownEffect(entry.fact.Payload)(entry.payload);
+	const payload = JSON.stringify(encoded);
+	const subject = yield* subjectOf(entry.fact, encoded);
+	if ((yield* repeatOf(sql, entry.fact, subject, payload)) !== undefined) return undefined;
+	const requestId = record.requestId;
+	const written =
+		yield* sql`INSERT INTO "journal" ${sql.insert({ name: entry.fact.name, payload, at: record.at, requestId, subject })} RETURNING "seq"`;
 	const seq = Number(written[0]?.seq);
 	yield* materialize(sql, context.registry, entry.fact.name, Object.assign({}, entry.payload, { at: record.at, requestId, seq }), dirty);
-	if (answers !== undefined) yield* sql`INSERT INTO "applied" ${sql.insert({ requestId: answers, seq })}`;
 	return seq;
 });
 

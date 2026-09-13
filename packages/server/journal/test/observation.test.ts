@@ -2,7 +2,6 @@ import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
-import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { it } from "@effect/vitest";
@@ -32,24 +31,26 @@ const sightedMaterializer = materializer(sighted, {
 		yield* Option.isNone(known) ? rows.berth.insert({ detail: fact.detail, host: fact.host }) : rows.berth.update(fact.host, { detail: fact.detail });
 	}),
 });
+
 const sounding = row("sounding", { id: Schema.String, depth: Schema.Number }, { key: "id" });
-const sounded = fact("Sounded", { reading: Schema.NullOr(sounding.Row) }, { subject: "reading" });
+const Reading = Schema.Struct({ depth: Schema.Number, note: Schema.String });
+const sounded = fact("Sounded", { id: Schema.String, reading: Schema.NullOr(Reading) }, { subject: "id" });
 const sound = command("sound", {
 	input: sounded.payload,
 	reads: [],
 	emits: sounded,
 	rejections: {},
-	run: ({ reading }) => Effect.succeed({ reading }),
+	run: ({ id, reading }) => Effect.succeed({ id, reading }),
 });
 const soundedMaterializer = materializer(sounded, {
 	writes: [sounding],
 	run: Effect.fn(function* (fact, rows) {
-		const reading = fact.reading;
-		if (reading === null) return;
-		const known = yield* rows.sounding.find(reading.id);
-		yield* Option.isNone(known) ? rows.sounding.insert(reading) : rows.sounding.update(reading.id, { depth: reading.depth });
+		const depth = fact.reading === null ? 0 : fact.reading.depth;
+		const known = yield* rows.sounding.find(fact.id);
+		yield* Option.isNone(known) ? rows.sounding.insert({ depth, id: fact.id }) : rows.sounding.update(fact.id, { depth });
 	}),
 });
+
 const sightings = feature("sightings", {
 	rows: [berth, sounding],
 	facts: [sighted, sounded],
@@ -90,6 +91,29 @@ it.effect("an observation that changes its subject is stored and so is a later r
 	}).pipe(Effect.provide(Journal.memory())),
 );
 
+it.effect("a subject that returns to an earlier record is stored, and its projection follows", () =>
+	Effect.gen(function* () {
+		const { commit, database } = yield* setup;
+		const shallow = { depth: 12, note: "sand" };
+		const deep = { depth: 40, note: "mud" };
+		yield* commit.commit(sound, { id: "harbour", reading: shallow, requestId: Request.make("one") });
+		yield* commit.commit(sound, { id: "harbour", reading: deep, requestId: Request.make("two") });
+		yield* commit.commit(sound, { id: "harbour", reading: shallow, requestId: Request.make("three") });
+		expect(yield* Effect.orDie(database.read`SELECT "seq" FROM "journal" ORDER BY "seq"`)).toHaveLength(3);
+		expect(yield* Effect.orDie(database.read`SELECT "depth" FROM "sounding"`)).toEqual([{ depth: 12 }]);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
+it.effect("a subject repeating its own last record is still folded", () =>
+	Effect.gen(function* () {
+		const { commit, database } = yield* setup;
+		const deep = { depth: 40, note: "mud" };
+		const seq = yield* commit.commit(sound, { id: "harbour", reading: deep, requestId: Request.make("one") });
+		expect(yield* commit.commit(sound, { id: "harbour", reading: deep, requestId: Request.make("two") })).toBe(seq);
+		expect(yield* Effect.orDie(database.read`SELECT "seq" FROM "journal"`)).toEqual([{ seq }]);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
 it.effect("one subject's repeat does not silence another subject's first sighting", () =>
 	Effect.gen(function* () {
 		const { commit, database } = yield* setup;
@@ -100,37 +124,14 @@ it.effect("one subject's repeat does not silence another subject's first sightin
 	}).pipe(Effect.provide(Journal.memory())),
 );
 
-it.effect("a command is refused an operation the runner's record already answered", () =>
+it.effect("the runner's record folds a repeat and still acknowledges the log", () =>
 	Effect.gen(function* () {
 		const { commit, database } = yield* setup;
-		const operation = Request.make("agent-one:provision");
-		yield* commit.observeBatch(record, [observation(sighted, { detail: "reachable", host: "github" }, operation)]);
-		const refused = yield* Effect.flip(commit.commit(sight, { detail: "signed out", host: "github", requestId: operation }));
-		expect(refused).toBeInstanceOf(AlreadyDone);
-		expect(yield* Effect.orDie(database.read`SELECT "requestId" FROM "journal"`)).toEqual([{ requestId: operation }]);
-	}).pipe(Effect.provide(Journal.memory())),
-);
-
-it.effect("the runner's record skips an operation a command already answered", () =>
-	Effect.gen(function* () {
-		const { commit, database } = yield* setup;
-		const operation = Request.make("agent-one:provision");
-		yield* commit.commit(sight, { detail: "reachable", host: "github", requestId: operation });
-		yield* commit.observeBatch(record, [observation(sighted, { detail: "signed out", host: "github" }, operation)]);
-		expect(yield* Effect.orDie(database.read`SELECT "requestId" FROM "journal"`)).toEqual([{ requestId: operation }]);
-		expect(yield* commit.cursor("runner")).toBe(0);
-	}).pipe(Effect.provide(Journal.memory())),
-);
-
-it.effect("an observation whose subject is a record repeats only when the whole record repeats", () =>
-	Effect.gen(function* () {
-		const { commit, database } = yield* setup;
-		const harbour = { depth: 40, id: "harbour" };
-		const seq = yield* commit.commit(sound, { reading: harbour, requestId: Request.make("one") });
-		expect(yield* commit.commit(sound, { reading: harbour, requestId: Request.make("two") })).toBe(seq);
-		yield* commit.commit(sound, { reading: { depth: 12, id: "shoal" }, requestId: Request.make("three") });
-		const unsounded = yield* commit.commit(sound, { reading: null, requestId: Request.make("four") });
-		expect(yield* commit.commit(sound, { reading: null, requestId: Request.make("five") })).toBe(unsounded);
-		expect(yield* Effect.orDie(database.read`SELECT "seq" FROM "journal" ORDER BY "seq"`)).toHaveLength(3);
+		yield* commit.observeBatch(record, [observation(sighted, { detail: "reachable", host: "github" })]);
+		yield* commit.observeBatch({ ...record, cursor: 1, requestId: Request.make("runner:1") }, [
+			observation(sighted, { detail: "reachable", host: "github" }),
+		]);
+		expect(yield* Effect.orDie(database.read`SELECT "seq" FROM "journal"`)).toHaveLength(1);
+		expect(yield* commit.cursor("runner")).toBe(1);
 	}).pipe(Effect.provide(Journal.memory())),
 );

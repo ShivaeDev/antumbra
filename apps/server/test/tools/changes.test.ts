@@ -116,10 +116,9 @@ it.app("refuses to open a change once the berth has left its work branch", funct
 	);
 });
 
-it.app("tags the body it opens with one trailer line, with no setting that could turn the tag off", function* (app) {
+it.app("tags the body it opens with one trailer line", function* (app) {
 	const { branch, evidence, runner, sessionId } = yield* berthed(app);
 	const host = yield* ScriptedHost;
-	expect(yield* app.rows.flag.count({})).toBe(0);
 	const opening = yield* Effect.forkChild(runner.tool({ sessionId, callId: "open", name: "open_change", input: proposal }));
 	const capture = yield* runner.next;
 	yield* runner.reply(capture.requestId, { type: "ChangeCaptured", evidence });

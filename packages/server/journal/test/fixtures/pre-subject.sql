@@ -11,6 +11,7 @@ INSERT INTO "shape" ("name", "hash") VALUES ('count', 'q4w1k7'), ('flag', 'z9m2p
 INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (1, 1757000000001, 'request-1', 'CountSet', '{"key":"maxParallelSessions","count":9}');
 INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (2, 1757000000002, 'request-2', 'FlagSet', '{"key":"retireSweep","on":false}');
 INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (3, 1757000000003, 'request-3', 'CountSet', '{"key":"idleSiestaMinutes","count":45}');
-INSERT INTO "applied" ("requestId", "seq") VALUES ('request-1', 1), ('request-2', 2), ('request-3', 3);
+INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (4, 1757000000004, 'request-4', 'FlagSet', '{"key":"signChanges","on":false}');
+INSERT INTO "applied" ("requestId", "seq") VALUES ('request-1', 1), ('request-2', 2), ('request-3', 3), ('request-4', 4);
 INSERT INTO "count" ("key", "scope", "count") VALUES ('maxParallelSessions', 'fleet', 9), ('idleSiestaMinutes', 'fleet', 45);
-INSERT INTO "flag" ("key", "scope", "on") VALUES ('retireSweep', 'fleet', 'false');
+INSERT INTO "flag" ("key", "scope", "on") VALUES ('retireSweep', 'fleet', 'false'), ('signChanges', 'fleet', 'false');

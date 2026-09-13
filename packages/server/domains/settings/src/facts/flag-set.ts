@@ -1,6 +1,6 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { migration } from "@antumbra/platform-feature/migration.ts";
-import { Effect, Schema } from "effect";
+import { Effect, Option, Schema } from "effect";
 import { FlagKey, type SwitchKey } from "#ids.ts";
 
 export const flagSet = fact("FlagSet", { keys: Schema.Array(FlagKey), on: Schema.Boolean });
@@ -11,6 +11,7 @@ const FOLDED: Readonly<Record<string, readonly SwitchKey[]>> = {
 };
 
 const SIGNING = "signChanges";
+const storedKeys = Schema.decodeUnknownOption(Schema.Array(Schema.String));
 
 export const foldedHolds = migration(1, {
 	fact: flagSet.name,
@@ -25,7 +26,7 @@ export const foldedHolds = migration(1, {
 export const signingDropped = migration(2, {
 	fact: flagSet.name,
 	rewrite: (stored) => {
-		const keys = stored.payload.keys;
-		return Effect.succeed(Array.isArray(keys) && keys.includes(SIGNING) ? undefined : stored);
+		const keys = storedKeys(stored.payload.keys);
+		return Effect.succeed(Option.isSome(keys) && keys.value.includes(SIGNING) ? undefined : stored);
 	},
 });

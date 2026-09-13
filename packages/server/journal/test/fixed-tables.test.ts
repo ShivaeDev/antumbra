@@ -41,9 +41,9 @@ it.effect("an older journal file gains the subject column and its index, migrate
 		const files = yield* FileSystem.FileSystem;
 		const data = yield* DataDirectory;
 		const registry = yield* registryOf(definition);
-		const before = yield* database.read.unsafe(facts);
+		const before = yield* database.read.unsafe<{ readonly seq: number }>(facts);
 		yield* start(database.write, registry, database.backup);
-		expect(yield* database.read.unsafe(facts)).toEqual(before);
+		expect(yield* database.read.unsafe(facts)).toEqual(before.filter((fact) => Number(fact.seq) !== 4));
 		const stored = yield* database.read.unsafe<{ readonly payload: string }>(payloads);
 		expect(stored.map((fact) => JSON.parse(fact.payload))).toEqual([
 			{ key: "maxParallelSessions", count: 9 },

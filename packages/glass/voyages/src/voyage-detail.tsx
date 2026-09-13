@@ -5,6 +5,7 @@ import { SmoothingLine, SmoothNow } from "@antumbra/glass-boards/smoothing.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { PageHeader } from "@antumbra/glass-components/compositions/page-header.tsx";
 import { SectionHeading } from "@antumbra/glass-components/compositions/section-heading.tsx";
+import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { ScrollArea } from "@antumbra/glass-components/shadcn/scroll-area.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@antumbra/glass-components/shadcn/tooltip.tsx";
@@ -54,6 +55,7 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 					back={<Back onBack={props.onBack} />}
 					description={<VoyageCaption api={props.api} spend={props.renderSpend?.(voyage.id)} voyageId={voyage.id} />}
 					title={voyage.name}
+					titleTooltip
 				/>
 			</div>
 			<ScrollArea className="min-h-0 flex-1">
@@ -63,7 +65,7 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 					</SectionHeading>
 					{voyage.context === "" ? null : (
 						<SectionHeading collapsible title="Charter">
-							<p className="max-w-[72ch] whitespace-pre-wrap text-sm leading-6">{voyage.context}</p>
+							<MarkdownView className="max-w-[72ch] text-sm" markdown={voyage.context} />
 						</SectionHeading>
 					)}
 					<SectionHeading collapsible title="Roles">

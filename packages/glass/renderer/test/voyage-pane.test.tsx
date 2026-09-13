@@ -53,9 +53,9 @@ it.glass("a piece and a member of the crew take turns in the pane", function* ({
 		place = next;
 	};
 	const container = yield* render(screen(api, place, remember));
-	const crewRow = `Open captain ${captain.id}`;
-	yield* until(() => container.querySelector(`[aria-label="${crewRow}"]`) !== null, "the captain's row in the crew list");
-	yield* click(labelled(container, crewRow));
+	const captainRow = `Open the captain ${captain.id}`;
+	yield* until(() => container.querySelector(`[aria-label="${captainRow}"]`) !== null, "the captain's row in the crew list");
+	yield* click(labelled(container, captainRow));
 	yield* until(() => container.querySelector("output")?.textContent === captain.currentSessionId, "the captain's conversation in the pane");
 	expect(place.pieceId).toBeNull();
 
@@ -64,7 +64,7 @@ it.glass("a piece and a member of the crew take turns in the pane", function* ({
 	yield* render(screen(api, place, remember));
 	yield* until(() => container.querySelector("output")?.textContent === hand.currentSessionId, "the piece's conversation in the pane");
 
-	yield* click(labelled(container, crewRow));
+	yield* click(labelled(container, captainRow));
 	expect(place.pieceId).toBeNull();
 	yield* render(screen(api, place, remember));
 	yield* until(() => container.querySelector("output")?.textContent === captain.currentSessionId, "the captain's conversation again");

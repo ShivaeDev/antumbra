@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Hash } from "effect";
 import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
 import { file } from "#adapters/log.ts";
 
@@ -13,36 +13,55 @@ const directory = Effect.acquireRelease(
 	(path) => Effect.promise(() => rm(path, { recursive: true, force: true })),
 );
 
-const ASIDE = "runner.sqlite.";
+const ENTRIES = "CREATE TABLE IF NOT EXISTS runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)";
+const REQUESTS = "CREATE INDEX IF NOT EXISTS runner_request ON runner_log(json_extract(event, '$.requestId'))";
+const event = { type: "SessionSlept", requestId: "sleep", sessionId: "a" } as const;
 
-it.live("sets a log of an earlier shape aside beside itself and starts a new one", () =>
-	Effect.gen(function* () {
-		const root = yield* directory;
-		const filename = join(root, "runner.sqlite");
-		yield* Effect.scoped(
-			Effect.gen(function* () {
-				const sql = yield* SqliteClient.make({ filename });
-				yield* Effect.orDie(sql.unsafe(`CREATE TABLE runner_log (cursor INTEGER PRIMARY KEY, at REAL NOT NULL, event TEXT NOT NULL)`));
-				const event = JSON.stringify({ type: "SessionSlept", requestId: "sleep", sessionId: "a" });
-				yield* Effect.orDie(sql`INSERT INTO runner_log ${sql.insert({ cursor: 0, at: 100, event })}`);
-			}),
-		);
-		const renewed = yield* Effect.scoped(
-			Effect.gen(function* () {
-				const log = yield* RunnerLog;
-				expect(yield* log.read(-1)).toEqual([]);
-				return log.logId;
-			}).pipe(Effect.provide(file({ filename, seed: "shell" }))),
-		);
-		const aside = (yield* Effect.promise(() => readdir(root))).filter((name) => name.startsWith(ASIDE));
-		expect(aside).toHaveLength(1);
-		expect(renewed).toBe(`shell:${aside[0]?.slice(ASIDE.length)}`);
-		const preserved = yield* Effect.scoped(
-			Effect.gen(function* () {
-				const sql = yield* SqliteClient.make({ filename: join(root, String(aside[0])), readonly: true, disableWAL: true });
-				return yield* Effect.orDie(sql`SELECT cursor FROM runner_log`);
-			}),
-		);
-		expect(preserved).toEqual([{ cursor: 0 }]);
-	}).pipe(Effect.provide(reactivityLayer)),
-);
+for (const recordedIdentity of [undefined, "shell:100"]) {
+	it.live(`upgrades ${recordedIdentity === undefined ? "the original log" : "the hash-tracked log"} without changing its evidence or cursor`, () =>
+		Effect.gen(function* () {
+			const root = yield* directory;
+			const filename = join(root, "runner.sqlite");
+			const logId = recordedIdentity ?? "shell";
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const sql = yield* SqliteClient.make({ filename });
+					yield* Effect.orDie(sql.unsafe(ENTRIES));
+					if (recordedIdentity !== undefined) {
+						yield* Effect.orDie(sql.unsafe(REQUESTS));
+						yield* Effect.orDie(sql`CREATE TABLE log_shape (logId TEXT PRIMARY KEY, hash TEXT NOT NULL)`);
+						const hash = Hash.string([ENTRIES, REQUESTS].join("; ")).toString(36);
+						yield* Effect.orDie(sql`INSERT INTO log_shape ${sql.insert({ logId, hash })}`);
+					}
+					yield* Effect.orDie(sql`INSERT INTO runner_log ${sql.insert({ cursor: 7, at: 100, event: JSON.stringify(event) })}`);
+				}),
+			);
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const log = yield* RunnerLog;
+					expect(log.logId).toBe(logId);
+					expect(yield* log.read(6)).toEqual([{ logId, cursor: 7, at: 100, event }]);
+					expect(yield* log.request("sleep")).toEqual([{ logId, cursor: 7, at: 100, event }]);
+					expect((yield* log.append({ type: "SessionSlept", requestId: "next", sessionId: "b" })).cursor).toBe(8);
+				}).pipe(Effect.provide(file({ filename, seed: "shell" }))),
+			);
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const log = yield* RunnerLog;
+					expect(log.logId).toBe(logId);
+					expect((yield* log.read(-1)).map(({ cursor }) => cursor)).toEqual([7, 8]);
+				}).pipe(Effect.provide(file({ filename, seed: "a-different-seed" }))),
+			);
+			const backups = (yield* Effect.promise(() => readdir(root))).filter((name) => name.startsWith("runner.sqlite.upgrade-"));
+			expect(backups).toHaveLength(1);
+			yield* Effect.scoped(
+				Effect.gen(function* () {
+					const sql = yield* SqliteClient.make({ filename: join(root, String(backups[0])), readonly: true, disableWAL: true });
+					expect(yield* Effect.orDie(sql`PRAGMA user_version`)).toEqual([{ user_version: 0 }]);
+					expect(yield* Effect.orDie(sql`SELECT cursor, at, event FROM runner_log`)).toEqual([{ cursor: 7, at: 100, event: JSON.stringify(event) }]);
+					if (recordedIdentity !== undefined) expect(yield* Effect.orDie(sql`SELECT logId FROM log_shape`)).toEqual([{ logId }]);
+				}),
+			);
+		}).pipe(Effect.provide(reactivityLayer)),
+	);
+}

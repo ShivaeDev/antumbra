@@ -46,7 +46,11 @@ const linkOf = (location: Address): Link | undefined => {
 
 const addressOf = (location: Address, link: Link, place: WindowPlace): string => {
 	const target = new URL(location.pathname, location.origin);
-	target.search = new URLSearchParams({ place: encodePlace(place), port: String(link.port), token: link.token }).toString();
+	const params = new URLSearchParams(location.search);
+	params.set("place", encodePlace(place));
+	params.set("port", String(link.port));
+	params.set("token", link.token);
+	target.search = params.toString();
 	return target.toString();
 };
 

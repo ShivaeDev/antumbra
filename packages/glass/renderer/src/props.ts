@@ -2,10 +2,12 @@ import type { ReadArtifact } from "@antumbra/glass-artifacts/glass.ts";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import type { SessionsClient } from "@antumbra/glass-sessions/client.ts";
+import type { Effect } from "effect";
 import type { RendererApi } from "#api.ts";
 import type { Shell } from "#shell.ts";
 
 export interface RendererProps {
+	readonly rebuildProjections: Effect.Effect<void, unknown>;
 	readonly api: RendererApi;
 	readonly shell: Shell;
 	readonly inputs: InputsClient;

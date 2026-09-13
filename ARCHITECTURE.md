@@ -94,10 +94,13 @@ nothing and stops startup.
 
 The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
 a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact
-instead of reading as ended. The server commits observed facts and the consumed cursor together, keyed by the log's identity, and a log that opens
-against a file recorded under another shape sets that file aside beside itself and starts a new log under a renewed identity, so its entries reach a
-cursor of their own instead of being skipped. Transport replies acknowledge operations; they do not fabricate Session completion. Image and Artifact
-bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
+instead of reading as ended. The server commits observed facts and the consumed cursor together, keyed by the log's identity, and numbered upgrades
+preserve that identity and the entry cursors. The log uses SQLite's `user_version` to record completed upgrades. Its first upgrade retains existing
+identity metadata and ensures the request index without replacing the entries table. The legacy DDL hash no longer triggers rollover. A pending
+upgrade of an existing log takes a snapshot beside the file before applying the upgrade and version stamp in one transaction. Files predating stored
+identity retain their configured log id. Previously retained rollover files remain separate logs with their own identities and cursors; reading one
+requires its original configured id when the file predates stored identity. Transport replies acknowledge operations; they do not fabricate Session
+completion. Image and Artifact bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
 
 ## Requests and reconciliation
 

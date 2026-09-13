@@ -52,6 +52,7 @@ const readingOf = (held: Agent, fleet: Fleet): typeof agentReading.Row.Type => {
 		),
 		canSend: held.status === "alive" && root?.status === "open",
 		canSleep: held.status === "alive" && presence === "idle" && !busy,
+		working: presence === "working",
 		canInterrupt: presence === "working" && stoppedAt === null,
 		canRetire: held.status !== "retired" && !owned.some((value) => value.attached && value.executionStatus === "active"),
 	};

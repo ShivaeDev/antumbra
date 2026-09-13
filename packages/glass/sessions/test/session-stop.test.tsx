@@ -1,10 +1,14 @@
 import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
+import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
+import type { DraftSnapshot, Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { Effect, SubscriptionRef } from "effect";
 import { expect } from "vitest";
 import { FleetPanel } from "#fleet.tsx";
+import { SessionComposer } from "#session-composer.tsx";
 import { SessionHeader } from "#session-header.tsx";
 
 const CREW = Request.make("agent:glass-stop");
@@ -48,4 +52,16 @@ it.glass("the act on a working session reads Stop and leaves the session held", 
 
 	const fleet = yield* render(<FleetPanel api={api} onPiece={() => undefined} onSession={() => undefined} onVoyage={() => undefined} />);
 	yield* until(() => [...fleet.querySelectorAll("h2")].some((heading) => heading.textContent === "Stopped"), "the fleet to group the held agent");
+
+	const inputs = yield* run(inputApi);
+	const shell = yield* SubscriptionRef.make<DraftSnapshot>({ text: "", revision: "initial" });
+	const drafts: Drafts = {
+		watch: () => SubscriptionRef.changes(shell),
+		write: (_ref, text) => SubscriptionRef.set(shell, { text, revision: "held" }).pipe(Effect.as({ text, revision: "held" })),
+		clear: () => Effect.void,
+	};
+	const composer = yield* render(
+		<SessionComposer api={api} drafts={drafts} inputs={inputs.client} onError={() => undefined} sessionId={sessionId} />,
+	);
+	yield* until(() => composer.textContent?.includes("Stopped. Your message will resume it.") === true, "the composer to say a message resumes it");
 });

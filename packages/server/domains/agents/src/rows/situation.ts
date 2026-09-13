@@ -24,7 +24,7 @@ export interface Standing {
 
 const STRANDED = "the runner lost it mid-turn — hail it to take the work back up";
 
-const STOPPED = "a message from you resumes it";
+const STOPPED = "only your message resumes it";
 
 const plainly = (state: AgentState): Situation => ({ detail: null, standing: state, state });
 

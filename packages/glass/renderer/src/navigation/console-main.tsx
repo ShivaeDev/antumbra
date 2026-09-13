@@ -25,7 +25,7 @@ export const ConsoleMain = (
 	const hail = (voyageId: string) => {
 		Effect.runFork(
 			props.api.agents
-				.hail({ voyageId: VoyageId.make(voyageId) })
+				.hail({ voyageId: VoyageId.make(voyageId), by: "admiral" })
 				.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))),
 		);
 	};

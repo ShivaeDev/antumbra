@@ -11,7 +11,7 @@ import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
 
 export const hail = command("hail", {
-	input: { voyageId: VoyageId },
+	input: { voyageId: VoyageId, by: Schema.Literals(["admiral", "agent"]) },
 	reads: [agent, pieceAgent, voyageAgent, session, voyage],
 	emits: birthRequested,
 	rejections: {
@@ -31,7 +31,7 @@ export const hail = command("hail", {
 			const roots = yield* rows.session.where({ agentId: current.id, parentSessionId: null, status: "open" });
 			const root = roots.find((held) => held.id === current.currentSessionId);
 			if (root === undefined) return yield* reject.CaptainSessionUnavailable({ agentId: current.id });
-			if (root.stoppedAt !== null) return yield* reject.CaptainStopped({ agentId: current.id });
+			if (root.stoppedAt !== null && input.by === "agent") return yield* reject.CaptainStopped({ agentId: current.id });
 			wakeSessionId = root.id;
 		} else if (Option.isSome(yield* rows.agent.find(ids.agentId))) return yield* reject.AgentExists({ id: ids.agentId });
 		return {

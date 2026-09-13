@@ -169,7 +169,7 @@ it.app("waits for a missing flagship captain and delivers the ascent once they a
 	expect(yield* answered(app.api.rulings.delivery({}))).toEqual([]);
 	yield* rulingReconciliation;
 	const captain = Request.make("captain");
-	yield* (yield* Commit).commit(hail, { requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	yield* (yield* Commit).commit(hail, { requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "agent" });
 	const captainId = identity(captain).agentId;
 	yield* eventually(app.api.mail.mailbox({ agentId: captainId }), (messages) => messages.length === 1);
 	expect(yield* app.rows.message.where({ toAgentId: captainId })).toMatchObject([

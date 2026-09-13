@@ -113,7 +113,10 @@ it.live("answers the fleet's role settings to a client that presents the token i
 const hailing = (port: number, token: string) =>
 	Effect.provide(
 		Effect.flatMap(client([agents]), (reach) =>
-			Effect.andThen(reach.agents.hail({ requestId: HAIL, voyageId: FLAGSHIP }), Stream.runHead(reach.agents.birthBySession({ sessionId }))),
+			Effect.andThen(
+				reach.agents.hail({ requestId: HAIL, voyageId: FLAGSHIP, by: "admiral" }),
+				Stream.runHead(reach.agents.birthBySession({ sessionId })),
+			),
 		),
 		dialing(port, token),
 	);

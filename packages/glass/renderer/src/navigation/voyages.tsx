@@ -23,7 +23,7 @@ export const VoyagesPage = (
 	const run = (action: Effect.Effect<unknown, unknown>) => {
 		Effect.runFork(action.pipe(Effect.catchCause((cause) => Effect.sync(() => props.onError(Cause.pretty(cause))))));
 	};
-	const hail = (voyageId: string) => run(props.api.agents.hail({ voyageId: VoyageId.make(voyageId) }));
+	const hail = (voyageId: string) => run(props.api.agents.hail({ voyageId: VoyageId.make(voyageId), by: "admiral" }));
 	const openVoyage = (voyageId: string) => {
 		setCrew(null);
 		props.onPlace({ ...props.place, voyageId, pieceId: null });

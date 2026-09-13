@@ -2,7 +2,35 @@ import { answered, eventually } from "@antumbra/app-testing/answers.ts";
 import { click, fill, labelled, renderedControl, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
+import { Effect } from "effect";
 import { Settings } from "#settings.tsx";
+
+const WAKES = [
+	"Hold everything",
+	"Resume a piece when its agent is idle",
+	"Wake on flash mail",
+	"Wake on priority mail",
+	"Wake on routine mail",
+	"Wake mid-turn roots after a restart",
+	"Wake the captain on a hail",
+	"Spawn an agent for a launched piece",
+	"Spawn a captain on a hail",
+	"Spawn a smoother",
+	"Send idle agents to siesta",
+];
+
+const groupOf = (container: HTMLElement, title: string): HTMLElement => {
+	for (const card of container.querySelectorAll<HTMLElement>('[data-slot="card"]')) {
+		if (card.querySelector('[data-slot="card-title"]')?.textContent === title) return card;
+	}
+	return Effect.runSync(Effect.die(`no settings group titled ${title}`));
+};
+
+it.glass("lists the Wakes group as Hold everything and the ten switches, in order", function* ({ api, render }) {
+	const container = yield* render(<Settings api={api} />);
+	yield* renderedControl(container, "Send idle agents to siesta");
+	expect([...groupOf(container, "Wakes").querySelectorAll("label")].map((label) => label.textContent)).toEqual(WAKES);
+});
 
 it.glass("renders every setting the fleet has", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);

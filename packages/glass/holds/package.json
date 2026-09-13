@@ -23,7 +23,8 @@
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/domain-pieces": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-voyages": "workspace:*",

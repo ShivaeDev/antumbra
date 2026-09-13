@@ -1,6 +1,7 @@
 import type { HoldQueue } from "@antumbra/domain-holds/queries/queues.ts";
 import type { Waiting } from "@antumbra/domain-holds/queries/waiting.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { useId } from "react";
 import type { HoldsApi } from "#glass.ts";
 import { HoldSwitch } from "#hold-switch.tsx";
 import { waitedWords } from "#waited.ts";
@@ -60,19 +61,22 @@ const QueueSection = ({
 	readonly api: HoldsApi;
 	readonly queue: typeof HoldQueue.Type;
 	readonly everything: boolean;
-}) => (
-	<section aria-label={queue.title} className="flex flex-col gap-2 border-b border-border p-4">
-		<header className="flex justify-between">
-			<h3>
-				{queue.title} · {queue.waiting.length} waiting
-			</h3>
-			<HoldSwitch api={api} setting={queue.setting} title={queue.title} on={queue.on} means="send" held={queue.held} everything={everything} />
-		</header>
-		<p className="text-xs text-muted-foreground">{queue.description}</p>
-		<ul>
-			{queue.waiting.map((waiting) => (
-				<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
-			))}
-		</ul>
-	</section>
-);
+}) => {
+	const titled = useId();
+	return (
+		<section aria-labelledby={titled} className="flex flex-col gap-2 border-b border-border p-4">
+			<header className="flex justify-between">
+				<h3 id={titled}>
+					{queue.title} · {queue.waiting.length} waiting
+				</h3>
+				<HoldSwitch api={api} setting={queue.setting} title={queue.title} on={queue.on} means="send" held={queue.held} everything={everything} />
+			</header>
+			<p className="text-xs text-muted-foreground">{queue.description}</p>
+			<ul>
+				{queue.waiting.map((waiting) => (
+					<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
+				))}
+			</ul>
+		</section>
+	);
+};

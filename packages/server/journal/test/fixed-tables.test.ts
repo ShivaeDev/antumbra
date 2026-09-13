@@ -31,7 +31,8 @@ const storedUnderTheOlderShape = Effect.gen(function* () {
 	}
 }).pipe(Effect.orDie);
 
-const facts = `SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`;
+const facts = `SELECT "seq", "at", "requestId", "name" FROM "journal" ORDER BY "seq"`;
+const payloads = `SELECT "payload" FROM "journal" ORDER BY "seq"`;
 
 it.effect("an older journal file gains the subject column and its index, migrates its facts, and upgrades once", () =>
 	Effect.gen(function* () {
@@ -42,10 +43,9 @@ it.effect("an older journal file gains the subject column and its index, migrate
 		const registry = yield* registryOf(definition);
 		const before = yield* database.read.unsafe(facts);
 		yield* start(database.write, registry, database.backup);
-		const after = yield* database.read.unsafe(facts);
-		const identity = (stored: (typeof after)[number]) => [stored.seq, stored.at, stored.requestId, stored.name];
-		expect(after.map(identity)).toEqual(before.map(identity));
-		expect(after.map((stored) => JSON.parse(String(stored.payload)))).toEqual([
+		expect(yield* database.read.unsafe(facts)).toEqual(before);
+		const stored = yield* database.read.unsafe<{ readonly payload: string }>(payloads);
+		expect(stored.map((fact) => JSON.parse(fact.payload))).toEqual([
 			{ key: "maxParallelSessions", count: 9 },
 			{ keys: ["signChanges"], on: false },
 			{ key: "idleSiestaMinutes", count: 45 },

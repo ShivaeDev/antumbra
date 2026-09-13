@@ -1191,6 +1191,9 @@ importers:
       '@antumbra/app-testing':
         specifier: workspace:*
         version: link:../../../apps/testing
+      '@antumbra/domain-pieces':
+        specifier: workspace:*
+        version: link:../../server/domains/pieces
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../../platform/vocabulary

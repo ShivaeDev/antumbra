@@ -1,6 +1,6 @@
 import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { ArtifactWindow } from "@antumbra/glass-artifacts/artifact-window.tsx";
-import { useLive } from "@antumbra/glass-client/hooks.ts";
+import { useReading } from "@antumbra/glass-client/live.tsx";
 import { ExternalLinkContext } from "@antumbra/glass-components/external-link.tsx";
 import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { TranscriptView } from "@antumbra/glass-sessions/transcript.tsx";
@@ -16,8 +16,8 @@ const Notice = ({ words }: { readonly words: string }) => (
 );
 
 const TranscriptWindow = (props: RendererProps & { readonly sessionId: string }) => {
-	const settings = useLive(props.api.settings.flags, {});
-	const foldToolCalls = AsyncResult.isSuccess(settings) && settings.value.some((flag) => flag.key === "foldToolCalls" && flag.on);
+	const flags = useReading(props.api.settings.flags, {});
+	const foldToolCalls = flags?.some((flag) => flag.key === "foldToolCalls" && flag.on) === true;
 	return (
 		<main className="flex h-screen min-w-0 flex-col bg-background text-foreground">
 			<TranscriptView api={props.api} sessions={props.sessions} inputs={props.inputs} sessionId={props.sessionId} foldToolCalls={foldToolCalls} />

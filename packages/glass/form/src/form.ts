@@ -3,7 +3,7 @@ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AtomRef from "effect/unstable/reactivity/AtomRef";
 import { draft } from "#draft.ts";
-import { type FieldMessages, literalChoices, messagesByField, noMessages, withoutField } from "#messages.ts";
+import { type FieldMessages, literalChoices, messagesByField, noMessages } from "#messages.ts";
 import {
 	type Config,
 	checkOf,
@@ -19,18 +19,7 @@ import {
 	type Name,
 	type Submitter,
 } from "#shape.ts";
-
-interface Status {
-	readonly failures: FieldMessages;
-	readonly submitted: boolean;
-	readonly touched: Readonly<Record<string, true>>;
-}
-
-const fromRef = <A>(ref: AtomRef.ReadonlyRef<A>): Atom.Atom<A> =>
-	Atom.readable((get) => {
-		get.addFinalizer(ref.subscribe((value) => get.setSelf(value)));
-		return ref.value;
-	});
+import { fromRef, statusOf } from "#status.ts";
 
 export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, config: Config<F, A, E, R, ER>): Form<F, A, E, ER> => {
 	const { initialValues, onSubmit, runtime } = config;
@@ -40,7 +29,7 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 
 	const editing = draft(initialValues);
 	const { values } = editing;
-	const status = AtomRef.make<Status>({ failures: noMessages, submitted: false, touched: {} });
+	const status = statusOf();
 	const held = new Map<string, AtomRef.AtomRef<unknown>>();
 	const refFor = (name: string): AtomRef.AtomRef<unknown> => {
 		const known = held.get(name);
@@ -61,9 +50,6 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 	}
 
 	const valuesAtom = fromRef(values);
-	const touchedAtom = fromRef(status.prop("touched"));
-	const submittedAtom = fromRef(status.prop("submitted"));
-	const failuresAtom = fromRef(status.prop("failures"));
 
 	const decoded = runtime.atom((get) =>
 		decode(get(valuesAtom)).pipe(
@@ -95,25 +81,17 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 
 	const error = Atom.family((name: string) =>
 		Atom.readable((get): string | undefined => {
-			if (get(touchedAtom)[name] !== true && !get(submittedAtom)) {
+			if (get(status.touched)[name] !== true && !get(status.submitted)) {
 				return undefined;
 			}
-			return get(failuresAtom)[name] ?? get(schemaError(name)) ?? get(checkError(name));
+			return get(status.failures)[name] ?? get(schemaError(name)) ?? get(checkError(name));
 		}),
 	);
-
-	const touch = (name: string): void => {
-		status.update((current) =>
-			current.touched[name] === true && !(name in current.failures)
-				? current
-				: { ...current, failures: withoutField(current.failures, name), touched: { ...current.touched, [name]: true } },
-		);
-	};
 
 	const noted = (cause: E | FieldFailure): Effect.Effect<void> =>
 		Effect.sync(() => {
 			if (cause instanceof FieldFailure) {
-				status.update((current) => ({ ...current, failures: { ...current.failures, [cause.path]: cause.message } }));
+				status.note(cause.path, cause.message);
 			}
 		});
 
@@ -121,7 +99,7 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 
 	const submit = runtime.fn<void>()(() =>
 		Effect.gen(function* () {
-			status.update((current) => ({ ...current, failures: noMessages, submitted: true }));
+			status.attempt();
 			const submitted = values.value;
 			const value = yield* decode(submitted).pipe(Effect.mapError((issue) => new Invalid({ messages: messagesByField(issue) })));
 			return yield* onSubmit(value, submitter).pipe(
@@ -132,16 +110,17 @@ export const make = <F extends Fields, A, E, R, ER>(schema: Schema.Struct<F>, co
 	);
 
 	return {
-		blur: touch,
+		blur: status.touch,
 		change: (name, value) => {
 			refFor(name).set(value);
-			touch(name);
+			status.touch(name);
 		},
 		choices: <K extends Name<F>>(name: K) => choicesOf<Encoded<F>[K]>(offered[name]),
 		dirty: editing.dirty,
 		error,
 		field: <K extends Name<F>>(name: K) => fieldOf<Encoded<F>[K]>(refFor(name)),
 		receive: editing.receive,
+		revert: editing.revert,
 		submit,
 		submitting: Atom.map(submit, AsyncResult.isWaiting),
 		values,

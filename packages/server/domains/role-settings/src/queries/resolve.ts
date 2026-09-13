@@ -22,6 +22,10 @@ export type Resolution = typeof Resolution.Type;
 
 export const UNCHOSEN = { backend: null, effort: null, model: null };
 
+const INHERITED = { backend: "backend default", fleet: "fleet default" };
+
+export const inheritedFrom = (source: Source): string | undefined => (source === "chosen" ? undefined : INHERITED[source]);
+
 type Chosen = Pick<typeof roleSetting.Row.Type, "backend" | "effort" | "model">;
 type Offered = typeof backendModel.Row.Type;
 

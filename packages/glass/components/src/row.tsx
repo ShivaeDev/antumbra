@@ -12,6 +12,10 @@ const NOTHING: readonly Editable[] = [];
 
 const SENDING_WORDS = "Saving…";
 
+const REFUSAL = `w-full ${ALERT}`;
+
+const INDENTED_REFUSAL = `${REFUSAL} pl-[5rem]`;
+
 const Spacer = () => (
 	<span aria-hidden="true" className={TITLE}>
 		&nbsp;
@@ -23,6 +27,7 @@ export const Row = (props: {
 	readonly description: string | undefined;
 	readonly captions: Readonly<Record<string, string>>;
 	readonly editables: readonly Editable[];
+	readonly heading: boolean;
 	readonly identity: Held;
 	readonly known: Held;
 	readonly label: string;
@@ -59,7 +64,7 @@ export const Row = (props: {
 				submit.run();
 			}}
 		>
-			<span className={HEAD}>
+			<span className={props.heading ? HEAD : "sr-only"}>
 				{props.titles ? <Spacer /> : null}
 				<span className={NAME} id={named}>
 					{props.label}
@@ -86,7 +91,7 @@ export const Row = (props: {
 			</span>
 			{props.description === undefined ? null : <p className={`w-full ${NOTE}`}>{props.description}</p>}
 			{settled === null ? null : (
-				<p className={`w-full pl-[5rem] ${ALERT}`} role="alert">
+				<p className={props.heading ? INDENTED_REFUSAL : REFUSAL} role="alert">
 					{settled}
 				</p>
 			)}

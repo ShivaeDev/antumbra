@@ -19,6 +19,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 	readonly command: Send<Command, Failure>;
 	readonly description?: string;
 	readonly fixed?: readonly (keyof Values<Command["input"]> & string)[] | Readonly<Partial<Values<Command["input"]>>>;
+	readonly heading?: boolean;
 	readonly label?: string;
 	readonly placeholders?: Readonly<Record<string, string>>;
 	readonly row?: Held;
@@ -48,6 +49,7 @@ export const CommandForm = <Command extends CommandShape, Failure>(props: {
 			creating={creating}
 			description={props.description}
 			editables={editables}
+			heading={props.heading ?? true}
 			identity={identity}
 			key={JSON.stringify([identity, editables.map(({ name }) => name), creating, cleared])}
 			known={{ ...row, ...fixedValues(fixed) }}

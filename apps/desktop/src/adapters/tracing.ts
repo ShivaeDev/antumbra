@@ -2,6 +2,7 @@ import { DevTraceLive } from "@antumbra/platform-trace-sink/layer.ts";
 import { Layer } from "effect";
 import { app } from "electron";
 import { configureDataDirectory } from "#adapters/shell.ts";
+import { version } from "#package.json";
 
 interface DevTracingInput {
 	readonly appVersion: string;
@@ -19,7 +20,7 @@ export const selectDevTracing = (input: DevTracingInput): Layer.Layer<never> =>
 
 export const devTracing = (): Layer.Layer<never> =>
 	selectDevTracing({
-		appVersion: app.getVersion(),
+		appVersion: version,
 		dataDirectory: configureDataDirectory(),
 		isPackaged: app.isPackaged,
 	});

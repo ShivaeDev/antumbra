@@ -4,7 +4,25 @@ export type FieldMessages = Readonly<Record<string, string>>;
 
 export const noMessages: FieldMessages = {};
 
-const formatIssue = SchemaIssue.makeFormatterStandardSchemaV1();
+const REQUIRED = "Required";
+
+const MINIMUM_LENGTH = "effect/schema/isMinLength";
+
+const refusesEmpty = (check: SchemaAST.Filter<unknown>): boolean => {
+	const representation = check.annotations?.representation;
+	if (representation === undefined || representation.id !== MINIMUM_LENGTH) {
+		return false;
+	}
+	const payload = representation.payload;
+	if (typeof payload !== "object" || payload === null || !("minLength" in payload)) {
+		return false;
+	}
+	return payload.minLength === 1;
+};
+
+const checkHook: SchemaIssue.CheckHook = (issue) => SchemaIssue.defaultCheckHook(issue) ?? (refusesEmpty(issue.filter) ? REQUIRED : undefined);
+
+const formatIssue = SchemaIssue.makeFormatterStandardSchemaV1({ checkHook });
 
 const segmentKey = (segment: PropertyKey | StandardSchema.StandardSchemaV1.PathSegment): string =>
 	typeof segment === "object" ? String(segment.key) : String(segment);

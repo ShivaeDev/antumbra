@@ -9,6 +9,7 @@ export const CharterPiece = (props: { readonly api: PiecesApi; readonly onCharte
 	<CommandForm
 		command={props.api.pieces.charter}
 		fixed={{ voyageId: VoyageId.make(props.voyageId) }}
+		heading={false}
 		sent={props.onChartered}
 		submit={SUBMIT}
 		titles

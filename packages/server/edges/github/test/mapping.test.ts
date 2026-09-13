@@ -3,11 +3,30 @@ import { Effect } from "effect";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse, type ObservedNode, type PullRequestNode } from "#payload.ts";
 import { buildObservePlan } from "#query.ts";
-
+// Recorded from GitHub for pull request 970, which carries an issue comment, 999, which carries a review, and an unresolved number.
+import recordedFeedback from "#test/fixtures/feedback-response.json";
 // Recorded from GitHub for pull requests 23, 24, 27, 32, and an unresolved number.
 import recorded from "#test/fixtures/observe-response.json";
 
 const RECORDED = JSON.stringify(recorded);
+
+const FEEDBACK = JSON.stringify(recordedFeedback);
+
+const FEEDBACK_PLAN = buildObservePlan(
+	[970, 999, 999999].map((number) => ({
+		name: "antumbra",
+		number,
+		owner: "ShivaeDev",
+		repoId: "repo-antumbra",
+	})),
+);
+
+const withFeedback = Effect.runSync(decodeObserveResponse("observe-changes", FEEDBACK, FEEDBACK_PLAN.selections));
+
+const feedbackOf = (index: number) => {
+	const node = withFeedback[index];
+	return node === undefined ? expect.unreachable("the feedback fixture is short") : Effect.runSync(mapPullRequest(node)).feedback;
+};
 
 const PLAN = buildObservePlan(
 	[23, 24, 27, 32, 9999].map((number) => ({
@@ -27,6 +46,40 @@ const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
 
 const mapped = (fields: Partial<PullRequestNode>) => Effect.runSync(mapPullRequest(withNode(fields)));
 
+type ReviewNode = PullRequestNode["reviews"]["nodes"][number];
+
+const submitted: ReviewNode = {
+	author: { login: "octocat" },
+	body: "",
+	comments: {
+		nodes: [
+			{
+				author: { login: "octocat" },
+				body: "This reads the first tide before any has been recorded.",
+				createdAt: "2026-09-13T09:00:00Z",
+				id: "PRRC_reef",
+				line: 42,
+				path: "src/reef.ts",
+				url: "https://github.com/ShivaeDev/antumbra/pull/41#discussion_r1",
+			},
+		],
+	},
+	id: "PRR_reef",
+	state: "COMMENTED",
+	submittedAt: "2026-09-13T08:59:00Z",
+	url: "https://github.com/ShivaeDev/antumbra/pull/41#pullrequestreview-1",
+};
+
+const draft: ReviewNode = {
+	author: { login: "octocat" },
+	body: "Not sent yet",
+	comments: { nodes: [] },
+	id: "PRR_draft",
+	state: "PENDING",
+	submittedAt: null,
+	url: "https://github.com/ShivaeDev/antumbra/pull/41#pullrequestreview-2",
+};
+
 describe("reading GitHub's answer as the neutral vocabulary", () => {
 	it("drops the alias for a pull request nobody can see", () => {
 		expect(observed).toHaveLength(4);
@@ -43,6 +96,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 			baseRef: "main",
 			checks: "green",
 			externalId: "23",
+			feedback: [],
 			headRef: "voyages",
 			headSha: "5db93d623f85b559613a71cf767889ae71eca980",
 			isDraft: false,
@@ -94,6 +148,57 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 		expect(change.mergeable).toBe("conflict");
 		expect(change.review).toBe("changes_requested");
 	});
+
+	it("reads an issue comment as one piece of feedback", () => {
+		expect(feedbackOf(0)).toEqual([
+			{
+				at: Date.parse("2026-09-12T18:30:02Z"),
+				author: "marvin-bitterlich",
+				body: expect.stringContaining("the start pipeline moves onto declared reconcilers"),
+				id: "IC_kwDOT1wvoc8AAAABUKNc7Q",
+				kind: "comment",
+				line: null,
+				path: null,
+				url: "https://github.com/ShivaeDev/antumbra/pull/970#issuecomment-5647850733",
+				verdict: null,
+			},
+		]);
+	});
+
+	it("reads a review that only commented as feedback carrying its verdict", () => {
+		expect(feedbackOf(1)).toEqual([
+			{
+				at: Date.parse("2026-09-13T14:03:30Z"),
+				author: "marvin-bitterlich",
+				body: expect.stringContaining("Changes requested before merge."),
+				id: "PRR_kwDOT1wvoc8AAAABNWfa0g",
+				kind: "review",
+				line: null,
+				path: null,
+				url: "https://github.com/ShivaeDev/antumbra/pull/999#pullrequestreview-5190965970",
+				verdict: "commented",
+			},
+		]);
+	});
+
+	it("reads a review's own comments as inline feedback and leaves a draft review alone", () => {
+		const change = mapped({ reviews: { nodes: [submitted, draft] } });
+		expect(change.feedback).toMatchObject([
+			{ body: "", id: "PRR_reef", kind: "review", verdict: "commented" },
+			{ at: Date.parse("2026-09-13T09:00:00Z"), id: "PRRC_reef", kind: "inline", line: 42, path: "src/reef.ts", verdict: null },
+		]);
+	});
+
+	it.effect("refuses a review state GitHub has not taught this mapping", () =>
+		Effect.gen(function* () {
+			const future = FEEDBACK.replace('"state":"COMMENTED"', '"state":"FUTURE_REVIEW"');
+			const [, unsupported] = yield* decodeObserveResponse("observe-changes", future, FEEDBACK_PLAN.selections);
+			if (unsupported === undefined) {
+				return expect.unreachable("the feedback fixture lost its review");
+			}
+			expect(yield* Effect.flip(mapPullRequest(unsupported))).toMatchObject({ _tag: "GhOutputInvalid" });
+		}),
+	);
 
 	it("reads a missing check rollup as no signal at all", () => {
 		expect(

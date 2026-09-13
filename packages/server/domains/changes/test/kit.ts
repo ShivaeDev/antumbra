@@ -1,7 +1,7 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
+import type { Feedback, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Clock, Effect } from "effect";
 export const request = (name: string) => Request.make(name);
@@ -33,7 +33,41 @@ export const chartering = {
 	voyageId,
 };
 export const registration = { requestId: request(repoId), name: "reef", source: "https://github.com/example/reef.git", defaultRef: "main" };
-export const seen = (stage: Observation["stage"], activityAt = 1000): Observation => ({
+const PULL = "https://github.com/example/reef/pull/41";
+export const review = (id: string, body: string, at: number): Feedback => ({
+	id,
+	kind: "review",
+	author: "octocat",
+	verdict: "commented",
+	path: null,
+	line: null,
+	body,
+	url: `${PULL}#pullrequestreview-${id}`,
+	at,
+});
+export const inline = (id: string, body: string, at: number): Feedback => ({
+	id,
+	kind: "inline",
+	author: "octocat",
+	verdict: null,
+	path: "src/reef.ts",
+	line: 42,
+	body,
+	url: `${PULL}#discussion_${id}`,
+	at,
+});
+export const comment = (id: string, body: string, at: number): Feedback => ({
+	id,
+	kind: "comment",
+	author: "octocat",
+	verdict: null,
+	path: null,
+	line: null,
+	body,
+	url: `${PULL}#issuecomment-${id}`,
+	at,
+});
+export const seen = (stage: Observation["stage"], activityAt = 1000, feedback: readonly Feedback[] = []): Observation => ({
 	repoId,
 	externalId: "41",
 	activityAt,
@@ -45,9 +79,10 @@ export const seen = (stage: Observation["stage"], activityAt = 1000): Observatio
 	review: "approved",
 	mergeable: "clean",
 	stage,
+	feedback,
 	raw: { state: stage },
 	title: "Soundings",
-	url: "https://github.com/example/reef/pull/41",
+	url: PULL,
 });
 export const adoption = {
 	requestId: request("change:reef"),

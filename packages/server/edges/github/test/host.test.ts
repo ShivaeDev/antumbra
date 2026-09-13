@@ -18,6 +18,7 @@ const REPO: HostRepo = {
 
 const pullNode = (number: number, slug: string) => ({
 	baseRefName: "main",
+	comments: { nodes: [] },
 	commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
 	headRefName: `work/${slug}`,
 	headRefOid: `sha-${slug}`,
@@ -25,6 +26,7 @@ const pullNode = (number: number, slug: string) => ({
 	mergeStateStatus: "CLEAN",
 	number,
 	reviewDecision: null,
+	reviews: { nodes: [] },
 	state: "OPEN",
 	title: `change in ${slug}`,
 	updatedAt: "2026-08-15T20:24:25Z",

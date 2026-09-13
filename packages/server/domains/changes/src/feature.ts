@@ -10,6 +10,7 @@ import { adoptionFailed, adoptionFailedMaterializer, failAdoption } from "#comma
 import { archive } from "#commands/archive.ts";
 import { claimRows } from "#commands/claims.ts";
 import { dismiss } from "#commands/dismiss.ts";
+import { forwardFeedback } from "#commands/forward-feedback.ts";
 import { freeze } from "#commands/freeze.ts";
 import {
 	hostCapabilities,
@@ -27,12 +28,14 @@ import { adoptionRetried, adoptionRetriedMaterializer, retryAdoption } from "#co
 import { changeAdopted } from "#facts/change-adopted.ts";
 import { changeArchived } from "#facts/change-archived.ts";
 import { changeDismissed } from "#facts/change-dismissed.ts";
-import { changeObserved } from "#facts/change-observed.ts";
+import { changeFeedbackForwarded } from "#facts/change-feedback-forwarded.ts";
+import { changeObserved, observedFeedback } from "#facts/change-observed.ts";
 import { changePrepared } from "#facts/change-prepared.ts";
 import { proposalFrozen } from "#facts/proposal-frozen.ts";
 import { changeAdoptedMaterializer } from "#materializers/change-adopted.ts";
 import { changeArchivedMaterializer } from "#materializers/change-archived.ts";
 import { changeDismissedMaterializer } from "#materializers/change-dismissed.ts";
+import { changeFeedbackForwardedMaterializer } from "#materializers/change-feedback-forwarded.ts";
 import { changeObservedMaterializer } from "#materializers/change-observed.ts";
 import { changePreparedMaterializer } from "#materializers/change-prepared.ts";
 import { proposalFrozenMaterializer } from "#materializers/proposal-frozen.ts";
@@ -50,6 +53,7 @@ import { world } from "#queries/world.ts";
 import { archiving } from "#reconcilers/archiving.ts";
 import { adoptionRequest } from "#rows/adoption-request.ts";
 import { change } from "#rows/change.ts";
+import { changeFeedback } from "#rows/change-feedback.ts";
 import { changeTransition } from "#rows/change-transition.ts";
 import { changeVerdict } from "#rows/change-verdict.ts";
 import { pieceChange } from "#rows/piece-change.ts";
@@ -70,6 +74,7 @@ export const changes = feature("changes", {
 		pieceChange,
 		changeTransition,
 		changeVerdict,
+		changeFeedback,
 		piece,
 		repo,
 		...claimRows,
@@ -88,8 +93,10 @@ export const changes = feature("changes", {
 		changeAdopted,
 		changeArchived,
 		changeDismissed,
+		changeFeedbackForwarded,
 		proposalFrozen,
 	],
+	migrations: [observedFeedback],
 	commands: [
 		failAdoption,
 		retryAdoption,
@@ -103,6 +110,7 @@ export const changes = feature("changes", {
 		adopt,
 		archive,
 		dismiss,
+		forwardFeedback,
 	],
 	materializers: [
 		adoptionFailedMaterializer,
@@ -116,6 +124,7 @@ export const changes = feature("changes", {
 		changeAdoptedMaterializer,
 		changeArchivedMaterializer,
 		changeDismissedMaterializer,
+		changeFeedbackForwardedMaterializer,
 		proposalFrozenMaterializer,
 	],
 	queries: [byPiece, hostCapabilities, browse, sessionSituations, adoptions, world, quay, all, links, watchable, publishing, archivable],

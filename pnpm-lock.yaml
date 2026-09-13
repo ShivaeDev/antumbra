@@ -882,6 +882,9 @@ importers:
       '@antumbra/app-testing':
         specifier: workspace:*
         version: link:../../../apps/testing
+      '@antumbra/domain-agents':
+        specifier: workspace:*
+        version: link:../../server/domains/agents
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../../server/domains/voyages

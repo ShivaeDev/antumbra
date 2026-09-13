@@ -25,7 +25,8 @@
 		"happy-dom": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/domain-voyages": "workspace:*"
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",

@@ -1,5 +1,6 @@
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Schema } from "effect";
+import { observedReview } from "#commands/feedback.ts";
 import { submissionKey } from "#commands/prepare.ts";
 import { ChangeId } from "#ids.ts";
 import type { ChangeRow } from "#rows/change.ts";
@@ -51,7 +52,7 @@ export const projectObservation = (row: ChangeRow, seen: Observation, now: strin
 	landedAt: seen.stage === "landed" ? (row.landedAt ?? now) : null,
 	observedAt: now,
 	raw: JSON.stringify(seen.raw) ?? null,
-	review: seen.review,
+	review: observedReview(seen),
 	mergeable: seen.mergeable,
 	stage: seen.stage,
 	submissionKey: seen.stage === "open" ? row.submissionKey : null,

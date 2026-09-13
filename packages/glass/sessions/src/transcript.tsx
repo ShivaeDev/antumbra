@@ -106,7 +106,7 @@ export const TranscriptView = (props: {
 	const result = useTranscript(props.sessions, props.sessionId);
 	return (
 		<>
-			<SessionHeader api={props.api} nodeId={props.sessionId} sessionId={props.sessionId} snapshot={snapshotOf(result)} />
+			<SessionHeader alone api={props.api} nodeId={props.sessionId} sessionId={props.sessionId} snapshot={snapshotOf(result)} />
 			{reading(result, "Reading transcript…", (snapshot) => (
 				<TranscriptBody foldToolCalls={props.foldToolCalls} inputs={props.inputs} sessionId={props.sessionId} snapshot={snapshot} />
 			))}

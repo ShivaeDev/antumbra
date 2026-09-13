@@ -3,6 +3,7 @@ import { toAgentEvents } from "#mapping.ts";
 
 const THREAD = "019ff334-ec21-7373-a31e-e8a0db309020";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
+const MODEL = "gpt-6-astra";
 
 const item = (method: string, payload: Record<string, unknown>) => ({
 	method,
@@ -16,8 +17,8 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			text: "pong",
 			type: "agentMessage",
 		};
-		expect(toAgentEvents(item("item/started", payload))).toEqual([]);
-		const [event] = toAgentEvents(item("item/completed", payload));
+		expect(toAgentEvents(item("item/started", payload), MODEL)).toEqual([]);
+		const [event] = toAgentEvents(item("item/completed", payload), MODEL);
 		expect(event).toMatchObject({
 			role: "agent",
 			text: "pong",
@@ -41,7 +42,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			id: "u1",
 			type: "userMessage",
 		};
-		expect(toAgentEvents(item("item/completed", payload))).toMatchObject([
+		expect(toAgentEvents(item("item/completed", payload), MODEL)).toMatchObject([
 			{
 				role: "user",
 				text: "Reply with exactly one word: pong",
@@ -52,14 +53,14 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 
 	it("reasoning with no visible text is silent; with text it is thinking", () => {
 		const empty = { content: [], id: "rs_1", summary: [], type: "reasoning" };
-		expect(toAgentEvents(item("item/completed", empty))).toEqual([]);
+		expect(toAgentEvents(item("item/completed", empty), MODEL)).toEqual([]);
 		const spoken = {
 			content: [],
 			id: "rs_2",
 			summary: ["**Weighing**", "then"],
 			type: "reasoning",
 		};
-		expect(toAgentEvents(item("item/completed", spoken))).toMatchObject([{ text: "**Weighing**\nthen", type: "thinking" }]);
+		expect(toAgentEvents(item("item/completed", spoken), MODEL)).toMatchObject([{ text: "**Weighing**\nthen", type: "thinking" }]);
 	});
 
 	it("commandExecution starts as a tool and completes with exit status", () => {
@@ -72,7 +73,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			status: "inProgress",
 			type: "commandExecution",
 		};
-		expect(toAgentEvents(item("item/started", running))).toMatchObject([
+		expect(toAgentEvents(item("item/started", running), MODEL)).toMatchObject([
 			{
 				input: "/bin/zsh -lc 'sleep 90'",
 				name: "commandExecution",
@@ -86,9 +87,11 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			exitCode: 0,
 			status: "completed",
 		};
-		expect(toAgentEvents(item("item/completed", done))).toMatchObject([{ ok: true, output: "hi\n", toolId: "call_1", type: "tool.completed" }]);
+		expect(toAgentEvents(item("item/completed", done), MODEL)).toMatchObject([
+			{ ok: true, output: "hi\n", toolId: "call_1", type: "tool.completed" },
+		]);
 		const declined = { ...running, status: "declined" };
-		expect(toAgentEvents(item("item/completed", declined))).toMatchObject([{ ok: false, output: "", type: "tool.completed" }]);
+		expect(toAgentEvents(item("item/completed", declined), MODEL)).toMatchObject([{ ok: false, output: "", type: "tool.completed" }]);
 	});
 
 	it("fileChange and mcpToolCall are tools too", () => {
@@ -98,8 +101,8 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			status: "inProgress",
 			type: "fileChange",
 		};
-		expect(toAgentEvents(item("item/started", patch))).toMatchObject([{ input: "out.txt", name: "fileChange", type: "tool.started" }]);
-		expect(toAgentEvents(item("item/completed", { ...patch, status: "completed" }))).toMatchObject([
+		expect(toAgentEvents(item("item/started", patch), MODEL)).toMatchObject([{ input: "out.txt", name: "fileChange", type: "tool.started" }]);
+		expect(toAgentEvents(item("item/completed", { ...patch, status: "completed" }), MODEL)).toMatchObject([
 			{ ok: true, output: "+hello", type: "tool.completed" },
 		]);
 		const mcp = {
@@ -111,10 +114,10 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			tool: "search",
 			type: "mcpToolCall",
 		};
-		expect(toAgentEvents(item("item/started", mcp))).toMatchObject([
+		expect(toAgentEvents(item("item/started", mcp), MODEL)).toMatchObject([
 			{ input: '{"q":1}', name: "srv: search", providerName: "srv/search", type: "tool.started" },
 		]);
-		expect(toAgentEvents(item("item/completed", { ...mcp, error: { message: "boom" }, status: "failed" }))).toMatchObject([
+		expect(toAgentEvents(item("item/completed", { ...mcp, error: { message: "boom" }, status: "failed" }), MODEL)).toMatchObject([
 			{ ok: false, output: '{"message":"boom"}', type: "tool.completed" },
 		]);
 	});
@@ -129,7 +132,7 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			tool: "land_report",
 			type: "dynamicToolCall",
 		};
-		expect(toAgentEvents(item("item/started", running))).toMatchObject([
+		expect(toAgentEvents(item("item/started", running), MODEL)).toMatchObject([
 			{
 				input: '{"body":"ok","title":"spike"}',
 				name: "land_report",
@@ -144,21 +147,24 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			status: "completed",
 			success: true,
 		};
-		expect(toAgentEvents(item("item/completed", landed))).toMatchObject([{ ok: true, output: "report landed", type: "tool.completed" }]);
+		expect(toAgentEvents(item("item/completed", landed), MODEL)).toMatchObject([{ ok: true, output: "report landed", type: "tool.completed" }]);
 		const refused = { ...landed, success: false };
-		expect(toAgentEvents(item("item/completed", refused))).toMatchObject([{ ok: false, type: "tool.completed" }]);
+		expect(toAgentEvents(item("item/completed", refused), MODEL)).toMatchObject([{ ok: false, type: "tool.completed" }]);
 	});
 
 	it("an item kind outside the model is kept raw, never dropped", () => {
-		const events = toAgentEvents(item("item/completed", { id: "s", type: "sleep", durationMs: 3 }));
+		const events = toAgentEvents(item("item/completed", { id: "s", type: "sleep", durationMs: 3 }), MODEL);
 		expect(events).toMatchObject([{ raw: { kind: "item/completed" }, type: "raw" }]);
 	});
 
 	it("everything else is raw under its method name", () => {
-		const events = toAgentEvents({
-			method: "thread/name/updated",
-			params: { name: "sound the eastern shoal", threadId: THREAD },
-		});
+		const events = toAgentEvents(
+			{
+				method: "thread/name/updated",
+				params: { name: "sound the eastern shoal", threadId: THREAD },
+			},
+			MODEL,
+		);
 		expect(events).toMatchObject([{ raw: { kind: "thread/name/updated" }, type: "raw" }]);
 	});
 });

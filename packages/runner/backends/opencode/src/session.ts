@@ -46,7 +46,7 @@ export const openOpencodeSession = Effect.fn("OpenCode.openSession")(function* (
 			),
 		),
 	);
-	const projection = openSessionProjection();
+	const projection = openSessionProjection(options.model);
 	const events: Stream.Stream<AgentEvent> = Stream.make(sessionOpened(route, response, sessionId)).pipe(
 		Stream.concat(Stream.fromSubscription(forEvents).pipe(Stream.flatMap(eventsOfFrame(sessionId, projection)))),
 		Stream.interruptWhen(server.exited),

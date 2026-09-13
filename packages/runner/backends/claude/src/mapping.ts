@@ -51,9 +51,9 @@ interface SessionMapping {
 	readonly spawnerOf: (subsessionRef: string) => string | undefined;
 }
 
-export const openSessionMapping = (): SessionMapping => {
+export const openSessionMapping = (sessionModel: string): SessionMapping => {
 	const subsessions = openSubsessions();
-	const turns = openTurnUsage();
+	const turns = openTurnUsage(sessionModel);
 	const frame = (message: SDKMessage): ReadonlyArray<AgentEvent> => {
 		const raw = rawOf(message);
 		const system = message.type === "system" ? systemEvents(raw, message) : undefined;

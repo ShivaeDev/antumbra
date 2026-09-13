@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
+const SESSION_MODEL = "claude-sonnet-5";
 
 const stateFrame = (state: "idle" | "requires_action" | "running"): SDKMessage => ({
 	session_id: SESSION,
@@ -79,14 +80,14 @@ const result = (totalCostUsd: number, models: ReadonlyArray<string> = ["claude-o
 
 describe("the harness's own account of a session is kept", () => {
 	it("keeps every state word, and calls requires_action awaiting input", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		expect(mapping.frame(stateFrame("running"))).toMatchObject([{ state: "running", type: "session.state" }]);
 		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
 		expect(mapping.frame(stateFrame("idle"))).toMatchObject([{ raw: { kind: "system/session_state_changed" }, state: "idle" }]);
 	});
 
 	it("takes the whole background set, and an empty one as the answer it is", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		expect(
 			mapping.frame(
 				tasksFrame([
@@ -119,7 +120,7 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("splits a turn's tokens four ways and names the model that answered", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		const [event] = mapping.frame(result(0.0412));
 		expect(event).toEqual({
 			cacheReadTokens: 4820,
@@ -135,7 +136,7 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("reports the turn's own cost as the step from the running total", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		mapping.frame(result(0.0412));
 		const [second] = mapping.frame(result(0.06));
 		expect(second).toMatchObject({ cumulativeCostUsd: 0.06 });
@@ -143,15 +144,15 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("reads a total that went backwards as the counter starting over", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		mapping.frame(result(0.5));
 		const [after] = mapping.frame(result(0.02));
 		expect(after).toMatchObject({ costUsd: 0.02, cumulativeCostUsd: 0.02 });
 	});
 
-	it("names no model when more than one answered", () => {
-		const mapping = openSessionMapping();
+	it("names the model the session was started on when more than one answered", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
 		const [event] = mapping.frame(result(0.01, ["claude-opus-5", "claude-haiku-5"]));
-		expect(event).not.toHaveProperty("model");
+		expect(event).toMatchObject({ model: SESSION_MODEL });
 	});
 });

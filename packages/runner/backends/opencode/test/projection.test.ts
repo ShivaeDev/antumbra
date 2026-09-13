@@ -5,8 +5,10 @@ import { openSessionProjection } from "#projection.ts";
 import { frameFor } from "#session-frames.ts";
 import { frame, part, SESSION, spoke, stepFinish, textPart, toolPart } from "#test/frames.ts";
 
+const SESSION_MODEL = "anthropic/claude-opus-5";
+
 const project = (frames: ReadonlyArray<unknown>): AgentEvent[] => {
-	const projection = openSessionProjection();
+	const projection = openSessionProjection(SESSION_MODEL);
 	return frames.flatMap((raw) =>
 		Option.match(frameFor(SESSION, raw), {
 			onNone: () => [],
@@ -91,6 +93,11 @@ it("carries the answering model onto the spend of the step it finished", () => {
 			type: "usage",
 		},
 	]);
+});
+
+it("spends on the model the session was started on when the message named none", () => {
+	const events = project([spoke("msg_a", "assistant"), part(stepFinish("msg_a"))]);
+	expect(events).toMatchObject([{ model: SESSION_MODEL, type: "usage" }]);
 });
 
 it("keeps a part whose message was never announced as raw evidence", () => {

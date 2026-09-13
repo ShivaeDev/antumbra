@@ -7,8 +7,9 @@ const CHILD = "019ff400-1111-7373-a31e-e8a0db309021";
 const NIECE = "019ff400-2222-7373-a31e-e8a0db309022";
 const GUARDIAN = "019ff400-3333-7373-a31e-e8a0db309023";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
+const MODEL = "gpt-6-astra";
 
-const tree = () => openThreadTree(ROOT, openThreadClaims());
+const tree = () => openThreadTree(ROOT, openThreadClaims(), MODEL);
 
 const item = (method: string, threadId: string, payload: Record<string, unknown>) => ({ method, params: { item: payload, threadId, turnId: TURN } });
 

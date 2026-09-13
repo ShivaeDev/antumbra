@@ -17,10 +17,10 @@ const textOnly = (input: SessionInput): Effect.Effect<string, BackendFailure> =>
 		: Effect.fail(failure("image input is not enabled for this installed Claude backend"));
 };
 
-const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
+const rawEvents = (raw: RawSession, sessionModel: string): Stream.Stream<AgentEvent> =>
 	Stream.callback<AgentEvent>((queue) =>
 		Effect.sync(() => {
-			const lanes = openSessionLanes();
+			const lanes = openSessionLanes(sessionModel);
 			raw.subscribe({
 				deliver: (delivery) => {
 					for (const event of laneEvents(lanes, delivery)) {
@@ -34,14 +34,16 @@ const rawEvents = (raw: RawSession): Stream.Stream<AgentEvent> =>
 		}),
 	);
 
-const eventStream = (raw: RawSession, nativeRef: Ref.Ref<Option.Option<string>>): Stream.Stream<AgentEvent> =>
-	rawEvents(raw).pipe(Stream.tap((event) => (event.type === "session.opened" ? Ref.set(nativeRef, Option.some(event.nativeRef)) : Effect.void)));
+const eventStream = (raw: RawSession, nativeRef: Ref.Ref<Option.Option<string>>, sessionModel: string): Stream.Stream<AgentEvent> =>
+	rawEvents(raw, sessionModel).pipe(
+		Stream.tap((event) => (event.type === "session.opened" ? Ref.set(nativeRef, Option.some(event.nativeRef)) : Effect.void)),
+	);
 
-const makeHandle = (raw: RawSession, resume: Option.Option<string>) =>
+const makeHandle = (raw: RawSession, resume: Option.Option<string>, sessionModel: string) =>
 	Effect.map(
 		Ref.make(resume),
 		(nativeRef): SessionHandle => ({
-			events: eventStream(raw, nativeRef),
+			events: eventStream(raw, nativeRef, sessionModel),
 			interrupt: Effect.promise(() => raw.interrupt()),
 			nativeRef: Ref.get(nativeRef),
 			queue: (input) => Effect.flatMap(textOnly(input), raw.queue),
@@ -62,7 +64,7 @@ export const makeClaudeBackend = Effect.gen(function* () {
 				const call = yield* sessionToolCall;
 				const effort = yield* effortLevel(session.effort);
 				const raw = yield* runtime.open({ session, effort, call, observeCapacity: capacity.observe });
-				return yield* makeHandle(raw, session.resume);
+				return yield* makeHandle(raw, session.resume, session.model);
 			}),
 		tag: "claude",
 	} satisfies AgentBackend;

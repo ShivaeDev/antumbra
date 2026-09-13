@@ -18,7 +18,7 @@ export interface ThreadTree {
 }
 
 // Codex broadcasts all thread frames on one connection; passive census uses a separate connection.
-export const openThreadTree = (rootThreadId: string, claims: ThreadClaims): ThreadTree => {
+export const openThreadTree = (rootThreadId: string, claims: ThreadClaims, sessionModel: string): ThreadTree => {
 	const spawnCalls = new Map<string, string>();
 	const stated = new Set<string>();
 	const owns = (threadId: string): boolean => threadId === rootThreadId || claims.ownerOf(threadId) === rootThreadId;
@@ -83,12 +83,12 @@ export const openThreadTree = (rootThreadId: string, claims: ThreadClaims): Thre
 		}
 		const threadId = scoped.value.threadId;
 		if (threadId === rootThreadId) {
-			return lifecycle(notification, threadId) ?? toAgentEvents(notification);
+			return lifecycle(notification, threadId) ?? toAgentEvents(notification, sessionModel);
 		}
 		const mapped =
 			notification.method === "thread/closed"
 				? closed(threadId, notification.params)
-				: (lifecycle(notification, threadId) ?? toAgentEvents(notification));
+				: (lifecycle(notification, threadId) ?? toAgentEvents(notification, sessionModel));
 		const origin: Origin = {
 			node: threadId,
 			spawnedBy: spawnCalls.get(threadId) ?? threadId,

@@ -21,8 +21,8 @@ const forThread =
 			onSome: (scoped) => scoped.threadId === threadId,
 		});
 
-const sessionEvents = (tree: ThreadTree, notification: RpcNotification): ReadonlyArray<AgentEvent> =>
-	notification.method === RATE_LIMITS_METHOD ? toAgentEvents(notification) : tree.events(notification);
+const sessionEvents = (tree: ThreadTree, notification: RpcNotification, sessionModel: string): ReadonlyArray<AgentEvent> =>
+	notification.method === RATE_LIMITS_METHOD ? toAgentEvents(notification, sessionModel) : tree.events(notification);
 
 export const openThreadSession = (server: CodexServer, options: OpenSessionOptions): Effect.Effect<SessionHandle, BackendFailure, Scope.Scope> =>
 	Effect.gen(function* () {
@@ -33,12 +33,14 @@ export const openThreadSession = (server: CodexServer, options: OpenSessionOptio
 		const threadId = yield* threadIdOf(method, response);
 		yield* server.tools.register(threadId, options.tools);
 		yield* Effect.addFinalizer(() => Effect.sync(() => server.threads.release(threadId)).pipe(Effect.andThen(server.tools.forget(threadId))));
-		const tree = openThreadTree(threadId, server.threads);
+		const tree = openThreadTree(threadId, server.threads, settings.model);
 		const driver = yield* makeTurnDriver(server, threadId, settings);
 		yield* Effect.forkScoped(Stream.fromSubscription(forDriver).pipe(Stream.filter(forThread(threadId)), Stream.runForEach(driver.track)));
 		const events: Stream.Stream<AgentEvent> = Stream.make(threadOpened(method, response, threadId)).pipe(
 			Stream.concat(
-				Stream.fromSubscription(forEvents).pipe(Stream.flatMap((notification) => Stream.fromIterable(sessionEvents(tree, notification)))),
+				Stream.fromSubscription(forEvents).pipe(
+					Stream.flatMap((notification) => Stream.fromIterable(sessionEvents(tree, notification, settings.model))),
+				),
 			),
 			Stream.interruptWhen(server.exited),
 		);

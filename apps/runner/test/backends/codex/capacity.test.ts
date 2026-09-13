@@ -7,6 +7,8 @@ import { describe, expect } from "vitest";
 import { makeCodexServer } from "#backends/codex/server.ts";
 import { makeFakeAppServer } from "#test/backends/codex/fake.ts";
 
+const MODEL = "gpt-6-astra";
+
 const notification = (codexErrorInfo: string, willRetry: boolean) => ({
 	method: "error",
 	params: {
@@ -30,7 +32,7 @@ describe("codex capacity evidence", () => {
 			reason: "usage-limit",
 			status: "blocked",
 		});
-		expect(toAgentEvents(exhausted)).toMatchObject([
+		expect(toAgentEvents(exhausted, MODEL)).toMatchObject([
 			{
 				raw: { kind: "error", source: "codex" },
 				type: "raw",

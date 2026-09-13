@@ -3,6 +3,7 @@ import { toAgentEvents } from "#mapping.ts";
 
 const THREAD = "019ff334-ec21-7373-a31e-e8a0db309020";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
+const MODEL = "gpt-6-astra";
 
 const status = (params: Record<string, unknown>) => ({
 	method: "thread/status/changed",
@@ -32,24 +33,24 @@ const tokens = (last: Record<string, number>, total: Record<string, number>) => 
 
 describe("what codex says a thread is doing is kept", () => {
 	it("an active thread is running until a flag says it is waiting", () => {
-		expect(toAgentEvents(status({ activeFlags: [], type: "active" }))).toMatchObject([{ state: "running", type: "session.state" }]);
-		expect(toAgentEvents(status({ activeFlags: ["waitingOnApproval"], type: "active" }))).toMatchObject([
+		expect(toAgentEvents(status({ activeFlags: [], type: "active" }), MODEL)).toMatchObject([{ state: "running", type: "session.state" }]);
+		expect(toAgentEvents(status({ activeFlags: ["waitingOnApproval"], type: "active" }), MODEL)).toMatchObject([
 			{ state: "awaiting-input", type: "session.state" },
 		]);
-		expect(toAgentEvents(status({ activeFlags: ["waitingOnUserInput"], type: "active" }))).toMatchObject([
+		expect(toAgentEvents(status({ activeFlags: ["waitingOnUserInput"], type: "active" }), MODEL)).toMatchObject([
 			{ state: "awaiting-input", type: "session.state" },
 		]);
-		expect(toAgentEvents(status({ type: "idle" }))).toMatchObject([{ state: "idle", type: "session.state" }]);
+		expect(toAgentEvents(status({ type: "idle" }), MODEL)).toMatchObject([{ state: "idle", type: "session.state" }]);
 	});
 
 	it("leaves notLoaded and systemError raw rather than calling them idle", () => {
-		expect(toAgentEvents(status({ type: "notLoaded" }))).toMatchObject([{ raw: { kind: "thread/status/changed" }, type: "raw" }]);
-		expect(toAgentEvents(status({ type: "systemError" }))).toMatchObject([{ type: "raw" }]);
+		expect(toAgentEvents(status({ type: "notLoaded" }), MODEL)).toMatchObject([{ raw: { kind: "thread/status/changed" }, type: "raw" }]);
+		expect(toAgentEvents(status({ type: "systemError" }), MODEL)).toMatchObject([{ type: "raw" }]);
 	});
 
 	it("the turn edges are the session going busy and going quiet", () => {
-		expect(toAgentEvents(turn("turn/started", "inProgress"))).toMatchObject([{ state: "running", type: "session.state" }]);
-		expect(toAgentEvents(turn("turn/completed", "completed"))).toMatchObject([
+		expect(toAgentEvents(turn("turn/started", "inProgress"), MODEL)).toMatchObject([{ state: "running", type: "session.state" }]);
+		expect(toAgentEvents(turn("turn/completed", "completed"), MODEL)).toMatchObject([
 			{ durationMs: 12300, status: "completed", type: "turn.completed" },
 			{ state: "idle", type: "session.state" },
 		]);
@@ -71,6 +72,7 @@ describe("what codex says a thread is doing is kept", () => {
 					outputTokens: 410,
 				},
 			),
+			MODEL,
 		);
 		expect(usage).toMatchObject({
 			cacheReadTokens: 96240,
@@ -83,9 +85,18 @@ describe("what codex says a thread is doing is kept", () => {
 		expect(usage).not.toHaveProperty("cumulativeCostUsd");
 	});
 
+	it("names the model the session was started on, which codex never reports with the tokens", () => {
+		const [usage] = toAgentEvents(
+			tokens({ cachedInputTokens: 0, inputTokens: 1410, outputTokens: 210 }, { cachedInputTokens: 1200, inputTokens: 2810, outputTokens: 410 }),
+			MODEL,
+		);
+		expect(usage).toMatchObject({ model: MODEL, type: "usage" });
+	});
+
 	it("leaves an unreported cache write out rather than writing it as zero", () => {
 		const [usage] = toAgentEvents(
 			tokens({ cachedInputTokens: 0, inputTokens: 1410, outputTokens: 210 }, { cachedInputTokens: 1200, inputTokens: 2810, outputTokens: 410 }),
+			MODEL,
 		);
 		expect(usage).toMatchObject({ cacheReadTokens: 0, inputTokens: 1410 });
 		expect(usage).not.toHaveProperty("cacheWriteTokens");

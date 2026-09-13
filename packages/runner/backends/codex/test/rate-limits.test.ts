@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { toAgentEvents } from "#mapping.ts";
 
+const MODEL = "gpt-6-astra";
+
 const updated = (rateLimits: Record<string, unknown>) => ({
 	method: "account/rateLimits/updated",
 	params: { rateLimits },
@@ -22,7 +24,7 @@ const both = {
 describe("codex's account rate limits are telemetry, not raw", () => {
 	it("both windows are read, primary first, into minutes and an epoch", () => {
 		const notification = updated(both);
-		expect(toAgentEvents(notification)).toEqual([
+		expect(toAgentEvents(notification, MODEL)).toEqual([
 			{
 				raw: {
 					kind: "account/rateLimits/updated",
@@ -40,13 +42,13 @@ describe("codex's account rate limits are telemetry, not raw", () => {
 	});
 
 	it("a reached limit is a rejection whatever the reason", () => {
-		expect(toAgentEvents(updated({ ...both, rateLimitReachedType: "rate_limit_reached" }))).toMatchObject([
+		expect(toAgentEvents(updated({ ...both, rateLimitReachedType: "rate_limit_reached" }), MODEL)).toMatchObject([
 			{ status: "rejected", type: "rate.limit" },
 		]);
 	});
 
 	it("an update with no snapshot in it stays raw", () => {
-		expect(toAgentEvents({ method: "account/rateLimits/updated", params: {} })).toMatchObject([
+		expect(toAgentEvents({ method: "account/rateLimits/updated", params: {} }, MODEL)).toMatchObject([
 			{ raw: { kind: "account/rateLimits/updated" }, type: "raw" },
 		]);
 	});

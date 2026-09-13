@@ -62,8 +62,8 @@ export const startViewer = (checkoutRoot: string, manifest: { readonly label: st
 	Effect.gen(function* () {
 		const current = yield* currentViewer(checkoutRoot);
 		if (current) {
-			if (current.failure) return yield* Effect.fail(new FixtureViewerError({ cause: current.failure }));
-			return current;
+			if (current.failure === null) return current;
+			yield* stopViewer(checkoutRoot);
 		}
 		const workingRoot = join(checkoutRoot, ".fixtures", "open");
 		const logPath = join(workingRoot, "viewer.log");

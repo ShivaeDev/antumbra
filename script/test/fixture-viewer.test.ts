@@ -8,7 +8,7 @@ import { expect } from "vitest";
 import { startViewer, stopViewer, withViewerOwnership } from "#fixture-viewer.ts";
 
 it.effect(
-	"reuses one checkout viewer and never stops a foreign owner",
+	"reuses healthy viewers, resumes failed copies, and respects ownership",
 	Effect.fnUntraced(function* () {
 		const root = yield* Effect.acquireRelease(
 			Effect.promise(() => mkdtemp(join(tmpdir(), "fixture-viewer-"))),
@@ -36,8 +36,16 @@ it.effect(
 		);
 		expect(alive.status).toBe(200);
 		yield* Effect.promise(() => writeFile(path, saved));
-		yield* stopViewer(root);
+		const edit = join(root, ".fixtures/open/experiment.txt");
+		yield* Effect.promise(() => writeFile(edit, "local edit"));
+		yield* Effect.promise(() => fetch(new URL("/fail", viewer.url), { headers: { Authorization: `Bearer ${viewer.token}` } }));
+		const restarted = yield* withViewerOwnership(root, startViewer(root, manifest));
+		yield* Effect.addFinalizer(() => stopViewer(root).pipe(Effect.orDie));
+		expect(restarted.url).not.toBe(viewer.url);
+		expect(yield* Effect.promise(() => readFile(edit, "utf8"))).toBe("local edit");
 		expect(Exit.isFailure(yield* Effect.exit(Effect.tryPromise(() => fetch(viewer.url))))).toBe(true);
+		yield* stopViewer(root);
+		expect(Exit.isFailure(yield* Effect.exit(Effect.tryPromise(() => fetch(restarted.url))))).toBe(true);
 		expect(Exit.isFailure(yield* Effect.exit(Effect.tryPromise(() => readFile(path))))).toBe(true);
 	}, Effect.scoped),
 );

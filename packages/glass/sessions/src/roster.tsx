@@ -11,9 +11,11 @@ const GROUPS: ReadonlyArray<readonly [string, string]> = [
 	["stranded", "Stranded"],
 	["idle", "Idle"],
 	["asleep", "Asleep"],
+	["smoothing", "Smoothers"],
 	["retired", "Retired"],
-	["smoothing", "Smoothing"],
 ];
+
+const FOLDED: ReadonlySet<string> = new Set(["smoothing", "retired"]);
 
 const groupOf = (agent: typeof agentReading.Row.Type): string => (agent.role === "smoother" ? "smoothing" : agent.state);
 
@@ -26,7 +28,7 @@ export const Roster = (props: Omit<ComponentProps<typeof AgentCard>, "agent"> & 
 	return [...groups]
 		.toSorted(([left], [right]) => rank(left) - rank(right))
 		.map(([group, agents]) => (
-			<SectionHeading count={agents.length} key={group} title={titleOf(group)}>
+			<SectionHeading collapsible={FOLDED.has(group)} count={agents.length} key={group} title={titleOf(group)}>
 				<div className={cn("grid min-w-0 gap-3", props.sessionId === undefined ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]" : "grid-cols-1")}>
 					{agents.map((agent) => (
 						<AgentCard {...props} key={agent.id} agent={agent} />

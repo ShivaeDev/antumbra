@@ -44,7 +44,13 @@ const SessionRow = (props: Props & { readonly session: typeof session.Row.Type }
 		</button>
 		{props.onOpenTranscript === undefined ? null : <OpenInATab onOpen={() => props.onOpenTranscript?.(props.session.id)} />}
 		{props.session.id === props.agent.currentSessionId ? (
-			<SessionActs api={props.api} sessionId={props.session.id} canInterrupt={props.agent.canInterrupt} canSleep={props.agent.canSleep} />
+			<SessionActs
+				api={props.api}
+				sessionId={props.session.id}
+				canInterrupt={props.agent.canInterrupt}
+				canSleep={props.agent.canSleep}
+				look="ghost"
+			/>
 		) : null}
 	</div>
 );

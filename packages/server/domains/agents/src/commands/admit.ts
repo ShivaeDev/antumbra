@@ -6,6 +6,7 @@ import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { allows, type Switched } from "@antumbra/domain-settings/queries/flags.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
+import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
 import { birthAdmitted } from "#facts/birth-admitted.ts";
@@ -22,7 +23,7 @@ const switchedOn = (flags: ReadonlyArray<Switched>, value: typeof birth.Row.Type
 
 export const admit = command("admit", {
 	input: { id: BirthId, backend: Schema.String, model: Schema.String, effort: Schema.NullOr(Schema.String) },
-	reads: [pieceProgress, birth, agent, session, count, flag, capacity],
+	reads: [pieceProgress, birth, agent, session, count, flag, capacity, voyage],
 	emits: birthAdmitted,
 	rejections: {
 		NotEligible: { id: Schema.String },
@@ -43,6 +44,9 @@ export const admit = command("admit", {
 		if (!eligible(held)) return yield* reject.NotEligible({ id: held.id });
 		const flags = yield* rows.flag.where({ scope: FLEET });
 		if (!switchedOn(flags, held)) return yield* reject.Held({ reason: `${held.source} births are held` });
+		const quiet = new Set((yield* rows.voyage.where({})).filter((sailing) => sailing.quietedAt !== null).map((sailing) => sailing.id));
+		const quieted = (value: typeof birth.Row.Type) => SWITCHES[value.source] !== undefined && value.voyageId !== null && quiet.has(value.voyageId);
+		if (quieted(held)) return yield* reject.Held({ reason: "the voyage is quiet" });
 		const capacities = yield* rows.capacity.where({});
 		if (capacities.some((value) => value.backend === input.backend && value.status === "blocked"))
 			return yield* reject.Held({ reason: "provider capacity" });
@@ -56,7 +60,8 @@ export const admit = command("admit", {
 					value.createsAgent &&
 					eligible(value) &&
 					!capacities.some((blocked) => blocked.backend === value.backend && blocked.status === "blocked") &&
-					switchedOn(flags, value),
+					switchedOn(flags, value) &&
+					!quieted(value),
 			)
 			.toSorted((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))[0];
 		if (oldest !== undefined && oldest.id !== held.id) return yield* reject.NotOldest({ id: oldest.id });

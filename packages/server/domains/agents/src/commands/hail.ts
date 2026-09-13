@@ -19,10 +19,12 @@ export const hail = command("hail", {
 		CaptainAlreadyHailed: { agentId: Schema.String },
 		CaptainSessionUnavailable: { agentId: Schema.String },
 		CaptainStopped: { agentId: Schema.String },
+		VoyageQuiet: { agentId: Schema.String },
 		AgentExists: { id: Schema.String },
 	},
 	run: Effect.fn("Agents.hail")(function* (input, rows, reject) {
-		if (!(yield* rows.voyage.exists(input.voyageId))) return yield* reject.UnknownVoyage({ id: input.voyageId });
+		const sailing = Option.getOrNull(yield* rows.voyage.find(input.voyageId));
+		if (sailing === null) return yield* reject.UnknownVoyage({ id: input.voyageId });
 		const ids = identity(input.requestId);
 		const current = yield* captain.run({ voyageId: input.voyageId }, rows, {});
 		if (current?.status === "spawning") return yield* reject.CaptainAlreadyHailed({ agentId: current.id });
@@ -32,6 +34,7 @@ export const hail = command("hail", {
 			const root = roots.find((held) => held.id === current.currentSessionId);
 			if (root === undefined) return yield* reject.CaptainSessionUnavailable({ agentId: current.id });
 			if (root.stoppedAt !== null && input.by === "agent") return yield* reject.CaptainStopped({ agentId: current.id });
+			if (sailing.quietedAt !== null && input.by === "agent") return yield* reject.VoyageQuiet({ agentId: current.id });
 			wakeSessionId = root.id;
 		} else if (Option.isSome(yield* rows.agent.find(ids.agentId))) return yield* reject.AgentExists({ id: ids.agentId });
 		return {

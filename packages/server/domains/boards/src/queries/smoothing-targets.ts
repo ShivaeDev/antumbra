@@ -3,6 +3,7 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { allows } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
+import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { BoardId, pieceBoard, voyageBoard } from "#ids.ts";
@@ -57,12 +58,13 @@ export const PendingAttempt = Schema.Struct({ ...smoothingAttempt.fields, held: 
 export const pendingSmoothing = query("pendingSmoothing", {
 	input: {},
 	output: Schema.Array(PendingAttempt),
-	reads: [smoothingAttempt, flag],
+	reads: [smoothingAttempt, flag, voyage],
 	run: Effect.fn("boards.pendingSmoothing")(function* (_input, rows) {
 		const spawning = allows(yield* rows.flag.where({ scope: FLEET }), "spawnSmoother");
+		const quiet = new Set((yield* rows.voyage.where({})).filter((sailing) => sailing.quietedAt !== null).map((sailing) => sailing.id));
 		const requested = yield* rows.smoothingAttempt.where({ status: "requested" });
 		return requested
 			.toSorted((left, right) => left.requestedAt.localeCompare(right.requestedAt))
-			.map((attempt) => ({ ...attempt, held: attempt.by !== "admiral" && !spawning }));
+			.map((attempt) => ({ ...attempt, held: attempt.by !== "admiral" && (!spawning || quiet.has(attempt.voyageId)) }));
 	}),
 });

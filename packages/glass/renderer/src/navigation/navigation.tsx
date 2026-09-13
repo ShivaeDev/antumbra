@@ -22,7 +22,9 @@ export const Navigation = (props: {
 	const [recent, setRecent] = useState(openedVoyages);
 	const settings = useLive(props.api.settings.flags, {});
 	const flags = AsyncResult.isSuccess(settings) ? settings.value : [];
-	const held = SWITCH_KEYS.some((key) => !allows(flags, key));
+	const sailing = useLive(props.api.voyages.list, {});
+	const voyages = AsyncResult.isSuccess(sailing) ? sailing.value : [];
+	const held = SWITCH_KEYS.some((key) => !allows(flags, key)) || voyages.some((row) => row.quietedAt !== null);
 	const foldToolCalls = flags.some((flag) => flag.key === "foldToolCalls" && flag.on);
 	const voyageId = place.mode === "voyages" ? place.voyageId : null;
 	useEffect(() => {

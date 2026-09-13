@@ -12,6 +12,7 @@ export const voyage = row(
 		northStar: Schema.String,
 		context: Schema.String,
 		focusedAt: Schema.NullOr(Schema.String),
+		quietedAt: Schema.NullOr(Schema.String),
 		openedAt: Schema.String,
 	},
 	{ key: "id" },

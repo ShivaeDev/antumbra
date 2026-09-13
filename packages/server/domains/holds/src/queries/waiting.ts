@@ -17,7 +17,7 @@ type Voyage = typeof voyage.Row.Type;
 
 export interface Crew {
 	readonly owners: ReadonlyMap<string, Agent>;
-	readonly voyages: ReadonlyMap<string, string>;
+	readonly voyages: ReadonlyMap<string, Voyage>;
 }
 
 export const crewOf = (agents: ReadonlyArray<Agent>, links: ReadonlyArray<typeof voyageAgent.Row.Type>, voyages: ReadonlyArray<Voyage>): Crew => {
@@ -25,24 +25,26 @@ export const crewOf = (agents: ReadonlyArray<Agent>, links: ReadonlyArray<typeof
 	for (const held of agents) {
 		if (held.currentSessionId !== null) owners.set(held.currentSessionId, held);
 	}
-	const named = new Map<string, string>();
+	const sailed = new Map<string, Voyage>();
 	for (const link of links) {
-		const name = voyages.find((held) => held.id === link.voyageId)?.name;
-		if (name !== undefined) named.set(String(link.agentId), name);
+		const found = voyages.find((held) => held.id === link.voyageId);
+		if (found !== undefined) sailed.set(String(link.agentId), found);
 	}
-	return { owners, voyages: named };
+	return { owners, voyages: sailed };
 };
 
-export const waitingSession = (crew: Crew, sessionId: string, id: string, waitedMillis: number | null): typeof Waiting.Type => {
+export const crewVoyage = (crew: Crew, sessionId: string): Voyage | null => {
 	const owner = crew.owners.get(sessionId);
-	return {
-		id,
-		title: owner?.role ?? sessionId,
-		voyage: owner === undefined ? null : (crew.voyages.get(owner.id) ?? null),
-		mail: null,
-		waitedMillis,
-	};
+	return owner === undefined ? null : (crew.voyages.get(owner.id) ?? null);
 };
+
+export const waitingSession = (crew: Crew, sessionId: string, id: string, waitedMillis: number | null): typeof Waiting.Type => ({
+	id,
+	title: crew.owners.get(sessionId)?.role ?? sessionId,
+	voyage: crewVoyage(crew, sessionId)?.name ?? null,
+	mail: null,
+	waitedMillis,
+});
 
 export const voyageName = (voyages: ReadonlyArray<Voyage>, voyageId: string | null): string | null =>
 	voyages.find((held) => held.id === voyageId)?.name ?? null;

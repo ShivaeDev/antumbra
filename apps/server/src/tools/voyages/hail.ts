@@ -22,23 +22,26 @@ export const hailCaptain = bind(hailCaptainSpec, (context, input) =>
 			const live = yield* Live;
 			const request = requestId(context);
 			const voyageId = VoyageId.make(input.voyageId);
+			const mailed = (agentId: string) =>
+				commit
+					.commit(send, {
+						requestId: Id.Request.make(`hail:${request}`),
+						toAgentId: agentId,
+						authorAgentId: null,
+						precedence: "priority",
+						body: hailWords,
+					})
+					.pipe(
+						Effect.catchTag("AlreadyDone", () => Effect.void),
+						Effect.orDie,
+					);
 			yield* commit.commit(hail, { requestId: request, voyageId, by: "agent" }).pipe(
-				Effect.catchTag("AlreadyDone", () => Effect.void),
-				Effect.catchTag("CaptainAlreadyHailed", () => Effect.void),
-				Effect.catchTag("CaptainStopped", (stopped) =>
-					commit
-						.commit(send, {
-							requestId: Id.Request.make(`hail:${request}`),
-							toAgentId: stopped.agentId,
-							authorAgentId: null,
-							precedence: "priority",
-							body: hailWords,
-						})
-						.pipe(
-							Effect.catchTag("AlreadyDone", () => Effect.void),
-							Effect.orDie,
-						),
-				),
+				Effect.catchTags({
+					AlreadyDone: () => Effect.void,
+					CaptainAlreadyHailed: () => Effect.void,
+					CaptainStopped: (stopped) => mailed(stopped.agentId),
+					VoyageQuiet: (hushed) => mailed(hushed.agentId),
+				}),
 			);
 			const current = yield* live.read(captain, { voyageId });
 			return { agentId: current?.id ?? identity(request).agentId, requestId: request };

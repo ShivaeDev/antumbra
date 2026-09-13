@@ -7,7 +7,6 @@ const NARROWEST = 320;
 const WIDEST = 1120;
 const LIST_FLOOR = 384;
 const DIVIDER = 1;
-const ALONE_BELOW = LIST_FLOOR + DIVIDER + NARROWEST;
 const UNMEASURED = 0;
 const STEPS: Record<string, number> = { ArrowLeft: 16, ArrowRight: -16 };
 
@@ -17,11 +16,11 @@ interface Grab {
 	readonly at: number;
 }
 
-const widest = (content: number): number => (content === UNMEASURED ? WIDEST : Math.min(WIDEST, content - LIST_FLOOR - DIVIDER));
+const widest = (content: number, floor: number): number => (content === UNMEASURED ? WIDEST : Math.min(WIDEST, content - floor - DIVIDER));
 
-const between = (width: number, content: number): number => Math.max(NARROWEST, Math.min(widest(content), width));
+const between = (width: number, content: number, floor: number): number => Math.max(NARROWEST, Math.min(widest(content, floor), width));
 
-const dragged = (grab: Grab, clientX: number, content: number): number => between(grab.width + grab.from - clientX, content);
+const dragged = (grab: Grab, clientX: number, content: number, floor: number): number => between(grab.width + grab.from - clientX, content, floor);
 
 const useContentWidth = (): { readonly content: number; readonly root: RefObject<HTMLDivElement | null> } => {
 	const root = useRef<HTMLDivElement>(null);
@@ -52,13 +51,14 @@ const Pane = ({ children, width }: { readonly children: ReactNode; readonly widt
 	</div>
 );
 
-export const TwoPane = (props: { readonly list: ReactNode; readonly pane: ReactNode }) => {
+export const TwoPane = (props: { readonly list: ReactNode; readonly listFloor?: number; readonly pane: ReactNode }) => {
+	const floor = props.listFloor ?? LIST_FLOOR;
 	const { content, root } = useContentWidth();
 	const [chosen, setChosen] = useState(() => rememberedPaneWidth() ?? OPENS_AT);
 	const [grabbed, setGrabbed] = useState<Grab | null>(null);
 	const opened = props.pane !== null && props.pane !== undefined;
-	const alone = opened && content !== UNMEASURED && content < ALONE_BELOW;
-	const width = between(chosen, content);
+	const alone = opened && content !== UNMEASURED && content < floor + DIVIDER + NARROWEST;
+	const width = between(chosen, content, floor);
 	useEffect(() => {
 		if (!opened || alone) setGrabbed(null);
 	}, [opened, alone]);
@@ -69,21 +69,25 @@ export const TwoPane = (props: { readonly list: ReactNode; readonly pane: ReactN
 	const drag = (event: PointerEvent<HTMLHRElement>) => {
 		if (grabbed === null) return;
 		setGrabbed({ ...grabbed, at: event.clientX });
-		setChosen(dragged(grabbed, event.clientX, content));
+		setChosen(dragged(grabbed, event.clientX, content, floor));
 	};
 	const letGo = (clientX?: number) => {
 		if (grabbed === null) return;
 		setGrabbed(null);
-		keep(dragged(grabbed, clientX ?? grabbed.at, content));
+		keep(dragged(grabbed, clientX ?? grabbed.at, content, floor));
 	};
 	return (
 		<div className={cn("flex min-h-0 min-w-0 flex-1", grabbed === null ? undefined : "cursor-col-resize select-none")} ref={root}>
-			{alone ? null : <div className={cn("flex min-h-0 flex-1 overflow-hidden", opened ? "min-w-96" : "min-w-0")}>{props.list}</div>}
+			{alone ? null : (
+				<div className="flex min-h-0 min-w-0 flex-1 overflow-hidden" style={opened ? { minWidth: floor } : undefined}>
+					{props.list}
+				</div>
+			)}
 			{opened && !alone ? (
 				<hr
 					aria-label="Resize the session"
 					aria-orientation="vertical"
-					aria-valuemax={widest(content)}
+					aria-valuemax={widest(content, floor)}
 					aria-valuemin={NARROWEST}
 					aria-valuenow={width}
 					className="relative z-10 my-0 w-px shrink-0 cursor-col-resize border-none bg-border transition-colors after:absolute after:inset-y-0 after:-left-1 after:w-2 after:content-[''] hover:bg-ring data-dragging:bg-ring focus-visible:bg-ring focus-visible:outline-none"
@@ -92,7 +96,7 @@ export const TwoPane = (props: { readonly list: ReactNode; readonly pane: ReactN
 						const step = STEPS[event.key];
 						if (step === undefined) return;
 						event.preventDefault();
-						keep(between(width + step, content));
+						keep(between(width + step, content, floor));
 					}}
 					onLostPointerCapture={() => letGo()}
 					onPointerCancel={() => letGo()}

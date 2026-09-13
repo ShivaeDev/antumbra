@@ -10,7 +10,7 @@ import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
 import { Flagship } from "@antumbra/glass-voyages/flagship.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import { Cause, Effect } from "effect";
-import { VoyagesPage } from "#navigation/voyages.tsx";
+import { VoyagesScreen } from "#navigation/voyages.tsx";
 import type { RendererProps } from "#props.ts";
 import { SettingsPanel } from "#settings/settings.tsx";
 
@@ -87,6 +87,6 @@ export const ConsoleMain = (
 		case "holds":
 			return <HoldsPanel api={props.api} />;
 		case "voyages":
-			return <VoyagesPage {...props} renderSession={session} />;
+			return <VoyagesScreen {...props} renderSession={session} />;
 	}
 };

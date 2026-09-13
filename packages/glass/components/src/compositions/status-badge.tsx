@@ -10,6 +10,7 @@ const TONES: Readonly<Record<Tone, string>> = {
 };
 
 const STATES: Readonly<Record<string, Tone>> = {
+	active: "live",
 	alive: "live",
 	asleep: "neutral",
 	conflict: "failed",

@@ -26,7 +26,7 @@ it.glass("keeps rough board evidence behind its live summary", function* ({ api,
 	const container = yield* render(<BoardPanel api={api} name="Reef" owner={{ kind: "voyage", voyageId }} />);
 	yield* until(() => container.textContent?.includes("1") === true, "the board count");
 	expect(container.textContent).not.toContain("The eastern shoal");
-	yield* click(labelled(container, "Board"));
+	yield* click(labelled(container, "Log"));
 	yield* until(() => container.textContent?.includes("The eastern shoal") === true, "the rough entry");
 	yield* api.boards.summarize({
 		requestId: Id.Request.make("summary"),

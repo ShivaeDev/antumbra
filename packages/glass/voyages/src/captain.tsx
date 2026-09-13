@@ -2,64 +2,55 @@ import type { captainReading } from "@antumbra/domain-agents/rows/captain-readin
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { cn } from "@antumbra/glass-components/class-names.ts";
-import { SUBJECT } from "@antumbra/glass-components/classes.ts";
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
-import type { ReactNode } from "react";
+import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import type { VoyagesDisplayApi } from "#display.ts";
 
 type Captain = typeof captainReading.Row.Type;
 
-const LINE = "flex min-w-0 items-center gap-1.5 text-2xs text-muted-foreground";
+const NOT_HAILED = "Not hailed yet.";
 
-interface Props {
-	readonly api: VoyagesDisplayApi;
-	readonly voyageId: string;
-	readonly onHail: (voyageId: string) => void;
-	readonly agentId?: string | undefined;
-	readonly onAgent?: ((agentId: string) => void) | undefined;
-}
-
-export const CaptainCall = (props: Props) => (
+export const CaptainAct = (props: { readonly api: VoyagesDisplayApi; readonly voyageId: string; readonly onHail: (voyageId: string) => void }) => (
 	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.agents.captainReading}>
-		{(captain) => <CaptainLine {...props} captain={captain} />}
+		{(captain) => (
+			<Button disabled={captain !== null && !captain.canHail} onClick={() => props.onHail(props.voyageId)} size="sm">
+				{captain?.status === "alive" ? "Wake the captain" : "Hail a captain"}
+			</Button>
+		)}
 	</Live>
 );
 
-const CaptainLine = (props: Props & { readonly captain: Captain | null }) => {
+export const CaptainLine = (props: {
+	readonly api: VoyagesDisplayApi;
+	readonly voyageId: string;
+	readonly agentId?: string | undefined;
+	readonly onAgent: (agentId: string) => void;
+}) => (
+	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.agents.captainReading}>
+		{(captain) => <Line agentId={props.agentId} captain={captain} onAgent={props.onAgent} />}
+	</Live>
+);
+
+const Line = (props: { readonly agentId?: string | undefined; readonly captain: Captain | null; readonly onAgent: (agentId: string) => void }) => {
 	const captain = props.captain;
 	const agentId = captain?.agentId ?? null;
-	const onAgent = props.onAgent;
-	if (captain === null || agentId === null) return <Hail captain={captain} onHail={props.onHail} voyageId={props.voyageId} />;
-	if (onAgent === undefined) {
-		if (!captain.atWork) return <Hail captain={captain} onHail={props.onHail} voyageId={props.voyageId} />;
-		return <span className={LINE}>{captainWords(captain, agentId)}</span>;
-	}
+	if (captain === null || agentId === null) return <p className="text-xs text-muted-foreground">{captain?.standing ?? NOT_HAILED}</p>;
+	const showing = props.agentId === agentId;
 	return (
-		<span className="flex min-w-0 items-center gap-2">
-			<button
-				aria-current={props.agentId === agentId ? "true" : undefined}
-				aria-label={`Open the captain ${agentId}`}
-				className={cn(SUBJECT, LINE, "flex-row rounded-md px-1 py-0.5", props.agentId === agentId && "bg-accent")}
-				onClick={() => onAgent(agentId)}
-				type="button"
-			>
-				{captainWords(captain, agentId)}
-			</button>
-			{captain.atWork ? null : <Hail captain={captain} onHail={props.onHail} voyageId={props.voyageId} />}
-		</span>
+		<button
+			aria-current={showing ? "true" : undefined}
+			aria-label={`Open the captain ${agentId}`}
+			className={cn(
+				"flex h-8 w-full min-w-0 items-center gap-2 rounded-md px-2 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60",
+				showing && "bg-accent",
+			)}
+			onClick={() => props.onAgent(agentId)}
+			type="button"
+		>
+			<span className="min-w-0 truncate font-mono text-xs text-muted-foreground">{agentId}</span>
+			<span className="ml-auto shrink-0">
+				<StatusBadge state={captain.standing} />
+			</span>
+		</button>
 	);
 };
-
-const captainWords = (captain: Captain, agentId: string): ReactNode => (
-	<>
-		<span>Captain</span>
-		<span className="truncate font-mono">{agentId}</span>
-		<span>· {captain.standing}</span>
-	</>
-);
-
-const Hail = (props: { readonly captain: Captain | null; readonly voyageId: string; readonly onHail: (voyageId: string) => void }) => (
-	<Button disabled={props.captain !== null && !props.captain.canHail} onClick={() => props.onHail(props.voyageId)} size="sm" variant="outline">
-		{props.captain?.status === "alive" ? "Wake the captain" : "Hail a captain"}
-	</Button>
-);

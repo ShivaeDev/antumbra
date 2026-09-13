@@ -1,8 +1,7 @@
 import type { smoothingState } from "@antumbra/domain-boards/queries/smoothing-state.ts";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 
 type BoardSmoothing = typeof smoothingState.output.Type;
-
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
 
 const SMOOTH_NOW = "Write one summary that stands in for the new entries";
 
@@ -12,13 +11,12 @@ const waiting = (uncovered: number): string => `Smoothing ${uncovered} ${uncover
 
 export const SmoothNow = ({ onSmooth, smoothing }: { readonly onSmooth: () => void; readonly smoothing: BoardSmoothing }) => (
 	<Button
-		className="ml-auto"
 		disabled={smoothing.uncovered === 0 || smoothing.state === "running"}
 		onClick={onSmooth}
 		size="sm"
 		title={smoothing.uncovered === 0 ? NOTHING_TO_SMOOTH : SMOOTH_NOW}
 		type="button"
-		variant="secondary"
+		variant="outline"
 	>
 		Smooth now
 	</Button>
@@ -26,15 +24,15 @@ export const SmoothNow = ({ onSmooth, smoothing }: { readonly onSmooth: () => vo
 
 export const SmoothingLine = ({ onSmooth, smoothing }: { readonly onSmooth: () => void; readonly smoothing: BoardSmoothing }) => {
 	if (smoothing.state === "running") {
-		return <p className="text-2xs text-muted-foreground">{waiting(smoothing.uncovered)}</p>;
+		return <p className="text-xs text-muted-foreground">{waiting(smoothing.uncovered)}</p>;
 	}
 	if (smoothing.state === "idle") {
 		return null;
 	}
 	return (
-		<p className="flex min-w-0 items-center gap-1.5 text-2xs text-warning">
+		<p className="flex min-w-0 items-center gap-1.5 text-xs text-state-failed">
 			Smoothing failed
-			<Button className="h-auto p-0 text-2xs" onClick={onSmooth} type="button" variant="link">
+			<Button className="h-auto p-0 text-xs" onClick={onSmooth} type="button" variant="link">
 				Try again
 			</Button>
 		</p>

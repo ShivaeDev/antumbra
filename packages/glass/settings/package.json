@@ -27,6 +27,7 @@
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
+		"@antumbra/glass-form": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",

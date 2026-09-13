@@ -15,6 +15,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
 		backend: { source: "backend", value: FIRST_BACKEND },
 		effort: { source: "backend", value: "high" },
+		fallback: { source: "backend", value: FIRST_BACKEND },
 		model: { source: "backend", value: "opus" },
 	});
 
@@ -22,6 +23,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
 		backend: { source: "fleet", value: "codex" },
 		effort: { source: "fleet", value: "medium" },
+		fallback: { source: "fleet", value: "codex" },
 		model: { source: "fleet", value: "gpt-5" },
 	});
 
@@ -29,6 +31,7 @@ it.app("names the source of every field it resolves", function* (app) {
 	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
 		backend: { source: "fleet", value: "codex" },
 		effort: { source: "fleet", value: "medium" },
+		fallback: { source: "fleet", value: "codex" },
 		model: { source: "chosen", value: "gpt-5-codex" },
 	});
 });
@@ -41,6 +44,7 @@ it.app("resolves a fleet default from the backend it names rather than the fleet
 	expect(yield* answered(roles.resolve({ role: "flagship", voyageId: null }))).toEqual({
 		backend: { source: "chosen", value: "codex" },
 		effort: { source: "backend", value: null },
+		fallback: { source: "backend", value: FIRST_BACKEND },
 		model: { source: "backend", value: "gpt-5" },
 	});
 });
@@ -53,6 +57,7 @@ it.app("drops inherited model and effort when the backend changes", function* (a
 	expect(yield* answered(roles.resolve({ role: "crew", voyageId: reef }))).toEqual({
 		backend: { source: "chosen", value: "claude" },
 		effort: { source: "backend", value: null },
+		fallback: { source: "fleet", value: "codex" },
 		model: { source: "backend", value: null },
 	});
 

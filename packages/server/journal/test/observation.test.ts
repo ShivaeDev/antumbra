@@ -32,12 +32,30 @@ const sightedMaterializer = materializer(sighted, {
 		yield* Option.isNone(known) ? rows.berth.insert({ detail: fact.detail, host: fact.host }) : rows.berth.update(fact.host, { detail: fact.detail });
 	}),
 });
+const sounding = row("sounding", { id: Schema.String, depth: Schema.Number }, { key: "id" });
+const sounded = fact("Sounded", { reading: Schema.NullOr(sounding.Row) }, { subject: "reading" });
+const sound = command("sound", {
+	input: sounded.payload,
+	reads: [],
+	emits: sounded,
+	rejections: {},
+	run: ({ reading }) => Effect.succeed({ reading }),
+});
+const soundedMaterializer = materializer(sounded, {
+	writes: [sounding],
+	run: Effect.fn(function* (fact, rows) {
+		const reading = fact.reading;
+		if (reading === null) return;
+		const known = yield* rows.sounding.find(reading.id);
+		yield* Option.isNone(known) ? rows.sounding.insert(reading) : rows.sounding.update(reading.id, { depth: reading.depth });
+	}),
+});
 const sightings = feature("sightings", {
-	rows: [berth],
-	facts: [sighted],
-	commands: [sight],
+	rows: [berth, sounding],
+	facts: [sighted, sounded],
+	commands: [sight, sound],
 	queries: [],
-	materializers: [sightedMaterializer],
+	materializers: [sightedMaterializer, soundedMaterializer],
 });
 const definition = app([sightings]);
 
@@ -101,5 +119,18 @@ it.effect("the runner's record skips an operation a command already answered", (
 		yield* commit.observeBatch(record, [observation(sighted, { detail: "signed out", host: "github" }, operation)]);
 		expect(yield* Effect.orDie(database.read`SELECT "requestId" FROM "journal"`)).toEqual([{ requestId: operation }]);
 		expect(yield* commit.cursor("runner")).toBe(0);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
+it.effect("an observation whose subject is a record repeats only when the whole record repeats", () =>
+	Effect.gen(function* () {
+		const { commit, database } = yield* setup;
+		const harbour = { depth: 40, id: "harbour" };
+		const seq = yield* commit.commit(sound, { reading: harbour, requestId: Request.make("one") });
+		expect(yield* commit.commit(sound, { reading: harbour, requestId: Request.make("two") })).toBe(seq);
+		yield* commit.commit(sound, { reading: { depth: 12, id: "shoal" }, requestId: Request.make("three") });
+		const unsounded = yield* commit.commit(sound, { reading: null, requestId: Request.make("four") });
+		expect(yield* commit.commit(sound, { reading: null, requestId: Request.make("five") })).toBe(unsounded);
+		expect(yield* Effect.orDie(database.read`SELECT "seq" FROM "journal" ORDER BY "seq"`)).toHaveLength(3);
 	}).pipe(Effect.provide(Journal.memory())),
 );

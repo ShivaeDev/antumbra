@@ -34,8 +34,8 @@ export const toolPart = (messageID: string, state: object): object => ({
 	type: "tool",
 });
 
-export const stepFinish = (messageID: string): object => ({
-	cost: 0.25,
+export const stepFinish = (messageID: string, cost: number | null = 0.25): object => ({
+	...(cost === null ? {} : { cost }),
 	id: `prt_${messageID}_finish`,
 	messageID,
 	tokens: { cache: { read: 7, write: 3 }, input: 11, output: 5 },

@@ -10,17 +10,13 @@ const item = (method: string, payload: Record<string, unknown>) => ({
 	params: { item: payload, threadId: THREAD, turnId: TURN },
 });
 
-const tokens = () => ({
+const tokens = (last: Record<string, number>) => ({
 	method: "thread/tokenUsage/updated",
-	params: {
-		threadId: THREAD,
-		tokenUsage: {
-			last: { cachedInputTokens: 400_000, cacheWriteInputTokens: 100_000, inputTokens: 1_000_000, outputTokens: 200_000 },
-			total: { cachedInputTokens: 400_000, cacheWriteInputTokens: 100_000, inputTokens: 1_000_000, outputTokens: 200_000 },
-		},
-		turnId: TURN,
-	},
+	params: { threadId: THREAD, tokenUsage: { last, total: last }, turnId: TURN },
 });
+
+const SHORT = { cachedInputTokens: 40_000, cacheWriteInputTokens: 10_000, inputTokens: 100_000, outputTokens: 20_000 };
+const LONG = { cachedInputTokens: 400_000, cacheWriteInputTokens: 100_000, inputTokens: 1_000_000, outputTokens: 200_000 };
 
 describe("codex notifications map onto the neutral vocabulary", () => {
 	it("agentMessage completes into an agent message; its start is silent", () => {
@@ -181,19 +177,24 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 	});
 
 	it("prices a round from the published list, because codex reports no cost of its own", () => {
-		const [event] = toAgentEvents(tokens(), MODEL);
+		const [event] = toAgentEvents(tokens(SHORT), MODEL);
 		expect(event).toMatchObject({
-			byModel: [{ costUsd: 16.65, model: MODEL }],
-			cacheReadTokens: 400_000,
-			cacheWriteTokens: 100_000,
-			costUsd: 16.65,
-			inputTokens: 500_000,
-			outputTokens: 200_000,
+			byModel: [{ costUsd: 1.665, model: MODEL }],
+			cacheReadTokens: 40_000,
+			cacheWriteTokens: 10_000,
+			costUsd: 1.665,
+			inputTokens: 50_000,
+			outputTokens: 20_000,
 		});
 	});
 
+	it("bills a round past the context threshold at the long rates", () => {
+		const [event] = toAgentEvents(tokens(LONG), MODEL);
+		expect(event).toMatchObject({ byModel: [{ costUsd: 28.3, model: MODEL }], costUsd: 28.3, inputTokens: 500_000 });
+	});
+
 	it("leaves a round on a model outside the list unpriced", () => {
-		const [event] = toAgentEvents(tokens(), "gpt-6-astra-safe");
+		const [event] = toAgentEvents(tokens(SHORT), "gpt-6-astra-safe");
 		expect(event).toMatchObject({ byModel: [{ model: "gpt-6-astra-safe" }], type: "usage" });
 		expect(event).not.toHaveProperty("costUsd");
 	});

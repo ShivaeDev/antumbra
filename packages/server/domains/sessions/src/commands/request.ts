@@ -1,3 +1,6 @@
+import { FLEET } from "@antumbra/domain-settings/ids.ts";
+import { ungated } from "@antumbra/domain-settings/queries/flags.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import { Effect, Option, Schema } from "effect";
 import { operationRequested } from "#facts/operation-requested.ts";
@@ -12,7 +15,7 @@ export const request = command("request", {
 		reason: Schema.String,
 		requestedAt: Schema.String,
 	},
-	reads: [session, sessionOperation],
+	reads: [session, sessionOperation, flag],
 	emits: operationRequested,
 	rejections: { Unavailable: { message: Schema.String }, Busy: { message: Schema.String } },
 	run: Effect.fn("sessions.request")(function* (input, rows, reject) {
@@ -25,7 +28,9 @@ export const request = command("request", {
 			if (nodes.some((node) => node.toolCalls > 0 || node.openDelegations > 0 || (node.attached && node.executionStatus !== "idle")))
 				return yield* reject.Busy({ message: "The session still has active work" });
 		}
-		const pending = yield* rows.sessionOperation.where({ sessionId: root.id, status: "requested" });
+		const flags = yield* rows.flag.where({ scope: FLEET });
+		const requested = yield* rows.sessionOperation.where({ sessionId: root.id, status: "requested" });
+		const pending = requested.filter((operation) => ungated(flags, operation.gatedBy));
 		if (pending.some((op) => op.kind === input.kind && op.inputId === input.inputId))
 			return yield* reject.Busy({ message: "This session operation is already requested" });
 		return {

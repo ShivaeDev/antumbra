@@ -85,6 +85,8 @@ const on = (flags: ReadonlyArray<Switched>, key: FlagKey): boolean => flags.find
 
 export const allows = (flags: ReadonlyArray<Switched>, key: SwitchKey): boolean => !on(flags, "holdEverything") && on(flags, key);
 
+export const ungated = (flags: ReadonlyArray<Switched>, gatedBy: SwitchKey | null): boolean => gatedBy === null || allows(flags, gatedBy);
+
 export const FlagReading = Schema.Struct({ description: Schema.String, key: FlagKey, on: Schema.Boolean, title: Schema.String });
 
 export const flags = query("flags", {

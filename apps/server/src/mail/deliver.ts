@@ -3,7 +3,7 @@ import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
 import type { DueWake } from "@antumbra/domain-mail/queries/due-wakes.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { operations } from "@antumbra/domain-sessions/queries/operations.ts";
-import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
+import { allows, flags, ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
@@ -21,7 +21,11 @@ export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<D
 		if (
 			held.some(
 				(operation) =>
-					String(operation.id) !== requestId && operation.kind === "wake" && operation.status !== "accepted" && operation.status !== "cancelled",
+					String(operation.id) !== requestId &&
+					operation.kind === "wake" &&
+					operation.status !== "accepted" &&
+					operation.status !== "cancelled" &&
+					ungated(chosen, operation.gatedBy),
 			)
 		)
 			continue;

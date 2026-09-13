@@ -47,5 +47,5 @@ it.app("keeps ready pieces visible while held and removes them when gated", func
 		recommendation: null,
 	});
 	const gated = yield* answered(app.api.holds.queues({}));
-	expect(gated.queues).toEqual([]);
+	expect(gated.queues).toMatchObject([{ setting: "spawnForPiece", held: true, waiting: [] }]);
 });

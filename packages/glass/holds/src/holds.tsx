@@ -7,6 +7,7 @@ import { HoldSwitch } from "#hold-switch.tsx";
 import { waitedWords } from "#waited.ts";
 
 const NOTHING = "Nothing is waiting on a switch.";
+const EMPTY = "Nothing is waiting yet.";
 
 export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 	<Live query={api.holds.queues} input={{}} waiting="Reading the holds…">
@@ -17,12 +18,10 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 						<h2>The holds</h2>
 						<HoldSwitch
 							api={api}
-							setting="holdEverything"
 							title="All queues"
-							on={view.everything}
-							means="hold"
+							sending={!view.everything}
 							held={view.everything}
-							everything={false}
+							toggle={(sending) => ({ key: "holdEverything", on: !sending })}
 						/>
 					</div>
 					<p className="text-xs text-muted-foreground">
@@ -32,7 +31,7 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 				</header>
 				{view.queues.length === 0 ? <p className="p-4 text-xs text-muted-foreground">{NOTHING}</p> : null}
 				{view.queues.map((queue) => (
-					<QueueSection api={api} queue={queue} everything={view.everything} key={queue.setting} />
+					<QueueSection api={api} queue={queue} key={queue.setting} />
 				))}
 			</section>
 		)}
@@ -53,30 +52,27 @@ const WaitingRow = ({ waiting, held }: { readonly waiting: typeof Waiting.Type; 
 	</li>
 );
 
-const QueueSection = ({
-	api,
-	queue,
-	everything,
-}: {
-	readonly api: HoldsApi;
-	readonly queue: typeof HoldQueue.Type;
-	readonly everything: boolean;
-}) => {
+const QueueSection = ({ api, queue }: { readonly api: HoldsApi; readonly queue: typeof HoldQueue.Type }) => {
 	const titled = useId();
 	return (
 		<section aria-labelledby={titled} className="flex flex-col gap-2 border-b border-border p-4">
 			<header className="flex justify-between">
-				<h3 id={titled}>
-					{queue.title} · {queue.waiting.length} waiting
-				</h3>
-				<HoldSwitch api={api} setting={queue.setting} title={queue.title} on={queue.on} means="send" held={queue.held} everything={everything} />
+				<div className="flex items-baseline gap-2">
+					<h3 id={titled}>{queue.title}</h3>
+					<span className="text-xs text-muted-foreground">{queue.waiting.length} waiting</span>
+				</div>
+				<HoldSwitch api={api} title={queue.title} sending={queue.on} held={queue.held} toggle={(sending) => ({ key: queue.setting, on: sending })} />
 			</header>
 			<p className="text-xs text-muted-foreground">{queue.description}</p>
-			<ul>
-				{queue.waiting.map((waiting) => (
-					<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
-				))}
-			</ul>
+			{queue.waiting.length === 0 ? (
+				<p className="text-xs text-muted-foreground">{EMPTY}</p>
+			) : (
+				<ul>
+					{queue.waiting.map((waiting) => (
+						<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
+					))}
+				</ul>
+			)}
 		</section>
 	);
 };

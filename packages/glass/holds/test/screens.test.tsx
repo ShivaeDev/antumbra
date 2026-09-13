@@ -55,3 +55,11 @@ it.glass("lists what a held switch is keeping back and sends again when it goes 
 	yield* click(control);
 	yield* eventually(api.settings.flags({}), (flags) => flags.some((setting) => setting.key === "spawnForPiece" && setting.on));
 });
+
+it.glass("keeps a held switch on the page before anything is waiting", function* ({ api, render }) {
+	yield* api.settings.setFlag({ key: "spawnSmoother", on: false });
+	const container = yield* render(<HoldsPanel api={api} />);
+	yield* until(() => container.querySelector('input[aria-label="Spawn a smoother"]') !== null, "the held section");
+	expect(container.textContent).toContain("0 waiting");
+	expect(container.textContent).toContain("Nothing is waiting yet.");
+});

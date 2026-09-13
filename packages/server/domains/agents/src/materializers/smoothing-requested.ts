@@ -14,7 +14,7 @@ export const smoothingRequestedMaterializer = materializer(smoothingRequested, {
 			operationRequestId: fact.requestId,
 			createsAgent: fact.createsAgent,
 			cwd: fact.cwd,
-			source: "smoothing",
+			source: "direct",
 			agentId: fact.agentId,
 			sessionId: fact.sessionId,
 			voyageId: fact.voyageId,

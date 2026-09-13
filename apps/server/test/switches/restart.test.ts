@@ -1,4 +1,4 @@
-import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { lifecycleClient } from "@antumbra/app-testing/lifecycle.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
@@ -37,13 +37,14 @@ it.app("a root cut mid-turn keeps its place while the restart switch is off, and
 	const runner = yield* connectRunner(registration);
 	const lifecycle = yield* lifecycleClient;
 	yield* runner.append(entries);
-	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
 	yield* app.api.settings.setFlag({ key: "wakeAfterRestart", on: false });
+	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
 	yield* lifecycle("lifecycle.honorRestart", { requestId: "held" });
+	yield* app.settle();
 	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual([CUT]);
 	expect(yield* answered(app.api.sessions.operations({ sessionId: CUT }))).toEqual([]);
 	yield* app.api.settings.setFlag({ key: "wakeAfterRestart", on: true });
-	yield* lifecycle("lifecycle.honorRestart", { requestId: "honored" });
+	const woken = yield* eventually(app.api.sessions.operations({ sessionId: CUT }), (operations) => operations.length === 1);
+	expect(woken).toMatchObject([{ kind: "wake", reason: wakeWords }]);
 	expect(yield* answered(app.api.lifecycle.pending({}))).toBeNull();
-	expect(yield* answered(app.api.sessions.operations({ sessionId: CUT }))).toMatchObject([{ kind: "wake", reason: wakeWords }]);
 });

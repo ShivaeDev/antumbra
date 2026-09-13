@@ -2731,6 +2731,9 @@ importers:
       '@antumbra/domain-sessions':
         specifier: workspace:*
         version: link:../sessions
+      '@antumbra/domain-settings':
+        specifier: workspace:*
+        version: link:../settings
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature

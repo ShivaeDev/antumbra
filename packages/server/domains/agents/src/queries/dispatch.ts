@@ -3,7 +3,7 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { FLEET } from "@antumbra/domain-settings/ids.ts";
-import { allows } from "@antumbra/domain-settings/queries/flags.ts";
+import { allows, ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
@@ -52,7 +52,8 @@ export const dispatch = query("dispatch", {
 					operations.some(
 						(operation) =>
 							operation.sessionId === root.id &&
-							(operation.status === "requested" || operation.status === "waiting" || operation.status === "ambiguous"),
+							(operation.status === "requested" || operation.status === "waiting" || operation.status === "ambiguous") &&
+							ungated(flags, operation.gatedBy),
 					)
 				)
 					return [];

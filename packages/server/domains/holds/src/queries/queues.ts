@@ -2,8 +2,7 @@ import { dispatch } from "@antumbra/domain-agents/queries/dispatch.ts";
 import { rest } from "@antumbra/domain-agents/queries/rest.ts";
 import type { birth } from "@antumbra/domain-agents/rows/birth.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
-import { pendingSmoothing } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
-import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-attempt.ts";
+import { type PendingAttempt, pendingSmoothing } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { pending as pendingRestart } from "@antumbra/domain-lifecycle/queries/pending.ts";
 import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
 import { type DueWake, dueWakes } from "@antumbra/domain-mail/queries/due-wakes.ts";
@@ -92,12 +91,12 @@ const addHails = (
 
 const addSmoothing = (
 	queued: Queued,
-	attempts: ReadonlyArray<typeof smoothingAttempt.Row.Type>,
+	attempts: ReadonlyArray<typeof PendingAttempt.Type>,
 	pieces: ReadonlyArray<typeof piece.Row.Type>,
 	seen: { readonly now: number; readonly voyages: Voyages },
 ): void => {
 	for (const attempt of attempts) {
-		if (attempt.by === "admiral") continue;
+		if (!attempt.held) continue;
 		queued.spawnSmoother.push({
 			id: attempt.id,
 			title: pieces.find((held) => held.id === attempt.pieceId)?.title ?? DAILY_BOARD,
@@ -133,12 +132,13 @@ export const queues = query("queues", {
 		}
 		const listed: Array<typeof HoldQueue.Type> = [];
 		for (const key of SWITCH_KEYS) {
-			if (queued[key].length === 0) continue;
+			const on = flags.find((held) => held.key === key)?.on ?? FLAGS[key].fallback;
+			if (on && queued[key].length === 0) continue;
 			listed.push({
 				setting: key,
 				title: FLAGS[key].title,
 				description: FLAGS[key].description,
-				on: flags.find((held) => held.key === key)?.on ?? FLAGS[key].fallback,
+				on,
 				held: !allows(flags, key),
 				waiting: queued[key].toSorted((left, right) => (right.waitedMillis ?? 0) - (left.waitedMillis ?? 0)),
 			});

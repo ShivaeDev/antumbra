@@ -3,7 +3,8 @@ import type { tree } from "@antumbra/domain-sessions/queries/tree.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { cn } from "@antumbra/glass-components/class-names.ts";
-import { useState } from "react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@antumbra/glass-components/shadcn/collapsible.tsx";
+import { ChevronRight } from "lucide-react";
 import type { SessionsApi } from "#glass.ts";
 
 const ended = (outcome: string | null): string => {
@@ -34,7 +35,7 @@ const TreeNode = (props: {
 	<button
 		type="button"
 		aria-current={props.selected === props.node.id ? "true" : undefined}
-		className={cn("flex gap-2 rounded-md px-2 py-1 text-left text-xs hover:bg-accent", props.selected === props.node.id && "bg-secondary")}
+		className={cn("flex h-8 items-center gap-2 rounded-md px-2 text-left text-xs hover:bg-accent", props.selected === props.node.id && "bg-accent")}
 		style={{ paddingLeft: `${0.5 + props.node.depth * 0.75}rem` }}
 		onClick={() => props.onSelect(props.node.id)}
 	>
@@ -48,20 +49,22 @@ export const SessionTreePanel = (props: {
 	readonly sessionId: string;
 	readonly selected: string;
 	readonly onSelect: (id: string) => void;
-}) => {
-	const [open, setOpen] = useState(false);
-	return (
-		<Live query={props.api.sessions.tree} input={{ rootSessionId: SessionId.make(props.sessionId) }} waiting="Reading delegated work…">
-			{(nodes) =>
-				nodes.length < 2 ? null : (
-					<section className="flex max-h-48 shrink-0 flex-col overflow-y-auto border-b border-border px-2 py-1">
-						<button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="px-2 py-1 text-left text-xs">
-							Delegated work
-						</button>
-						{open ? nodes.map((node) => <TreeNode node={node} selected={props.selected} onSelect={props.onSelect} key={node.id} />) : null}
-					</section>
-				)
-			}
-		</Live>
-	);
-};
+}) => (
+	<Live query={props.api.sessions.tree} input={{ rootSessionId: SessionId.make(props.sessionId) }} waiting="Reading delegated work…">
+		{(nodes) =>
+			nodes.length < 2 ? null : (
+				<Collapsible className="flex max-h-48 shrink-0 flex-col overflow-y-auto border-b border-border px-2 py-1">
+					<CollapsibleTrigger className="group flex h-8 items-center gap-1 px-2 text-xs text-muted-foreground">
+						<ChevronRight className="size-4 shrink-0 group-data-[state=open]:rotate-90" />
+						Delegated work
+					</CollapsibleTrigger>
+					<CollapsibleContent>
+						{nodes.map((node) => (
+							<TreeNode node={node} selected={props.selected} onSelect={props.onSelect} key={node.id} />
+						))}
+					</CollapsibleContent>
+				</Collapsible>
+			)
+		}
+	</Live>
+);

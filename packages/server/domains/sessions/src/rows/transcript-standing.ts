@@ -1,6 +1,4 @@
-import { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
 import { Schema } from "effect";
-import { UsageEvidence } from "#rows/usage-evidence.ts";
 
 // A cost is null where nothing that ran reported one, and a floor where some of what ran did not.
 export const SessionSpend = Schema.Struct({
@@ -9,16 +7,24 @@ export const SessionSpend = Schema.Struct({
 });
 export type SessionSpend = typeof SessionSpend.Type;
 
-export const SessionModelSpend = Schema.Struct({ ...SessionSpend.fields, model: Schema.String });
+export const SessionTokens = Schema.Struct({
+	cacheReadTokens: Schema.Number,
+	cacheWriteTokens: Schema.Number,
+	inputTokens: Schema.Number,
+	outputTokens: Schema.Number,
+});
+export type SessionTokens = typeof SessionTokens.Type;
+
+export const SessionModelSpend = Schema.Struct({ ...SessionSpend.fields, ...SessionTokens.fields, model: Schema.String });
 export type SessionModelSpend = typeof SessionModelSpend.Type;
 
 export const SessionStanding = Schema.Struct({
-	background: Schema.Array(BackgroundTask),
 	models: Schema.Array(SessionModelSpend),
 	open: Schema.Array(Schema.Struct({ name: Schema.String })),
+	rateLimit: Schema.optional(Schema.UndefinedOr(Schema.String)),
 	spend: SessionSpend,
-	state: Schema.optional(Schema.UndefinedOr(SessionState)),
-	usage: Schema.optional(Schema.UndefinedOr(UsageEvidence)),
+	tokens: SessionTokens,
+	turn: SessionSpend,
 });
 export type SessionStanding = typeof SessionStanding.Type;
 export const Activity = Schema.Struct({ live: Schema.Boolean, words: Schema.optional(Schema.UndefinedOr(Schema.String)) });

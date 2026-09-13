@@ -5,10 +5,8 @@ import { Live } from "@antumbra/glass-client/live.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { SessionMessage } from "@antumbra/glass-inputs/session-message.tsx";
+import type { ReactNode } from "react";
 import type { SessionsApi } from "#glass.ts";
-import { presenceNote } from "#presence.ts";
-import { SessionActs } from "#session-acts.tsx";
-import { AgentSpend } from "#spend.tsx";
 
 interface Props {
 	readonly api: SessionsApi;
@@ -18,13 +16,17 @@ interface Props {
 	readonly onError: (message: string) => void;
 }
 
+const READ_ONLY = "This transcript is read only.";
+const ASLEEP = "Asleep. Your message will wake it.";
+
+const Footer = ({ children }: { readonly children: ReactNode }) => (
+	<div className="shrink-0 border-t border-border">
+		<div className="mx-auto flex max-w-[760px] min-w-0 flex-col gap-2 p-3">{children}</div>
+	</div>
+);
+
 const CurrentComposer = (props: Props & { readonly agent: typeof agentReading.Row.Type }) => (
-	<>
-		<div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2 text-xs">
-			<span>{props.agent.standing}</span>
-			<SessionActs api={props.api} sessionId={props.sessionId} canSleep={props.agent.canSleep} canInterrupt={props.agent.canInterrupt} />
-			<AgentSpend api={props.api} agentId={props.agent.id} />
-		</div>
+	<Footer>
 		<SessionSituations
 			key={props.sessionId}
 			api={props.api}
@@ -42,19 +44,21 @@ const CurrentComposer = (props: Props & { readonly agent: typeof agentReading.Ro
 					canSend={props.agent.canSend}
 					canAttachImages={support.imageInput}
 					backend={props.agent.backend ?? ""}
-					standing={props.agent.presence === null ? props.agent.standing : presenceNote[props.agent.presence]}
+					hint={props.agent.state === "asleep" && props.agent.canSend ? ASLEEP : undefined}
 					onError={props.onError}
 				/>
 			)}
 		</Live>
-	</>
+	</Footer>
 );
 
 export const SessionComposer = (props: Props) => (
 	<Live query={props.api.agents.bySession} input={{ sessionId: SessionId.make(props.sessionId) }}>
 		{(agent) =>
 			agent === null ? (
-				<p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">This record is read only</p>
+				<Footer>
+					<p className="text-xs text-muted-foreground">{READ_ONLY}</p>
+				</Footer>
 			) : (
 				<CurrentComposer {...props} agent={agent} />
 			)

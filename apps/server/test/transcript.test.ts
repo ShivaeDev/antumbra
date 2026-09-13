@@ -267,8 +267,8 @@ it.app("a reroute is one line in the record, and the session's spend is split by
 		expect.objectContaining({ kind: "telemetry", label: "rerouted to gpt-6-astra-safe · high risk cyber activity" }),
 	);
 	expect(reading.standing.models).toEqual([
-		{ costPartial: false, costUsd: 0.6, model: "gpt-6-astra" },
-		{ costPartial: false, costUsd: 0.03, model: "gpt-6-astra-safe" },
+		{ cacheReadTokens: 0, cacheWriteTokens: 0, costPartial: false, costUsd: 0.6, inputTokens: 10, model: "gpt-6-astra", outputTokens: 20 },
+		{ cacheReadTokens: 0, cacheWriteTokens: 0, costPartial: false, costUsd: 0.03, inputTokens: 4, model: "gpt-6-astra-safe", outputTokens: 6 },
 	]);
 	expect(reading.standing.spend.costPartial).toBe(false);
 	expect(reading.standing.spend.costUsd).toBeCloseTo(0.63, 6);

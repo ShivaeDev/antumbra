@@ -143,23 +143,25 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 			},
 		},
 	]);
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ status: "spawning", presence: "idle" });
+	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ standing: "preparing", state: "preparing", status: "spawning" });
 	yield* runner.append([{ ...source, cursor: 1, event: { ...logged, type: "InputAccepted", inputId: "charter" } }]);
 	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({
-		status: "alive",
-		presence: "working",
 		canInterrupt: true,
 		canSleep: false,
+		standing: "working",
+		state: "working",
+		status: "alive",
 	});
 	expect(yield* answered(app.api.agents.workingCount({}))).toBe(1);
 	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ status: "running" });
 	expect(yield* Effect.flip(app.api.agents.retire({ id: agentId, requestId: Id.Request.make("retire-working") }))).toMatchObject({ _tag: "Working" });
 	yield* runner.append([{ ...source, cursor: 2, event: { ...logged, type: "SessionSlept" } }]);
 	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({
-		status: "alive",
-		presence: "asleep",
 		canSend: true,
 		canSleep: false,
+		standing: "asleep",
+		state: "asleep",
+		status: "alive",
 	});
 	expect(yield* answered(app.api.agents.workingCount({}))).toBe(0);
 });

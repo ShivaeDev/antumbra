@@ -24,8 +24,12 @@ const taskWords = (task: (typeof SessionBackgroundEvent.Type)["tasks"][number]):
 export const backgroundLabel = (event: typeof SessionBackgroundEvent.Type): string =>
 	event.tasks.length === 0 ? "background · nothing running" : `background · ${event.tasks.length} · ${event.tasks.map(taskWords).join(", ")}`;
 
-export const turnLabel = (event: typeof TurnCompleted.Type): string =>
-	[`turn ${event.status}`, ...(event.durationMs === undefined ? [] : [seconds(event.durationMs)])].join(" · ");
+export const turnLabel = (event: typeof TurnCompleted.Type, models: ReadonlyArray<string>): string =>
+	[
+		`turn ${event.status}`,
+		...(models.length === 0 ? [] : [models.join(" → ")]),
+		...(event.durationMs === undefined ? [] : [seconds(event.durationMs)]),
+	].join(" · ");
 
 const words = (kind: string): string =>
 	kind

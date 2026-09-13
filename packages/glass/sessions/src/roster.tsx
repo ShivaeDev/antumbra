@@ -4,16 +4,29 @@ import { SectionHeading } from "@antumbra/glass-components/compositions/section-
 import type { ComponentProps } from "react";
 import { AgentCard } from "#agent-card.tsx";
 
-const order = ["Working", "Stranded", "Preparing to work", "Idle", "Asleep", "No open conversation", "Dormant", "Retired", "Smoothing"];
+const GROUPS: ReadonlyArray<readonly [string, string]> = [
+	["preparing", "Preparing"],
+	["working", "Working"],
+	["waiting", "Waiting"],
+	["stranded", "Stranded"],
+	["idle", "Idle"],
+	["asleep", "Asleep"],
+	["retired", "Retired"],
+	["smoothing", "Smoothing"],
+];
 
-const groupOf = (agent: typeof agentReading.Row.Type): string => (agent.role === "smoother" ? "Smoothing" : agent.standing);
+const groupOf = (agent: typeof agentReading.Row.Type): string => (agent.role === "smoother" ? "smoothing" : agent.state);
+
+const rank = (group: string): number => GROUPS.findIndex(([key]) => key === group);
+
+const titleOf = (group: string): string => GROUPS.find(([key]) => key === group)?.[1] ?? group;
 
 export const Roster = (props: Omit<ComponentProps<typeof AgentCard>, "agent"> & { readonly agents: readonly (typeof agentReading.Row.Type)[] }) => {
 	const groups = Map.groupBy(props.agents, groupOf);
 	return [...groups]
-		.toSorted(([left], [right]) => order.indexOf(left) - order.indexOf(right))
-		.map(([standing, agents]) => (
-			<SectionHeading count={agents.length} key={standing} title={standing === "Idle" ? "Listening" : standing}>
+		.toSorted(([left], [right]) => rank(left) - rank(right))
+		.map(([group, agents]) => (
+			<SectionHeading count={agents.length} key={group} title={titleOf(group)}>
 				<div className={cn("grid min-w-0 gap-3", props.sessionId === undefined ? "grid-cols-[repeat(auto-fill,minmax(300px,1fr))]" : "grid-cols-1")}>
 					{agents.map((agent) => (
 						<AgentCard {...props} key={agent.id} agent={agent} />

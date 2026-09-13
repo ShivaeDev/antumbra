@@ -5,10 +5,7 @@ import { TranscriptImage } from "@antumbra/glass-inputs/transcript-image.tsx";
 import { headline, runsLong } from "#transcript/opening.ts";
 import { Disclosure } from "#views/transcript-disclosure.tsx";
 
-const INSTRUCTED = {
-	steer: { name: "Steer", subject: "what steered the session" },
-	wake: { name: "Wake", subject: "what woke the session" },
-};
+const INSTRUCTED = { steer: "Steer", wake: "Wake" };
 
 const UserImages = ({ api, item, sessionId }: { readonly api: InputsClient; readonly item: MessageItem; readonly sessionId: string }) => {
 	const images = item.parts.filter((part) => part.type === "image");
@@ -23,14 +20,8 @@ const UserImages = ({ api, item, sessionId }: { readonly api: InputsClient; read
 
 const Words = ({ markdown }: { readonly markdown: string }) => <MarkdownView className="markdown-typed" markdown={markdown} />;
 
-const Section = ({ markdown, name, subject }: { readonly markdown: string; readonly name: string; readonly subject: string }) => (
-	<Disclosure
-		bare
-		body={<Words markdown={markdown} />}
-		name={<span className="shrink-0 font-medium">{name}</span>}
-		subject={subject}
-		summary={headline(markdown)}
-	/>
+const Section = ({ markdown, name }: { readonly markdown: string; readonly name: string }) => (
+	<Disclosure bare body={<Words markdown={markdown} />} name={<span className="shrink-0 font-medium">{name}</span>} summary={headline(markdown)} />
 );
 
 const UserWords = ({ item }: { readonly item: MessageItem }) => {
@@ -40,8 +31,8 @@ const UserWords = ({ item }: { readonly item: MessageItem }) => {
 	if (item.served === "charter") {
 		return (
 			<>
-				{item.standingOrders === undefined ? null : <Section markdown={item.standingOrders} name="Standing orders" subject="the standing orders" />}
-				<Section markdown={item.text} name="Charter" subject="this charter" />
+				{item.standingOrders === undefined ? null : <Section markdown={item.standingOrders} name="Standing orders" />}
+				<Section markdown={item.text} name="Charter" />
 			</>
 		);
 	}
@@ -53,8 +44,7 @@ const UserWords = ({ item }: { readonly item: MessageItem }) => {
 		<Disclosure
 			bare
 			body={<Words markdown={item.text} />}
-			name={<span className="shrink-0 font-medium">{instructed.name}</span>}
-			subject={instructed.subject}
+			name={<span className="shrink-0 font-medium">{instructed}</span>}
 			summary={headline(item.text)}
 		/>
 	);
@@ -70,7 +60,7 @@ export const TranscriptMessage = ({
 	readonly sessionId: string;
 }) =>
 	item.role === "user" ? (
-		<div className="flex flex-col gap-2 rounded-md border border-border bg-secondary px-2.5 py-1.5 text-xs">
+		<div className="flex flex-col gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm">
 			<UserImages api={api} item={item} sessionId={sessionId} />
 			<UserWords item={item} />
 		</div>
@@ -79,5 +69,5 @@ export const TranscriptMessage = ({
 	);
 
 export const TranscriptThought = ({ item }: { readonly item: TranscriptThinking }) => (
-	<div className="whitespace-pre-wrap wrap-anywhere border-l border-border pl-2.5 text-xs text-muted-foreground">{item.text}</div>
+	<div className="border-l border-border pl-3 text-sm whitespace-pre-wrap text-muted-foreground wrap-anywhere">{item.text}</div>
 );

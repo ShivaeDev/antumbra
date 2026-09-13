@@ -1,5 +1,5 @@
 import type { TranscriptTool as ToolItem } from "@antumbra/domain-sessions/rows/transcript.ts";
-import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
 import { summaryLine } from "#transcript/summary.ts";
 import { toolFields } from "#transcript/tool-input.ts";
 import { Disclosure } from "#views/transcript-disclosure.tsx";
@@ -7,12 +7,12 @@ import { Payload } from "#views/transcript-payload.tsx";
 
 const state = (item: ToolItem, live: boolean): React.ReactNode => {
 	if (item.ok === false) {
-		return <Badge variant="destructive">failed</Badge>;
+		return <StatusBadge state="failed" />;
 	}
 	if (item.result !== undefined) {
 		return null;
 	}
-	return <span className="shrink-0 text-2xs text-muted-foreground">{live ? "running" : "unfinished"}</span>;
+	return <span className="shrink-0 text-xs text-muted-foreground">{live ? "running" : "unfinished"}</span>;
 };
 
 const Input = ({ item }: { readonly item: ToolItem }) => {
@@ -39,7 +39,6 @@ export const TranscriptTool = ({ item, live }: { readonly item: ToolItem; readon
 			</>
 		}
 		name={<span className="shrink-0 font-medium">{item.name}</span>}
-		subject="this call"
 		summary={summaryLine(item.input)}
 		trailing={state(item, live)}
 	/>

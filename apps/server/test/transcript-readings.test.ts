@@ -81,7 +81,7 @@ it("keeps a delegate's reading from hiding the session's own", () => {
 	expect(labels(streamed(delegateRunning, running))).toEqual([...shownFor(delegateRunning), ...shownFor(running)]);
 });
 
-it("keeps every turn's own usage and completion", () => {
+it("keeps every turn's own numbers, on the turn they belong to", () => {
 	const usage: AgentEvent = {
 		byModel: [{ inputTokens: 10, model: "claude-opus-5", outputTokens: 20 }],
 		inputTokens: 10,
@@ -90,10 +90,19 @@ it("keeps every turn's own usage and completion", () => {
 		type: "usage",
 	};
 	const completed: AgentEvent = { durationMs: 1000, raw: raw("result/success", "{}"), status: "completed", type: "turn.completed" };
-	expect(labels(streamed(usage, completed, usage, completed))).toEqual([
-		...shownFor(usage),
-		...shownFor(completed),
-		...shownFor(usage),
-		...shownFor(completed),
-	]);
+	const turn = "turn completed · claude-opus-5 · 1.0s · in 10 · out 20";
+	expect(labels(streamed(usage, completed, usage, completed))).toEqual([turn, turn]);
+	expect(labels(streamed(usage))).toEqual([]);
+});
+
+it("reads a turn's cache share from tokens the turn counted once", () => {
+	const cached = { cacheReadTokens: 99_712, cacheWriteTokens: 0, inputTokens: 2_731, outputTokens: 487 };
+	const usage: AgentEvent = {
+		...cached,
+		byModel: [{ ...cached, model: "gpt-6-astra" }],
+		raw: raw("result/success", "{}"),
+		type: "usage",
+	};
+	const completed: AgentEvent = { durationMs: 1000, raw: raw("result/success", "{}"), status: "completed", type: "turn.completed" };
+	expect(labels(streamed(usage, completed))).toEqual(["turn completed · gpt-6-astra · 1.0s · 97% cache · in 2,731 · out 487"]);
 });

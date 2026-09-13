@@ -1,8 +1,6 @@
 import type { Activity, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { SessionTreeNode } from "#transcript/types.ts";
 
-const presenceWords = { asleep: "asleep", ended: "ended", stranded: "stranded" };
-
 type Presence = "working" | "idle" | "asleep" | "ended" | "stranded";
 
 const toolNames = (names: ReadonlyArray<string>): string =>
@@ -13,12 +11,5 @@ export const sessionActivity = (standing: SessionStanding, node: SessionTreeNode
 	if (node?.status === "closed" || names.length === 0) {
 		return { live: false, words: undefined };
 	}
-	const calls = toolNames(names);
-	if (presence === "working") {
-		return { live: true, words: `running ${calls}` };
-	}
-	if (presence === "asleep" || presence === "ended" || presence === "stranded") {
-		return { live: false, words: `${presenceWords[presence]} · ${calls} unfinished` };
-	}
-	return { live: false, words: `${calls} unfinished` };
+	return { live: presence === "working", words: toolNames(names) };
 };

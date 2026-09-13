@@ -1,4 +1,4 @@
-import { click } from "@antumbra/app-testing/glass/dom.ts";
+import { click, press } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { Effect } from "effect";
 import { expect } from "vitest";
@@ -16,19 +16,15 @@ const run: TranscriptToolRun = {
 	],
 };
 
+const opens = (container: HTMLElement, name: string): HTMLButtonElement | undefined =>
+	[...container.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.startsWith(name));
+
 it.glass("folded calls keep their running state and reveal each result", function* ({ render }) {
 	const container = yield* render(<TranscriptToolRunRow live run={run} />);
-	expect(container.textContent).toContain("called 3 tools");
-	expect(container.textContent).toContain("Bash ×2, Read");
-	expect(container.textContent).toContain("1 still running");
 	expect(container.textContent).not.toContain("depth 3 fathoms");
-	const folded = container.querySelector<HTMLButtonElement>('button[title="Show these calls"]');
-	if (folded === null) return yield* Effect.die("Missing folded calls disclosure");
-	yield* click(folded);
+	yield* press(container, "3 tool calls · 1 still running");
 	expect(container.textContent).toContain("now the chart");
-	const read = [...container.querySelectorAll<HTMLButtonElement>('button[title="Show this call"]')].find((button) =>
-		button.textContent?.startsWith("Read"),
-	);
+	const read = opens(container, "Read");
 	if (read === undefined) return yield* Effect.die("Missing Read disclosure");
 	yield* click(read);
 	expect(container.textContent).toContain("depth 3 fathoms");
@@ -43,6 +39,5 @@ it.glass("a folded failed call remains visible while stopped work says unfinishe
 		],
 	};
 	const container = yield* render(<TranscriptToolRunRow live={false} run={failed} />);
-	expect(container.textContent).toContain("1 failed");
-	expect(container.textContent).toContain("1 unfinished");
+	expect([...container.querySelectorAll("button")].map((fold) => fold.textContent)).toEqual(["2 tool calls · 1 unfinished · 1 failed"]);
 });

@@ -70,5 +70,5 @@ it.app("siesta waits for acquired background work to settle and keeps the native
 	yield* runner.reply(sleep.requestId, { type: "Accepted" });
 	yield* runner.append([{ ...source, cursor: 5, at: 60001, event: { type: "SessionSlept", sessionId, requestId: sleep.requestId } }]);
 	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native", status: "open", attached: false });
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ status: "alive", presence: "asleep" });
+	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ standing: "asleep", state: "asleep", status: "alive" });
 });

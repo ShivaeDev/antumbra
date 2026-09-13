@@ -1,4 +1,4 @@
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import type { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { useEffect, useState } from "react";
@@ -52,11 +52,11 @@ export const TranscriptImage = ({
 		[image],
 	);
 	if (inputId === undefined) {
-		return <span className="text-2xs text-muted-foreground">attached image unavailable from this older transcript</span>;
+		return <span className="text-xs text-muted-foreground">attached image unavailable from this older transcript</span>;
 	}
 	if (error !== undefined) {
 		return (
-			<div className="rounded-md border border-destructive/40 p-2 text-2xs text-destructive">
+			<div className="flex flex-col items-start gap-2 rounded-md border border-destructive/40 p-3 text-xs text-destructive">
 				<p>image unavailable: {error}</p>
 				<Button onClick={() => setAttempt((value) => value + 1)} size="sm" type="button" variant="outline">
 					Retry image

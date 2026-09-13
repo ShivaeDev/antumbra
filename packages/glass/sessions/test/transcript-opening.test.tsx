@@ -1,12 +1,15 @@
-import { click } from "@antumbra/app-testing/glass/dom.ts";
+import { press } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
-import { Effect } from "effect";
 import { expect } from "vitest";
 import { TranscriptMessage } from "#views/transcript-message.tsx";
 
 const charter = ["# Captain of the Reef voyage", "", "Survey the eastern shoal and report the depths you find."].join("\n");
 const orders = "Answer only with the summary you were asked for, and never sound a tool.";
+const charterFold = "CharterCaptain of the Reef voyage";
+const ordersFold = `Standing orders${orders}`;
+
+const names = (container: HTMLElement): ReadonlyArray<string | null> => [...container.querySelectorAll("button")].map((fold) => fold.textContent);
 
 it.glass("a charter opens folded to its first heading", function* ({ render, run }) {
 	const inputs = yield* run(inputApi);
@@ -17,11 +20,8 @@ it.glass("a charter opens folded to its first heading", function* ({ render, run
 			sessionId="session:opening"
 		/>,
 	);
-	expect(container.textContent).toContain("Captain of the Reef voyage");
 	expect(container.textContent).not.toContain("eastern shoal");
-	const disclosure = container.querySelector<HTMLButtonElement>('button[title="Show this charter"]');
-	if (disclosure === null) return yield* Effect.die("Missing charter disclosure");
-	yield* click(disclosure);
+	yield* press(container, charterFold);
 	expect(container.textContent).toContain("Survey the eastern shoal and report the depths you find.");
 });
 
@@ -34,13 +34,8 @@ it.glass("standing orders fold beside the charter, each summarised by its own wo
 			sessionId="session:opening"
 		/>,
 	);
-	const folds = container.querySelectorAll("button");
-	expect(folds).toHaveLength(2);
-	expect(folds[0]?.textContent).toBe(`Standing orders${orders}`);
-	expect(folds[1]?.textContent).toBe("CharterCaptain of the Reef voyage");
-	const opened = container.querySelector<HTMLButtonElement>('button[title="Show the standing orders"]');
-	if (opened === null) return yield* Effect.die("Missing standing orders disclosure");
-	yield* click(opened);
+	expect(names(container)).toEqual([ordersFold, charterFold]);
+	yield* press(container, ordersFold);
 	expect(container.textContent).toContain(orders);
 	expect(container.textContent).not.toContain("eastern shoal");
 });
@@ -54,7 +49,7 @@ it.glass("a served instruction is labelled by the state it found the session in,
 			sessionId="session:opening"
 		/>,
 	);
-	expect(steered.querySelector("button")?.textContent).toBe("SteerMail from the captain");
+	expect(names(steered)).toEqual(["SteerMail from the captain"]);
 	expect(steered.textContent).not.toContain("Hold the shoal.");
 	const woken = yield* render(
 		<TranscriptMessage
@@ -64,5 +59,5 @@ it.glass("a served instruction is labelled by the state it found the session in,
 		/>,
 	);
 	expect(woken.textContent).toContain("Finish the summary");
-	expect(woken.querySelector("button")).toBeNull();
+	expect(names(woken)).toEqual([]);
 });

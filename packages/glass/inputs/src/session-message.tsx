@@ -1,5 +1,6 @@
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
-import { Textarea } from "@antumbra/glass-components/ui/textarea.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
+import { Textarea } from "@antumbra/glass-components/shadcn/textarea.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { Paperclip } from "lucide-react";
 import { type ComponentProps, useRef } from "react";
 import type { InputsClient } from "#client.ts";
@@ -13,8 +14,7 @@ const SessionInputComposer = ({
 	canSend,
 	canAttachImages,
 	backend,
-	standing,
-	reason,
+	hint,
 	onError,
 	sessionId,
 }: {
@@ -23,8 +23,7 @@ const SessionInputComposer = ({
 	readonly canSend: boolean;
 	readonly canAttachImages: boolean;
 	readonly backend: string;
-	readonly standing?: string;
-	readonly reason?: string;
+	readonly hint?: string | undefined;
 	readonly onError: (message: string) => void;
 	readonly sessionId: string;
 }) => {
@@ -36,8 +35,9 @@ const SessionInputComposer = ({
 		!draft.sending &&
 		(draft.images.length === 0 || canAttachImages === true) &&
 		(draft.text.trim() !== "" || draft.images.length > 0);
+	const attaches = canAttachImages ? "Attach a file" : "This backend cannot receive images";
 	return (
-		<div className="flex min-w-0 shrink-0 flex-col gap-1 border-t border-border px-4 py-2">
+		<div className="flex min-w-0 flex-col gap-1">
 			<SessionAttachments disabled={draft.sending} images={draft.images} onMove={draft.move} onRemove={draft.remove} />
 			<div className="flex min-w-0 items-end gap-2">
 				<input
@@ -53,19 +53,24 @@ const SessionInputComposer = ({
 					ref={fileInput}
 					type="file"
 				/>
-				<Button
-					aria-label="Attach images"
-					disabled={blocked !== undefined || draft.sending || !canAttachImages}
-					onClick={() => fileInput.current?.click()}
-					title={canAttachImages ? "Attach JPEG, PNG, or WebP images" : "This backend cannot receive images"}
-					type="button"
-					variant="outline"
-				>
-					<Paperclip />
-				</Button>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							aria-label="Attach a file"
+							disabled={blocked !== undefined || draft.sending || !canAttachImages}
+							onClick={() => fileInput.current?.click()}
+							size="icon-sm"
+							type="button"
+							variant="ghost"
+						>
+							<Paperclip />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>{attaches}</TooltipContent>
+				</Tooltip>
 				<Textarea
 					aria-label="Message this session"
-					className="max-h-40 min-h-9 flex-1 resize-none"
+					className="max-h-40 min-h-8 flex-1 resize-none"
 					disabled={blocked !== undefined}
 					onChange={(event) => draft.setText(event.target.value)}
 					onDragOver={(event) => {
@@ -83,21 +88,19 @@ const SessionInputComposer = ({
 					onPaste={(event) => {
 						if (!draft.sending) draft.paste(event);
 					}}
-					placeholder="say something to this session"
+					placeholder="Say something to this session"
 					ref={draft.textArea}
-					rows={2}
-					title={standing}
+					rows={1}
 					value={draft.text}
 				/>
-				<Button disabled={!ready} onClick={draft.send} type="button">
+				<Button disabled={!ready} onClick={draft.send} size="sm" type="button">
 					{draft.sending ? "Sending…" : "Send"}
 				</Button>
 			</div>
-			{canAttachImages ? <span className="text-2xs text-muted-foreground">Images stay on this device until you send them to {backend}.</span> : null}
-			{standing === undefined ? null : <span className="text-2xs text-muted-foreground">{standing}</span>}
-			{reason === undefined ? null : <span className="font-mono text-2xs text-muted-foreground">{reason}</span>}
+			{canAttachImages ? <span className="text-xs text-muted-foreground">Images stay on this device until you send them to {backend}.</span> : null}
+			{hint === undefined ? null : <span className="text-xs text-muted-foreground">{hint}</span>}
 			{draft.issue === undefined ? null : (
-				<span className="text-2xs text-destructive" role="alert">
+				<span className="text-xs text-destructive" role="alert">
 					{draft.issue}
 				</span>
 			)}

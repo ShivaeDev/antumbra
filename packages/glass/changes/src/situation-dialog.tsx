@@ -11,9 +11,16 @@ import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
 import { useRef, useState } from "react";
+import type { ChangesApi } from "#glass.ts";
 import { useSituationDraft } from "#situation-draft.ts";
-import { situationLabel } from "#situation-labels.ts";
+
+const slotOf = (situation: typeof sessionSituation.Row.Type): string => {
+	const slot = `situation:${situation.changeId}:${situation.situation}`;
+	return situation.situation === "feedback_waiting" ? `${slot}:${situation.feedbackIds.join(",")}` : slot;
+};
+
 export const SituationDialog = (props: {
+	readonly api: ChangesApi;
 	readonly inputs: InputsClient;
 	readonly drafts: Drafts;
 	readonly sessionId: string;
@@ -21,12 +28,7 @@ export const SituationDialog = (props: {
 	readonly onError: (message: string) => void;
 	readonly onClose: () => void;
 }) => {
-	const draft = useSituationDraft(
-		props.drafts,
-		props.sessionId,
-		`situation:${props.situation.changeId}:${props.situation.situation}`,
-		props.situation.text,
-	);
+	const draft = useSituationDraft(props.drafts, props.sessionId, slotOf(props.situation), props.situation.text);
 	const [sending, setSending] = useState(false);
 	const inFlight = useRef(false);
 	const inputId = useRef<SessionInputId | undefined>(undefined);
@@ -41,6 +43,8 @@ export const SituationDialog = (props: {
 				const sent = yield* draft.capture();
 				const request = yield* inputRequest(props.sessionId, id, [], sent.text);
 				yield* props.inputs["inputs.submit"](request);
+				if (props.situation.feedbackIds.length > 0)
+					yield* props.api.changes.forwardFeedback({ changeId: props.situation.changeId, ids: props.situation.feedbackIds });
 				yield* draft.clear(sent);
 				props.onClose();
 			}).pipe(
@@ -69,8 +73,8 @@ export const SituationDialog = (props: {
 		>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>{situationLabel[props.situation.situation]}</DialogTitle>
-					<DialogDescription>Change {props.situation.reference}. Read it, change anything you want said differently, then send.</DialogDescription>
+					<DialogTitle>{props.situation.label}</DialogTitle>
+					<DialogDescription>Read the draft, change anything you want said differently, then send.</DialogDescription>
 				</DialogHeader>
 				<Textarea
 					aria-label="Words to send"

@@ -17,6 +17,7 @@ const CHECK_MARKS: Readonly<Record<ChangeView["checks"], ChangeMark>> = {
 
 const REVIEW_MARKS: Readonly<Record<ChangeView["review"], ChangeMark>> = {
 	approved: { key: "review", label: "approved", tone: "success" },
+	commented: { key: "review", label: "commented", tone: "info" },
 	changes_requested: {
 		key: "review",
 		label: "changes requested",

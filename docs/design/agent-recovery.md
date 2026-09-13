@@ -97,10 +97,11 @@ Usage events are also the fleet's only account of what its work costs. One event
 every model the turn actually ran on, so a turn that touched two models is two lines of spend rather than one line under whichever model did more.
 Totals are read back out of the stored events rather than counted on the write path, and are shown as a running total beside the transcript, as a
 Voyage's own spend, and day by day on the Costs page. A Session never changes the model it was started on, but what it is billed for follows what ran:
-where a provider reroutes work to another model, the record says so where it happened and the turns after it are billed there. Antumbra keeps no price
-table, so a total carries only what the backends themselves reported and says which it is — partial where some contributing turn reported no cost, and
-not reported where none did. Unknown kinds and provider payloads remain visible as raw evidence instead of taking the projection down. A renderer may
-invoke only acts already owned by the domain, such as spawn, retire, or interrupt. It cannot invent a reply path or another delivery model.
+where a provider reroutes work to another model, the record says so where it happened and the turns after it are billed there. Where a backend reports
+no cost of its own, Antumbra prices the turn's tokens from the providers' published rates; a model those rates do not name stays unpriced, so a total
+says which it is — partial where some contributing turn could not be priced, and not reported where none could. Unknown kinds and provider payloads
+remain visible as raw evidence instead of taking the projection down. A renderer may invoke only acts already owned by the domain, such as spawn,
+retire, or interrupt. It cannot invent a reply path or another delivery model.
 
 Every backend implements two delivery acts. `steer` enters work already under way; `queue` waits for the provider's next full boundary. The caller
 names the act: every send to a live Session steers, while the charter delivered at spawn and the instruction handed to a resumed Session are queued.
@@ -160,8 +161,12 @@ Session closure, Agent retirement, or resource reclamation; startup reconciles t
 Restarting the server alone is a separate act that cuts nothing. The server closes its commit path and exits, and the shell starts it again on the
 same endpoint; no drain is sent, no Session is closed, and nothing is recorded for a wake, because no turn was cut. The runner keeps its provider
 sessions, reconnects on its own, and flushes its log after the server's committed cursor, so a tool call in flight waits for the connection and
-completes once it is back. The glass says it is reconnecting where its content would be and comes back by itself. Only a person asks for this; the
-shell's restart-on-exit is unchanged, and swapping the server for a new build is a further act that does not exist yet.
+completes once it is back. The glass keeps what it last read: every reading that has already answered holds its values and comes back by itself, and
+the window says once that it is reconnecting, in the navigation rail or in the session header of a transcript window. The Settings screen also dims
+its cards and puts them out of reach, so settings that cannot be changed until the server is back do not look live; the Restart rows sit outside that
+region and stay pressable, because they speak to the shell. A reading that has never answered still says where its content would be that it is
+reconnecting. Only a person asks for this; the shell's restart-on-exit is unchanged, and swapping the server for a new build is a further act that
+does not exist yet.
 
 Authentication requirements, exhausted provider capacity, and unsafe resource state park the Intent as waiting, with the reason on its row. It stays
 parked until an explicit retry — the admiral retrying a provider, or another send to the same Session — moves it back to queued, and the attempt then

@@ -7,7 +7,7 @@ const Repo = Schema.String.annotate({
 
 export const openChangeSpec = defineTool({
 	description:
-		"Open the change for this piece as a pull request from the branch your berth is on. This is the only way to open a pull request; never open one with `gh` or the GitHub UI. Write the title and body as the `pr-description` skill says.",
+		"Open the change for this piece as a pull request from the branch your berth is on. This is the only way to open a pull request; never open one with `gh` or the GitHub UI. Never comment, review or reply on GitHub either; the admiral forwards what reviewers say. Write the title and body as the `pr-description` skill says.",
 	input: Schema.Struct({
 		base: Schema.optionalKey(
 			Schema.String.annotate({

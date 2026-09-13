@@ -1,4 +1,5 @@
 import { reading } from "@antumbra/glass-client/live.tsx";
+import { Reconnecting } from "@antumbra/glass-client/reconnection.tsx";
 import type { ConsoleMode } from "@antumbra/platform-shell/windows.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { Atom } from "effect/unstable/reactivity";
@@ -20,6 +21,7 @@ export const NavRail = (props: {
 				<div className="text-2xs text-muted-foreground">{reading(useAtomValue(info), "taking a sight…", (value) => `v${value.productVersion}`)}</div>
 			</header>
 			<ModeNav held={props.held} mode={props.mode} onMode={props.onMode} />
+			<Reconnecting className="mt-auto px-2 text-xs text-muted-foreground" />
 		</div>
 	);
 };

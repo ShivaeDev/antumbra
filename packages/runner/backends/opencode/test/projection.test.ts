@@ -100,6 +100,16 @@ it("spends on the model the session was started on when the message named none",
 	expect(events).toMatchObject([{ byModel: [{ model: SESSION_MODEL }], type: "usage" }]);
 });
 
+it("keeps the cost opencode reported rather than pricing the step itself", () => {
+	const events = project([spoke("msg_a", "assistant"), part(stepFinish("msg_a", 0.25))]);
+	expect(events).toMatchObject([{ byModel: [{ costUsd: 0.25, model: SESSION_MODEL }], costUsd: 0.25, type: "usage" }]);
+});
+
+it("prices a step opencode reported no cost for from the published list", () => {
+	const events = project([spoke("msg_a", "assistant"), part(stepFinish("msg_a", null))]);
+	expect(events).toMatchObject([{ byModel: [{ costUsd: 0.00020225, model: SESSION_MODEL }], costUsd: 0.00020225, type: "usage" }]);
+});
+
 it("keeps a part whose message was never announced as raw evidence", () => {
 	const events = project([part(textPart("msg_unseen", "orphaned", true))]);
 	expect(events).toEqual([{ raw: expect.anything(), type: "raw" }]);

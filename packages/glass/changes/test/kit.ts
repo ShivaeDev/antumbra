@@ -2,6 +2,7 @@ import type { Api } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import type { Feedback } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Clock, Effect } from "effect";
 export const pieceId = PieceId.make("piece:reef");
@@ -20,10 +21,36 @@ export const observed = {
 	review: "approved",
 	mergeable: "clean",
 	stage: "open",
+	feedback: [],
 	raw: { state: "open" },
 	title: "Soundings",
 	url: "https://github.com/example/reef/pull/41",
 } as const;
+const PULL = "https://github.com/example/reef/pull/41";
+export const words = [
+	{
+		id: "r1",
+		kind: "review",
+		author: "octocat",
+		verdict: "commented",
+		path: null,
+		line: null,
+		body: "The empty reef needs a test before this lands.",
+		url: `${PULL}#pullrequestreview-r1`,
+		at: 1100,
+	},
+	{
+		id: "c1",
+		kind: "inline",
+		author: "octocat",
+		verdict: null,
+		path: "src/reef.ts",
+		line: 42,
+		body: "This reads the first tide before one is recorded.",
+		url: `${PULL}#discussion_c1`,
+		at: 1200,
+	},
+] as const satisfies readonly Feedback[];
 export const recorded = (daysAgo: number): Effect.Effect<string> =>
 	Effect.map(Clock.currentTimeMillis, (now) => new Date(now - daysAgo * 24 * 60 * 60 * 1000).toISOString());
 export const ready = Effect.fnUntraced(function* (api: Api) {

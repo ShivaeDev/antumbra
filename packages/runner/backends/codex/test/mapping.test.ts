@@ -10,6 +10,14 @@ const item = (method: string, payload: Record<string, unknown>) => ({
 	params: { item: payload, threadId: THREAD, turnId: TURN },
 });
 
+const tokens = (last: Record<string, number>) => ({
+	method: "thread/tokenUsage/updated",
+	params: { threadId: THREAD, tokenUsage: { last, total: last }, turnId: TURN },
+});
+
+const SHORT = { cachedInputTokens: 40_000, cacheWriteInputTokens: 10_000, inputTokens: 100_000, outputTokens: 20_000 };
+const RESUMED = { cachedInputTokens: 280_000, cacheWriteInputTokens: 0, inputTokens: 285_000, outputTokens: 1_000 };
+
 describe("codex notifications map onto the neutral vocabulary", () => {
 	it("agentMessage completes into an agent message; its start is silent", () => {
 		const payload = {
@@ -166,5 +174,28 @@ describe("codex notifications map onto the neutral vocabulary", () => {
 			MODEL,
 		);
 		expect(events).toMatchObject([{ raw: { kind: "thread/name/updated" }, type: "raw" }]);
+	});
+
+	it("prices a round from the published list, because codex reports no cost of its own", () => {
+		const [event] = toAgentEvents(tokens(SHORT), MODEL);
+		expect(event).toMatchObject({
+			byModel: [{ costUsd: 1.665, model: MODEL }],
+			cacheReadTokens: 40_000,
+			cacheWriteTokens: 10_000,
+			costUsd: 1.665,
+			inputTokens: 50_000,
+			outputTokens: 20_000,
+		});
+	});
+
+	it("bills a resumed round at the long rates, because the whole prompt crosses the threshold", () => {
+		const [event] = toAgentEvents(tokens(RESUMED), MODEL);
+		expect(event).toMatchObject({ byModel: [{ costUsd: 0.735, model: MODEL }], cacheReadTokens: 280_000, costUsd: 0.735, inputTokens: 5_000 });
+	});
+
+	it("leaves a round on a model outside the list unpriced", () => {
+		const [event] = toAgentEvents(tokens(SHORT), "gpt-6-astra-safe");
+		expect(event).toMatchObject({ byModel: [{ model: "gpt-6-astra-safe" }], type: "usage" });
+		expect(event).not.toHaveProperty("costUsd");
 	});
 });

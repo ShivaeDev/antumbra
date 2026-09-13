@@ -7,7 +7,6 @@ import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { useState } from "react";
 import type { ChangesApi } from "#glass.ts";
 import { SituationDialog } from "#situation-dialog.tsx";
-import { situationLabel } from "#situation-labels.ts";
 export const SessionSituations = (props: {
 	readonly api: ChangesApi;
 	readonly inputs: InputsClient;
@@ -23,6 +22,7 @@ export const SessionSituations = (props: {
 			</Live>
 			{chosen === undefined ? null : (
 				<SituationDialog
+					api={props.api}
 					inputs={props.inputs}
 					drafts={props.drafts}
 					sessionId={props.sessionId}
@@ -45,7 +45,7 @@ const SituationChoices = ({
 	<div className="flex min-w-0 flex-wrap gap-2 empty:hidden">
 		{situations.map((situation) => (
 			<Button key={situation.id} onClick={() => choose(situation)} size="sm" variant="outline">
-				{situationLabel[situation.situation]} {situation.reference}
+				{situation.label}
 			</Button>
 		))}
 	</div>

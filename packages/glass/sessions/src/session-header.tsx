@@ -1,6 +1,7 @@
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import type { TranscriptReading } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { Reconnecting } from "@antumbra/glass-client/reconnection.tsx";
 import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@antumbra/glass-components/shadcn/tooltip.tsx";
@@ -30,6 +31,7 @@ const NodeName = (props: { readonly api: SessionsApi; readonly nodeId: string })
 );
 
 export const SessionHeader = (props: {
+	readonly alone?: boolean | undefined;
 	readonly api: SessionsApi;
 	readonly sessionId: string;
 	readonly nodeId: string;
@@ -57,6 +59,7 @@ export const SessionHeader = (props: {
 					</>
 				)}
 			</Live>
+			{props.alone === true ? <Reconnecting className="shrink-0 text-xs text-muted-foreground" /> : null}
 			{props.onPopOut === undefined ? null : (
 				<IconAct onAct={() => props.onPopOut?.(props.nodeId)} words="Open in a tab">
 					<SquareArrowOutUpRightIcon />

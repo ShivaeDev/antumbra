@@ -20,17 +20,23 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    name: typecheck (${{ matrix.shard }}/3)
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck
-      - run: pnpm typecheck:root
+      - run: pnpm typecheck:shard ${{ matrix.shard }}/3
 
-  typecheck-compat:
+  typecheck-workspace:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - run: pnpm typecheck:workspace
+      - run: pnpm typecheck:root
       - run: pnpm typecheck:compat:workspace
 
   test:
@@ -46,15 +52,31 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm exec vitest run --config script/vitest.workspace.ts --shard=${{ matrix.shard }}/8
 
-  isolated:
+  test-server:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - run: pnpm test:server
+
+  test-desktop-runner-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/cache
+        with:
+          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          path: ~/.cache/electron
+          key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
+      - uses: ./.github/actions/setup
+        with:
+          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm test:desktop
       - run: pnpm test:runner
-      - run: pnpm test:server
       - run: pnpm test:app
 
   guards:
@@ -77,9 +99,10 @@ jobs:
     needs:
       - lint
       - typecheck
-      - typecheck-compat
+      - typecheck-workspace
       - test
-      - isolated
+      - test-server
+      - test-desktop-runner-app
       - guards
       - build
     runs-on: ubuntu-latest
@@ -88,9 +111,10 @@ jobs:
         run: |
           test "${{ needs.lint.result }}" = success
           test "${{ needs.typecheck.result }}" = success
-          test "${{ needs.typecheck-compat.result }}" = success
+          test "${{ needs.typecheck-workspace.result }}" = success
           test "${{ needs.test.result }}" = success
-          test "${{ needs.isolated.result }}" = success
+          test "${{ needs.test-server.result }}" = success
+          test "${{ needs.test-desktop-runner-app.result }}" = success
           test "${{ needs.guards.result }}" = success
           test "${{ needs.build.result }}" = success
 
@@ -98,20 +122,19 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: ./.github/actions/cache
         with:
+          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           path: |
             ~/Library/Caches/electron
             ~/Library/Caches/electron-builder
-          key: electron-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile --filter @antumbra/desktop...
+          filter: '@antumbra/desktop...'
+          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:

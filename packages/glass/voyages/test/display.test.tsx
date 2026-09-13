@@ -78,7 +78,7 @@ it.glass("opens the Flagship captain conversation after hail", function* ({ api,
 	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
 	const hail = Id.Request.make("hail");
-	yield* api.agents.hail({ by: "admiral", requestId: hail, voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	yield* api.agents.hail({ requestId: hail, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "admiral" });
 	yield* until(() => container.textContent?.includes(`Conversation ${identity(hail).sessionId}`) === true, "the captain conversation");
 	expect(container.textContent).not.toContain("Hail a captain");
 	yield* render(<VoyageList api={api} onSelect={() => undefined} onHail={() => undefined} />);
@@ -89,9 +89,9 @@ it.glass("opens the Flagship captain conversation after hail", function* ({ api,
 it.glass("refuses a second hail of a captain already on the way with its typed rejection", function* ({ api, render }) {
 	const container = yield* render(<Flagship api={api} onHail={() => undefined} renderSession={(id) => <p>Conversation {id}</p>} />);
 	yield* until(() => container.textContent?.includes("Hail a captain") === true, "the missing captain action");
-	yield* api.agents.hail({ by: "admiral", requestId: Id.Request.make("first-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) });
+	yield* api.agents.hail({ requestId: Id.Request.make("first-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "admiral" });
 	const refusal = yield* Effect.flip(
-		api.agents.hail({ by: "admiral", requestId: Id.Request.make("second-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST) }),
+		api.agents.hail({ requestId: Id.Request.make("second-hail"), voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "admiral" }),
 	);
 	expect(refusal).toMatchObject({ _tag: "CaptainAlreadyHailed", agentId: identity(Id.Request.make("first-hail")).agentId });
 });

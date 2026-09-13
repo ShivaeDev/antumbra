@@ -65,8 +65,6 @@
 	"dependencies": {
 		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"sharp": "catalog:",
-		"@antumbra/domain-mail": "workspace:*",
-		"@antumbra/platform-feature": "workspace:*",
 		"@earendil-works/pi-coding-agent": "catalog:"
 	}
 }

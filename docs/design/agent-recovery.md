@@ -177,6 +177,12 @@ receipt. In v1 the admiral selects attention and the Agent pulls its mailbox; no
 interrupts a Session. Speaking to a Session is not such a fact. It is the admiral's own intent, and intent is exactly what a wake is for — so a send,
 and nothing else, may resume an asleep Session. No notification, projection, timer, or background reconciliation ever does.
 
+The admiral may also stop a Session. Stopping ends the turn under way and records that a person holds the Session, and every automatic sender then
+passes it by: a ready Piece is not resumed, due mail lands on the board with its wake withheld, a restart does not wake it, an operation that waited
+on provider capacity is not retried, and another Agent's hail is left as mail rather than a wake. The hold is a fact, so it outlives a restart, and a
+Session that sleeps while held stays held. Only the admiral's own intent lifts it — a message to the Session, or a hail the admiral asks for — and
+always as part of that act rather than as an act of its own.
+
 ## Provisioning and resource topology
 
 Repositories are registered once at the app level. Each registration owns a bare mirror under app-managed data; before a provider Session opens, the

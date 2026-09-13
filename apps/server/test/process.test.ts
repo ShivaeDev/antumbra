@@ -114,7 +114,7 @@ const hailing = (port: number, token: string) =>
 	Effect.provide(
 		Effect.flatMap(client([agents]), (reach) =>
 			Effect.andThen(
-				reach.agents.hail({ by: "admiral", requestId: HAIL, voyageId: FLAGSHIP }),
+				reach.agents.hail({ requestId: HAIL, voyageId: FLAGSHIP, by: "admiral" }),
 				Stream.runHead(reach.agents.birthBySession({ sessionId })),
 			),
 		),

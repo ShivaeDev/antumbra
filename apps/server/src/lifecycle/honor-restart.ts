@@ -1,6 +1,7 @@
 import { clear } from "@antumbra/domain-lifecycle/commands/clear.ts";
 import { pending } from "@antumbra/domain-lifecycle/queries/pending.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
+import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
 import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
@@ -22,6 +23,8 @@ export const honorRestart = Effect.fn("Lifecycle.honorRestart")(function* ({ req
 	if (!consumed) return;
 	const requestedAt = new Date(yield* Clock.currentTimeMillis).toISOString();
 	for (const sessionId of sessions) {
+		const root = yield* live.read(reading, { id: sessionId });
+		if (root !== null && root.stoppedAt !== null) continue;
 		yield* commit
 			.commit(request, {
 				requestId: Request.make(`${requestId}:${sessionId}`),

@@ -6,6 +6,7 @@ import { charter, sessionChartered, sessionCharteredMaterializer } from "#comman
 import { operationHeld, operationHeldMaterializer } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
 import { gatedOperations, operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
+import { sessionStopped, sessionStoppedMaterializer, stop } from "#commands/stop.ts";
 import { observed } from "#facts/observed.ts";
 import { operationRequested } from "#facts/operation-requested.ts";
 import { pricedTurns, providerEvent } from "#facts/provider-event.ts";
@@ -43,8 +44,8 @@ export const sessions = feature("sessions", {
 		sessionNode,
 		sessionGap,
 	],
-	facts: [providerEvent, toolCalled, operationRetried, toolAnswered, observed, operationRequested, operationHeld, sessionChartered],
-	commands: [request, retry, charter],
+	facts: [providerEvent, toolCalled, operationRetried, toolAnswered, observed, operationRequested, operationHeld, sessionChartered, sessionStopped],
+	commands: [request, retry, charter, stop],
 	materializers: [
 		providerEventMaterializer,
 		toolCalledMaterializer,
@@ -54,6 +55,7 @@ export const sessions = feature("sessions", {
 		operationRequestedMaterializer,
 		operationHeldMaterializer,
 		sessionCharteredMaterializer,
+		sessionStoppedMaterializer,
 	],
 	migrations: [pricedTurns, gatedOperations],
 	queries: [operations, opening, transcriptSources, toolCall, reading, tree, forAgent, pending],

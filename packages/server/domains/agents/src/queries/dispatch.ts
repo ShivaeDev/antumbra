@@ -46,6 +46,7 @@ export const dispatch = query("dispatch", {
 				if (living.length === 0) return [{ piece, voyage, root: null, held: !spawning }];
 				const assignedAgent = living.toSorted((a, b) => a.id.localeCompare(b.id))[0];
 				const root = roots.find((root) => assignedAgent?.currentSessionId === root.id);
+				if (root !== undefined && root.stoppedAt !== null) return [];
 				if (
 					root === undefined ||
 					root.executionStatus !== "idle" ||

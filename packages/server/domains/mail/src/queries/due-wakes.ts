@@ -35,6 +35,7 @@ export const dueWakes = query("dueWakes", {
 		let waitUntil: number | null = null;
 		for (const root of resting) {
 			if (root.parentSessionId !== null) continue;
+			if (root.stoppedAt !== null) continue;
 			const ownerId = alive.get(root.agentId);
 			if (ownerId === undefined) continue;
 			const unread = (yield* rows.message.where({ toAgentId: root.agentId })).filter((held) => held.readAt === null);

@@ -1,4 +1,5 @@
 import { SessionOperationId } from "@antumbra/domain-sessions/ids.ts";
+import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { Effect } from "effect";
@@ -9,10 +10,11 @@ import { birth } from "#rows/birth.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
 export const birthRequestedMaterializer = materializer(birthRequested, {
-	writes: [birth, agent, pieceAgent, voyageAgent, sessionOperation],
+	writes: [birth, agent, pieceAgent, voyageAgent, session, sessionOperation],
 	run: Effect.fn("Agents.BirthRequested")(function* (fact, rows) {
 		const at = new Date(fact.at).toISOString();
 		if (fact.wakeSessionId !== null) {
+			yield* rows.session.update(fact.wakeSessionId, { stoppedAt: null });
 			yield* rows.sessionOperation.insert({
 				id: SessionOperationId.make(fact.requestId),
 				sessionId: fact.wakeSessionId,

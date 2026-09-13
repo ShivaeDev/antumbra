@@ -76,4 +76,13 @@
 	*::-webkit-scrollbar-thumb:hover {
 		background-color: var(--scrollbar-thumb-hover);
 	}
+
+	/* the toaster reads these four from its root; they live here rather than in
+	   an inline style so the component stays free of type assertions. */
+	[data-sonner-toaster] {
+		--normal-bg: var(--popover);
+		--normal-text: var(--popover-foreground);
+		--normal-border: var(--border);
+		--border-radius: var(--radius);
+	}
 }

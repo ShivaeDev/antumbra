@@ -7,7 +7,7 @@ import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { each, run } from "@antumbra/server-journal/reconcile.ts";
-import { Effect } from "effect";
+import { Effect, Fiber } from "effect";
 
 const requestClaim = Effect.fn("Reclamation.requestClaim")(function* (agentId: string) {
 	const commit = yield* Commit;
@@ -41,19 +41,21 @@ export const reconcile = Effect.fn("Reclamation.reconcile")(function* () {
 			yield* runners.execute(site.runner, { type: "Reclaim", requestId: site.reclaimRequestId, agentId: site.agentId, berth: site });
 		}),
 	);
-	const cadence = Effect.forever(
-		Effect.gen(function* () {
-			yield* Effect.sleep(300_000);
-			const connected = new Set((yield* runners.connected).map((runner) => runner.runnerId));
-			const held = yield* live.read(retryable, {});
-			const agents = new Set(held.filter((site) => connected.has(site.runner)).map((site) => site.agentId));
-			for (const agentId of agents) yield* requestClaim(agentId);
-			yield* selection.refresh;
-			yield* execution.refresh;
-		}),
+	const cadence = yield* Effect.forkScoped(
+		Effect.forever(
+			Effect.gen(function* () {
+				yield* Effect.sleep(300_000);
+				const connected = new Set((yield* runners.connected).map((runner) => runner.runnerId));
+				const held = yield* live.read(retryable, {});
+				const agents = new Set(held.filter((site) => connected.has(site.runner)).map((site) => site.agentId));
+				for (const agentId of agents) yield* requestClaim(agentId);
+				yield* selection.refresh;
+				yield* execution.refresh;
+			}),
+		),
 	);
 	return {
 		refresh: Effect.all([selection.refresh, execution.refresh], { discard: true }),
-		await: Effect.all([selection.await, execution.await, cadence], { concurrency: "unbounded", discard: true }),
+		await: Effect.all([selection.await, execution.await, Effect.asVoid(Fiber.join(cadence))], { concurrency: "unbounded", discard: true }),
 	};
 });

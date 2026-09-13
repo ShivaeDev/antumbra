@@ -13,6 +13,8 @@ const SECOND = PieceId.make("piece-2");
 
 const charter = (app: Example, pieceId: PieceId, title: string) => app.commit.pieces.charter({ pieceId, title, voyageId: VOYAGE });
 
+const started = Effect.forEach(reconcilers(definition.features), (loop) => loop.open, { discard: true });
+
 const parkings = Effect.gen(function* () {
 	const database = yield* Database;
 	return yield* Effect.orDie(database.write`SELECT "requestId" FROM "journal" WHERE "name" = 'PieceParked'`);
@@ -20,7 +22,7 @@ const parkings = Effect.gen(function* () {
 
 example("a reconciler runs at boot over the rows it watches and again when they go dirty", function* (app) {
 	yield* charter(app, FIRST, "first");
-	yield* reconcilers(definition.features);
+	yield* started;
 	yield* app.roster.untilMustered((counts) => counts.chartered === 1);
 	expect(yield* app.roster.musters).toEqual([{ chartered: 1, launched: 0 }]);
 	yield* charter(app, SECOND, "second");
@@ -35,7 +37,7 @@ example("an each reconciler runs one body for a key and claims it again when the
 	yield* charter(app, FIRST, "first");
 	yield* charter(app, SECOND, "second");
 	yield* app.roster.hold;
-	yield* reconcilers(definition.features);
+	yield* started;
 	yield* app.commit.pieces.launch({ pieceId: FIRST });
 	yield* app.roster.untilAnnounced((announcement) => announcement.pieceId === FIRST);
 	yield* app.commit.pieces.launch({ pieceId: SECOND });
@@ -50,7 +52,7 @@ example("an each reconciler runs one body for a key and claims it again when the
 
 example("a reconciler hands the port the request id its commit carries, and that id is spent", function* (app) {
 	yield* charter(app, FIRST, "first");
-	yield* reconcilers(definition.features);
+	yield* started;
 	yield* app.commit.pieces.launch({ pieceId: FIRST });
 	const first = yield* app.roster.untilAnnounced((announcement) => announcement.pieceId === FIRST);
 	expect(first.requestId).toBe(`park:${FIRST}`);
@@ -79,7 +81,7 @@ example("a query reads its port on every run and re-runs when its rows change", 
 
 example("a rejection the body leaves uncaught ends that run and leaves the reconciler working", function* (app) {
 	yield* charter(app, FIRST, "first");
-	yield* reconcilers(definition.features);
+	yield* started;
 	yield* app.commit.pieces.launch({ pieceId: FIRST });
 	yield* app.roster.untilAnnounced((announcement) => announcement.pieceId === FIRST);
 	yield* app.roster.untilMustered((counts) => counts.chartered === 0 && counts.launched === 0);

@@ -12,8 +12,10 @@ drafts are shell state; losing a window does not lose domain work. Preload expos
 
 The server in `apps/server` owns the journal, command execution, materialized rows, live queries, and reconciliation. Its application definition
 assembles feature declarations and projection stages; its runtime supervises the reconcilers features declare, Session operations, capacity release,
-resource reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. App Layers supply filesystem custody, GitHub processes,
-and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner transport.
+resource reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. Each runs as a named loop in its own scope: a defect
+stops that one loop, records it as a `LoopFailed` fact, and leaves the process, the RPC surface, and every other loop running. App Layers supply
+filesystem custody, GitHub processes, and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle,
+and runner transport.
 
 The runner in `apps/runner` owns provider processes, live attachments, tool forwarding, Git work, and its durable event log. Its entry assembles the
 Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuration remain adapter concerns. Restarting a server does not transfer

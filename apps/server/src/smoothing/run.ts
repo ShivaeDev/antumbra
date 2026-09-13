@@ -8,7 +8,7 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import * as Reconcile from "@antumbra/server-journal/reconcile.ts";
-import { Clock, Effect } from "effect";
+import { Clock, Effect, Fiber } from "effect";
 import { type PreparedSmoother, runSmoothingSession } from "#smoothing/session.ts";
 
 type Attempt = typeof smoothingAttempt.Row.Type;
@@ -65,5 +65,6 @@ export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: Prepa
 	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
 		Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true }),
 	);
-	yield* Effect.all([pending.await, Effect.forever(Effect.scoped(watchDay()))], { concurrency: "unbounded", discard: true });
+	const day = yield* Effect.forkScoped(Effect.forever(Effect.scoped(watchDay())));
+	return { refresh: pending.refresh, await: Effect.raceAllFirst([pending.await, Effect.asVoid(Fiber.join(day))]) };
 });

@@ -6,6 +6,7 @@ import type { ReconcilerShape } from "@antumbra/platform-feature/reconciler.ts";
 import { Effect, type Scope } from "effect";
 import { Commit, type CommitService } from "#commit.ts";
 import { Live, type LiveService } from "#live.ts";
+import type { Loop } from "#loop.ts";
 import { type Due, each, type Reconciler, run } from "#reconcile.ts";
 
 interface LooseCommit {
@@ -63,7 +64,9 @@ function declaredBy(reconciler: unknown): unknown {
 
 const helpers = looseHelpers({ each, run });
 
-const built = Effect.fn("Reconcilers.build")(function* (live: LooseLive, commit: LooseCommit, declared: Declared) {
+const built = Effect.fn("Reconcilers.build")(function* (declared: Declared) {
+	const commit = looseCommit(yield* Commit);
+	const live = looseLive(yield* Live);
 	const ports = yield* portRecord(declared.ports);
 	const reconciling = {
 		commit: (command: CommandShape, input: Record<string, unknown>) => commit.commit(command, input),
@@ -77,22 +80,13 @@ const built = Effect.fn("Reconcilers.build")(function* (live: LooseLive, commit:
 		: yield* helpers.each(declared.watch, declared.input, declared.each, (row) => Effect.catch(act(row), noted));
 });
 
-const combined = (all: readonly Reconciler[]): Reconciler => ({
-	await: all.length === 0 ? Effect.never : Effect.raceAllFirst(all.map((reconciler) => reconciler.await)),
-	refresh: Effect.forEach(all, (reconciler) => reconciler.refresh, { discard: true }),
-});
-
 export function reconcilers<const Features extends readonly FeatureShape[]>(
 	features: Features,
-): Effect.Effect<Reconciler, never, Commit | FeaturePorts<Features> | Live | Scope.Scope>;
+): readonly Loop<Commit | FeaturePorts<Features> | Live>[];
 export function reconcilers(features: readonly FeatureShape[]): unknown {
-	return Effect.gen(function* () {
-		const commit = looseCommit(yield* Commit);
-		const live = looseLive(yield* Live);
-		const all: Reconciler[] = [];
-		for (const feature of features) {
-			for (const declared of feature.reconcilers) all.push(yield* built(live, commit, declaredBy(declared)));
-		}
-		return combined(all);
-	});
+	const loops: { readonly name: string; readonly open: unknown }[] = [];
+	for (const feature of features) {
+		for (const declared of feature.reconcilers) loops.push({ name: declared.name, open: built(declaredBy(declared)) });
+	}
+	return loops;
 }

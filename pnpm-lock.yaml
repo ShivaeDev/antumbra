@@ -126,6 +126,9 @@ catalogs:
     sharp:
       specifier: 0.35.3
       version: 0.35.3
+    sonner:
+      specifier: 2.0.8
+      version: 2.0.8
     tailwind-merge:
       specifier: 3.6.0
       version: 3.6.0
@@ -522,6 +525,9 @@ importers:
       '@antumbra/domain-settings':
         specifier: workspace:*
         version: link:../../packages/server/domains/settings
+      '@antumbra/domain-supervision':
+        specifier: workspace:*
+        version: link:../../packages/server/domains/supervision
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../../packages/server/domains/voyages
@@ -997,6 +1003,9 @@ importers:
       remark-gfm:
         specifier: 'catalog:'
         version: 4.0.1(supports-color@7.2.0)
+      sonner:
+        specifier: 'catalog:'
+        version: 2.0.8(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       tailwind-merge:
         specifier: 'catalog:'
         version: 3.6.0
@@ -1010,6 +1019,55 @@ importers:
       '@antumbra/domain-backends':
         specifier: workspace:*
         version: link:../../server/domains/backends
+      '@effect/vitest':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.18
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      happy-dom:
+        specifier: 'catalog:'
+        version: 20.11.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/glass/errors:
+    dependencies:
+      '@antumbra/domain-supervision':
+        specifier: workspace:*
+        version: link:../../server/domains/supervision
+      '@antumbra/glass-client':
+        specifier: workspace:*
+        version: link:../client
+      '@antumbra/glass-components':
+        specifier: workspace:*
+        version: link:../components
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.31.0(react@19.2.8)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.8
+      sonner:
+        specifier: 'catalog:'
+        version: 2.0.8(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+    devDependencies:
+      '@antumbra/app-testing':
+        specifier: workspace:*
+        version: link:../../../apps/testing
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(vitest@4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
@@ -1300,6 +1358,9 @@ importers:
       '@antumbra/glass-components':
         specifier: workspace:*
         version: link:../components
+      '@antumbra/glass-errors':
+        specifier: workspace:*
+        version: link:../errors
       '@antumbra/glass-holds':
         specifier: workspace:*
         version: link:../holds
@@ -2962,6 +3023,28 @@ importers:
       '@antumbra/app-testing':
         specifier: workspace:*
         version: link:../../../../apps/testing
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.9(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/domains/supervision:
+    dependencies:
+      '@antumbra/platform-feature':
+        specifier: workspace:*
+        version: link:../../../platform/feature
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112
+    devDependencies:
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1
@@ -7377,6 +7460,16 @@ packages:
 
   sisteransi@1.0.5:
     resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
+
+  sonner@2.0.8:
+    resolution: {integrity: sha512-UM/ByIoFra8yzV75n1o0Puu0bw5U/9UNnDacrJNspekBewIfsQ3D6ez1nvlWpt7aTsO6rujQtifBpycwIivqlg==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+      react-dom: ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -12565,6 +12658,13 @@ snapshots:
       semver: 7.8.5
 
   sisteransi@1.0.5: {}
+
+  sonner@2.0.8(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+    optionalDependencies:
+      '@types/react': 19.2.18
 
   source-map-js@1.2.1: {}
 

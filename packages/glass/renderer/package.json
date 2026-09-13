@@ -38,6 +38,7 @@
 		"react": "catalog:",
 		"@antumbra/glass-artifacts": "workspace:*",
 		"@antumbra/glass-changes": "workspace:*",
+		"@antumbra/glass-errors": "workspace:*",
 		"@antumbra/glass-holds": "workspace:*",
 		"@antumbra/glass-inputs": "workspace:*",
 		"@antumbra/glass-rulings": "workspace:*",

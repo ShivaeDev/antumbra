@@ -1,7 +1,21 @@
-import { ChangeChecks, ChangeMergeable, ChangeReview } from "@antumbra/platform-vocabulary/change.ts";
+import { ChangeChecks, ChangeFeedbackKind, ChangeMergeable, ChangeReview } from "@antumbra/platform-vocabulary/change.ts";
 import { Schema } from "effect";
 export const HostRepo = Schema.Struct({ id: Schema.String, name: Schema.String, source: Schema.String, defaultRef: Schema.String });
 export type HostRepo = typeof HostRepo.Type;
+export const ANTUMBRA_TRAILER = "Opened through Antumbra";
+export const postedByAntumbra = (body: string): boolean => body.includes(ANTUMBRA_TRAILER);
+export const Feedback = Schema.Struct({
+	id: Schema.String,
+	kind: ChangeFeedbackKind,
+	author: Schema.String,
+	verdict: Schema.NullOr(ChangeReview),
+	path: Schema.NullOr(Schema.String),
+	line: Schema.NullOr(Schema.Number),
+	body: Schema.String,
+	url: Schema.String,
+	at: Schema.Number,
+});
+export type Feedback = typeof Feedback.Type;
 export const Observation = Schema.Struct({
 	repoId: Schema.String,
 	externalId: Schema.String,
@@ -14,6 +28,7 @@ export const Observation = Schema.Struct({
 	review: ChangeReview,
 	mergeable: ChangeMergeable,
 	stage: Schema.Literals(["open", "landed", "withdrawn"]),
+	feedback: Schema.Array(Feedback),
 	raw: Schema.Unknown,
 	title: Schema.String,
 	url: Schema.String,

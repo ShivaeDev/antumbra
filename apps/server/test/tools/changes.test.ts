@@ -26,6 +26,7 @@ const seen = (branch: string, headSha: string): Observation => ({
 	review: "approved",
 	mergeable: "clean",
 	stage: "open",
+	feedback: [],
 	raw: { state: "open" },
 	title: proposal.title,
 	url: "https://github.com/example/reef/pull/41",

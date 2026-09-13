@@ -8,6 +8,7 @@ export type UnknownGitHubWord = typeof UnknownGitHubWord.Type;
 const KnownPullState = Schema.Literals(["CLOSED", "MERGED", "OPEN"]);
 const KnownMergeState = Schema.Literals(["BEHIND", "BLOCKED", "CLEAN", "DIRTY", "DRAFT", "HAS_HOOKS", "UNKNOWN", "UNSTABLE"]);
 const KnownReviewDecision = Schema.Literals(["APPROVED", "CHANGES_REQUESTED", "REVIEW_REQUIRED"]);
+const KnownReviewState = Schema.Literals(["APPROVED", "CHANGES_REQUESTED", "COMMENTED", "DISMISSED", "PENDING"]);
 const KnownCheckState = Schema.Literals(["ERROR", "EXPECTED", "FAILURE", "PENDING", "SUCCESS"]);
 
 const unknown = (raw: string): UnknownGitHubWord => UnknownGitHubWord.make({ raw });
@@ -36,6 +37,14 @@ export const GitHubReviewDecision = Schema.String.pipe(
 	}),
 );
 export type GitHubReviewDecision = typeof GitHubReviewDecision.Type;
+
+export const GitHubReviewState = Schema.String.pipe(
+	Schema.decodeTo(Schema.Union([KnownReviewState, UnknownGitHubWord]), {
+		decode: SchemaGetter.transform((raw) => (Schema.is(KnownReviewState)(raw) ? raw : unknown(raw))),
+		encode: SchemaGetter.transform(encoded),
+	}),
+);
+export type GitHubReviewState = typeof GitHubReviewState.Type;
 
 export const GitHubCheckState = Schema.String.pipe(
 	Schema.decodeTo(Schema.Union([KnownCheckState, UnknownGitHubWord]), {

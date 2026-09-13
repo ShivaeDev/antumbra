@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect";
-import { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision } from "#dialect.ts";
+import { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, GitHubReviewState } from "#dialect.ts";
 import { type GhOperation, GhOutputInvalid } from "#errors.ts";
 import type { ObserveSelection } from "#query.ts";
 
@@ -9,9 +9,41 @@ const CommitNode = Schema.Struct({
 	commit: Schema.Struct({ statusCheckRollup: Schema.NullOr(CheckRollup) }),
 });
 
+// GitHub answers a null author for an account that no longer exists.
+const Author = Schema.NullOr(Schema.Struct({ login: Schema.String }));
+
+const ReviewCommentNode = Schema.Struct({
+	author: Author,
+	body: Schema.String,
+	createdAt: Schema.String,
+	id: Schema.String,
+	line: Schema.NullOr(Schema.Number),
+	path: Schema.NullOr(Schema.String),
+	url: Schema.String,
+});
+
+const ReviewNode = Schema.Struct({
+	author: Author,
+	body: Schema.String,
+	comments: Schema.Struct({ nodes: Schema.Array(ReviewCommentNode) }),
+	id: Schema.String,
+	state: GitHubReviewState,
+	submittedAt: Schema.NullOr(Schema.String),
+	url: Schema.String,
+});
+
+const IssueCommentNode = Schema.Struct({
+	author: Author,
+	body: Schema.String,
+	createdAt: Schema.String,
+	id: Schema.String,
+	url: Schema.String,
+});
+
 // GitHub may add fields without changing this boundary.
 export const PullRequestNode = Schema.Struct({
 	baseRefName: Schema.String,
+	comments: Schema.Struct({ nodes: Schema.Array(IssueCommentNode) }),
 	commits: Schema.Struct({ nodes: Schema.Array(CommitNode) }),
 	headRefName: Schema.String,
 	headRefOid: Schema.NullOr(Schema.String),
@@ -19,6 +51,7 @@ export const PullRequestNode = Schema.Struct({
 	mergeStateStatus: Schema.NullOr(GitHubMergeState),
 	number: Schema.Number,
 	reviewDecision: Schema.NullOr(GitHubReviewDecision),
+	reviews: Schema.Struct({ nodes: Schema.Array(ReviewNode) }),
 	state: GitHubPullState,
 	title: Schema.String,
 	updatedAt: Schema.String,

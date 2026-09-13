@@ -10,9 +10,11 @@ import { codecOf, type Registry } from "#app.ts";
 import { materialize } from "#materialize.ts";
 import { type Observation, type ObservationMetadata, type ObservedFact, observe, observeBatch, readCursor } from "#observe.ts";
 import { readHandle } from "#read-handle.ts";
+import { rebuild } from "#rebuild.ts";
 import { repeatOf, subjectOf } from "#repeat.ts";
 
 export interface CommitService {
+	readonly rebuild: Effect.Effect<void>;
 	readonly observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => Effect.Effect<number>;
 	readonly cursor: (logId: string) => Effect.Effect<number>;
 	readonly observe: <Fact extends FactShape>(fact: Fact, observation: Observation<FactPayload<Fact>>) => Effect.Effect<number>;
@@ -102,6 +104,7 @@ const perform = Effect.fn("journal.perform")(function* (context: CommitContext, 
 export function commitService(context: CommitContext): CommitService;
 export function commitService(context: CommitContext): unknown {
 	return {
+		rebuild: rebuild(context),
 		observeBatch: (metadata: ObservationMetadata, entries: readonly ObservedFact[]) => observeBatch(context, metadata, entries),
 		cursor: (logId: string) => readCursor(context.sql, logId),
 		observe: (fact: FactShape, observation: Observation<Record<string, unknown>>) => observe(context, fact, observation),

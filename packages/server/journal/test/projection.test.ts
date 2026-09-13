@@ -6,7 +6,7 @@ import { projection } from "@antumbra/platform-feature/projection.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { it } from "@effect/vitest";
-import { Effect, Exit, Schema } from "effect";
+import { Effect, Exit, Fiber, Latch, Schema } from "effect";
 import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 import { expect } from "vitest";
 import { app, registryOf } from "#app.ts";
@@ -140,5 +140,67 @@ it.effect("one runner record atomically contributes several facts or only advanc
 		expect(yield* commit.cursor("runner")).toBe(1);
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "journal"`)).toHaveLength(2);
 		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 14 }]);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
+it.effect("debug replay applies revised derivation and preserves facts, provenance and runner cursors", () =>
+	Effect.gen(function* () {
+		const { database, commit, reactivity } = yield* setup;
+		yield* commit.commit(add, { id: "one", value: 3, requestId: Request.make("one") });
+		yield* commit.observe(added, { logId: "runner", cursor: 7, at: 120, requestId: Request.make("observed"), payload: { id: "two", value: 4 } });
+		const facts = yield* Effect.orDie(database.read`SELECT * FROM "journal" ORDER BY "seq"`);
+		const rows = yield* Effect.orDie(database.read`SELECT * FROM "source" ORDER BY "id"`);
+		const triple = projection("triple", {
+			reads: [total],
+			writes: [doubled],
+			run: Effect.fn(function* (reads, writes) {
+				const total = yield* reads.total.get("sum");
+				if (yield* writes.doubled.exists("sum")) yield* writes.doubled.update("sum", { value: total.value * 3 });
+				else yield* writes.doubled.insert({ id: "sum", value: total.value * 3 });
+			}),
+		});
+		yield* commitService({ sql: database.write, reactivity, registry: yield* registryOf(app([sample], [sum, triple])) }).rebuild;
+		expect(yield* Effect.orDie(database.read`SELECT * FROM "source" ORDER BY "id"`)).toEqual(rows);
+		expect(yield* Effect.orDie(database.read`SELECT * FROM "journal" ORDER BY "seq"`)).toEqual(facts);
+		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 21 }]);
+		expect(yield* commit.cursor("runner")).toBe(7);
+		const repeated = yield* commit
+			.commit(add, { id: "one", value: 3, requestId: Request.make("one") })
+			.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
+		expect(repeated).toBe(facts[0]?.seq);
+	}).pipe(Effect.provide(Journal.memory())),
+);
+
+it.effect("commands wait for replay before reading derived rows", () =>
+	Effect.gen(function* () {
+		const { database, commit, reactivity } = yield* setup;
+		yield* commit.commit(add, { id: "one", value: 3, requestId: Request.make("one") });
+		const replaying = yield* Latch.make(false);
+		const release = yield* Latch.make(false);
+		const held: typeof double = {
+			...double,
+			run: (reads, writes) =>
+				Effect.gen(function* () {
+					yield* replaying.open;
+					yield* release.await;
+					yield* double.run(reads, writes);
+				}),
+		};
+		const current = commitService({ sql: database.write, reactivity, registry: yield* registryOf(app([sample], [sum, held])) });
+		const copy = command("copy", {
+			input: { id: Schema.String },
+			reads: [doubled],
+			emits: added,
+			rejections: {},
+			run: ({ id }, rows) => Effect.map(rows.doubled.get("sum"), ({ value }) => ({ id, value })),
+		});
+		const rebuilding = yield* Effect.forkScoped(current.rebuild, { startImmediately: true });
+		yield* replaying.await;
+		const copying = yield* Effect.forkScoped(current.commit(copy, { id: "two", requestId: Request.make("two") }), { startImmediately: true });
+		yield* release.open;
+		yield* Fiber.join(rebuilding);
+		yield* Fiber.join(copying);
+		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "source" WHERE "id" = 'two'`)).toEqual([{ value: 6 }]);
+		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 18 }]);
 	}).pipe(Effect.provide(Journal.memory())),
 );

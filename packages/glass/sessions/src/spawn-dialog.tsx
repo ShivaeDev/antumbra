@@ -20,7 +20,7 @@ const resolvedWords = (named: Resolution["model"]): string => {
 };
 
 const placeholdersOf = (resolved: Resolution): Readonly<Record<string, string>> => ({
-	backend: `${resolved.backend.value} · ${inheritedFrom(resolved.backend.source) ?? inheritedWords("backend")}`,
+	backend: `${resolved.fallback.value} · ${inheritedWords(resolved.fallback.source)}`,
 	effort: resolvedWords(resolved.effort),
 	model: resolvedWords(resolved.model),
 	role: "navigator",

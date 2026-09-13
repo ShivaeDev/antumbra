@@ -36,8 +36,11 @@ it.glass("opens with the role empty and the crew's backend already chosen", func
 	expect(labelled(document.body, "Backend").textContent).toBe("codex");
 	expect(labelled<HTMLInputElement>(document.body, "Role").value).toBe("");
 
-	yield* pick(document.body, "Backend", "codex · backend default");
-	yield* until(() => labelled(document.body, "Backend").textContent === "codex · backend default", "the backend to fall back to the crew's default");
+	yield* pick(document.body, "Backend", "claude · backend default");
+	yield* until(
+		() => labelled(document.body, "Backend").textContent === "claude · backend default",
+		"the backend to fall back to the backend default",
+	);
 });
 
 it.glass("closes on Escape and on its X while the form is still empty", function* ({ api, render }) {

@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { NodeRuntime } from "@effect/platform-node";
 import { Cause, Config, Console, Effect, Result } from "effect";
 import { captureFixture, extractFixture, listFixtures } from "#fixture/adapters/archive.ts";
-import { openBrowser, workingManifest } from "#fixture/adapters/launch.ts";
+import { workingManifest } from "#fixture/adapters/launch.ts";
 import { stopViewer, withCheckOwnership, withViewerOwnership } from "#fixture/adapters/viewer-owner.ts";
 import { checkViewer, startViewer } from "#fixture/adapters/viewer-process.ts";
 import { parseCommand, usage } from "#fixture/command.ts";
@@ -66,7 +66,6 @@ const program = Effect.gen(function* () {
 			return { fixture, viewer };
 		}),
 	);
-	yield* openBrowser(viewer.url);
 	yield* Console.log(`Fixture ${fixture.id}: ${viewer.url}`);
 }).pipe(
 	Effect.catchCause((cause) =>

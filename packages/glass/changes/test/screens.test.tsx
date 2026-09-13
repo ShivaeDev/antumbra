@@ -50,17 +50,16 @@ it.glass("offers adoption and keeps a host refusal editable for retry", function
 	yield* fill(form, "Adopt change Repository", repoId);
 	yield* fill(form, "Adopt change Pull request URL", "https://github.com/example/reef/pull/99");
 	yield* submit(document.body, "Adopt change");
-	const requested = yield* eventually(api.changes.adoptions({}), (rows) => rows.length === 1);
-	const pending = requested[0];
-	expect(pending).toBeDefined();
-	if (pending === undefined) return;
-	yield* api.changes.failAdoption({ id: pending.id, url: pending.url, message: "No such pull request" });
 	const retry = yield* renderedForm(container, "Retry adoption");
-	expect(container.textContent).toContain("No such pull request");
+	expect(container.textContent).toContain("ChangeHostRefused: no change at this URL");
+	const refused = (yield* answered(api.changes.adoptions({})))[0];
+	expect(refused).toBeDefined();
+	if (refused === undefined) return;
+	expect(refused.url).toBe("https://github.com/example/reef/pull/99");
 	yield* fill(retry, "Retry adoption Pull request URL", "https://github.com/example/reef/pull/100");
 	yield* submit(container, "Retry adoption");
-	const corrected = yield* eventually(api.changes.adoptions({}), (rows) => rows[0]?.error === null);
-	expect(corrected[0]).toMatchObject({ id: pending.id, url: "https://github.com/example/reef/pull/100" });
+	const corrected = yield* eventually(api.changes.adoptions({}), (rows) => rows[0]?.url === "https://github.com/example/reef/pull/100");
+	expect(corrected[0]).toMatchObject({ id: refused.id });
 	expect((yield* answered(api.changes.quay({}))).length).toBe(1);
 });
 

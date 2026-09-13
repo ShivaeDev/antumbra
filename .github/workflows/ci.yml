@@ -52,18 +52,20 @@ jobs:
       - uses: ./.github/actions/setup
       - run: pnpm exec vitest run --config script/vitest.workspace.ts --shard=${{ matrix.shard }}/8
 
-  isolated:
+  test-server:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        group: [server, desktop-runner-app]
-    name: isolated (${{ matrix.group }})
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: pnpm test:server
+
+  test-desktop-runner-app:
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache/restore@v4
-        if: matrix.group == 'desktop-runner-app'
         id: electron-cache
         with:
           path: ~/.cache/electron
@@ -72,17 +74,12 @@ jobs:
             electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
         with:
-          save-cache: ${{ matrix.group == 'desktop-runner-app' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm test:desktop
-        if: matrix.group == 'desktop-runner-app'
       - run: pnpm test:runner
-        if: matrix.group == 'desktop-runner-app'
-      - run: pnpm test:server
-        if: matrix.group == 'server'
       - run: pnpm test:app
-        if: matrix.group == 'desktop-runner-app'
       - uses: actions/cache/save@v4
-        if: matrix.group == 'desktop-runner-app' && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.electron-cache.outputs.cache-hit != 'true'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.electron-cache.outputs.cache-hit != 'true'
         with:
           path: ~/.cache/electron
           key: ${{ steps.electron-cache.outputs.cache-primary-key }}
@@ -109,7 +106,8 @@ jobs:
       - typecheck
       - typecheck-workspace
       - test
-      - isolated
+      - test-server
+      - test-desktop-runner-app
       - guards
       - build
     runs-on: ubuntu-latest
@@ -120,7 +118,8 @@ jobs:
           test "${{ needs.typecheck.result }}" = success
           test "${{ needs.typecheck-workspace.result }}" = success
           test "${{ needs.test.result }}" = success
-          test "${{ needs.isolated.result }}" = success
+          test "${{ needs.test-server.result }}" = success
+          test "${{ needs.test-desktop-runner-app.result }}" = success
           test "${{ needs.guards.result }}" = success
           test "${{ needs.build.result }}" = success
 

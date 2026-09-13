@@ -37,11 +37,15 @@ export const Evidence = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("tool-answered"), callId: Schema.String, answer: Schema.NullOr(ToolAnswer) }),
 	Schema.Struct({ type: Schema.Literal("input-accepted"), inputId: Schema.String }),
 ]);
-export const observed = fact("SessionObserved", {
-	sessionId: SessionId,
-	live: Schema.Boolean,
-	nodeRef: Schema.NullOr(Schema.String),
-	origin: Schema.NullOr(Origin),
-	operationId: Schema.NullOr(Schema.String),
-	evidence: Evidence,
-});
+export const observed = fact(
+	"SessionObserved",
+	{
+		sessionId: SessionId,
+		live: Schema.Boolean,
+		nodeRef: Schema.NullOr(Schema.String),
+		origin: Schema.NullOr(Origin),
+		operationId: Schema.NullOr(Schema.String),
+		evidence: Evidence,
+	},
+	{ subject: "sessionId" },
+);

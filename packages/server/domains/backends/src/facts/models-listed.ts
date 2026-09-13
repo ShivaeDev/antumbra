@@ -10,8 +10,12 @@ const ListedModel = Schema.Struct({
 	efforts: Schema.Array(Schema.String),
 });
 
-export const modelsListed = fact("ModelsListed", {
-	backend: AgentBackendTagSchema,
-	failure: Schema.NullOr(Schema.String),
-	models: Schema.Array(ListedModel),
-});
+export const modelsListed = fact(
+	"ModelsListed",
+	{
+		backend: AgentBackendTagSchema,
+		failure: Schema.NullOr(Schema.String),
+		models: Schema.Array(ListedModel),
+	},
+	{ subject: "backend" },
+);

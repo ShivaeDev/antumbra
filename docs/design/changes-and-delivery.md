@@ -58,6 +58,11 @@ and host capability.
 A Change that has landed or closed stays on the Quay beneath the ones still waiting, because what a Voyage just delivered is the reading the admiral
 came for. Antumbra observes an open Change until the host reports it landed or closed; that final reading is the last one taken.
 
+Seven days after Antumbra recorded that landing it archives the Change, timed from its own record rather than the host's stamp. The archive is part of
+the Quay and always browsable: an archived Change leaves the landed group and is asked for by status, newest landing first, and is not counted among
+the pull requests still waiting. Nothing is deleted—the Change, its evidence and its facts all stay—and an archived Change offers no act beyond the
+link to its host.
+
 Because a Piece may produce several Changes and a Change may satisfy one of several Outcomes, the Quay never assumes one Piece, one repository, or one
 pull request are the same object.
 

@@ -88,6 +88,7 @@ export const prepare = command("prepare", {
 			observedAt: input.capturedAt,
 			landedAt: null,
 			withdrawnAt: null,
+			archivedAt: null,
 			createdAt: input.capturedAt,
 		};
 		return { change: held, link: { id: pieceChangeId(input.pieceId, held.id), pieceId: input.pieceId, changeId: held.id, purpose: "produces" } };

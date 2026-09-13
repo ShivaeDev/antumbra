@@ -5,7 +5,7 @@ import { query } from "@antumbra/platform-feature/query.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Effect, Schema } from "effect";
 export const hostCapability = row("changeHostCapability", { host: Schema.String, available: Schema.Boolean, detail: Schema.String }, { key: "host" });
-export const hostCapabilityObserved = fact("ChangeHostCapabilityObserved", hostCapability.fields);
+export const hostCapabilityObserved = fact("ChangeHostCapabilityObserved", hostCapability.fields, { subject: "host" });
 export const observeHostCapability = command("observeHostCapability", {
 	input: hostCapability.fields,
 	reads: [],

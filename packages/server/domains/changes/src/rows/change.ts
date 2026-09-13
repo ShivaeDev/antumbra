@@ -37,6 +37,7 @@ export const change = row(
 		observedAt: Schema.String,
 		landedAt: Schema.NullOr(Schema.String),
 		withdrawnAt: Schema.NullOr(Schema.String),
+		archivedAt: Schema.NullOr(Schema.String),
 		createdAt: Schema.String,
 	},
 	{ key: "id", scope: "repoId" },

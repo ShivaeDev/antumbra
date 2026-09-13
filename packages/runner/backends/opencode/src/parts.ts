@@ -1,4 +1,5 @@
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import { listPrice } from "@antumbra/platform-vocabulary/session-events/prices.ts";
 import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 import { rawEvent } from "#mapping.ts";
@@ -17,13 +18,14 @@ const spokenEvents = (raw: RawPayload, part: Settled, author: MessageAuthor): Ag
 	part.type === "reasoning" ? [{ raw, text: part.text, type: "thinking" }] : [{ raw, role: author.role, text: part.text, type: "message" }];
 
 const usageEvents = (raw: RawPayload, part: Extract<KnownPart, { type: "step-finish" }>, author: MessageAuthor): AgentEvent[] => {
-	const spent = {
+	const counted = {
 		...(part.tokens.cache?.read === undefined ? {} : { cacheReadTokens: part.tokens.cache.read }),
 		...(part.tokens.cache?.write === undefined ? {} : { cacheWriteTokens: part.tokens.cache.write }),
-		...(part.cost === undefined ? {} : { costUsd: part.cost }),
 		inputTokens: part.tokens.input,
 		outputTokens: part.tokens.output,
 	};
+	const cost = part.cost ?? listPrice(author.model, counted);
+	const spent = { ...counted, ...(cost === undefined ? {} : { costUsd: cost }) };
 	return [{ ...spent, byModel: [{ ...spent, model: author.model }], raw, type: "usage" }];
 };
 

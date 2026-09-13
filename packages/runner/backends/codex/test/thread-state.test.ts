@@ -57,7 +57,7 @@ describe("what codex says a thread is doing is kept", () => {
 		]);
 	});
 
-	it("splits the turn's tokens and claims no money codex never named", () => {
+	it("splits the turn's tokens and claims no running total codex never named", () => {
 		const [usage] = toAgentEvents(
 			tokens(
 				{
@@ -82,7 +82,6 @@ describe("what codex says a thread is doing is kept", () => {
 			outputTokens: 210,
 			type: "usage",
 		});
-		expect(usage).not.toHaveProperty("costUsd");
 		expect(usage).not.toHaveProperty("cumulativeCostUsd");
 	});
 

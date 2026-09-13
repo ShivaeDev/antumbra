@@ -1,4 +1,5 @@
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import { listPrice } from "@antumbra/platform-vocabulary/session-events/prices.ts";
 import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 import { itemCompleted, itemStarted } from "#items.ts";
@@ -44,12 +45,14 @@ const tokenUsage = (raw: RawPayload, params: unknown, threadModel: string): Agen
 		onNone: () => [{ raw, type: "raw" }],
 		// Codex reports per-round usage in `last`; no cost fields are present and the round names no model, so it is billed to what the thread runs on.
 		onSome: ({ tokenUsage }) => {
-			const spent = {
+			const counted = {
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
 				...(tokenUsage.last.cacheWriteInputTokens === undefined ? {} : { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
 				inputTokens: Math.max(0, tokenUsage.last.inputTokens - tokenUsage.last.cachedInputTokens - (tokenUsage.last.cacheWriteInputTokens ?? 0)),
 				outputTokens: tokenUsage.last.outputTokens,
 			};
+			const listed = listPrice(threadModel, counted);
+			const spent = { ...counted, ...(listed === undefined ? {} : { costUsd: listed }) };
 			return [{ ...spent, byModel: [{ ...spent, model: threadModel }], raw, type: "usage" }];
 		},
 	});

@@ -7,7 +7,7 @@ import { request } from "#commands/request.ts";
 import { operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
 import { observed } from "#facts/observed.ts";
 import { operationRequested } from "#facts/operation-requested.ts";
-import { providerEvent } from "#facts/provider-event.ts";
+import { pricedTurns, providerEvent } from "#facts/provider-event.ts";
 import { observedMaterializer } from "#materializers/observed.ts";
 import { operationRequestedMaterializer } from "#materializers/operation-requested.ts";
 import { providerEventMaterializer } from "#materializers/provider-event.ts";
@@ -53,5 +53,6 @@ export const sessions = feature("sessions", {
 		operationHeldMaterializer,
 		sessionCharteredMaterializer,
 	],
+	migrations: [pricedTurns],
 	queries: [operations, opening, transcriptSources, toolCall, reading, tree, forAgent, pending],
 });

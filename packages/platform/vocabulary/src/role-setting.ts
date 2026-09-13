@@ -3,9 +3,10 @@ import { Schema } from "effect";
 export const RoleSettingSourceSchema = Schema.Literals(["chosen", "fleet", "backend"]);
 export type RoleSettingSource = typeof RoleSettingSourceSchema.Type;
 
-const INHERITED = { backend: "backend default", fleet: "fleet default" };
+export const InheritedSchema = Schema.Literals(["fleet", "backend"]);
+export type Inherited = typeof InheritedSchema.Type;
 
-export type Inherited = keyof typeof INHERITED;
+const INHERITED: Readonly<Record<Inherited, string>> = { backend: "backend default", fleet: "fleet default" };
 
 export const inheritedWords = (source: Inherited): string => INHERITED[source];
 

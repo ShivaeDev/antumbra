@@ -1,12 +1,11 @@
 import type { FlagReading } from "@antumbra/domain-settings/queries/flags.ts";
 import { SettingsRow } from "@antumbra/glass-components/compositions/settings-row.tsx";
-import { editablesOf } from "@antumbra/glass-components/fields.ts";
+import { editablesOf, identityOf, valuesOf } from "@antumbra/glass-components/fields.ts";
 import { changing, sending, useGenerated } from "@antumbra/glass-components/generated.ts";
-import { messageOf } from "@antumbra/glass-components/refusal.ts";
 import { SettingsField } from "@antumbra/glass-components/settings-field.tsx";
+import { useWrong } from "@antumbra/glass-components/wrong.ts";
 import { useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId, useMemo } from "react";
 import type { SettingsApi } from "#glass.ts";
 
@@ -18,13 +17,14 @@ export const FlagRow = ({ api, row }: { readonly api: SettingsApi; readonly row:
 	const named = useId();
 	const said = useId();
 	const titled = useId();
-	const editables = useMemo(() => editablesOf(api.settings.setFlag.command, FIXED), [api]);
+	const command = api.settings.setFlag.command;
+	const editables = useMemo(() => editablesOf(command, FIXED), [command]);
 	const send = useMemo(() => sending(api.settings.setFlag), [api]);
-	const form = useGenerated(editables, { key: row.key }, { on: row.on }, send, KEPT);
+	const form = useGenerated(editables, identityOf(command, row, editables), valuesOf(editables, row), send, KEPT);
 	const values = useAtomRef(form.values);
 	const submit = useSubmit(form);
 	const changed = changing(form, editables);
-	const refused = AsyncResult.isFailure(submit.result) && !submit.result.waiting ? messageOf(submit.result.cause) : null;
+	const wrong = useWrong(form, editables, submit.result);
 	const change = (name: string, value: unknown): void => {
 		changed(name, value);
 		submit.run();
@@ -51,9 +51,9 @@ export const FlagRow = ({ api, row }: { readonly api: SettingsApi; readonly row:
 			}}
 		>
 			<SettingsRow control={control} help={row.description} htmlFor={named} label={row.title} labelId={titled} />
-			{refused === null ? null : (
+			{wrong === null ? null : (
 				<p className="pb-3 text-xs text-destructive" id={said} role="alert">
-					{refused}
+					{wrong}
 				</p>
 			)}
 		</form>

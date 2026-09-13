@@ -13,7 +13,7 @@ export const RoleDefaults = (props: { readonly api: RoleSettingsApi }) => (
 		</CardHeader>
 		<CardContent>
 			<Live input={{}} query={props.api.roleSettings.defaults} waiting="Reading the fleet's defaults…">
-				{(rows) => <RoleForms choose={props.api.roleSettings.choose} inherits="backend" rows={rows} />}
+				{(rows) => <RoleForms choose={props.api.roleSettings.choose} rows={rows} />}
 			</Live>
 		</CardContent>
 	</Card>

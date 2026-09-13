@@ -1,5 +1,5 @@
 import type { Resolution } from "@antumbra/domain-role-settings/queries/resolve.ts";
-import { type Inherited, inheritedFrom, inheritedWords } from "@antumbra/platform-vocabulary/role-setting.ts";
+import { inheritedFrom, inheritedWords } from "@antumbra/platform-vocabulary/role-setting.ts";
 
 type Named = Resolution["model"];
 
@@ -11,13 +11,8 @@ const resolvedWords = (named: Named): string => {
 	return inherited === undefined ? named.value : `${named.value} · ${inherited}`;
 };
 
-export const unsetWords = (resolved: Resolution, inherits: Inherited): string => {
-	const inherited = inheritedFrom(resolved.backend.source);
-	return inherited === undefined ? inheritedWords(inherits) : `${resolved.backend.value} · ${inherited}`;
-};
-
-export const placeholdersOf = (resolved: Resolution, inherits: Inherited): Readonly<Record<string, string>> => ({
-	backend: unsetWords(resolved, inherits),
+export const placeholdersOf = (resolved: Resolution): Readonly<Record<string, string>> => ({
+	backend: `${resolved.fallback.value} · ${inheritedWords(resolved.fallback.source)}`,
 	effort: resolvedWords(resolved.effort),
 	model: resolvedWords(resolved.model),
 });

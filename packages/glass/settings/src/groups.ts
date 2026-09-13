@@ -13,7 +13,7 @@ export const GROUPS: readonly Group[] = [
 		title: "Transcript",
 	},
 	{
-		description: "Everything Antumbra sends on its own; a hold keeps its queue filling without touching what is already running.",
+		description: "What Antumbra sends on its own.",
 		keys: ["holdEverything", "holdPieceDispatch", "holdWakes"],
 		title: "Holds",
 	},

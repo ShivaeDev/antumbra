@@ -1,4 +1,4 @@
-import { press, until } from "@antumbra/app-testing/glass/dom.ts";
+import { click, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
@@ -12,8 +12,11 @@ it.glass("confirms before asking the shell to restart once", function* ({ render
 		}),
 	};
 	const container = yield* render(<RestartControl shell={shell} onError={() => undefined} />);
-	yield* press(container, "Restart…");
+	yield* press(container, "Restart");
 	expect(container.textContent).toContain("Keep running");
+	for (const label of container.querySelectorAll("label")) {
+		yield* click(label);
+	}
 	expect(requests).toBe(0);
 	yield* press(container, "Restart now");
 	yield* until(() => requests === 1, "the shell restart request");
@@ -31,7 +34,7 @@ it.glass("offers restart again when the shell refuses", function* ({ render }) {
 		}).pipe(Effect.andThen(Effect.fail(new Error("the drain refused")))),
 	};
 	const container = yield* render(<RestartControl shell={shell} onError={(message) => errors.push(message)} />);
-	yield* press(container, "Restart…");
+	yield* press(container, "Restart");
 	yield* press(container, "Restart now");
 	yield* until(() => errors.length === 1, "the shell refusal");
 	expect(errors[0]).toContain("the drain refused");

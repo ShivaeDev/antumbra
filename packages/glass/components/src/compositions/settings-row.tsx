@@ -10,7 +10,7 @@ export const SettingsRow = ({
 }: {
 	readonly control: ReactNode;
 	readonly help?: string | undefined;
-	readonly htmlFor: string;
+	readonly htmlFor?: string | undefined;
 	readonly label: string;
 	readonly labelId: string;
 }) => (

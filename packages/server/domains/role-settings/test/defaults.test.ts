@@ -22,11 +22,13 @@ it.app("includes unchosen roles in fleet defaults and says what each resolves to
 	expect(listed.find((row) => row.role === "captain")?.resolved).toEqual({
 		backend: { source: "chosen", value: "claude" },
 		effort: { source: "chosen", value: "high" },
+		fallback: { source: "backend", value: "claude" },
 		model: { source: "backend", value: "opus" },
 	});
 	expect(listed.find((row) => row.role === "crew")?.resolved).toEqual({
 		backend: { source: "backend", value: "claude" },
 		effort: { source: "backend", value: "high" },
+		fallback: { source: "backend", value: "claude" },
 		model: { source: "backend", value: "opus" },
 	});
 });

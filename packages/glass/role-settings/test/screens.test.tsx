@@ -66,3 +66,17 @@ it.glass("inherits fleet choices and saves a voyage choice", function* ({ api, r
 		scope: VOYAGE,
 	});
 });
+
+it.glass("names the backend a role falls back to once it has chosen its own", function* ({ api, render }) {
+	yield* api.roleSettings.choose({ backend: "codex", effort: null, model: null, role: "crew", scope: "fleet" });
+	yield* api.roleSettings.choose({ backend: "claude", effort: null, model: null, role: "crew", scope: VOYAGE });
+	const container = yield* render(<VoyageRoleSettings api={api} voyageId={VOYAGE} />);
+	const crew = yield* renderedForm(container, "Crew");
+	yield* until(() => labelled(crew, "Crew Backend").textContent === "claude", "the backend the role chose for itself");
+	yield* pick(crew, "Crew Backend", "codex · fleet default");
+	yield* submit(container, "Crew");
+	const saved = yield* eventually(api.roleSettings.forVoyage({ voyageId: VOYAGE }), (rows) =>
+		rows.some((row) => row.role === "crew" && row.backend === null),
+	);
+	expect(saved.find((row) => row.role === "crew")?.backend).toBe(null);
+});

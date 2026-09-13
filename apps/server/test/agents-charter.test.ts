@@ -3,6 +3,8 @@ import { identity } from "@antumbra/domain-agents/ids.ts";
 import { Charter } from "@antumbra/domain-agents/ports/charter.ts";
 import { pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
+import { berthId, reclaimRequestId } from "@antumbra/domain-reclamation/ids.ts";
+import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
@@ -72,4 +74,71 @@ it.app("birth charters carry scoped Boards, binding rulings, and landed Piece ou
 	expect(captain).toContain("Tide rises at dusk");
 	expect(captain).toContain("Leave the protected inlet untouched");
 	expect(captain).not.toContain("The buoy has moved north");
+});
+
+it.app("a crew charter names its berth folder, its work branch and the rules that govern them", function* (app) {
+	const voyageId = VoyageId.make("voyage");
+	const pieceId = PieceId.make("piece");
+	const source = "https://github.com/example/reef.git";
+	const requested = Request.make("crew");
+	const { agentId, sessionId } = identity(requested);
+	yield* app.api.voyages.open({
+		requestId: Request.make(voyageId),
+		name: "Reef",
+		northStar: "Safe passage",
+		context: "Survey before sailing",
+		kind: "voyage",
+		captainBackend: null,
+		captainModel: null,
+		captainEffort: null,
+		crewBackend: null,
+		crewModel: null,
+		crewEffort: null,
+	});
+	yield* app.api.pieces.charter({
+		requestId: Request.make(pieceId),
+		voyageId,
+		title: "Soundings",
+		charter: "Measure the eastern shoal",
+		expectation: "A depth chart",
+		role: "crew",
+		dependsOn: [],
+	});
+	yield* app.api.repos.register({ requestId: Request.make(RepoId.make("repo")), source, defaultRef: "main" });
+	yield* app.api.agents.request({ requestId: requested, voyageId, pieceId, role: "crew" });
+	yield* app.api.reclamation.plan({
+		agentId,
+		runner: "runner",
+		plan: { root: "/moorage/crew", berths: [{ slug: "reef", source, ref: "main", branch: `work/${agentId}/reef`, path: "/moorage/crew/reef" }] },
+	});
+	const held = yield* answered(app.api.agents.birthBySession({ sessionId }));
+	if (held === null) return yield* Effect.die("the crew birth was not recorded");
+	const { text } = yield* (yield* Charter).compose(held);
+	expect(text).toContain("Working directory: /moorage/crew");
+	expect(text).toContain(`reef — /moorage/crew/reef — branch work/${agentId}/reef`);
+	expect(text).toContain("Each berth is already on the work branch shown beside it. Work in the berth folder. Never create or switch branches.");
+	expect(text).toContain("Never open a pull request with `gh` or the GitHub UI. `open_change` opens it from the branch the berth is on.");
+});
+
+it.app("a charter leaves out a berth that has been reclaimed", function* (app) {
+	const source = "https://github.com/example/reef.git";
+	const requested = Request.make("crew");
+	const { agentId, sessionId } = identity(requested);
+	yield* app.api.repos.register({ requestId: Request.make(RepoId.make("repo")), source, defaultRef: "main" });
+	yield* app.api.agents.spawn({ requestId: requested, role: "crew", backend: "claude", model: null, effort: null });
+	yield* app.api.reclamation.plan({
+		agentId,
+		runner: "runner",
+		plan: { root: "/moorage/crew", berths: [{ slug: "reef", source, ref: "main", branch: `work/${agentId}/reef`, path: "/moorage/crew/reef" }] },
+	});
+	yield* app.api.agents.retire({ id: agentId });
+	const claim = Request.make("reclaim");
+	yield* app.commit.reclamation.claim({ agentId, requestId: claim });
+	yield* app.api.reclamation.reclaimed({ id: berthId(agentId, "reef"), claimRequestId: reclaimRequestId(claim, berthId(agentId, "reef")) });
+	const held = yield* answered(app.api.agents.birthBySession({ sessionId }));
+	if (held === null) return yield* Effect.die("the crew birth was not recorded");
+	const { text } = yield* (yield* Charter).compose(held);
+	expect(text).toContain("Working directory: /moorage/crew");
+	expect(text).not.toContain("/moorage/crew/reef");
+	expect(text).not.toContain("Never create or switch branches");
 });

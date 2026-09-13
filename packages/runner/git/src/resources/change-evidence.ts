@@ -11,11 +11,8 @@ export const captureChange = (berth: BerthSite): Effect.Effect<ChangePreparation
 		const evidence = yield* runGit(captureWorktreeChange(berth.path));
 		const actualRoot = yield* canonicalPath(evidence.root);
 		const expectedRoot = yield* canonicalPath(berth.path);
-		if (evidence.branch !== berth.branch || actualRoot !== expectedRoot) {
-			return yield* new RunnerProvisionConflict({
-				detail: `${berth.path} is ${evidence.branch} at ${actualRoot}, expected ${berth.branch} at ${expectedRoot}`,
-				tag: "local",
-			});
+		if (actualRoot !== expectedRoot) {
+			return yield* new RunnerProvisionConflict({ detail: `${berth.path} is a worktree of ${actualRoot}, expected ${expectedRoot}`, tag: "local" });
 		}
 		return {
 			branch: evidence.branch,

@@ -8,39 +8,42 @@ import { openLocal } from "#changes/publish.ts";
 import { adoptChangeSpec, openChangeSpec, submitChangeSpec } from "#tools/changes/specs.ts";
 
 const said = (row: ChangeRow): string => `change ${row.stage}: ${row.url ?? "no url"} (id ${row.id})`;
-export const changesTools = [
-	bind(submitChangeSpec, (context, input) =>
-		onPiece(context, (pieceId) =>
-			answered(context, submitChangeSpec.name, prepareLocal({ ...context, callId: requestId(context), pieceId, repo: input.repo }), said),
+
+const submitChangeTool = bind(submitChangeSpec, (context, input) =>
+	onPiece(context, (pieceId) =>
+		answered(context, submitChangeSpec.name, prepareLocal({ ...context, callId: requestId(context), pieceId, repo: input.repo }), said),
+	),
+);
+
+const openChangeTool = bind(openChangeSpec, (context, input) =>
+	onPiece(context, (pieceId) =>
+		answered(
+			context,
+			openChangeSpec.name,
+			openLocal({
+				...context,
+				callId: requestId(context),
+				pieceId,
+				repo: input.repo,
+				title: input.title,
+				body: input.body,
+				base: input.base ?? null,
+				draft: input.draft ?? false,
+			}),
+			said,
 		),
 	),
-	bind(openChangeSpec, (context, input) =>
-		onPiece(context, (pieceId) =>
-			answered(
-				context,
-				openChangeSpec.name,
-				openLocal({
-					...context,
-					callId: requestId(context),
-					pieceId,
-					repo: input.repo,
-					title: input.title,
-					body: input.body,
-					base: input.base ?? null,
-					draft: input.draft ?? false,
-				}),
-				said,
-			),
+);
+
+const adoptChangeTool = bind(adoptChangeSpec, (context, input) =>
+	onPiece(context, (pieceId) =>
+		answered(
+			context,
+			adoptChangeSpec.name,
+			adoptExternal({ ...context, callId: requestId(context), pieceId, repo: input.repo, url: input.url }),
+			said,
 		),
 	),
-	bind(adoptChangeSpec, (context, input) =>
-		onPiece(context, (pieceId) =>
-			answered(
-				context,
-				adoptChangeSpec.name,
-				adoptExternal({ ...context, callId: requestId(context), pieceId, repo: input.repo, url: input.url }),
-				said,
-			),
-		),
-	),
-] as const;
+);
+
+export const changesTools = [submitChangeTool, openChangeTool, adoptChangeTool] as const;

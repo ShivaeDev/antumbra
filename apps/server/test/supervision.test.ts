@@ -2,10 +2,13 @@ import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.
 import { ScriptedHost } from "@antumbra/app-testing/host.ts";
 import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect } from "effect";
+import { Effect, Exit, Stream } from "effect";
 import { expect } from "vitest";
+import { forgetRunning } from "#supervision/forget.ts";
+import { supervise } from "#supervision/loops.ts";
 
 const BROKEN = "the change host broke";
+const UNOPENABLE = "the loop would not open";
 
 const registerRepo = (app: App, id: string, name: string) =>
 	app.api.repos.register({ requestId: Request.make(RepoId.make(id)), source: `https://github.com/example/${name}.git`, defaultRef: "main" });
@@ -40,4 +43,69 @@ it.app("resuming a stopped loop by hand re-forks it and it works again", functio
 	expect(settled.map((row) => row.loop)).toEqual(["watching"]);
 	const seen = yield* eventually(app.api.changes.hostCapabilities({}), (rows) => rows.some((row) => row.host === "scripted"));
 	expect(seen.map((row) => row.available)).toEqual([true]);
+});
+
+it.app("a record an earlier boot left behind is cleared for a loop that runs again", function* (app) {
+	yield* app.api.supervision.failLoop({
+		loop: "mailing",
+		message: "an earlier boot",
+		requestId: Request.make("loop-failed:mailing:1"),
+		trace: "an earlier trace",
+	});
+	yield* eventually(app.api.supervision.stoppedLoops({}), (held) => held.length === 1);
+	yield* forgetRunning({ refresh: Effect.void, running: (loop) => loop === "mailing", start: () => Effect.void });
+	expect(yield* answered(app.api.supervision.stoppedLoops({}))).toEqual([]);
+});
+
+it.app("resuming a loop that is still broken records the new stop and leaves resume working", function* (app) {
+	const host = yield* ScriptedHost;
+	yield* host.setBroken(BROKEN);
+	yield* registerRepo(app, "repo:reef", "reef");
+	const held = yield* watchingStopped(app);
+	const first = held.find((row) => row.loop === "watching")?.at ?? 0;
+	yield* app.clock.advance(1000);
+	yield* app.api.supervision.resumeLoop({ loop: "watching" });
+	yield* eventually(app.api.supervision.stoppedLoops({}), (rows) =>
+		rows.some((row) => row.loop === "watching" && row.state === "stopped" && row.at > first),
+	);
+	yield* host.setBroken(null);
+	yield* app.api.supervision.resumeLoop({ loop: "watching" });
+	const seen = yield* eventually(app.api.changes.hostCapabilities({}), (rows) => rows.some((row) => row.host === "scripted"));
+	expect(seen.map((row) => row.available)).toEqual([true]);
+});
+
+it.app("a defect while a loop opens is recorded and a later resume still re-forks it", function* (app) {
+	const charting = { name: "charting", open: Effect.die(new Error(UNOPENABLE)) };
+	yield* supervise([charting], Stream.empty);
+	const held = yield* eventually(app.api.supervision.stoppedLoops({}), (rows) => rows.some((row) => row.loop === "charting"));
+	const first = held.find((row) => row.loop === "charting");
+	expect(first?.message).toContain(UNOPENABLE);
+	expect(first?.trace).toContain(UNOPENABLE);
+	yield* app.clock.advance(1000);
+	yield* app.api.supervision.resumeLoop({ loop: "charting" });
+	yield* eventually(app.api.supervision.stoppedLoops({}), (rows) =>
+		rows.some((row) => row.loop === "charting" && row.state === "stopped" && row.at > (first?.at ?? 0)),
+	);
+});
+
+it.app("a loop whose work ends on its own is recorded so the stop is visible", function* (app) {
+	const ending = { name: "charting", open: Effect.succeed({ refresh: Effect.void, await: Effect.void }) };
+	yield* supervise([ending], Stream.empty);
+	const held = yield* eventually(app.api.supervision.stoppedLoops({}), (rows) => rows.some((row) => row.loop === "charting"));
+	expect(held.find((row) => row.loop === "charting")?.message).toBe("charting ended.");
+});
+
+it.app("two loops that share a name refuse to assemble", function* (app) {
+	const open = Effect.succeed({ refresh: Effect.void, await: Effect.never });
+	const exit = yield* Effect.exit(
+		supervise(
+			[
+				{ name: "charting", open },
+				{ name: "charting", open },
+			],
+			Stream.empty,
+		),
+	);
+	expect(Exit.isFailure(exit)).toBe(true);
+	expect(yield* answered(app.api.supervision.stoppedLoops({}))).toEqual([]);
 });

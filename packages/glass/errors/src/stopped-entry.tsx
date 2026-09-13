@@ -33,7 +33,7 @@ export const StoppedEntry = ({ api, entry }: { readonly api: ErrorsApi; readonly
 					) : null}
 				</div>
 				<p className="text-sm wrap-anywhere">{entry.message}</p>
-				<StackTrace trace={entry.trace} />
+				{entry.trace === "" ? null : <StackTrace trace={entry.trace} />}
 			</CardContent>
 		</Card>
 	);

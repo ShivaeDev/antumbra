@@ -1,10 +1,7 @@
-import { inheritedFrom, type Resolution } from "@antumbra/domain-role-settings/queries/resolve.ts";
+import type { Resolution } from "@antumbra/domain-role-settings/queries/resolve.ts";
+import { inheritedFrom, UNDECLARED_EFFORT, UNLISTED_MODEL } from "@antumbra/platform-vocabulary/role-setting.ts";
 
 const INHERIT = "Inherit";
-
-const UNLISTED = "waiting for the backend to list its models";
-
-const UNDECLARED = "backend decides";
 
 type Named = Resolution["model"];
 
@@ -14,8 +11,8 @@ export const placeholdersOf = (resolved: Resolution): Readonly<Record<string, st
 	const inherited = inheritedFrom(resolved.backend.source);
 	return {
 		backend: inherited === undefined ? INHERIT : `${resolved.backend.value} (${inherited})`,
-		effort: shown(resolved.effort, UNDECLARED),
-		model: shown(resolved.model, UNLISTED),
+		effort: shown(resolved.effort, UNDECLARED_EFFORT),
+		model: shown(resolved.model, UNLISTED_MODEL),
 	};
 };
 

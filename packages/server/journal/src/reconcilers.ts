@@ -6,7 +6,7 @@ import type { ReconcilerShape } from "@antumbra/platform-feature/reconciler.ts";
 import { Effect, type Scope } from "effect";
 import { Commit, type CommitService } from "#commit.ts";
 import { Live, type LiveService } from "#live.ts";
-import { each, type Reconciler, run } from "#reconcile.ts";
+import { type Due, each, type Reconciler, run } from "#reconcile.ts";
 
 interface LooseCommit {
 	readonly commit: (command: CommandShape, input: Record<string, unknown>) => Effect.Effect<number, unknown>;
@@ -20,7 +20,8 @@ interface LooseHelpers {
 	readonly run: (
 		query: QueryShape,
 		input: Record<string, unknown>,
-		act: (reading: unknown) => Effect.Effect<void>,
+		act: (reading: unknown) => Effect.Effect<void, unknown>,
+		due: Due<unknown> | undefined,
 	) => Effect.Effect<Reconciler, never, Live | Scope.Scope>;
 	readonly each: (
 		query: QueryShape,
@@ -31,6 +32,7 @@ interface LooseHelpers {
 }
 
 interface Declared {
+	readonly due: Due<unknown> | undefined;
 	readonly each: ((row: unknown) => unknown) | undefined;
 	readonly input: Record<string, unknown>;
 	readonly name: string;
@@ -68,11 +70,11 @@ const built = Effect.fn("Reconcilers.build")(function* (live: LooseLive, commit:
 		ports,
 		read: (query: QueryShape, input: Record<string, unknown>) => live.read(query, input),
 	};
-	const act = (reading: unknown) =>
-		Effect.catch(declared.run(reading, reconciling), (failure) => Effect.logError("a reconciler run failed", { failure, reconciler: declared.name }));
+	const noted = (failure: unknown) => Effect.logError("a reconciler run failed", { failure, reconciler: declared.name });
+	const act = (reading: unknown) => declared.run(reading, reconciling);
 	return declared.each === undefined
-		? yield* helpers.run(declared.watch, declared.input, act)
-		: yield* helpers.each(declared.watch, declared.input, declared.each, act);
+		? yield* helpers.run(declared.watch, declared.input, (reading) => Effect.tapError(act(reading), noted), declared.due)
+		: yield* helpers.each(declared.watch, declared.input, declared.each, (row) => Effect.catch(act(row), noted));
 });
 
 const combined = (all: readonly Reconciler[]): Reconciler => ({

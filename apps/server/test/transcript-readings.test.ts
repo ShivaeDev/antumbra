@@ -82,7 +82,13 @@ it("keeps a delegate's reading from hiding the session's own", () => {
 });
 
 it("keeps every turn's own usage and completion", () => {
-	const usage: AgentEvent = { inputTokens: 10, outputTokens: 20, raw: raw("result/success", "{}"), type: "usage" };
+	const usage: AgentEvent = {
+		byModel: [{ inputTokens: 10, model: "claude-opus-5", outputTokens: 20 }],
+		inputTokens: 10,
+		outputTokens: 20,
+		raw: raw("result/success", "{}"),
+		type: "usage",
+	};
 	const completed: AgentEvent = { durationMs: 1000, raw: raw("result/success", "{}"), status: "completed", type: "turn.completed" };
 	expect(labels(streamed(usage, completed, usage, completed))).toEqual([
 		...shownFor(usage),

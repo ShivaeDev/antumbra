@@ -49,7 +49,7 @@ export const queues = query("queues", {
 				return name === undefined ? [] : [[String(crew.agentId), name] as const];
 			}),
 		);
-		const wakes = [...(yield* dueWakes.run({}, rows, {}))]
+		const wakes = [...(yield* dueWakes.run({}, rows, {})).wakes]
 			.sort((a, b) => b.waitedMillis - a.waitedMillis)
 			.map((wake) => ({
 				id: wake.sessionId,

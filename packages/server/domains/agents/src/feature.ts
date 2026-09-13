@@ -7,6 +7,7 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { resourceOwner } from "@antumbra/domain-reclamation/rows/resource-owner.ts";
 import { roleSetting } from "@antumbra/domain-role-settings/rows/role-setting.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
+import { sessionOpening } from "@antumbra/domain-sessions/rows/session-opening.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { sessionStartResult } from "@antumbra/domain-sessions/rows/session-start-result.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
@@ -62,10 +63,9 @@ import { canRetireCrew } from "#queries/can-retire-crew.ts";
 import { captain } from "#queries/captain.ts";
 import { captain as captainView } from "#queries/captain-reading.ts";
 import { dispatch } from "#queries/dispatch.ts";
-import { dueRetirements } from "#queries/due-retirements.ts";
-import { dueSiestas } from "#queries/due-siestas.ts";
 import { pending } from "#queries/pending.ts";
 import { reading } from "#queries/reading.ts";
+import { rest } from "#queries/rest.ts";
 import { roster } from "#queries/roster.ts";
 import { smoother } from "#queries/smoother.ts";
 import { workingCount } from "#queries/working-count.ts";
@@ -97,6 +97,7 @@ export const agents = feature("agents", {
 		voyageAgent,
 		session,
 		sessionOperation,
+		sessionOpening,
 		sessionStartResult,
 		capacity,
 		voyage,
@@ -123,8 +124,7 @@ export const agents = feature("agents", {
 		captainView,
 		byVoyage,
 		byPiece,
-		dueSiestas,
-		dueRetirements,
+		rest,
 		roster,
 		reading,
 		bySession,

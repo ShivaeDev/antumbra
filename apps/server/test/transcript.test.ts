@@ -95,8 +95,10 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
 	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
-	const initial = yield* eventually(Stream.fromQueue(updates), (reading) =>
-		reading.items.some((item) => item.kind === "tool" && item.result === "/berth"),
+	const initial = yield* eventually(
+		Stream.fromQueue(updates),
+		(reading) => reading.items.some((item) => item.kind === "tool" && item.result === "/berth"),
+		"the shell tool's result to appear in the transcript",
 	);
 	const json = JSON.stringify(Schema.encodeSync(TranscriptReading)(initial));
 	expect(Schema.decodeUnknownSync(TranscriptReading)(JSON.parse(json))).toMatchObject({
@@ -118,9 +120,13 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 	};
 	entries.push(future);
 	yield* runner.append([future]);
-	const refreshed = yield* eventually(Stream.fromQueue(updates), (reading) => reading.items.some((item) => item.kind === "raw"));
+	const refreshed = yield* eventually(
+		Stream.fromQueue(updates),
+		(reading) => reading.items.some((item) => item.kind === "raw"),
+		"a raw event to appear in the transcript",
+	);
 	expect(refreshed.items).toContainEqual(expect.objectContaining({ kind: "raw", payload: '{"future":true}' }));
-	expect(yield* answered(app.api.costs.forAgent({ agentId: "transcript-agent" }))).toMatchObject({
+	expect(yield* answered(app.api.costs.forAgent({ agentId: "transcript-agent" }), "the agent's costs to be read")).toMatchObject({
 		turns: 1,
 		inputTokens: 10,
 		outputTokens: 20,
@@ -128,10 +134,10 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		costPartial: false,
 	});
 	entries.splice(0);
-	const retained = yield* answered(rpc("sessions.transcript", { id: sessionId }));
+	const retained = yield* answered(rpc("sessions.transcript", { id: sessionId }), "the transcript to be read");
 	expect(retained.items).toEqual([]);
 	expect(retained.unavailable).not.toEqual([]);
-	expect(yield* answered(app.api.costs.forAgent({ agentId: "transcript-agent" }))).toMatchObject({
+	expect(yield* answered(app.api.costs.forAgent({ agentId: "transcript-agent" }), "the agent's costs to be read")).toMatchObject({
 		turns: 1,
 		inputTokens: 10,
 		outputTokens: 20,
@@ -190,7 +196,11 @@ it.app("shows a repeated reading and a repeated notice once after they travel th
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
 	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: repeatedId }), { capacity: "unbounded" });
-	const reading = yield* eventually(Stream.fromQueue(updates), (seen) => seen.items.some((item) => item.kind === "message" && item.text === "done"));
+	const reading = yield* eventually(
+		Stream.fromQueue(updates),
+		(seen) => seen.items.some((item) => item.kind === "message" && item.text === "done"),
+		"the done message to appear in the transcript",
+	);
 	const standing = stateLabel({ type: "session.state", state: "running", raw });
 	expect(reading.items.filter((item) => item.kind === "telemetry" && item.label === standing)).toHaveLength(1);
 	expect(reading.items.filter((item) => item.kind === "raw" && item.payload === startupNotice)).toHaveLength(1);
@@ -262,7 +272,11 @@ it.app("a reroute is one line in the record, and the session's spend is split by
 	);
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
-	const reading = yield* eventually(rpc("sessions.transcript", { id: sessionId }), (held) => held.standing.models.length === 2);
+	const reading = yield* eventually(
+		rpc("sessions.transcript", { id: sessionId }),
+		(held) => held.standing.models.length === 2,
+		"the transcript to carry two models",
+	);
 	expect(reading.items).toContainEqual(
 		expect.objectContaining({ kind: "telemetry", label: "rerouted to gpt-6-astra-safe · high risk cyber activity" }),
 	);

@@ -65,7 +65,11 @@ it.app("a turn's numbers stand once, beside the turn, and an allowed rate limit 
 	);
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
-	const reading = yield* eventually(rpc("sessions.transcript", { id: turnId }), (held) => held.standing.rateLimit !== undefined);
+	const reading = yield* eventually(
+		rpc("sessions.transcript", { id: turnId }),
+		(held) => held.standing.rateLimit !== undefined,
+		"the transcript's standing rate limit to be set",
+	);
 	const telemetry = reading.items.filter((item) => item.kind === "telemetry");
 	expect(telemetry).toHaveLength(1);
 	expect(telemetry[0]).toMatchObject({

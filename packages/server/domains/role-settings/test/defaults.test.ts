@@ -11,14 +11,14 @@ it.app("includes unchosen roles in fleet defaults and says what each resolves to
 	});
 	yield* roles.choose({ backend: "claude", effort: "high", model: null, role: "captain", scope: FLEET });
 
-	expect(yield* answered(roles.defaults({}))).toMatchObject([
+	expect(yield* answered(roles.defaults({}), "the role defaults to be listed")).toMatchObject([
 		{ backend: null, effort: null, id: `${FLEET}/flagship`, model: null, role: "flagship", scope: FLEET },
 		{ backend: "claude", effort: "high", id: `${FLEET}/captain`, model: null, role: "captain", scope: FLEET },
 		{ backend: null, effort: null, id: `${FLEET}/crew`, model: null, role: "crew", scope: FLEET },
 		{ backend: null, effort: null, id: `${FLEET}/smoother`, model: null, role: "smoother", scope: FLEET },
 	]);
 
-	const listed = yield* answered(roles.defaults({}));
+	const listed = yield* answered(roles.defaults({}), "the role defaults to be listed");
 	expect(listed.find((row) => row.role === "captain")?.resolved).toEqual({
 		backend: { source: "chosen", value: "claude" },
 		effort: { source: "chosen", value: "high" },

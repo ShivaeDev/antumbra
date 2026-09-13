@@ -110,8 +110,10 @@ it.app("the transcript opens with the charter the session was started with, and 
 	);
 	yield* runner.append(entries);
 	const updates = yield* reading();
-	const opened = yield* eventually(Stream.fromQueue(updates), (reading) =>
-		reading.items.some((item) => item.kind === "message" && item.role === "agent"),
+	const opened = yield* eventually(
+		Stream.fromQueue(updates),
+		(reading) => reading.items.some((item) => item.kind === "message" && item.role === "agent"),
+		"an agent message to appear in the transcript",
 	);
 	const [first] = opened.items;
 	expect(first).toMatchObject({ kind: "message", role: "user", served: "charter", standingOrders: smootherWords, text: charter });
@@ -133,8 +135,10 @@ it.app("the transcript opens with the charter the session was started with, and 
 	};
 	entries.push(accepted);
 	yield* runner.append([accepted]);
-	const woken = yield* eventually(Stream.fromQueue(updates), (reading) =>
-		reading.items.some((item) => item.kind === "message" && item.text === "Finish the summary"),
+	const woken = yield* eventually(
+		Stream.fromQueue(updates),
+		(reading) => reading.items.some((item) => item.kind === "message" && item.text === "Finish the summary"),
+		"the wake's message to appear in the transcript",
 	);
 	expect(woken.items.at(-1)).toMatchObject({ kind: "message", role: "user", served: "wake", text: "Finish the summary" });
 });
@@ -150,8 +154,10 @@ it.app("a backend that never echoes its input shows the charter exactly once", f
 	});
 	yield* runner.append(entries);
 	const updates = yield* reading();
-	const opened = yield* eventually(Stream.fromQueue(updates), (reading) =>
-		reading.items.some((item) => item.kind === "message" && item.role === "agent"),
+	const opened = yield* eventually(
+		Stream.fromQueue(updates),
+		(reading) => reading.items.some((item) => item.kind === "message" && item.role === "agent"),
+		"an agent message to appear in the transcript",
 	);
 	const spoken = opened.items.filter((item) => item.kind === "message" && item.role === "user");
 	expect(spoken).toHaveLength(1);

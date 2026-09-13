@@ -10,7 +10,7 @@ it.app("nests the narrowest summaries while keeping smooth admiral notes standin
 	const summary = { author: "smoother", board: reefBoard, body: "The approach", coversFrom: 1, coversTo: 2, level: "day" } as const;
 	yield* app.api.boards.summarize({ ...summary, requestId: Id.Request.make("day") });
 	yield* app.api.boards.summarize({ ...summary, requestId: Id.Request.make("piece"), level: "piece", coversTo: 3 });
-	const displayed = yield* answered(app.api.boards.display({ board: reefBoard }));
+	const displayed = yield* answered(app.api.boards.display({ board: reefBoard }), "the board's display to be read");
 	expect(displayed.map((node) => node.entry.id)).toEqual(["piece", "entry:order"]);
 	expect(displayed[0]?.children.map((node) => node.entry.id)).toEqual(["day"]);
 	expect(displayed[0]?.children[0]?.children.map((node) => node.entry.id)).toEqual(["entry:shoal"]);

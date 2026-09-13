@@ -23,11 +23,11 @@ it.glass("answers a live request and keeps its question beside the standing answ
 	expect(container.textContent).toContain("Recommended: North");
 	yield* fill(ruling, "Rule Your answer", "Take the northern passage");
 	yield* submit(container, "Rule");
-	const standing = yield* eventually(api.rulings.standing({ subjects: [] }), (rows) => rows.length === 1);
+	const standing = yield* eventually(api.rulings.standing({ subjects: [] }), (rows) => rows.length === 1, "the ruling to become a standing answer");
 	expect(standing[0]?.answer?.text).toBe("Take the northern passage");
 	yield* until(() => container.textContent?.includes("Take the northern passage") === true, "the standing answer to arrive");
 	expect(container.textContent).toContain("Which passage?");
-	expect(yield* answered(api.rulings.open({}))).toEqual([]);
+	expect(yield* answered(api.rulings.open({}), "the open rulings")).toEqual([]);
 });
 
 it.glass("proclaims and withdraws a tagged standing ruling through its forms", function* ({ api, render }) {
@@ -38,7 +38,11 @@ it.glass("proclaims and withdraws a tagged standing ruling through its forms", f
 	yield* fill(proclaim, "Proclaim Your answer", "At dawn");
 	yield* fill(proclaim, "Proclaim Tags", "tide, passage");
 	yield* submit(container, "Proclaim");
-	const records = yield* eventually(api.rulings.standing({ subjects: [] }), (rows) => rows.length === 1);
+	const records = yield* eventually(
+		api.rulings.standing({ subjects: [] }),
+		(rows) => rows.length === 1,
+		"the proclamation to become a standing ruling",
+	);
 	expect(records[0]?.subjects).toEqual([
 		{ kind: "tag", tag: "tide" },
 		{ kind: "tag", tag: "passage" },
@@ -46,5 +50,7 @@ it.glass("proclaims and withdraws a tagged standing ruling through its forms", f
 	const withdraw = yield* renderedForm(container, "Withdraw");
 	yield* fill(withdraw, "Withdraw Why", "The weather changed");
 	yield* submit(container, "Withdraw");
-	expect(yield* eventually(api.rulings.standing({ subjects: [] }), (rows) => rows.length === 0)).toEqual([]);
+	expect(
+		yield* eventually(api.rulings.standing({ subjects: [] }), (rows) => rows.length === 0, "the withdrawn ruling to leave the standing rulings"),
+	).toEqual([]);
 });

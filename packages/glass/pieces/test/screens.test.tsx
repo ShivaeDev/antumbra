@@ -74,7 +74,11 @@ it.glass("charters a piece that waits on the pieces its form offers", function* 
 	yield* choose(waits, [soundings, charts]);
 	yield* submit(container, "Charter piece");
 
-	const landed = yield* eventually(api.pieces.byVoyage({ voyageId }), (rows) => rows.length === 3);
+	const landed = yield* eventually(
+		api.pieces.byVoyage({ voyageId }),
+		(rows) => rows.length === 3,
+		"the chartered piece to land among the voyage's pieces",
+	);
 	let beacons = landed[0];
 	for (const row of landed) {
 		if (row.title === "Beacons") {
@@ -82,7 +86,7 @@ it.glass("charters a piece that waits on the pieces its form offers", function* 
 		}
 	}
 	expect(beacons).toMatchObject({ charter: "light the shoals", expectation: "every shoal is lit", role: "hand" });
-	const wired = yield* eventually(api.pieces.edges({ voyageId }), (edges) => edges.length === 3);
+	const wired = yield* eventually(api.pieces.edges({ voyageId }), (edges) => edges.length === 3, "the new piece's depends-on edges to be wired");
 	expect(wired.filter((edge) => edge.to === beacons?.id).map((edge) => edge.from)).toEqual([soundings, charts]);
 });
 
@@ -108,7 +112,9 @@ it.glass("puts a cycle the server refuses on the field that carries what a piece
 
 	yield* until(() => waits.getAttribute("aria-invalid") === "true", "the depends-on field to carry the server's refusal");
 	expect(container.textContent).toContain("A piece cannot wait on work that waits on it");
-	expect(yield* answered(api.pieces.edges({ voyageId }))).toEqual([{ from: soundings, id: `${soundings}/${charts}`, to: charts }]);
+	expect(yield* answered(api.pieces.edges({ voyageId }), "the voyage's depends-on edges")).toEqual([
+		{ from: soundings, id: `${soundings}/${charts}`, to: charts },
+	]);
 });
 
 it.glass("launches, parks, and unparks a piece", function* ({ api, render }) {
@@ -123,13 +129,17 @@ it.glass("launches, parks, and unparks a piece", function* ({ api, render }) {
 	expect([...container.querySelectorAll("button")].map((button) => button.textContent)).toEqual(["Launch", "Park"]);
 	yield* press(container, "Launch");
 
-	const launched = yield* eventually(api.pieces.byId({ id: soundings }), (row) => row !== null && row.launchedAt !== null);
+	const launched = yield* eventually(
+		api.pieces.byId({ id: soundings }),
+		(row) => row !== null && row.launchedAt !== null,
+		"the piece to be launched",
+	);
 	expect(launched?.parkedAt).toBeNull();
 	yield* press(container, "Park");
 	yield* until(() => container.textContent?.includes("Unpark") === true, "Park to become Unpark");
 	yield* press(container, "Unpark");
 	yield* until(() => container.textContent?.includes("Unpark") === false, "Unpark to become Park");
-	expect(yield* answered(api.pieces.byId({ id: soundings }))).toMatchObject({ parkedAt: null });
+	expect(yield* answered(api.pieces.byId({ id: soundings }), "the piece to be read")).toMatchObject({ parkedAt: null });
 });
 
 const listing = (api: Api, selected: string | undefined, onSelect: (pieceId: string | null) => void) => (

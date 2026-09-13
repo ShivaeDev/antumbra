@@ -8,17 +8,29 @@ import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 it.app("posture and outcome evidence update Piece and Voyage progress together", function* (app) {
 	yield* app.api.voyages.open(opening);
-	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ concluded: false, state: "quiet", counts: { held: 0 } });
+	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the voyage's progress to be read")).toMatchObject({
+		concluded: false,
+		state: "quiet",
+		counts: { held: 0 },
+	});
 	yield* app.api.pieces.charter(chartering("soundings"));
 	const id = pieceOf("soundings");
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "held", concluded: false });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({ state: "held", concluded: false });
 	yield* app.api.pieces.launch({ id });
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "ready", eligible: true });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({ state: "ready", eligible: true });
 	yield* app.api.pieces.park({ id });
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "parked" });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({ state: "parked" });
 	yield* app.api.pieces.landVerdict({ id, verdict: "delivered" });
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "done", eligible: false, settledDone: true, concluded: true });
-	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ concluded: true, counts: { done: 1, parked: 0, held: 0 } });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({
+		state: "done",
+		eligible: false,
+		settledDone: true,
+		concluded: true,
+	});
+	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the voyage's progress to be read")).toMatchObject({
+		concluded: true,
+		counts: { done: 1, parked: 0, held: 0 },
+	});
 });
 
 it.app("abandoning a prerequisite releases a Piece in another Voyage", function* (app) {
@@ -28,11 +40,23 @@ it.app("abandoning a prerequisite releases a Piece in another Voyage", function*
 	yield* app.api.pieces.charter(chartering("soundings"));
 	yield* app.api.pieces.charter({ ...chartering("charts", [pieceOf("soundings")]), voyageId: other });
 	yield* app.api.pieces.launch({ id: pieceOf("charts") });
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }))).toMatchObject({ state: "blocked", eligible: false });
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }), "the charts piece's progress to be read")).toMatchObject({
+		state: "blocked",
+		eligible: false,
+	});
 	yield* app.api.pieces.landVerdict({ id: pieceOf("soundings"), verdict: "abandoned" });
-	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }))).toMatchObject({ state: "ready", eligible: true });
-	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ concluded: true, counts: { abandoned: 1 } });
-	expect(yield* answered(app.api.voyages.progress({ id: other }))).toMatchObject({ concluded: false, counts: { blocked: 0, ready: 1 } });
+	expect(yield* answered(app.api.pieces.progress({ id: pieceOf("charts") }), "the charts piece's progress to be read")).toMatchObject({
+		state: "ready",
+		eligible: true,
+	});
+	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the reef voyage's progress to be read")).toMatchObject({
+		concluded: true,
+		counts: { abandoned: 1 },
+	});
+	expect(yield* answered(app.api.voyages.progress({ id: other }), "the harbour voyage's progress to be read")).toMatchObject({
+		concluded: false,
+		counts: { blocked: 0, ready: 1 },
+	});
 });
 
 it.app("landing a Report updates live Piece and Voyage progress", function* (app) {
@@ -44,7 +68,12 @@ it.app("landing a Report updates live Piece and Voyage progress", function* (app
 	yield* app.settle();
 	expect((yield* pieceLive.seen).at(-1)).toMatchObject({ state: "held" });
 	yield* app.api.reports.land({ pieceId: id, authorAgentId: null, title: "Survey", body: "Every shoal is charted" });
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "done", eligible: false, settledDone: true, concluded: true });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({
+		state: "done",
+		eligible: false,
+		settledDone: true,
+		concluded: true,
+	});
 	yield* app.settle();
 	expect((yield* pieceLive.seen).at(-1)).toMatchObject({ state: "done" });
 	expect((yield* voyageLive.seen).at(-1)).toMatchObject({ counts: { done: 1, held: 0 }, concluded: true });
@@ -54,10 +83,16 @@ it.app("display order and prerequisite names are server readings", function* (ap
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("Zulu"));
 	yield* app.api.pieces.charter(chartering("Alpha", [pieceOf("Zulu")]));
-	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }))).map((piece) => piece.title)).toEqual(["Alpha", "Zulu"]);
+	expect(
+		(yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }), "the voyage's display order to be read")).map((piece) => piece.title),
+	).toEqual(["Alpha", "Zulu"]);
 	yield* app.api.pieces.launch({ id: pieceOf("Zulu") });
-	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }))).map((piece) => piece.title)).toEqual(["Zulu", "Alpha"]);
-	expect(yield* answered(app.api.pieces.dependencies({ id: pieceOf("Alpha") }))).toEqual([{ id: pieceOf("Zulu"), title: "Zulu" }]);
-	expect((yield* answered(app.api.pieces.ready({}))).map((ready) => ready.piece.id)).toEqual([pieceOf("Zulu")]);
-	expect(yield* answered(app.api.voyages.progress({ id: reef }))).toMatchObject({ total: 2 });
+	expect(
+		(yield* answered(app.api.pieces.displayByVoyage({ voyageId: reef }), "the voyage's display order to be read")).map((piece) => piece.title),
+	).toEqual(["Zulu", "Alpha"]);
+	expect(yield* answered(app.api.pieces.dependencies({ id: pieceOf("Alpha") }), "the Alpha piece's dependencies to be listed")).toEqual([
+		{ id: pieceOf("Zulu"), title: "Zulu" },
+	]);
+	expect((yield* answered(app.api.pieces.ready({}), "the ready pieces to be listed")).map((ready) => ready.piece.id)).toEqual([pieceOf("Zulu")]);
+	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the voyage's progress to be read")).toMatchObject({ total: 2 });
 });

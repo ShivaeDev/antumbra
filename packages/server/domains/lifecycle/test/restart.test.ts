@@ -50,9 +50,9 @@ it.app("records running roots on connected runners and abandons the requested wa
 		}),
 	);
 	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
-	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual(["active"]);
+	expect(yield* answered(app.api.lifecycle.pending({}), "the pending restart's roots to be read")).toEqual(["active"]);
 	yield* lifecycle("lifecycle.abandonRestart", { requestId: "abandon" });
-	expect(yield* answered(app.api.lifecycle.pending({}))).toBeNull();
+	expect(yield* answered(app.api.lifecycle.pending({}), "the pending restart's roots to be read")).toBeNull();
 });
 
 it.app("ordinary shutdown waits for the runner to acknowledge drain", function* () {

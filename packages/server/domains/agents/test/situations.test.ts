@@ -39,17 +39,21 @@ const observed = (cursor: number, event: AgentEvent): LogEntry => ({
 const atWork = Effect.fnUntraced(function* (app: App) {
 	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn(asking);
-	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
+	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted");
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
 	yield* runner.append([started, accepted]);
 	return runner;
 });
 
-const standingOf = (app: App) => answered(app.api.agents.reading({ id: agentId }));
+const standingOf = (app: App) => answered(app.api.agents.reading({ id: agentId }), "the agent's reading to be read");
 
 it.app("an agent whose backend has not listed its models is preparing, and says what it waits for", function* (app) {
 	yield* app.api.agents.spawn(asking);
-	const held = yield* eventually(app.api.agents.reading({ id: agentId }), (reading) => reading?.detail !== null);
+	const held = yield* eventually(
+		app.api.agents.reading({ id: agentId }),
+		(reading) => reading?.detail !== null,
+		"the agent's reading to report a detail",
+	);
 	expect(held).toMatchObject({ detail: "waiting for claude to list its models", standing: "preparing", state: "preparing" });
 });
 
@@ -61,14 +65,16 @@ it.app("an agent whose turn is running is working", function* (app) {
 it.app("an agent whose tool call is out waits for it, and is idle once the turn ends", function* (app) {
 	const runner = yield* atWork(app);
 	yield* runner.append([observed(2, { type: "tool.started", toolId: "call-1", name: "Bash", input: "{}", raw })]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting")).toMatchObject({
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting", "the agent to be waiting")).toMatchObject({
 		standing: "waiting for a tool call",
 	});
 	yield* runner.append([
 		observed(3, { type: "tool.completed", toolId: "call-1", ok: true, output: "done", raw }),
 		observed(4, { type: "turn.completed", status: "completed", raw }),
 	]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "idle")).toMatchObject({ standing: "idle" });
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "idle", "the agent to go idle")).toMatchObject({
+		standing: "idle",
+	});
 });
 
 it.app("an agent whose sub-agents are out waits for all of them", function* (app) {
@@ -77,7 +83,7 @@ it.app("an agent whose sub-agents are out waits for all of them", function* (app
 		observed(2, { type: "subsession.opened", subsessionRef: "sub-1", spawnedBy: "call-1", raw }),
 		observed(3, { type: "subsession.opened", subsessionRef: "sub-2", spawnedBy: "call-2", raw }),
 	]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting")).toMatchObject({
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting", "the agent to be waiting")).toMatchObject({
 		standing: "waiting for 2 sub-agents",
 	});
 });
@@ -88,7 +94,7 @@ it.app("an agent whose background command is still running waits for it", functi
 		observed(2, { type: "session.background", tasks: [{ description: "pnpm ready", id: "task-1", kind: "bash" }], raw }),
 		observed(3, { type: "turn.completed", status: "completed", raw }),
 	]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting")).toMatchObject({
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting", "the agent to be waiting")).toMatchObject({
 		standing: "waiting for a command",
 	});
 });
@@ -96,7 +102,9 @@ it.app("an agent whose background command is still running waits for it", functi
 it.app("an agent whose work was cut off is stranded", function* (app) {
 	const runner = yield* atWork(app);
 	yield* runner.append([{ ...source, cursor: 2, event: { type: "SessionDetached", sessionId } }]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "stranded")).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "stranded", "the agent to become stranded"),
+	).toMatchObject({
 		detail: "the runner lost it mid-turn — hail it to take the work back up",
 		standing: "stranded",
 	});
@@ -105,11 +113,15 @@ it.app("an agent whose work was cut off is stranded", function* (app) {
 it.app("an agent whose runner has been torn down is asleep", function* (app) {
 	const runner = yield* atWork(app);
 	yield* runner.append([{ ...source, cursor: 2, event: { type: "SessionSlept", sessionId, requestId: "sleep" } }]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "asleep")).toMatchObject({ standing: "asleep" });
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "asleep", "the agent to fall asleep")).toMatchObject({
+		standing: "asleep",
+	});
 });
 
 it.app("a retired agent is retired", function* (app) {
 	yield* app.api.agents.spawn(asking);
 	yield* app.api.agents.retire({ id: agentId, requestId: Id.Request.make("retire") });
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "retired")).toMatchObject({ standing: "retired" });
+	expect(
+		yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "retired", "the agent to become retired"),
+	).toMatchObject({ standing: "retired" });
 });

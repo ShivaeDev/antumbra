@@ -19,18 +19,22 @@ it.glass("adds and forgets repositories through the live registry", function* ({
 	yield* fill(document.body, "Source", "/reefs/one.git");
 	yield* fill(document.body, "Default ref", "trunk");
 	yield* press(document.body, "Add");
-	const first = yield* eventually(api.repos.all({}), (rows) => rows.length === 1);
+	const first = yield* eventually(api.repos.all({}), (rows) => rows.length === 1, "the registered repository to reach the registry");
 	yield* until(() => labelled<HTMLInputElement>(document.body, "Source").value === "", "the successful form to clear its source");
 	expect(labelled<HTMLInputElement>(document.body, "Default ref").value).toBe("trunk");
 	yield* registry(container, 1);
 	yield* fill(document.body, "Source", "/reefs/one.git");
 	yield* fill(document.body, "Default ref", "main");
 	yield* press(document.body, "Add");
-	const repeated = yield* eventually(api.repos.all({}), (rows) => rows[0]?.defaultRef === "main");
+	const repeated = yield* eventually(
+		api.repos.all({}),
+		(rows) => rows[0]?.defaultRef === "main",
+		"the repeated registration to update the default ref to main",
+	);
 	expect(repeated[0]?.id).toBe(first[0]?.id);
 	yield* press(document.body, "Forget");
 	yield* until(() => document.body.querySelector('[role="status"]') !== null, "the forgotten registration to leave the live registry");
-	expect(yield* answered(api.repos.all({}))).toEqual([]);
+	expect(yield* answered(api.repos.all({}), "the registered repositories")).toEqual([]);
 });
 
 it.glass("keeps refused input available for correction", function* ({ api, render }) {
@@ -49,5 +53,5 @@ it.glass("keeps refused input available for correction", function* ({ api, rende
 	expect(document.body.textContent).toContain("would berth as reef-charts");
 	yield* fill(document.body, "Source", "/reefs/other");
 	yield* press(document.body, "Add");
-	expect(yield* eventually(api.repos.all({}), (rows) => rows.length === 2)).toHaveLength(2);
+	expect(yield* eventually(api.repos.all({}), (rows) => rows.length === 2, "the corrected registration to reach the registry")).toHaveLength(2);
 });

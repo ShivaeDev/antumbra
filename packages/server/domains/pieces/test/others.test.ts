@@ -6,6 +6,9 @@ it.app("a Piece may wait on the other Pieces of its Voyage and never on itself",
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("soundings"));
 	yield* app.api.pieces.charter(chartering("charts"));
-	const others = yield* answered(app.api.pieces.others({ id: pieceOf("soundings"), voyageId: reef }));
+	const others = yield* answered(
+		app.api.pieces.others({ id: pieceOf("soundings"), voyageId: reef }),
+		"the soundings piece's other pieces to be listed",
+	);
 	expect(others.map((piece) => piece.title)).toEqual(["charts"]);
 });

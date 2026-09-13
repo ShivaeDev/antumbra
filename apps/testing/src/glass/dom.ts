@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
+import { deadline, step } from "#waiting.ts";
 
 export const settle = (change: () => void): Effect.Effect<void> =>
 	Effect.promise(() =>
@@ -24,17 +25,17 @@ export const mount = () =>
 		return { container, root };
 	});
 
-export const until = (ready: () => boolean, description: string): Effect.Effect<void> =>
+const polling = (ready: () => boolean): Effect.Effect<void> =>
 	Effect.gen(function* () {
-		for (let attempt = 0; attempt < 200; attempt += 1) {
+		let settled = false;
+		while (!settled) {
 			yield* settle(() => undefined);
-			if (ready()) {
-				return;
-			}
-			yield* Effect.sleep("5 millis");
+			settled = ready();
+			if (!settled) yield* Effect.sleep(step);
 		}
-		return yield* Effect.die(`Timed out waiting for ${description}`);
 	});
+
+export const until = (ready: () => boolean, description: string): Effect.Effect<void> => Effect.raceFirst(polling(ready), deadline(description));
 
 type Writable = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 

@@ -24,7 +24,7 @@ const BLOCKED = {
 
 it.app("spawn commits identity and resource eligibility before provider execution", function* (app) {
 	yield* app.api.agents.spawn(asking("one"));
-	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }))).toMatchObject({
+	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }), "the agent to be read")).toMatchObject({
 		status: "spawning",
 		currentSessionId: born("one").sessionId,
 	});
@@ -40,7 +40,9 @@ it.app("births reserve the global running budget oldest first", function* (app) 
 	yield* app.api.agents.spawn(asking("one"));
 	yield* app.clock.advance(1);
 	yield* app.api.agents.spawn(asking("two"));
-	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 1)).map((held) => held.id)).toEqual([born("one").birthId]);
+	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 1, "one admitted birth")).map((held) => held.id)).toEqual([
+		born("one").birthId,
+	]);
 	expect(
 		yield* Effect.flip(
 			app.api.agents.admit({ id: born("two").birthId, backend: "claude", model: "opus", effort: null, requestId: Id.Request.make("admit-two") }),
@@ -52,7 +54,11 @@ it.app("the admitting reconciler resolves the role settings a request did not ov
 	yield* app.api.roleSettings.choose({ scope: "fleet", role: "crew", backend: "claude", model: "resolved-model", effort: "low" });
 	yield* app.api.agents.spawn({ requestId: Id.Request.make("resolved"), role: "crew", backend: null, model: null, effort: null });
 	expect(
-		yield* eventually(app.api.agents.birthBySession({ sessionId: born("resolved").sessionId }), (held) => held?.status === "admitted"),
+		yield* eventually(
+			app.api.agents.birthBySession({ sessionId: born("resolved").sessionId }),
+			(held) => held?.status === "admitted",
+			"the birth to be admitted",
+		),
 	).toMatchObject({ backend: "claude", model: "resolved-model", effort: "low" });
 });
 
@@ -62,22 +68,28 @@ it.app("a birth held on a blocked backend is admitted once the role setting move
 	yield* app.api.capacity.observe({ ...BLOCKED, requestId: Id.Request.make("blocked") });
 	yield* app.api.agents.spawn({ requestId: Id.Request.make("waiting"), role: "crew", backend: null, model: null, effort: null });
 	const sessionId = born("waiting").sessionId;
-	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ status: "requested" });
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId }), "the birth to be read")).toMatchObject({ status: "requested" });
 	yield* app.api.roleSettings.choose({ scope: "fleet", role: "crew", backend: "codex", model: null, effort: null });
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted")).toMatchObject({ backend: "codex" });
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted"),
+	).toMatchObject({ backend: "codex" });
 });
 
 it.app("an unset model is admitted on the model its backend declares", function* (app) {
 	yield* knownModels(app.api, "claude", "opus", "high");
 	yield* app.api.agents.spawn(asking("one"));
 
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId: born("one").sessionId }), (held) => held?.status === "admitted")).toMatchObject(
-		{
-			backend: "claude",
-			effort: "high",
-			model: "opus",
-		},
-	);
+	expect(
+		yield* eventually(
+			app.api.agents.birthBySession({ sessionId: born("one").sessionId }),
+			(held) => held?.status === "admitted",
+			"the birth to be admitted",
+		),
+	).toMatchObject({
+		backend: "claude",
+		effort: "high",
+		model: "opus",
+	});
 });
 
 it.app("a birth waits for its backend to list its models and says so until one arrives", function* (app) {
@@ -85,19 +97,29 @@ it.app("a birth waits for its backend to list its models and says so until one a
 	yield* app.api.agents.spawn(asking("one"));
 	const sessionId = born("one").sessionId;
 
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.detail !== null)).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.detail !== null, "the birth's detail to be set"),
+	).toMatchObject({
 		detail: "waiting for claude to list its models",
 		status: "requested",
 	});
 
 	yield* app.api.backends.listModels({ backend: "claude", failure: "claude is not on the path", models: [] });
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.detail?.includes(":") === true)).toMatchObject({
+	expect(
+		yield* eventually(
+			app.api.agents.birthBySession({ sessionId }),
+			(held) => held?.detail?.includes(":") === true,
+			"the birth's detail to include the listing failure",
+		),
+	).toMatchObject({
 		detail: "waiting for claude to list its models: claude is not on the path",
 		status: "requested",
 	});
 
 	yield* knownModels(app.api, "claude", "opus");
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted")).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted"),
+	).toMatchObject({
 		detail: null,
 		model: "opus",
 	});
@@ -107,15 +129,21 @@ it.app("cancelling an unadmitted birth removes its demand without retiring the i
 	yield* app.api.capacity.observe({ ...BLOCKED, requestId: Id.Request.make("closed") });
 	yield* app.api.agents.spawn(asking("one"));
 	yield* app.api.agents.cancel({ id: born("one").birthId, requestId: Id.Request.make("cancel") });
-	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }))).toMatchObject({ status: "dormant", currentSessionId: null });
-	expect(yield* answered(app.api.agents.pending({}))).toEqual([]);
+	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }), "the agent to be read")).toMatchObject({
+		status: "dormant",
+		currentSessionId: null,
+	});
+	expect(yield* answered(app.api.agents.pending({}), "the pending births to be listed")).toEqual([]);
 	expect(yield* app.rows.resourceOwner.get(born("one").agentId)).toMatchObject({ status: "dormant" });
 });
 
 it.app("retirement preserves the identity and closes resource eligibility", function* (app) {
 	yield* app.api.agents.spawn(asking("one"));
 	yield* app.api.agents.retire({ id: born("one").agentId, requestId: Id.Request.make("retire") });
-	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }))).toMatchObject({ status: "retired", currentSessionId: null });
+	expect(yield* answered(app.api.agents.byId({ id: born("one").agentId }), "the agent to be read")).toMatchObject({
+		status: "retired",
+		currentSessionId: null,
+	});
 	expect(yield* app.rows.resourceOwner.get(born("one").agentId)).toMatchObject({ status: "retired" });
 });
 
@@ -123,7 +151,7 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 	const { agentId, sessionId } = born("one");
 	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn(asking("one"));
-	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
+	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted");
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
 	const source = { logId: "runner", at: 100 };
 	const logged = { sessionId, requestId: "one" };
@@ -143,43 +171,51 @@ it.app("only logged charter acceptance activates the Agent and work reading", fu
 			},
 		},
 	]);
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ standing: "preparing", state: "preparing", status: "spawning" });
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent's reading to be read")).toMatchObject({
+		standing: "preparing",
+		state: "preparing",
+		status: "spawning",
+	});
 	yield* runner.append([{ ...source, cursor: 1, event: { ...logged, type: "InputAccepted", inputId: "charter" } }]);
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent's reading to be read")).toMatchObject({
 		canInterrupt: true,
 		canSleep: false,
 		standing: "working",
 		state: "working",
 		status: "alive",
 	});
-	expect(yield* answered(app.api.agents.workingCount({}))).toBe(1);
-	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ status: "running" });
+	expect(yield* answered(app.api.agents.workingCount({}), "the working agent count to answer")).toBe(1);
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId }), "the birth to be read")).toMatchObject({ status: "running" });
 	expect(yield* Effect.flip(app.api.agents.retire({ id: agentId, requestId: Id.Request.make("retire-working") }))).toMatchObject({ _tag: "Working" });
 	yield* runner.append([{ ...source, cursor: 2, event: { ...logged, type: "SessionSlept" } }]);
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent's reading to be read")).toMatchObject({
 		canSend: true,
 		canSleep: false,
 		standing: "asleep",
 		state: "asleep",
 		status: "alive",
 	});
-	expect(yield* answered(app.api.agents.workingCount({}))).toBe(0);
+	expect(yield* answered(app.api.agents.workingCount({}), "the working agent count to answer")).toBe(0);
 });
 
 it.app("failed start waits and explicit retry has a new deduplicated edge request", function* (app) {
 	const { sessionId } = born("one");
 	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn(asking("one"));
-	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
+	yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted");
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "runner", backends: [], imageInputBackends: [] });
 	yield* runner.append([
 		{ logId: "runner", at: 100, cursor: 0, event: { type: "SessionFailed", requestId: "one", sessionId, reason: "Sign in required" } },
 	]);
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "waiting")).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "waiting", "the birth to be marked waiting"),
+	).toMatchObject({
 		detail: "Sign in required",
 	});
 	yield* app.api.agents.retry({ id: born("one").birthId, requestId: Id.Request.make("retry") });
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted")).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the retried birth to be admitted"),
+	).toMatchObject({
 		operationRequestId: "retry",
 		agentId: born("one").agentId,
 		sessionId,
@@ -225,16 +261,26 @@ it.app("smoothing reuses its Agent across fresh constrained sessions", function*
 	]);
 	yield* runner.append([{ ...source, cursor: 1, event: { ...logged, type: "InputAccepted", inputId: "charter" } }]);
 	yield* runner.append([{ ...source, cursor: 2, event: { ...logged, type: "SessionEnded", reason: "complete" } }]);
-	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({ id: agentId, status: "alive", currentSessionId: null });
+	expect(yield* answered(app.api.agents.smoother({ voyageId }), "the smoother agent to be read")).toMatchObject({
+		id: agentId,
+		status: "alive",
+		currentSessionId: null,
+	});
 	const next = { ...input, requestId: Id.Request.make("smooth-two"), sessionId: SessionId.make("session:two") };
 	yield* app.api.agents.smooth(next);
-	expect(yield* answered(app.api.agents.birthBySession({ sessionId: next.sessionId }))).toMatchObject({ createsAgent: false, role: "smoother" });
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId: next.sessionId }), "the birth to be read")).toMatchObject({
+		createsAgent: false,
+		role: "smoother",
+	});
 	expect(yield* app.rows.agent.count({})).toBe(1);
 	expect(
 		yield* Effect.flip(app.api.agents.smooth({ ...next, requestId: Id.Request.make("overlap"), sessionId: SessionId.make("session:overlap") })),
 	).toMatchObject({ _tag: "Busy" });
 	yield* app.api.agents.cancel({ id: born("smooth-two").birthId, requestId: Id.Request.make("cancel-pass") });
-	expect(yield* answered(app.api.agents.smoother({ voyageId }))).toMatchObject({ status: "alive", currentSessionId: null });
+	expect(yield* answered(app.api.agents.smoother({ voyageId }), "the smoother agent to be read")).toMatchObject({
+		status: "alive",
+		currentSessionId: null,
+	});
 });
 
 it.app("a tool call's request id never becomes the name of the agent it asks for", function* (app) {
@@ -245,5 +291,8 @@ it.app("a tool call's request id never becomes the name of the agent it asks for
 	expect(ids.birthId).toMatch(READABLE);
 	expect(new Set([ids.agentId, ids.sessionId, ids.birthId]).size).toBe(3);
 	yield* app.api.agents.spawn({ requestId: asked, role: "hand", backend: "claude", model: null, effort: null });
-	expect(yield* answered(app.api.agents.byId({ id: ids.agentId }))).toMatchObject({ status: "spawning", currentSessionId: ids.sessionId });
+	expect(yield* answered(app.api.agents.byId({ id: ids.agentId }), "the agent to be read")).toMatchObject({
+		status: "spawning",
+		currentSessionId: ids.sessionId,
+	});
 });

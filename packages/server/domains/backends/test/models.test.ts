@@ -19,7 +19,7 @@ it.app("refreshes one backend without changing another", function* (app) {
 		models: [{ ...sonnet, name: "Sonnet updated", efforts: ["low", "high"], isDefault: true }],
 	});
 
-	expect(yield* answered(catalogue.models({ backend: "claude" }))).toEqual([
+	expect(yield* answered(catalogue.models({ backend: "claude" }), "the backend's models to be listed")).toEqual([
 		{
 			backend: "claude",
 			defaultEffort: null,
@@ -30,9 +30,9 @@ it.app("refreshes one backend without changing another", function* (app) {
 			name: "Sonnet updated",
 		},
 	]);
-	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "sonnet" }))).toEqual(["low", "high"]);
-	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "opus" }))).toEqual([]);
-	expect(yield* answered(catalogue.models({ backend: "codex" }))).toEqual([
+	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "sonnet" }), "the model's efforts to be read")).toEqual(["low", "high"]);
+	expect(yield* answered(catalogue.efforts({ backend: "claude", model: "opus" }), "the model's efforts to be read")).toEqual([]);
+	expect(yield* answered(catalogue.models({ backend: "codex" }), "the backend's models to be listed")).toEqual([
 		{ backend: "codex", defaultEffort: "medium", efforts: ["medium"], id: "codex/gpt", isDefault: true, model: "gpt", name: "GPT" },
 	]);
 });

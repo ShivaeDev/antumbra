@@ -39,7 +39,7 @@ it.app("acknowledges the first session and tool log before invoking its bound to
 		yield* log.append({ type: "ToolCalled", sessionId, callId: call.callId, name: call.name, input: JSON.stringify(call.input) });
 		expect(yield* tools.call(call)).toEqual({ ok: true, text: "written to the self board" });
 		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(1);
-		expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ toolCalls: 1 });
+		expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({ toolCalls: 1 });
 	}).pipe(Effect.provide(serverTools.pipe(Layer.provideMerge(local))));
 });
 
@@ -63,6 +63,6 @@ it.app("holds a tool call while the server is away and completes it once it answ
 
 		expect(yield* Fiber.join(held)).toEqual({ ok: true, text: "written to the self board" });
 		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(1);
-		expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ toolCalls: 1 });
+		expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({ toolCalls: 1 });
 	}).pipe(Effect.provide(serverTools.pipe(Layer.provideMerge(local))));
 });

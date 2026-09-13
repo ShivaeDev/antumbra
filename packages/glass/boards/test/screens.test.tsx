@@ -40,7 +40,7 @@ it.glass("writes what the admiral says onto the voyage's board", function* ({ ap
 	yield* fill(writing, "Write Entry", "the eastern approach is closed");
 	yield* submit(container, "Write");
 
-	const written = yield* eventually(api.boards.entries({ board }), (rows) => rows.length === 1);
+	const written = yield* eventually(api.boards.entries({ board }), (rows) => rows.length === 1, "the entry to be written to the board");
 	expect(written[0]).toMatchObject({ authorAgentId: null, body: "the eastern approach is closed", register: "smooth", seq: 1 });
 });
 

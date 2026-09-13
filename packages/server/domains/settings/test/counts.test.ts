@@ -2,7 +2,7 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { expect } from "vitest";
 
 it.app("reads default counts", function* (app) {
-	const answer = yield* answered(app.api.settings.counts({}));
+	const answer = yield* answered(app.api.settings.counts({}), "the settings counts to be listed");
 	for (const setting of answer) {
 		expect(setting.title.trim()).not.toBe("");
 		expect(setting.description.trim()).not.toBe("");
@@ -20,7 +20,7 @@ it.app("preserves other settings when replacing a count", function* (app) {
 	yield* app.api.settings.setCount({ count: 90, key: "idleSiestaMinutes" });
 	yield* app.api.settings.setCount({ count: 12, key: "maxParallelSessions" });
 
-	const answer = yield* answered(app.api.settings.counts({}));
+	const answer = yield* answered(app.api.settings.counts({}), "the settings counts to be listed");
 	expect(answer.map(({ count, key }) => [key, count])).toEqual([
 		["maxParallelSessions", 12],
 		["idleSiestaMinutes", 90],

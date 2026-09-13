@@ -52,8 +52,10 @@ export const connectRunner = Effect.fn("TestRunner.connect")(function* (registra
 		}),
 		Stream.toQueue({ capacity: "unbounded" }),
 	);
-	yield* eventually(reactivity.stream(["runner:connected"], operations.connected), (connected) =>
-		connected.some((runner) => runner.runnerId === registration.runnerId && runner.logId === registration.logId),
+	yield* eventually(
+		reactivity.stream(["runner:connected"], operations.connected),
+		(connected) => connected.some((runner) => runner.runnerId === registration.runnerId && runner.logId === registration.logId),
+		"the registered runner to be listed as connected",
 	);
 	return {
 		next: Queue.take(incoming),

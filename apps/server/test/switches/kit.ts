@@ -47,8 +47,10 @@ export const launched = Effect.fn("SwitchTest.launched")(function* (app: App) {
 
 export const wentOnElsewhere = Effect.fn("SwitchTest.elsewhere")(function* (app: App) {
 	yield* app.api.agents.spawn({ requestId: ELSEWHERE, role: "crew", backend: "claude", model: null, effort: null });
-	yield* eventually(app.api.agents.births({}), (births) =>
-		births.some((born) => born.id === identity(ELSEWHERE).birthId && born.status !== "requested"),
+	yield* eventually(
+		app.api.agents.births({}),
+		(births) => births.some((born) => born.id === identity(ELSEWHERE).birthId && born.status !== "requested"),
+		"the elsewhere birth to leave requested",
 	);
 });
 
@@ -84,9 +86,9 @@ export const crewed = Effect.fn("SwitchTest.crewed")(function* (app: App) {
 	const runner = yield* connectRunner(RUNNER);
 	const atWork = Effect.fn("SwitchTest.atWork")(function* (request: Request, cursor: number) {
 		const { agentId, sessionId } = identity(request);
-		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted");
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (held) => held?.status === "admitted", "the birth to be admitted");
 		yield* runner.append(entries(request, sessionId, agentId, cursor));
-		yield* eventually(app.api.agents.reading({ id: agentId }), (reading) => reading?.state === "idle");
+		yield* eventually(app.api.agents.reading({ id: agentId }), (reading) => reading?.state === "idle", "the agent to go idle");
 		return { agentId, sessionId };
 	});
 	return { atWork, runner };

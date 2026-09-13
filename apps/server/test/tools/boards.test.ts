@@ -15,7 +15,7 @@ it.app("writes one rough note for a replayed native call and keeps separate sess
 	expect(yield* writeBoardTool.invoke(context, input)).toEqual({ ok: true, text: "written to the self board" });
 	expect(yield* writeBoardTool.invoke(context, input)).toEqual({ ok: true, text: "written to the self board" });
 	yield* writeBoardTool.invoke({ ...context, sessionId: "session-other" }, input);
-	const entries = yield* answered(app.api.boards.entries({ board: agentBoard(context.agentId) }));
+	const entries = yield* answered(app.api.boards.entries({ board: agentBoard(context.agentId) }), "the agent board's entries to be read");
 	expect(entries).toHaveLength(2);
 	expect(entries[0]).toMatchObject({ register: "rough", authorAgentId: context.agentId, body: "Check the tide" });
 	expect(yield* readBoardTool.invoke(context, { scope: "self" })).toEqual({ ok: true, text: "[rough] Check the tide\n[rough] Check the tide" });
@@ -123,8 +123,10 @@ it.app("writes a bound piece summary and its voyage handoff once", function* (ap
 	expect(yield* writeSummaryTool.invoke(context, { text: "The shoal is recorded" })).toEqual({ ok: true, text: "summary written" });
 	yield* writeSummaryTool.invoke(context, { text: "The shoal is recorded" });
 	yield* writeSummaryTool.invoke({ ...context, callId: "second-call" }, { text: "Replace the first" });
-	expect(yield* answered(app.api.boards.digest({ board }))).toMatchObject([{ kind: "summary", body: "The shoal is recorded" }]);
-	expect(yield* answered(app.api.boards.entries({ board: voyageBoard(voyageId) }))).toMatchObject([
+	expect(yield* answered(app.api.boards.digest({ board }), "the board's digest to be read")).toMatchObject([
+		{ kind: "summary", body: "The shoal is recorded" },
+	]);
+	expect(yield* answered(app.api.boards.entries({ board: voyageBoard(voyageId) }), "the voyage board's entries to be read")).toMatchObject([
 		{ kind: "pieceSummary", pieceId, body: "The shoal is recorded" },
 	]);
 	expect((yield* writeSummaryTool.invoke({ ...context, agentId: "wrong-agent" }, { text: "wrong" })).ok).toBe(false);

@@ -10,10 +10,10 @@ it.app("a chartered piece joins its voyage and waits on the pieces it names", fu
 	yield* app.clock.advance(60_000);
 	yield* app.api.pieces.charter(chartering("charts", [pieceOf("soundings")]));
 
-	const listed = yield* answered(app.api.pieces.byVoyage({ voyageId: reef }));
+	const listed = yield* answered(app.api.pieces.byVoyage({ voyageId: reef }), "the voyage's pieces to be listed");
 	expect(listed.map((row) => row.title)).toEqual(["soundings", "charts"]);
 	expect(listed[1]).toMatchObject({ charter: "sound charts", expectation: "charts is landed", role: "hand", verdict: null });
-	expect(yield* answered(app.api.pieces.edges({ voyageId: reef }))).toEqual([
+	expect(yield* answered(app.api.pieces.edges({ voyageId: reef }), "the voyage's edges to be listed")).toEqual([
 		{ from: pieceOf("soundings"), id: `${pieceOf("soundings")}/${pieceOf("charts")}`, to: pieceOf("charts") },
 	]);
 });
@@ -51,6 +51,6 @@ it.app("charters one piece however often the request that named it arrives", fun
 	const again = yield* app.api.pieces.charter(chartering("soundings"));
 
 	expect(again).toBe(first);
-	expect(yield* answered(app.api.pieces.byId({ id: pieceOf("soundings") }))).toMatchObject({ title: "soundings" });
+	expect(yield* answered(app.api.pieces.byId({ id: pieceOf("soundings") }), "the piece to be read")).toMatchObject({ title: "soundings" });
 	expect(yield* app.rows.piece.count({})).toBe(1);
 });

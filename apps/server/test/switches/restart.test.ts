@@ -41,10 +41,10 @@ it.app("a root cut mid-turn keeps its place while the restart switch is off, and
 	yield* lifecycle("lifecycle.recordRestart", { requestId: "record" });
 	yield* lifecycle("lifecycle.honorRestart", { requestId: "held" });
 	yield* app.settle();
-	expect(yield* answered(app.api.lifecycle.pending({}))).toEqual([CUT]);
-	expect(yield* answered(app.api.sessions.operations({ sessionId: CUT }))).toEqual([]);
+	expect(yield* answered(app.api.lifecycle.pending({}), "the pending sessions to be listed")).toEqual([CUT]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId: CUT }), "the session's operations to be listed")).toEqual([]);
 	yield* app.api.settings.setFlag({ key: "wakeAfterRestart", on: true });
-	const woken = yield* eventually(app.api.sessions.operations({ sessionId: CUT }), (operations) => operations.length === 1);
+	const woken = yield* eventually(app.api.sessions.operations({ sessionId: CUT }), (operations) => operations.length === 1, "one operation");
 	expect(woken).toMatchObject([{ kind: "wake", reason: wakeWords }]);
-	expect(yield* answered(app.api.lifecycle.pending({}))).toBeNull();
+	expect(yield* answered(app.api.lifecycle.pending({}), "the pending sessions to be listed")).toBeNull();
 });

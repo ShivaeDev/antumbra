@@ -11,7 +11,7 @@ it.glass("a requested birth remains diagnosable before its conversation starts",
 	const requested = Request.make("agent:surveyor");
 	const { agentId, sessionId } = identity(requested);
 	yield* api.agents.spawn({ requestId: requested, role: "surveyor", backend: "claude", model: null, effort: null });
-	const agent = yield* answered(api.agents.reading({ id: agentId }));
+	const agent = yield* answered(api.agents.reading({ id: agentId }), "the requested agent to be read");
 	if (agent === null) return yield* Effect.die("Missing requested Agent reading");
 	const container = yield* render(<Diagnostics api={api} agent={agent} />);
 	yield* press(container, "diagnostics");

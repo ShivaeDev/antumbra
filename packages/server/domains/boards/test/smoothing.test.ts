@@ -10,7 +10,7 @@ it.app("a failed voyage pass still counts today and becomes due on the next loca
 	yield* app.api.voyages.open(opening);
 	const now = new Date(yield* Clock.currentTimeMillis);
 	const demanded = (at: Date) =>
-		Effect.map(answered(app.api.boards.dueSmoothing({ now: at.toISOString() })), (demands) =>
+		Effect.map(answered(app.api.boards.dueSmoothing({ now: at.toISOString() }), "the due smoothing demands to be listed"), (demands) =>
 			demands.some((demand) => demand.voyageId === reef && demand.pieceId === null),
 		);
 	yield* app.api.boards.requestSmoothing({
@@ -31,9 +31,13 @@ it.app("a concluded piece with uncovered notes is attempted once even when that 
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.boards.write(noting("shoal", "the shoal shelves fast", soundingsBoard));
 	const now = new Date(yield* Clock.currentTimeMillis).toISOString();
-	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(false);
+	expect(
+		(yield* answered(app.api.boards.dueSmoothing({ now }), "the due smoothing demands to be listed")).some((demand) => demand.pieceId === soundings),
+	).toBe(false);
 	yield* app.api.pieces.landVerdict({ id: soundings, verdict: "delivered" });
-	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(true);
+	expect(
+		(yield* answered(app.api.boards.dueSmoothing({ now }), "the due smoothing demands to be listed")).some((demand) => demand.pieceId === soundings),
+	).toBe(true);
 	yield* app.api.boards.requestSmoothing({
 		voyageId: reef,
 		pieceId: soundings,
@@ -42,7 +46,9 @@ it.app("a concluded piece with uncovered notes is attempted once even when that 
 		requestId: Id.Request.make("pass-piece"),
 	});
 	yield* app.api.boards.finishSmoothing({ id: "pass-piece", status: "failed", detail: "the smoother did not answer in time" });
-	expect((yield* answered(app.api.boards.dueSmoothing({ now }))).some((demand) => demand.pieceId === soundings)).toBe(false);
+	expect(
+		(yield* answered(app.api.boards.dueSmoothing({ now }), "the due smoothing demands to be listed")).some((demand) => demand.pieceId === soundings),
+	).toBe(false);
 });
 
 it.app("a manual voyage pass includes concluded pieces then today's uncovered voyage notes", function* (app) {
@@ -59,11 +65,13 @@ it.app("a manual voyage pass includes concluded pieces then today's uncovered vo
 		by: "antumbra",
 		requestId: Id.Request.make("automatic"),
 	});
-	expect(yield* answered(app.api.boards.smoothingTargets({ id: "automatic", now: now.toISOString() }))).toMatchObject([
-		{ pieceId: soundings, level: "piece", entries: [{ body: "piece detail" }] },
-	]);
+	expect(
+		yield* answered(app.api.boards.smoothingTargets({ id: "automatic", now: now.toISOString() }), "the smoothing targets to be listed"),
+	).toMatchObject([{ pieceId: soundings, level: "piece", entries: [{ body: "piece detail" }] }]);
 	yield* app.api.boards.requestSmoothing({ voyageId: reef, pieceId: null, throughToday: true, by: "antumbra", requestId: Id.Request.make("manual") });
-	expect(yield* answered(app.api.boards.smoothingTargets({ id: "manual", now: now.toISOString() }))).toMatchObject([
+	expect(
+		yield* answered(app.api.boards.smoothingTargets({ id: "manual", now: now.toISOString() }), "the smoothing targets to be listed"),
+	).toMatchObject([
 		{ pieceId: soundings, level: "piece", coversFrom: 1, coversTo: 1 },
 		{ pieceId: null, level: "day", title: localDay(now), entries: [{ body: "voyage detail" }] },
 	]);

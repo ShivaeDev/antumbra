@@ -86,8 +86,9 @@ stops startup.
 The journal's own tables — `journal`, `applied`, `shape`, `runner_cursor`, and `fact_migration` — change through numbered upgrade steps rather than a
 wipe. The journal package declares the steps in one ordered list, numbered from one, and startup applies every step above the database's
 `user_version`, after the tables are ensured and before fact migrations and the shape comparison, then stamps the number it reached. A step adds a
-column, creates an index, or recreates a table and copies the old one into it where SQLite cannot alter in place. A pending step takes the same backup
-a rebuild takes, and a step that fails changes nothing and stops startup.
+column, creates an index, or recreates a table and copies the old one into it where SQLite cannot alter in place; a step also runs on a database
+created at the latest shape, so it guards on the shape it finds. A pending step takes the same backup a rebuild takes, and a step that fails changes
+nothing and stops startup.
 
 The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
 a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact

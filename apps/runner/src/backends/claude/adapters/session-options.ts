@@ -48,6 +48,7 @@ export const sessionOptions = (session: SessionShape): Options => ({
 	permissionMode: "auto",
 	sessionStore: session.store,
 	sessionStoreFlush: "eager",
+	settings: { env: { CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS: "1" } },
 	...harness(session),
 	...(session.effort === undefined ? {} : { effort: session.effort }),
 	...(session.resume === undefined ? {} : { resume: session.resume }),

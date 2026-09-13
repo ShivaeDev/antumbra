@@ -26,6 +26,12 @@ it("a session without tools carries no server and no allowance", () => {
 	expect(options.allowedTools).toBeUndefined();
 });
 
+it("enables session state events while preserving the inherited environment", () => {
+	const options = sessionOptions({ ...base, tools: Option.none() });
+	expect(options.settings).toEqual({ env: { CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS: "1" } });
+	expect(options.env).toBeUndefined();
+});
+
 it("a session with tools hands the SDK the server instance itself", () => {
 	const options = sessionOptions({
 		...base,

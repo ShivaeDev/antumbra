@@ -97,9 +97,22 @@ const result = (totalCostUsd: number, spent: ReadonlyArray<Spent> = OPUS): SDKMe
 describe("the harness's own account of a session is kept", () => {
 	it("keeps every state word, and calls requires_action awaiting input", () => {
 		const mapping = openSessionMapping();
-		expect(mapping.frame(stateFrame("running"))).toMatchObject([{ state: "running", type: "session.state" }]);
-		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
-		expect(mapping.frame(stateFrame("idle"))).toMatchObject([{ raw: { kind: "system/session_state_changed" }, state: "idle" }]);
+		const running = stateFrame("running");
+		const action = stateFrame("requires_action");
+		const idle = stateFrame("idle");
+		expect(mapping.frame(running)).toEqual([
+			{ raw: { kind: "system/session_state_changed", payload: JSON.stringify(running), source: "claude" }, state: "running", type: "session.state" },
+		]);
+		expect(mapping.frame(action)).toEqual([
+			{
+				raw: { kind: "system/session_state_changed", payload: JSON.stringify(action), source: "claude" },
+				state: "awaiting-input",
+				type: "session.state",
+			},
+		]);
+		expect(mapping.frame(idle)).toEqual([
+			{ raw: { kind: "system/session_state_changed", payload: JSON.stringify(idle), source: "claude" }, state: "idle", type: "session.state" },
+		]);
 	});
 
 	it("takes the whole background set, and an empty one as the answer it is", () => {

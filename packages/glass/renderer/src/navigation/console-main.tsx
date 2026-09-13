@@ -1,6 +1,7 @@
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { QuayPanel } from "@antumbra/glass-changes/quay-panel.tsx";
 import { TwoPane } from "@antumbra/glass-components/compositions/two-pane.tsx";
+import { ErrorsPanel } from "@antumbra/glass-errors/errors.tsx";
 import { HoldsPanel } from "@antumbra/glass-holds/holds.tsx";
 import { RulingsPanel } from "@antumbra/glass-rulings/rulings.tsx";
 import { CostsPanel } from "@antumbra/glass-sessions/costs.tsx";
@@ -68,6 +69,8 @@ export const ConsoleMain = (
 			);
 		case "settings":
 			return <SettingsPanel {...props} />;
+		case "errors":
+			return <ErrorsPanel api={props.api} />;
 		case "quay":
 			return (
 				<QuayPanel

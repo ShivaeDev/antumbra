@@ -10,7 +10,7 @@ import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { each, run } from "@antumbra/server-journal/reconcile.ts";
-import { Effect, Ref } from "effect";
+import { Effect, Fiber, Ref } from "effect";
 import { adoptExternal } from "#changes/adopt.ts";
 import { recordObservation } from "#changes/observations.ts";
 import { publish } from "#changes/publish.ts";
@@ -56,8 +56,8 @@ const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
 			),
 		),
 	);
-	yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.flatMap(Ref.get(wait), Effect.sleep), observer.refresh)));
-	return observer;
+	const cadence = yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.flatMap(Ref.get(wait), Effect.sleep), observer.refresh)));
+	return { refresh: observer.refresh, await: Effect.raceAllFirst([observer.await, Effect.asVoid(Fiber.join(cadence))]) };
 });
 const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(function* (row: Parameters<typeof publish>[0], error: unknown) {
 	const commit = yield* Commit;

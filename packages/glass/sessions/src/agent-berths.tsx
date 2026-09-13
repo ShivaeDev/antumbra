@@ -27,7 +27,7 @@ export const AgentBerths = ({ api, agentId }: { readonly api: SessionsApi; reado
 					{moored.map((berth) => (
 						<div key={berth.id} className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
 							<AnchorIcon className="size-3 shrink-0" />
-							<span className="min-w-0 font-mono">{berthPath(berth.slug, berth.branch)}</span>
+							<span className="min-w-0 font-mono wrap-break-word">{berthPath(berth.slug, berth.branch)}</span>
 							{berth.reclaimState === "claimed" ? <StatusBadge state="reclaiming" /> : null}
 							{berth.status === "stranded" ? <StatusBadge state="stranded" /> : null}
 						</div>

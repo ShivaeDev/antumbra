@@ -123,19 +123,29 @@ it.glass("yields the session down to the list's floor and gives back the reader'
 	const container = yield* render(beside);
 	expect(pane(container).style.width).toBe("608px");
 	yield* settle(() => resize(900));
-	expect(pane(container).style.width).toBe("516px");
+	expect(pane(container).style.width).toBe("515px");
 	yield* settle(() => resize(1600));
 	expect(pane(container).style.width).toBe("608px");
 	expect(globalThis.localStorage.getItem(KEY)).toBeNull();
+});
+
+it.glass("holds both floors at the narrowest width that can show them", function* ({ render }) {
+	remembering();
+	const resize = observing();
+	const container = yield* render(beside);
+	yield* settle(() => resize(705));
+	expect(container.textContent).toContain(LIST);
+	expect(pane(container).style.width).toBe("320px");
 });
 
 it.glass("shows the session alone under the two floors and comes back to the list when it closes", function* ({ render }) {
 	remembering();
 	const resize = observing();
 	const container = yield* render(<Console />);
-	yield* settle(() => resize(703));
+	const reading = container.querySelector("output");
+	yield* settle(() => resize(704));
 	expect(container.textContent).not.toContain(LIST);
-	expect(container.querySelector("output")).not.toBeNull();
+	expect(container.querySelector("output")).toBe(reading);
 	expect(pane(container).style.width).toBe("");
 	expect(container.querySelector('[aria-label="Resize the session"]')).toBeNull();
 

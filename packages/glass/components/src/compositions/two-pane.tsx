@@ -1,4 +1,4 @@
-import { type PointerEvent, type ReactNode, type RefObject, useEffect, useRef, useState } from "react";
+import { type PointerEvent, type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { rememberedPaneWidth, rememberPaneWidth } from "#adapters/pane-width.ts";
 import { cn } from "#class-names.ts";
 
@@ -6,7 +6,8 @@ const OPENS_AT = 608;
 const NARROWEST = 320;
 const WIDEST = 1120;
 const LIST_FLOOR = 384;
-const ALONE_BELOW = LIST_FLOOR + NARROWEST;
+const DIVIDER = 1;
+const ALONE_BELOW = LIST_FLOOR + DIVIDER + NARROWEST;
 const UNMEASURED = 0;
 const STEPS: Record<string, number> = { ArrowLeft: 16, ArrowRight: -16 };
 
@@ -16,7 +17,7 @@ interface Grab {
 	readonly at: number;
 }
 
-const widest = (content: number): number => (content === UNMEASURED ? WIDEST : Math.min(WIDEST, content - LIST_FLOOR));
+const widest = (content: number): number => (content === UNMEASURED ? WIDEST : Math.min(WIDEST, content - LIST_FLOOR - DIVIDER));
 
 const between = (width: number, content: number): number => Math.max(NARROWEST, Math.min(widest(content), width));
 
@@ -25,7 +26,7 @@ const dragged = (grab: Grab, clientX: number, content: number): number => betwee
 const useContentWidth = (): { readonly content: number; readonly root: RefObject<HTMLDivElement | null> } => {
 	const root = useRef<HTMLDivElement>(null);
 	const [content, setContent] = useState(UNMEASURED);
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const node = root.current;
 		if (node === null) {
 			return;
@@ -44,7 +45,7 @@ const useContentWidth = (): { readonly content: number; readonly root: RefObject
 
 const Pane = ({ children, width }: { readonly children: ReactNode; readonly width: number | undefined }) => (
 	<div
-		className={cn("flex min-h-0 flex-col", width === undefined ? "min-w-0 flex-1" : "shrink-0")}
+		className={cn("flex min-h-0 min-w-0 flex-col overflow-hidden", width === undefined ? "flex-1" : "shrink-0")}
 		style={width === undefined ? undefined : { width }}
 	>
 		{children}
@@ -53,11 +54,14 @@ const Pane = ({ children, width }: { readonly children: ReactNode; readonly widt
 
 export const TwoPane = (props: { readonly list: ReactNode; readonly pane: ReactNode }) => {
 	const { content, root } = useContentWidth();
-	const [chosen, setChosen] = useState(() => between(rememberedPaneWidth() ?? OPENS_AT, UNMEASURED));
+	const [chosen, setChosen] = useState(() => rememberedPaneWidth() ?? OPENS_AT);
 	const [grabbed, setGrabbed] = useState<Grab | null>(null);
 	const opened = props.pane !== null && props.pane !== undefined;
 	const alone = opened && content !== UNMEASURED && content < ALONE_BELOW;
 	const width = between(chosen, content);
+	useEffect(() => {
+		if (!opened || alone) setGrabbed(null);
+	}, [opened, alone]);
 	const keep = (next: number) => {
 		setChosen(next);
 		rememberPaneWidth(next);
@@ -79,7 +83,7 @@ export const TwoPane = (props: { readonly list: ReactNode; readonly pane: ReactN
 				<hr
 					aria-label="Resize the session"
 					aria-orientation="vertical"
-					aria-valuemax={WIDEST}
+					aria-valuemax={widest(content)}
 					aria-valuemin={NARROWEST}
 					aria-valuenow={width}
 					className="relative z-10 my-0 w-px shrink-0 cursor-col-resize border-none bg-border transition-colors after:absolute after:inset-y-0 after:-left-1 after:w-2 after:content-[''] hover:bg-ring data-dragging:bg-ring focus-visible:bg-ring focus-visible:outline-none"

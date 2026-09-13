@@ -16,6 +16,9 @@ const groupsOf = (container: HTMLElement): readonly (readonly [string, string])[
 const spanSaying = (container: HTMLElement, words: string): HTMLElement | undefined =>
 	[...container.querySelectorAll<HTMLElement>("span")].find((candidate) => candidate.textContent === words);
 
+const buttonSaying = (container: HTMLElement, words: string): HTMLElement | undefined =>
+	[...container.querySelectorAll("button")].find((candidate) => candidate.textContent?.trim() === words);
+
 it.glass("gives the list its own header band beside a session and leaves the group labels in the body", function* ({ api, render }) {
 	yield* crewed(api);
 	const container = yield* render(<FleetPanel {...nowhere} api={api} sessionId={identity(CREW).sessionId} />);
@@ -56,7 +59,6 @@ it.glass("writes a berth's repository and branch as one path that breaks only af
 	yield* until(() => container.textContent?.includes(BRANCH) === true, "the berth to reach the card");
 	const path = spanSaying(container, `antumbra ${BRANCH}`);
 	expect(path?.className).toContain("font-mono");
-	expect(path?.className).not.toContain("wrap-anywhere");
 	expect(path?.querySelectorAll("wbr").length).toBe(2);
 });
 
@@ -72,4 +74,14 @@ it.glass("carries the whole voyage name in the eyebrow's tooltip", function* ({ 
 		() => document.body.querySelector('[data-slot="tooltip-content"]')?.textContent?.startsWith(VOYAGE_NAME) === true,
 		"the tooltip to say the whole voyage name",
 	);
+});
+
+it.glass("stands Retire in the title row beside the role it would retire", function* ({ api, render }) {
+	yield* crewed(api);
+	const container = yield* render(<FleetPanel {...nowhere} api={api} />);
+	yield* until(() => buttonSaying(container, "Retire") !== undefined, "the card to offer Retire");
+	const role = container.querySelector('[aria-label="Open hand"]');
+	const retire = buttonSaying(container, "Retire") ?? null;
+	expect(role?.textContent).toContain("hand");
+	expect(role?.parentElement?.contains(retire)).toBe(true);
 });

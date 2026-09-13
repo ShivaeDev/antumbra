@@ -1,9 +1,17 @@
 import { it } from "@antumbra/app-testing/entry.ts";
 import { counts } from "@antumbra/domain-settings/queries/counts.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
-import { Deferred, Effect, Exit, Scope } from "effect";
+import { Clock, Deferred, Effect, Exit, Scope } from "effect";
+import * as TestClock from "effect/testing/TestClock";
 import { expect } from "vitest";
 import { each, run } from "#reconcile.ts";
+
+const recording = (times: number[], signals: ReadonlyArray<Deferred.Deferred<void>>) =>
+	Effect.fn(function* () {
+		times.push(yield* Clock.currentTimeMillis);
+		const reached = signals[times.length - 1];
+		if (reached !== undefined) yield* Deferred.succeed(reached, undefined);
+	});
 
 const eligible = query("eligible", {
 	input: {},
@@ -98,4 +106,53 @@ it.app("each scopes in-flight effects and reports defects to its supervisor", fu
 		() => Effect.die("edge defect"),
 	);
 	expect(Exit.isFailure(yield* Effect.exit(failed.await))).toBe(true);
+});
+
+it.app("wakes at the due time it reported with no row moving", function* (app) {
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 3 });
+	const started = yield* Clock.currentTimeMillis;
+	const times: number[] = [];
+	const booted = yield* Deferred.make<void>();
+	const woken = yield* Deferred.make<void>();
+	yield* run(counts, {}, recording(times, [booted, woken]), () => started + 60_000);
+	yield* Deferred.await(booted);
+	yield* TestClock.adjust(59_999);
+	expect(times).toEqual([started]);
+	yield* TestClock.adjust(1);
+	yield* Deferred.await(woken);
+	expect(times).toEqual([started, started + 60_000]);
+});
+
+it.app("replaces its timer with the due time its latest run reported", function* (app) {
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 3 });
+	const started = yield* Clock.currentTimeMillis;
+	const times: number[] = [];
+	const booted = yield* Deferred.make<void>();
+	const nearer = yield* Deferred.make<void>();
+	const later = yield* Deferred.make<void>();
+	const moments = [started + 60_000, started + 150_000];
+	yield* run(counts, {}, recording(times, [booted, nearer, later]), (_reading, now) => moments.find((at) => at > now));
+	yield* Deferred.await(booted);
+	yield* TestClock.adjust(60_000);
+	yield* Deferred.await(nearer);
+	yield* TestClock.adjust(60_000);
+	expect(times).toEqual([started, started + 60_000]);
+	yield* TestClock.adjust(30_000);
+	yield* Deferred.await(later);
+	expect(times).toEqual([started, started + 60_000, started + 150_000]);
+});
+
+it.app("never wakes on time alone when it reports no due time", function* (app) {
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 3 });
+	const started = yield* Clock.currentTimeMillis;
+	const times: number[] = [];
+	const booted = yield* Deferred.make<void>();
+	const moved = yield* Deferred.make<void>();
+	yield* run(counts, {}, recording(times, [booted, moved]));
+	yield* Deferred.await(booted);
+	yield* TestClock.adjust(7 * 24 * 60 * 60 * 1000);
+	expect(times).toEqual([started]);
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 6 });
+	yield* Deferred.await(moved);
+	expect(times).toEqual([started, started + 7 * 24 * 60 * 60 * 1000]);
 });

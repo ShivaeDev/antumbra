@@ -137,8 +137,9 @@ The [changes and delivery guide](docs/design/changes-and-delivery.md) owns Outco
   finishing outranks starting" are intended, not yet built.
 - **All deadlocks are soft.** Capacity retains margin and may overcommit loudly and temporarily to break a proven stall. Intended, not yet built.
 - **A push is a latency hint, never a liveness dependency.** Reconcilers wake on dirty keys, and every one of them reconciles once at boot and once
-  after every reconnect, so a lost push costs latency, never liveness. A push is not a wake: a wake puts one Session back on its provider and is only
-  ever asked for.
+  after every reconnect, so a lost push costs latency, never liveness. A reconciler whose state turns on the passing of time reports, from its read,
+  the earliest moment it can change on its own, and the runtime wakes it then instead of polling. A push is not a wake: a wake puts one Session back
+  on its provider and is only ever asked for.
 - **Repository resources are app-level and capability-honest.** Every registered repository has one app-managed bare mirror, and each spawn gets one
   Berth for each registration. Runners expose only capabilities they can actually provide; repositories and Pieces never smuggle in resource policy.
 - **Reaping waits for settled execution.** A Session with an in-flight tool, descendant Agent tree, or background obligation is never interrupted for

@@ -6,7 +6,7 @@ import type { ReconcilerShape } from "@antumbra/platform-feature/reconciler.ts";
 import { Effect, type Scope } from "effect";
 import { Commit, type CommitService } from "#commit.ts";
 import { Live, type LiveService } from "#live.ts";
-import { each, type Reconciler, run } from "#reconcile.ts";
+import { type Due, each, type Reconciler, run } from "#reconcile.ts";
 
 interface LooseCommit {
 	readonly commit: (command: CommandShape, input: Record<string, unknown>) => Effect.Effect<number, unknown>;
@@ -21,6 +21,7 @@ interface LooseHelpers {
 		query: QueryShape,
 		input: Record<string, unknown>,
 		act: (reading: unknown) => Effect.Effect<void>,
+		due: Due<unknown> | undefined,
 	) => Effect.Effect<Reconciler, never, Live | Scope.Scope>;
 	readonly each: (
 		query: QueryShape,
@@ -31,6 +32,7 @@ interface LooseHelpers {
 }
 
 interface Declared {
+	readonly due: Due<unknown> | undefined;
 	readonly each: ((row: unknown) => unknown) | undefined;
 	readonly input: Record<string, unknown>;
 	readonly name: string;
@@ -71,7 +73,7 @@ const built = Effect.fn("Reconcilers.build")(function* (live: LooseLive, commit:
 	const act = (reading: unknown) =>
 		Effect.catch(declared.run(reading, reconciling), (failure) => Effect.logError("a reconciler run failed", { failure, reconciler: declared.name }));
 	return declared.each === undefined
-		? yield* helpers.run(declared.watch, declared.input, act)
+		? yield* helpers.run(declared.watch, declared.input, act, declared.due)
 		: yield* helpers.each(declared.watch, declared.input, declared.each, act);
 });
 

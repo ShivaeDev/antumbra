@@ -62,10 +62,9 @@ import { canRetireCrew } from "#queries/can-retire-crew.ts";
 import { captain } from "#queries/captain.ts";
 import { captain as captainView } from "#queries/captain-reading.ts";
 import { dispatch } from "#queries/dispatch.ts";
-import { dueRetirements } from "#queries/due-retirements.ts";
-import { dueSiestas } from "#queries/due-siestas.ts";
 import { pending } from "#queries/pending.ts";
 import { reading } from "#queries/reading.ts";
+import { rest } from "#queries/rest.ts";
 import { roster } from "#queries/roster.ts";
 import { smoother } from "#queries/smoother.ts";
 import { workingCount } from "#queries/working-count.ts";
@@ -123,8 +122,7 @@ export const agents = feature("agents", {
 		captainView,
 		byVoyage,
 		byPiece,
-		dueSiestas,
-		dueRetirements,
+		rest,
 		roster,
 		reading,
 		bySession,

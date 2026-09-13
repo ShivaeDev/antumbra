@@ -36,6 +36,7 @@ export interface ReconcilerShape {
 	readonly watch: QueryShape;
 	readonly input: Record<string, unknown>;
 	readonly each: ((row: never) => unknown) | undefined;
+	readonly due: ((reading: never, now: number) => number | undefined) | undefined;
 	readonly ports: readonly PortShape[];
 	readonly run: (reading: never, reconciling: never) => Effect.Effect<void, unknown>;
 }
@@ -81,6 +82,7 @@ export function reconciler<
 	declaration: Given<Input> & {
 		readonly watch: QueryDefinition<Watched, Input, Output, Reads, Needs>;
 		readonly ports: Ports;
+		readonly due?: (reading: Output["Type"], now: number) => number | undefined;
 		readonly run: (reading: Output["Type"], reconciling: Reconciling<NoInfer<Ports>>) => Effect.Effect<void, unknown>;
 	},
 ): ReconcilerDefinition<Name, QueryDefinition<Watched, Input, Output, Reads, Needs>, Ports>;
@@ -90,11 +92,13 @@ export function reconciler(
 		readonly watch: QueryShape;
 		readonly input?: Record<string, unknown>;
 		readonly each?: (row: never) => unknown;
+		readonly due?: (reading: never, now: number) => number | undefined;
 		readonly ports: readonly PortShape[];
 		readonly run: (reading: never, reconciling: never) => Effect.Effect<void, unknown>;
 	},
 ): ReconcilerShape {
 	return {
+		due: declaration.due,
 		each: declaration.each,
 		input: declaration.input ?? {},
 		name,

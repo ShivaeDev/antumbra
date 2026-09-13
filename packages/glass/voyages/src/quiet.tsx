@@ -6,7 +6,7 @@ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import type { VoyagesApi } from "#glass.ts";
 
 export const QUIET_CHIP = "quiet by you";
-export const QUIET_DETAIL = "nothing is sent to it until you resume it";
+export const QUIET_DETAIL = "Nothing is sent to it until you resume it.";
 
 export const QuietAct = (props: { readonly api: VoyagesApi; readonly voyageId: string; readonly quieted: boolean }) => {
 	const quieting = useCommand(props.api.voyages.quiet);

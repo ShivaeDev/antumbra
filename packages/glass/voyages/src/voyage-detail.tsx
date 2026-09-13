@@ -50,13 +50,13 @@ const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type
 				<PageHeader
 					actions={
 						<>
-							<VoyageState api={props.api} quieted={quieted} voyageId={voyage.id} />
 							<QuietAct api={props.api} quieted={quieted} voyageId={voyage.id} />
 							<CaptainAct api={props.api} onHail={props.onHail} voyageId={voyage.id} />
 						</>
 					}
 					back={<Back onBack={props.onBack} />}
 					description={<VoyageCaption api={props.api} quieted={quieted} spend={props.renderSpend?.(voyage.id)} voyageId={voyage.id} />}
+					state={<VoyageState api={props.api} quieted={quieted} voyageId={voyage.id} />}
 					title={voyage.name}
 					titleTooltip
 				/>

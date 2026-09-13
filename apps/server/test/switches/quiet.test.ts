@@ -62,7 +62,11 @@ it.app("a quieted voyage holds its ready piece while another voyage is still tol
 	yield* app.api.pieces.launch({ id: PIECE });
 	yield* app.api.pieces.launch({ id: BAR_PIECE });
 
-	const sailed = yield* eventually(app.api.sessions.operations({ sessionId: other.sessionId }), (held) => held.length === 1, "the other voyage's wake");
+	const sailed = yield* eventually(
+		app.api.sessions.operations({ sessionId: other.sessionId }),
+		(held) => held.length === 1,
+		"the other voyage's wake",
+	);
 	expect(sailed).toMatchObject([{ kind: "wake", reason: `Resume assigned piece ${BAR_PIECE}` }]);
 	const ready = yield* answered(app.api.agents.dispatch({}), "the dispatch to be read");
 	expect(ready.ready).toMatchObject([{ held: true, piece: { id: PIECE } }]);
@@ -140,7 +144,12 @@ it.app("a restart does not wake a quieted voyage's roots", function* (app) {
 				toolSetVersion: "crew-v1",
 			},
 		},
-		{ logId: RUNNER.logId, at: 100, cursor: 1, event: { type: "InputAccepted", sessionId, requestId: String(CREW), inputId: `charter-${sessionId}` } },
+		{
+			logId: RUNNER.logId,
+			at: 100,
+			cursor: 1,
+			event: { type: "InputAccepted", sessionId, requestId: String(CREW), inputId: `charter-${sessionId}` },
+		},
 	]);
 	yield* eventually(app.api.agents.reading({ id: agentId }), (reading) => reading?.state === "working", "the agent to be mid-turn");
 	yield* app.api.voyages.quiet({ id: VOYAGE });

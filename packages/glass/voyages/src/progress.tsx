@@ -41,12 +41,7 @@ export const VoyageCaption = (props: {
 				<>
 					<span className="tabular-nums">{wordsOf(progress)}</span>
 					{props.spend}
-					{props.quieted ? (
-						<span className="flex min-w-0 items-center gap-1.5">
-							<span>·</span>
-							<span>{QUIET_DETAIL}</span>
-						</span>
-					) : null}
+					{props.quieted ? <span className="min-w-0 basis-full">{QUIET_DETAIL}</span> : null}
 				</>
 			)
 		}

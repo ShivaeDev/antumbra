@@ -94,7 +94,8 @@ bytes live in app-managed custody, while journal rows hold their identity, order
 
 Durable requests describe pending operations. Reconcilers compare rows with current external evidence, then call commands to record decisions and
 runner operations to perform effects. They do not write rows directly or checkpoint an executing workflow. Journal reconciliation primitives run at
-boot and on dirty keys; the app refreshes them on runner reconnect and owns any required cadence.
+boot, on dirty keys, and at the next due time a reconciler reports from its read; the app refreshes them on runner reconnect and owns any remaining
+cadence.
 
 Starts use committed admission guards and observable waiting reasons. Piece demand survives an attempt, and provider capacity can hold an operation
 until an explicit release or suitable evidence permits progress. Resource reclamation keeps committed claim exclusions and Change-backed holds; runner

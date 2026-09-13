@@ -10,14 +10,14 @@ it.app("releasing a wake hold delivers due mail without marking it read", functi
 	yield* runner.rest(2);
 	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
 	yield* app.api.mail.send(sending("shoal"));
-	expect(yield* answered(app.api.mail.dueWakes({}))).toHaveLength(1);
+	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toHaveLength(1);
 	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }))).toEqual([]);
 	yield* app.api.settings.setFlag({ key: "holdWakes", on: false });
 	const delivered = yield* eventually(app.api.mail.mailbox({ agentId: HAND }), (mail) => mail.every((held) => held.deliveredAt !== null));
 	expect(delivered.map((held) => held.readAt)).toEqual([null]);
 	const operations = yield* answered(app.api.sessions.operations({ sessionId: ROOT }));
 	expect(operations).toMatchObject([{ kind: "wake", reason: mailWords({ count: 1, precedence: "priority" }), status: "requested" }]);
-	expect(yield* answered(app.api.mail.dueWakes({}))).toEqual([]);
+	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toEqual([]);
 });
 
 it.app("a routine mail timer submits the wake when its quiet interval ends", function* (app) {

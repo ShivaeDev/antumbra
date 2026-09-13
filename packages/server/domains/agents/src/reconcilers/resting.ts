@@ -4,26 +4,33 @@ import { reconciler } from "@antumbra/platform-feature/reconciler.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Clock, Effect } from "effect";
 import { retire } from "#commands/retire.ts";
-import { dueRetirements } from "#queries/due-retirements.ts";
-import { dueSiestas } from "#queries/due-siestas.ts";
-import { roster } from "#queries/roster.ts";
+import { rest } from "#queries/rest.ts";
 
 export const resting = reconciler("resting", {
-	watch: roster,
+	watch: rest,
 	ports: [],
-	run: Effect.fn("Agents.resting")(function* (_reading, reconciling) {
+	due: (reading, now) => {
+		let next: number | undefined;
+		for (const held of [...reading.retirements, ...reading.siestas]) {
+			if (held.waitUntil === null || held.waitUntil <= now) continue;
+			if (next === undefined || held.waitUntil < next) next = held.waitUntil;
+		}
+		return next;
+	},
+	run: Effect.fn("Agents.resting")(function* (reading, reconciling) {
 		const now = yield* Clock.currentTimeMillis;
-		for (const held of yield* reconciling.read(dueRetirements, { now })) {
+		for (const held of reading.retirements) {
+			if (held.waitUntil !== null && held.waitUntil > now) continue;
 			yield* reconciling
 				.commit(retire, { id: held.id, requestId: Request.make(`retire:${held.id}`) })
 				.pipe(Effect.catchTags({ AlreadyDone: () => Effect.void, Unknown: () => Effect.void, Working: () => Effect.void }));
 		}
-		for (const held of yield* reconciling.read(dueSiestas, { now })) {
-			if (held.currentSessionId === null) continue;
+		for (const held of reading.siestas) {
+			if (held.waitUntil > now) continue;
 			yield* reconciling
 				.commit(request, {
-					sessionId: SessionId.make(held.currentSessionId),
-					requestId: Request.make(`siesta:${held.currentSessionId}:${held.idleSince}`),
+					sessionId: SessionId.make(held.sessionId),
+					requestId: Request.make(`siesta:${held.sessionId}:${held.idleSince}`),
 					kind: "sleep",
 					inputId: null,
 					reason: "Idle siesta",

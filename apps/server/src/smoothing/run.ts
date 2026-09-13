@@ -66,8 +66,9 @@ export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: Prepa
 	const live = yield* Live;
 	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
 		Effect.gen(function* () {
-			if (!allows(yield* live.read(flags, {}), "spawnSmoother")) return;
-			yield* Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true });
+			const spawning = allows(yield* live.read(flags, {}), "spawnSmoother");
+			const asked = attempts.filter((attempt) => attempt.by === "admiral" || spawning);
+			yield* Effect.forEach(asked, (attempt) => smoothAttempt(attempt, prepare), { discard: true });
 		}),
 	);
 	const day = yield* Effect.forkScoped(Effect.forever(Effect.scoped(watchDay())));

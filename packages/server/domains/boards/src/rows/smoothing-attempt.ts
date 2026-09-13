@@ -11,6 +11,7 @@ export const smoothingAttempt = row(
 		pieceId: Schema.NullOr(PieceId),
 		throughToday: Schema.Boolean,
 		requestedAt: Schema.String,
+		by: Schema.Literals(["admiral", "antumbra"]),
 		status: Schema.Literals(["requested", "succeeded", "failed"]),
 		detail: Schema.NullOr(Schema.String),
 	},

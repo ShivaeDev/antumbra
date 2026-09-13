@@ -108,7 +108,7 @@ it.app("writes a bound piece summary and its voyage handoff once", function* (ap
 		author: context.agentId,
 		requestId: Request.make("source-note"),
 	});
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId, throughToday: false, requestId: Request.make("bound-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId, throughToday: false, by: "antumbra", requestId: Request.make("bound-pass") });
 	yield* app.api.boards.bindSmoothingSession({
 		sessionId: context.sessionId,
 		attemptId: "bound-pass",

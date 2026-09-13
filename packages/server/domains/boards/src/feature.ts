@@ -13,7 +13,7 @@ import { write } from "#commands/write.ts";
 import { noteWritten } from "#facts/note-written.ts";
 import { pieceSummaryWritten } from "#facts/piece-summary-written.ts";
 import { smoothingFinished } from "#facts/smoothing-finished.ts";
-import { smoothingRequested } from "#facts/smoothing-requested.ts";
+import { askedByAntumbra, smoothingRequested } from "#facts/smoothing-requested.ts";
 import { smoothingSessionBound } from "#facts/smoothing-session-bound.ts";
 import { smoothingSessionFinished } from "#facts/smoothing-session-finished.ts";
 import { summaryWritten } from "#facts/summary-written.ts";
@@ -49,5 +49,6 @@ export const boards = feature("boards", {
 		smoothingSessionBoundMaterializer,
 		smoothingSessionFinishedMaterializer,
 	],
+	migrations: [askedByAntumbra],
 	queries: [display, entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
 });

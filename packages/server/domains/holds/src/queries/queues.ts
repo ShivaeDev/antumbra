@@ -97,6 +97,7 @@ const addSmoothing = (
 	seen: { readonly now: number; readonly voyages: Voyages },
 ): void => {
 	for (const attempt of attempts) {
+		if (attempt.by === "admiral") continue;
 		queued.spawnSmoother.push({
 			id: attempt.id,
 			title: pieces.find((held) => held.id === attempt.pieceId)?.title ?? DAILY_BOARD,

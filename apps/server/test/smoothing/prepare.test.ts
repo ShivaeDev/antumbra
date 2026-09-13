@@ -42,7 +42,7 @@ it.app("prepares an actual constrained birth, waits for logged acceptance, and c
 		requestId: Request.make(voyageId),
 	});
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("prepared-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("prepared-pass") });
 	const start = yield* nextSessionOperation(runner, entries);
 	if (start.type !== "Start") return yield* Effect.die("the smoother was not started");
 	expect(start.options).toMatchObject({ constrainedPrompt: smootherWords, toolSet: { version: "smoothing-v1", tools: [{ name: "write_summary" }] } });
@@ -89,7 +89,7 @@ it.app("prepares an actual constrained birth, waits for logged acceptance, and c
 		currentSessionId: null,
 	});
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The wind backed", register: "rough", author: null });
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("next-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("next-pass") });
 	const next = yield* nextSessionOperation(runner, entries);
 	if (next.type !== "Start") return yield* Effect.die("the next smoothing pass was not started");
 	expect(next.options.agentId).toBe(start.options.agentId);

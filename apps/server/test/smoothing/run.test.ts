@@ -29,7 +29,7 @@ const opening = {
 it.app("runs a constrained summary pass through its bound domain tool and closes the session", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("runtime-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("runtime-pass") });
 	const live = yield* Live;
 	const attempt = (yield* live.read(pendingSmoothing, {})).find((pending) => pending.id === "runtime-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
@@ -56,7 +56,7 @@ it.app("runs a constrained summary pass through its bound domain tool and closes
 it.app("records an empty answer as a failed pass and leaves source notes standing", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("empty-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("empty-pass") });
 	const attempt = (yield* (yield* Live).read(pendingSmoothing, {})).find((pending) => pending.id === "empty-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
 	yield* smoothAttempt(attempt, () =>
@@ -73,7 +73,7 @@ it.app("records an empty answer as a failed pass and leaves source notes standin
 it.app("stops a silent smoother after the existing ten-minute patience", function* (app) {
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
-	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, requestId: Request.make("timeout-pass") });
+	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("timeout-pass") });
 	const target = (yield* (yield* Live).read(smoothingTargets, {
 		id: "timeout-pass",
 		now: new Date(yield* Clock.currentTimeMillis).toISOString(),

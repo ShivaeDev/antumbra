@@ -1,3 +1,4 @@
+import { eventually } from "@antumbra/app-testing/answers.ts";
 import { click, labelled, until } from "@antumbra/app-testing/glass/dom.ts";
 import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
 import { identity } from "@antumbra/domain-agents/ids.ts";
@@ -43,6 +44,14 @@ const charted = Effect.fnUntraced(function* (api: Api) {
 		dependsOn: [],
 	});
 });
+
+const smoothing = Effect.fnUntraced(function* (api: Api) {
+	const ids = identity(SMOOTHER);
+	yield* api.agents.smooth({ requestId: SMOOTHER, agentId: ids.agentId, sessionId: ids.sessionId, voyageId, cwd: null });
+});
+
+const groupsOf = (container: HTMLElement): readonly (string | null)[] =>
+	[...container.querySelectorAll("section > header")].map((header) => header.textContent);
 
 it.glass("an agent card opens that agent's session and leaves the fleet only through its voyage", function* ({ api, render }) {
 	yield* charted(api);
@@ -95,20 +104,32 @@ it.glass("a piece no agent has spoken for says so where its session would be", f
 it.glass("the fleet keeps smoothers out of its groups until it is asked to show them", function* ({ api, render }) {
 	yield* charted(api);
 	yield* api.agents.workNow({ requestId: CREW, pieceId });
-	const smoother = identity(SMOOTHER);
-	yield* api.agents.smooth({ requestId: SMOOTHER, agentId: smoother.agentId, sessionId: smoother.sessionId, voyageId, cwd: null });
+	yield* smoothing(api);
+	yield* eventually(api.agents.roster({}), (rows) => rows.length === 2);
 	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
 	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
-	const groups = () => [...container.querySelectorAll("section > header")].map((header) => header.textContent);
-	const withoutSmoothers = groups();
+	const withoutSmoothers = groupsOf(container);
 	expect(withoutSmoothers).toEqual(["Preparing to work1"]);
 	expect(container.querySelector('[aria-label="Open smoother"]')).toBeNull();
 
-	const toggle = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
-	if (toggle === null) return yield* Effect.die("Missing the fleet's smoothers toggle");
-	yield* click(toggle);
+	yield* click(labelled(container, "Show smoothers"));
 	yield* until(() => container.querySelector('[aria-label="Open smoother"]') !== null, "the smoother to join the roster");
-	expect(groups()).toEqual([...withoutSmoothers, "Smoothing1"]);
+	expect(groupsOf(container)).toEqual([...withoutSmoothers, "Smoothing1"]);
+});
+
+it.glass("a fleet of smoothers alone says so and offers them", function* ({ api, render }) {
+	yield* charted(api);
+	yield* smoothing(api);
+	yield* eventually(api.agents.roster({}), (rows) => rows.length === 1);
+	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
+	yield* until(
+		() => container.textContent?.includes("Only smoothers are here. Show smoothers to see them.") === true,
+		"the fleet to say only smoothers are here",
+	);
+	yield* click(labelled(container, "Show smoothers"));
+	yield* until(() => container.querySelector('[aria-label="Open smoother"]') !== null, "the smoother to join the roster");
+	expect(groupsOf(container)).toEqual(["Smoothing1"]);
+	expect(container.textContent).not.toContain("Only smoothers are here");
 });
 
 it.glass("an agent with no open conversation cannot be opened from its card", function* ({ api, render }) {

@@ -22,8 +22,9 @@ export const FleetPanel = (props: {
 				<h2 className="min-w-0 flex-1 text-base">Fleet</h2>
 				<label className={cn(ACT, "has-focus-visible:ring-2 has-focus-visible:ring-ring/60")}>
 					<input
+						aria-label="Show smoothers"
 						checked={smoothers}
-						className="size-3 accent-primary outline-none"
+						className="size-3 accent-primary"
 						onChange={(event) => setSmoothers(event.target.checked)}
 						type="checkbox"
 					/>
@@ -35,10 +36,11 @@ export const FleetPanel = (props: {
 			<Live query={props.api.agents.roster} input={{}} waiting="Reading the fleet…">
 				{(agents) => {
 					const shown = smoothers ? agents : agents.filter((agent) => agent.role !== "smoother");
-					return shown.length === 0 ? (
-						<p className="text-xs text-muted-foreground">No agents yet — spawn one to put it here</p>
-					) : (
-						<Roster {...props} agents={shown} />
+					if (shown.length > 0) return <Roster {...props} agents={shown} />;
+					return (
+						<p className="text-xs text-muted-foreground">
+							{agents.length === 0 ? "No agents yet — spawn one to put it here" : "Only smoothers are here. Show smoothers to see them."}
+						</p>
 					);
 				}}
 			</Live>

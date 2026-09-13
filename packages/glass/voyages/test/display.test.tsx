@@ -21,32 +21,24 @@ const opening = {
 	northStar: "Every shoal is known",
 	requestId: Id.Request.make("reef"),
 } as const;
-it.glass("shows live Voyage progress and routes selection and captain actions", function* ({ api, render }) {
+it.glass("shows live Voyage progress and routes selection from the card", function* ({ api, render }) {
 	yield* api.voyages.open(opening);
 	let selected = "";
-	let hailed = "";
 	const container = yield* render(
 		<VoyageList
 			api={api}
-			onSelect={(id) => {
+			onSelect={(id: string) => {
 				selected = id;
-			}}
-			onHail={(id) => {
-				hailed = id;
 			}}
 		/>,
 	);
-	yield* until(() => container.textContent?.includes("Nothing chartered yet") === true, "the empty voyage progress");
+	yield* until(() => container.textContent?.includes("No pieces yet") === true, "the empty voyage progress");
 	const card = labelled<HTMLButtonElement>(container, "Open Reef");
 	expect(card.tagName).toBe("BUTTON");
 	const northStar = [...card.querySelectorAll("span")].find((line) => line.textContent === "Every shoal is known");
 	if (northStar === undefined) return expect.fail("the voyage's north star");
 	yield* click(northStar);
 	expect(selected).toBe("reef");
-	const reefRow = [...container.querySelectorAll("li")].find((row) => row.textContent?.includes("Reef") === true);
-	if (reefRow === undefined) return expect.fail("the Reef row");
-	yield* press(reefRow, "Hail a captain");
-	expect(hailed).toBe("reef");
 	yield* api.pieces.charter({
 		requestId: Id.Request.make("soundings"),
 		voyageId: VoyageId.make("reef"),
@@ -80,9 +72,6 @@ it.glass("opens the Flagship captain conversation after hail", function* ({ api,
 	const hail = Id.Request.make("hail");
 	yield* api.agents.hail({ requestId: hail, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "admiral" });
 	yield* until(() => container.textContent?.includes(`Conversation ${identity(hail).sessionId}`) === true, "the captain conversation");
-	expect(container.textContent).not.toContain("Hail a captain");
-	yield* render(<VoyageList api={api} onSelect={() => undefined} onHail={() => undefined} />);
-	yield* until(() => container.textContent?.includes("Captain") === true, "the working captain marker");
 	expect(container.textContent).not.toContain("Hail a captain");
 });
 

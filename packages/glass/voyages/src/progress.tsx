@@ -1,61 +1,56 @@
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import type { voyageProgress } from "@antumbra/domain-voyages/rows/voyage-progress.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
+import { Progress } from "@antumbra/glass-components/shadcn/progress.tsx";
+import type { ReactNode } from "react";
 import type { VoyagesApi } from "#glass.ts";
 
+type Reading = typeof voyageProgress.Row.Type;
+
+const NOTHING = "No pieces yet";
+
+const wordsOf = (progress: Reading): string => {
+	if (progress.total === 0) return NOTHING;
+	const words = [`${progress.counts.done} of ${progress.total} landed`];
+	if (progress.counts.active > 0) words.push(`${progress.counts.active} active`);
+	if (progress.counts.ready > 0) words.push(`${progress.counts.ready} ready`);
+	return words.join(" · ");
+};
+
+const watched = (props: { readonly api: VoyagesApi; readonly voyageId: string }) => ({
+	input: { id: VoyageId.make(props.voyageId) },
+	query: props.api.voyages.progress,
+});
+
 export const VoyageState = (props: { readonly api: VoyagesApi; readonly voyageId: string }) => (
-	<Live input={{ id: VoyageId.make(props.voyageId) }} query={props.api.voyages.progress}>
+	<Live {...watched(props)}>{(progress) => (progress?.state === "quiet" ? <StatusBadge state="quiet" /> : null)}</Live>
+);
+
+export const VoyageCaption = (props: { readonly api: VoyagesApi; readonly voyageId: string; readonly spend?: ReactNode }) => (
+	<Live {...watched(props)}>
 		{(progress) =>
 			progress === null ? null : (
-				<Badge variant={progress.state === "quiet" ? "outline" : "success"}>{progress.state === "quiet" ? "Quiet" : "Under way"}</Badge>
+				<>
+					<span className="tabular-nums">{wordsOf(progress)}</span>
+					{props.spend}
+				</>
 			)
 		}
 	</Live>
 );
 
-export const VoyageProgress = (props: { readonly api: VoyagesApi; readonly voyageId: string; readonly withLegend?: boolean }) => (
-	<Live input={{ id: VoyageId.make(props.voyageId) }} query={props.api.voyages.progress}>
-		{(progress) => (progress === null ? null : <ProgressBar progress={progress} withLegend={props.withLegend} />)}
+export const VoyageProgress = (props: { readonly api: VoyagesApi; readonly voyageId: string }) => (
+	<Live {...watched(props)}>
+		{(progress) =>
+			progress === null ? null : (
+				<div className="flex min-w-0 flex-col gap-1.5">
+					{progress.total === 0 ? null : (
+						<Progress aria-label={wordsOf(progress)} className="h-1" value={(progress.counts.done / progress.total) * 100} />
+					)}
+					<span className="text-xs text-muted-foreground tabular-nums">{wordsOf(progress)}</span>
+				</div>
+			)
+		}
 	</Live>
 );
-
-const ProgressBar = (props: {
-	readonly progress: typeof import("@antumbra/domain-voyages/rows/voyage-progress.ts").voyageProgress.Row.Type;
-	readonly withLegend?: boolean | undefined;
-}) => {
-	const progress = props.progress;
-	if (progress.total === 0) return <span className="block text-2xs text-muted-foreground">Nothing chartered yet</span>;
-	const slices = [
-		{ name: "landed", count: progress.counts.done, color: "bg-muted-foreground" },
-		{ name: "active", count: progress.counts.active, color: "bg-success" },
-		{ name: "ready", count: progress.counts.ready, color: "bg-info" },
-	];
-	const legend = props.withLegend ? slices.filter((slice) => slice.name !== "landed" && slice.count > 0) : [];
-	const label = `${progress.counts.done} of ${progress.total} landed`;
-	return (
-		<span className="flex min-w-0 flex-col gap-1.5">
-			<span
-				aria-label={[
-					label,
-					...slices.filter((slice) => slice.name !== "landed" && slice.count > 0).map((slice) => `${slice.count} ${slice.name}`),
-				].join(", ")}
-				className="flex h-1 w-full gap-px overflow-hidden rounded-full bg-muted"
-				role="img"
-			>
-				{slices
-					.filter((slice) => slice.count > 0)
-					.map((slice) => (
-						<span className={`h-full ${slice.color}`} key={slice.name} style={{ width: `${(slice.count / progress.total) * 100}%` }} />
-					))}
-			</span>
-			<span className="flex flex-wrap gap-x-3 text-2xs text-muted-foreground">
-				<span className="tabular-nums">{label}</span>
-				{legend.map((slice) => (
-					<span className="tabular-nums" key={slice.name}>
-						{slice.count} {slice.name}
-					</span>
-				))}
-			</span>
-		</span>
-	);
-};

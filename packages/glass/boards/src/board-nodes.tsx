@@ -2,7 +2,7 @@ import type { BoardNode } from "@antumbra/domain-boards/queries/display.ts";
 import type { boardEntry } from "@antumbra/domain-boards/rows/board-entry.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { type ReactNode, useState } from "react";
 import type { BoardDisplayApi } from "#display.ts";
 import { coveredLabel, summaryTitle } from "#summary-labels.ts";
@@ -22,9 +22,9 @@ const PieceLink = (props: {
 		<Live input={{ id }} query={props.api.pieces.byId}>
 			{(piece) =>
 				props.onPiece === undefined ? (
-					<p className="text-xs font-medium">{piece?.title ?? id}</p>
+					<p className="text-sm font-medium">{piece?.title ?? id}</p>
 				) : (
-					<Button onClick={() => props.onPiece?.(id)} title="Open this piece" variant="link">
+					<Button className="h-auto p-0" onClick={() => props.onPiece?.(id)} size="sm" title="Open this piece" variant="link">
 						{piece?.title ?? id}
 					</Button>
 				)
@@ -44,10 +44,10 @@ type NodesProps = {
 const CoveredEntries = (props: NodesProps): ReactNode => {
 	const [open, setOpen] = useState(false);
 	const label = coveredLabel(props.nodes);
-	if (props.depth >= 3) return <p className="text-2xs text-muted-foreground">{label}</p>;
+	if (props.depth >= 3) return <p className="text-xs text-muted-foreground">{label}</p>;
 	return (
 		<div>
-			<button aria-expanded={open} className="cursor-pointer text-2xs text-muted-foreground" onClick={() => setOpen(!open)} type="button">
+			<button aria-expanded={open} className="cursor-pointer text-xs text-muted-foreground" onClick={() => setOpen(!open)} type="button">
 				{label}
 			</button>
 			{open ? <BoardNodes {...props} depth={props.depth + 1} /> : null}
@@ -61,17 +61,17 @@ export const BoardNodes = (props: NodesProps): ReactNode => (
 			const entry = node.entry;
 			return (
 				<li className="flex min-w-0 flex-col gap-1" key={entry.id}>
-					{entry.kind === "summary" ? <h3 className="text-xs font-medium">{summaryTitle(node, props.name)}</h3> : null}
-					{entry.kind === "pieceSummary" ? <h3 className="text-xs font-medium">Piece summary</h3> : null}
-					{entry.kind === "note" && entry.register === "smooth" ? <h3 className="text-xs font-medium">Note</h3> : null}
-					<div className="flex min-w-0 items-center gap-2 text-2xs text-muted-foreground">
+					{entry.kind === "summary" ? <h3 className="text-sm font-medium">{summaryTitle(node, props.name)}</h3> : null}
+					{entry.kind === "pieceSummary" ? <h3 className="text-sm font-medium">Piece summary</h3> : null}
+					{entry.kind === "note" && entry.register === "smooth" ? <h3 className="text-sm font-medium">Note</h3> : null}
+					<div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
 						<span>{author(entry)}</span>
 						<time className="ml-auto tabular-nums" dateTime={entry.createdAt}>
 							{entry.createdAt.slice(0, 16).replace("T", " ")}
 						</time>
 					</div>
 					{entry.kind === "pieceSummary" ? <PieceLink api={props.api} entry={entry} onPiece={props.onPiece} /> : null}
-					<MarkdownView className={entry.register === "rough" ? "text-2xs text-muted-foreground" : "max-w-[72ch] text-sm"} markdown={entry.body} />
+					<MarkdownView className={entry.register === "rough" ? "text-xs text-muted-foreground" : "max-w-[72ch] text-sm"} markdown={entry.body} />
 					{entry.kind === "summary" ? <CoveredEntries {...props} nodes={node.children} /> : null}
 				</li>
 			);

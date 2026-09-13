@@ -5,13 +5,15 @@ import { AgentSession } from "@antumbra/glass-sessions/agent-session.tsx";
 import { PieceSession } from "@antumbra/glass-sessions/piece-session.tsx";
 import { VoyageSpend } from "@antumbra/glass-sessions/spend.tsx";
 import { VoyageDetail } from "@antumbra/glass-voyages/voyage-detail.tsx";
+import { VoyagesPage } from "@antumbra/glass-voyages/voyages-page.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import { Cause, Effect } from "effect";
 import { type ReactNode, useState } from "react";
-import { VoyagesAside } from "#navigation/voyages-aside.tsx";
 import type { RendererProps } from "#props.ts";
 
-export const VoyagesPage = (
+const DETAIL_FLOOR = 560;
+
+export const VoyagesScreen = (
 	props: Pick<RendererProps, "api" | "readArtifact" | "shell"> & {
 		readonly place: ConsolePlace;
 		readonly onPlace: (place: ConsolePlace) => void;
@@ -36,8 +38,9 @@ export const VoyagesPage = (
 		setCrew(agentId);
 		props.onPlace({ ...props.place, pieceId: null });
 	};
+	const voyageId = props.place.voyageId;
+	if (voyageId === null) return <VoyagesPage api={props.api} onSelect={openVoyage} />;
 	const beside = (): ReactNode => {
-		if (props.place.voyageId === null) return null;
 		const reading = props.place.pieceId ?? null;
 		if (reading !== null) {
 			const close = () => props.onPlace({ ...props.place, pieceId: null });
@@ -46,34 +49,33 @@ export const VoyagesPage = (
 		if (crew === null) return null;
 		return <AgentSession api={props.api} agentId={crew} renderSession={(sessionId) => props.renderSession(sessionId, () => setCrew(null))} />;
 	};
-	const chosen = (): ReactNode => {
-		if (props.place.voyageId === null) return <section className="m-auto text-xs text-muted-foreground">select a voyage to see its pieces</section>;
-		return (
-			<VoyageDetail
-				api={props.api}
-				voyageId={props.place.voyageId}
-				pieceId={props.place.pieceId ?? undefined}
-				agentId={crew ?? undefined}
-				onPiece={openPiece}
-				onAgent={openAgent}
-				readArtifact={props.readArtifact}
-				onHail={hail}
-				onWorkNow={(pieceId) => run(props.api.agents.workNow({ pieceId: PieceId.make(pieceId) }))}
-				onRetireCrew={(pieceId) => run(props.api.agents.retireCrew({ pieceId: PieceId.make(pieceId) }))}
-				onSmooth={(voyageId) =>
-					run(props.api.boards.requestSmoothing({ voyageId: VoyageId.make(voyageId), pieceId: null, throughToday: true, by: "admiral" }))
-				}
-				renderSpend={(voyageId) => <VoyageSpend api={props.api} voyageId={voyageId} />}
-				openArtifact={(artifactId) => run(props.shell.open({ role: "artifact", artifactId }))}
-			/>
-		);
-	};
 	return (
-		<div className="flex min-h-0 min-w-0 flex-1">
-			<aside className="flex w-80 shrink-0 flex-col gap-5 overflow-x-hidden overflow-y-auto border-r border-border p-3">
-				<VoyagesAside onHail={hail} api={props.api} selected={props.place.voyageId ?? undefined} onSelect={openVoyage} />
-			</aside>
-			<TwoPane list={chosen()} pane={beside()} />
-		</div>
+		<TwoPane
+			list={
+				<VoyageDetail
+					api={props.api}
+					voyageId={voyageId}
+					pieceId={props.place.pieceId ?? undefined}
+					agentId={crew ?? undefined}
+					onBack={() => {
+						setCrew(null);
+						props.onPlace({ ...props.place, pieceId: null, voyageId: null });
+					}}
+					onPiece={openPiece}
+					onAgent={openAgent}
+					readArtifact={props.readArtifact}
+					onHail={hail}
+					onWorkNow={(pieceId) => run(props.api.agents.workNow({ pieceId: PieceId.make(pieceId) }))}
+					onRetireCrew={(pieceId) => run(props.api.agents.retireCrew({ pieceId: PieceId.make(pieceId) }))}
+					onSmooth={(smoothed) =>
+						run(props.api.boards.requestSmoothing({ voyageId: VoyageId.make(smoothed), pieceId: null, throughToday: true, by: "admiral" }))
+					}
+					renderSpend={(spent) => <VoyageSpend api={props.api} voyageId={spent} />}
+					openArtifact={(artifactId) => run(props.shell.open({ role: "artifact", artifactId }))}
+				/>
+			}
+			listFloor={DETAIL_FLOOR}
+			pane={beside()}
+		/>
 	);
 };

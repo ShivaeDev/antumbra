@@ -7,7 +7,8 @@ export const VoyageSpend = ({ api, voyageId }: { readonly api: SessionsApi; read
 	<Live query={api.costs.forVoyage} input={{ voyageId: VoyageId.make(voyageId) }} waiting="Reading voyage spend…">
 		{(total) =>
 			total.turns === 0 ? null : (
-				<span className="ml-auto flex shrink-0 items-center gap-1 whitespace-nowrap text-2xs text-muted-foreground tabular-nums">
+				<span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap tabular-nums">
+					<span>·</span>
 					<SpendInline total={total} />
 				</span>
 			)

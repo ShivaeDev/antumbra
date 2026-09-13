@@ -1,0 +1,16 @@
+CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL);
+CREATE TABLE "applied" ("requestId" TEXT PRIMARY KEY, "seq" INTEGER NOT NULL);
+CREATE TABLE "shape" ("name" TEXT PRIMARY KEY, "hash" TEXT NOT NULL);
+CREATE TABLE "runner_cursor" ("logId" TEXT PRIMARY KEY, "cursor" INTEGER NOT NULL, "seq" INTEGER NOT NULL);
+CREATE TABLE "fact_migration" ("feature" TEXT NOT NULL, "number" INTEGER NOT NULL, "at" INTEGER NOT NULL, PRIMARY KEY ("feature", "number"));
+CREATE TABLE "count" ("key" TEXT NOT NULL PRIMARY KEY, "scope" TEXT NOT NULL, "count" INTEGER NOT NULL);
+CREATE INDEX "count_by_scope" ON "count" ("scope");
+CREATE TABLE "flag" ("key" TEXT NOT NULL PRIMARY KEY, "scope" TEXT NOT NULL, "on" TEXT NOT NULL);
+CREATE INDEX "flag_by_scope" ON "flag" ("scope");
+INSERT INTO "shape" ("name", "hash") VALUES ('count', 'q4w1k7'), ('flag', 'z9m2p3');
+INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (1, 1757000000001, 'request-1', 'CountSet', '{"key":"maxParallelSessions","count":9}');
+INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (2, 1757000000002, 'request-2', 'FlagSet', '{"key":"signChanges","on":false}');
+INSERT INTO "journal" ("seq", "at", "requestId", "name", "payload") VALUES (3, 1757000000003, 'request-3', 'CountSet', '{"key":"idleSiestaMinutes","count":45}');
+INSERT INTO "applied" ("requestId", "seq") VALUES ('request-1', 1), ('request-2', 2), ('request-3', 3);
+INSERT INTO "count" ("key", "scope", "count") VALUES ('maxParallelSessions', 'fleet', 9), ('idleSiestaMinutes', 'fleet', 45);
+INSERT INTO "flag" ("key", "scope", "on") VALUES ('signChanges', 'fleet', 'false');

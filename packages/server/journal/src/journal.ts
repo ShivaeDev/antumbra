@@ -28,7 +28,7 @@ const onDisk = Effect.fn("journal.onDisk")(function* () {
 		yield* files.makeDirectory(backups, { recursive: true });
 		const target = `${backups}/journal-${now}-${crypto.randomUUID()}.db`;
 		yield* write`VACUUM INTO ${target}`;
-		yield* Effect.logInfo("journal backed up before projection rebuild", { path: target });
+		yield* Effect.logInfo("journal backed up before upgrade", { path: target });
 	}).pipe(Effect.orDie);
 	return { backup, read, write };
 });

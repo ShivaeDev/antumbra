@@ -15,7 +15,8 @@ known; a lock a crash left behind can be removed by hand.
 ## When a reset is the right move
 
 A shape change is not one. When a row's shape changes, or a feature declares a new fact migration, startup backs the journal up and replays the
-retained facts, and the projections follow the code without help.
+retained facts, and the projections follow the code without help. A change to the journal's own tables is not one either: it ships as a numbered
+upgrade step that startup applies to the database it finds.
 
 Reset when the dev app should start from nothing — no Voyages, no Agents, no Sessions, no history — usually because what has accumulated is in the way
 of what you are about to try. It throws every fact away for good, and `pnpm journal facts` is the last look at what it would discard.

@@ -27,7 +27,7 @@ export const VoyageSpend = Schema.Struct({
 export type VoyageSpend = typeof VoyageSpend.Type;
 
 export const ModelSpend = Schema.Struct({
-	model: Schema.NullOr(Schema.String),
+	model: Schema.String,
 	total: UsageTotal,
 });
 export type ModelSpend = typeof ModelSpend.Type;

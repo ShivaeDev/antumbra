@@ -28,8 +28,8 @@ export interface SessionLanes {
 
 const isProgress = (message: SDKMessage) => message.type === "system" && message.subtype === "task_progress";
 
-export const openSessionLanes = (sessionModel: string): SessionLanes => {
-	const mapping = openSessionMapping(sessionModel);
+export const openSessionLanes = (): SessionLanes => {
+	const mapping = openSessionMapping();
 	const identities = openWorkflowIdentities();
 	const nodes = openWorkflowNodes(identities);
 	const results = openWorkflowResults();

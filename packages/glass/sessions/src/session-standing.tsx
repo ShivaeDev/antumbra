@@ -1,8 +1,13 @@
-import type { Activity, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
+import type { Activity, SessionModelSpend, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
+import { costCell, costPhrase, costReported } from "#costs/format.ts";
 import { cacheShare, usageFacts } from "#transcript/usage-label.ts";
 
 const stateWords = { "awaiting-input": "awaiting input", idle: "idle", running: "running" };
+
+const spentWords = (spent: SessionModelSpend): string => `${spent.model} ${costPhrase(spent)}`;
+
+const modelsTitle = (models: SessionStanding["models"]): string | undefined => (models.length < 2 ? undefined : models.map(spentWords).join(" · "));
 
 export const SessionStandingBar = ({ activity, standing }: { readonly activity: Activity; readonly standing: SessionStanding }) => {
 	const share = standing.usage === undefined ? undefined : cacheShare(standing.usage);
@@ -20,9 +25,10 @@ export const SessionStandingBar = ({ activity, standing }: { readonly activity: 
 					{standing.background.map((task) => (task.description.trim() === "" ? task.kind : `${task.kind}: ${task.description.trim()}`)).join(", ")}
 				</span>
 			)}
-			<span className="ml-auto flex min-w-0 flex-wrap justify-end gap-x-2">
+			<span className="ml-auto flex min-w-0 flex-wrap justify-end gap-x-2" title={modelsTitle(standing.models)}>
 				{share === undefined ? null : <span className="font-medium text-foreground">{Math.round(share * 100)}% cache</span>}
 				{standing.usage === undefined ? <span>no usage reported yet</span> : usageFacts(standing.usage).map((fact) => <span key={fact}>{fact}</span>)}
+				{costReported(standing.spend) ? <span>session {costCell(standing.spend)}</span> : null}
 			</span>
 		</div>
 	);

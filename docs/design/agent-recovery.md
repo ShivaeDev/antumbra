@@ -69,11 +69,11 @@ waits. Provider turns may appear in telemetry, but the domain never treats a tur
 
 The durable Session event sequence is the UI and audit source. Each observer subscribes to post-write publication before reading the log, then
 deduplicates by sequence as live events arrive. That ordering closes the read/subscription gap. Its neutral vocabulary covers opening, messages,
-thinking, tool start and completion, usage, rate limits, provider-turn telemetry, subsession opening, ending, and gaps, and raw evidence. A subsession
-gap is where the record admits it stopped seeing, and a node's ledger of them is what its completeness is projected from. A reading that says only
-that a node is there reaches the journal the first time the runner makes it and again when it says something else about that node, so a pass that
-meets a node it has already reported writes nothing. A reading that asserts something — a state, a census, an opening, a gap — is written every time
-it is made, because writing it again is how the record is re-asserted against whatever has moved since.
+thinking, tool start and completion, usage, rate limits, model reroutes, provider-turn telemetry, subsession opening, ending, and gaps, and raw
+evidence. A subsession gap is where the record admits it stopped seeing, and a node's ledger of them is what its completeness is projected from. A
+reading that says only that a node is there reaches the journal the first time the runner makes it and again when it says something else about that
+node, so a pass that meets a node it has already reported writes nothing. A reading that asserts something — a state, a census, an opening, a gap — is
+written every time it is made, because writing it again is how the record is re-asserted against whatever has moved since.
 
 What has been reported is a claim of the current runner connection and never outlives it, so the first pass after a reconnect reports every node once
 and the journal folds what it already holds. The claim is made only once the reading is durable, and a node that closes or a session that ends is
@@ -93,8 +93,11 @@ that is held and admitted a second time is started with the words its transcript
 those standing orders beside its charter in the opening turn, because for every other role the same guidance arrives inside the charter.
 
 The transcript accumulates messages, pairs tool lifecycle events, and renders usage and turn events as visual rhythm rather than domain boundaries.
-Usage events are also the fleet's only account of what its work costs: totals are read back out of the stored events rather than counted on the write
-path, and are shown as a running total beside the transcript, as a Voyage's own spend, and day by day on the Costs page. Antumbra keeps no price
+Usage events are also the fleet's only account of what its work costs. One event a turn carries the turn's totals and the split of those totals across
+every model the turn actually ran on, so a turn that touched two models is two lines of spend rather than one line under whichever model did more.
+Totals are read back out of the stored events rather than counted on the write path, and are shown as a running total beside the transcript, as a
+Voyage's own spend, and day by day on the Costs page. A Session never changes the model it was started on, but what it is billed for follows what ran:
+where a provider reroutes work to another model, the record says so where it happened and the turns after it are billed there. Antumbra keeps no price
 table, so a total carries only what the backends themselves reported and says which it is — partial where some contributing turn reported no cost, and
 not reported where none did. Unknown kinds and provider payloads remain visible as raw evidence instead of taking the projection down. A renderer may
 invoke only acts already owned by the domain, such as spawn, retire, or interrupt. It cannot invent a reply path or another delivery model.

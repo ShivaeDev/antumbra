@@ -3,9 +3,11 @@ import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { TranscriptReading, TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
+import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect, Schema, Stream } from "effect";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
 import { expect } from "vitest";
+import { stateLabel } from "#transcript/labels.ts";
 
 const raw = { source: "codex", kind: "event", payload: "{}" };
 const sessionId = SessionId.make("transcript-session");
@@ -127,4 +129,61 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		outputTokens: 20,
 		costUsd: 0.01,
 	});
+});
+
+const repeatedId = SessionId.make("repeat-session");
+const startupNotice = '{"name":"node_repl","status":"ready"}';
+
+const repeated = (cursor: number, event: AgentEvent): LogEntry => ({
+	logId: "repeat-log",
+	cursor,
+	at: 200 + cursor,
+	event: { type: "ProviderEvent", observation: "live", sessionId: repeatedId, event },
+});
+
+it.app("shows a repeated reading and a repeated notice once after they travel through the log", function* () {
+	const runner = yield* connectRunner({ runnerId: "repeat-runner", logId: "repeat-log", backends: ["codex"], imageInputBackends: [] });
+	const startup = { source: "codex", kind: "mcpServer/startupStatus/updated", payload: startupNotice };
+	const entries: LogEntry[] = [
+		{
+			logId: "repeat-log",
+			cursor: 0,
+			at: 200,
+			event: {
+				type: "SessionStarted",
+				requestId: "repeat-start",
+				sessionId: repeatedId,
+				agentId: "repeat-agent",
+				backend: "codex",
+				nativeRef: "repeat-native",
+				cwd: "/berth",
+				toolSetVersion: "tools",
+				runnerId: "repeat-runner",
+			},
+		},
+		repeated(1, { type: "session.state", state: "running", raw }),
+		repeated(2, { type: "session.state", state: "running", raw }),
+		repeated(3, { type: "raw", raw: startup }),
+		repeated(4, { type: "raw", raw: startup }),
+		repeated(5, { type: "message", role: "agent", text: "done", raw }),
+	];
+	yield* Effect.forkScoped(
+		Effect.forever(
+			Effect.gen(function* () {
+				const operation = yield* runner.next;
+				const result =
+					operation.type === "ReadLog"
+						? { type: "LogRead" as const, entries: entries.filter((entry) => entry.cursor > operation.after) }
+						: { type: "Accepted" as const };
+				yield* runner.reply(operation.requestId, result);
+			}),
+		),
+	);
+	yield* runner.append(entries);
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: repeatedId }), { capacity: "unbounded" });
+	const reading = yield* eventually(Stream.fromQueue(updates), (seen) => seen.items.some((item) => item.kind === "message" && item.text === "done"));
+	const standing = stateLabel({ type: "session.state", state: "running", raw });
+	expect(reading.items.filter((item) => item.kind === "telemetry" && item.label === standing)).toHaveLength(1);
+	expect(reading.items.filter((item) => item.kind === "raw" && item.payload === startupNotice)).toHaveLength(1);
 });

@@ -1,4 +1,5 @@
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
+import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { COUNTS, FLAGS } from "@antumbra/domain-settings/ids.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
@@ -31,7 +32,7 @@ const retirementOf = (held: Reading, assigned: Progress, after: number): typeof 
 export const rest = query("rest", {
 	input: {},
 	output: Rest,
-	reads: [agentReading, pieceProgress, count, flag],
+	reads: [agentReading, pieceProgress, sessionOperation, count, flag],
 	run: Effect.fn("Agents.rest")(function* (_input, rows) {
 		const sweeping = yield* rows.flag.find("retireSweep");
 		const retiring = Option.isSome(sweeping) ? sweeping.value.on : FLAGS.retireSweep.fallback;

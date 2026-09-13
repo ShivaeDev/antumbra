@@ -156,3 +156,38 @@ it.app("never wakes on time alone when it reports no due time", function* (app) 
 	yield* Deferred.await(moved);
 	expect(times).toEqual([started, started + 7 * 24 * 60 * 60 * 1000]);
 });
+
+it.app("re-aims its timer a minute out when a run fails", function* (app) {
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 3 });
+	const started = yield* Clock.currentTimeMillis;
+	const times: number[] = [];
+	const booted = yield* Deferred.make<void>();
+	const retried = yield* Deferred.make<void>();
+	const record = recording(times, [booted, retried]);
+	yield* run(counts, {}, () => Effect.andThen(record(), Effect.fail("refused")));
+	yield* Deferred.await(booted);
+	yield* TestClock.adjust(59_999);
+	expect(times).toEqual([started]);
+	yield* TestClock.adjust(1);
+	yield* Deferred.await(retried);
+	expect(times).toEqual([started, started + 60_000]);
+});
+
+it.app("keeps a due moment nearer than the retry when a run fails", function* (app) {
+	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 3 });
+	const started = yield* Clock.currentTimeMillis;
+	const times: number[] = [];
+	const booted = yield* Deferred.make<void>();
+	const woken = yield* Deferred.make<void>();
+	const record = recording(times, [booted, woken]);
+	yield* run(
+		counts,
+		{},
+		() => Effect.andThen(record(), Effect.fail("refused")),
+		(_reading, now) => now + 10_000,
+	);
+	yield* Deferred.await(booted);
+	yield* TestClock.adjust(10_000);
+	yield* Deferred.await(woken);
+	expect(times).toEqual([started, started + 10_000]);
+});

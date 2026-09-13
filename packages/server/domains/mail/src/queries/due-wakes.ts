@@ -1,5 +1,6 @@
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
+import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { COUNTS, FLEET } from "@antumbra/domain-settings/ids.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
@@ -22,7 +23,7 @@ const DueWakes = Schema.Struct({ wakes: Schema.Array(DueWake), waitUntil: Schema
 export const dueWakes = query("dueWakes", {
 	input: {},
 	output: DueWakes,
-	reads: [message, agent, session, count],
+	reads: [message, agent, session, sessionOperation, count],
 	run: Effect.fn("mail.dueWakes")(function* (_input, rows) {
 		const settings = yield* rows.count.where({ scope: FLEET });
 		const quietMillis = (settings.find((value) => value.key === "routineMailMinutes")?.count ?? COUNTS.routineMailMinutes.fallback) * 60_000;

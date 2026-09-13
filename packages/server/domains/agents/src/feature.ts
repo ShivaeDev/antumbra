@@ -7,6 +7,7 @@ import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { resourceOwner } from "@antumbra/domain-reclamation/rows/resource-owner.ts";
 import { roleSetting } from "@antumbra/domain-role-settings/rows/role-setting.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
+import { sessionOpening } from "@antumbra/domain-sessions/rows/session-opening.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { sessionStartResult } from "@antumbra/domain-sessions/rows/session-start-result.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
@@ -96,6 +97,7 @@ export const agents = feature("agents", {
 		voyageAgent,
 		session,
 		sessionOperation,
+		sessionOpening,
 		sessionStartResult,
 		capacity,
 		voyage,

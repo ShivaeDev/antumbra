@@ -16,17 +16,27 @@ type Fail = (cause: Cause.Cause<never>) => Effect.Effect<unknown>;
 
 type Timer = FiberHandle.FiberHandle<void>;
 
-const waking = Effect.fn("Reconciler.waking")(function* <Value>(timer: Timer, pending: Queue.Queue<void>, value: Value, due: Due<Value>) {
+const RETRY_MILLIS = 60_000;
+
+const waking = Effect.fn("Reconciler.waking")(function* <Value>(
+	timer: Timer,
+	pending: Queue.Queue<void>,
+	value: Value,
+	due: Due<Value> | undefined,
+	refused: boolean,
+) {
 	const now = yield* Clock.currentTimeMillis;
-	const at = due(value, now);
-	if (at === undefined || at <= now) return yield* FiberHandle.clear(timer);
+	const reported = due?.(value, now);
+	let at = reported !== undefined && reported > now ? reported : undefined;
+	if (refused && (at === undefined || now + RETRY_MILLIS < at)) at = now + RETRY_MILLIS;
+	if (at === undefined) return yield* FiberHandle.clear(timer);
 	yield* FiberHandle.run(timer, Effect.andThen(Effect.sleep(at - now), Effect.asVoid(Queue.offer(pending, undefined))));
 });
 
-const watching = <Value, Needs, R>(
+const watching = <Value, E, Needs, R>(
 	values: Stream.Stream<Value, never, Needs>,
 	snapshot: Effect.Effect<Value, never, Needs>,
-	act: (value: Value, fail: Fail) => Effect.Effect<void, never, R>,
+	act: (value: Value, fail: Fail) => Effect.Effect<void, E, R>,
 	due?: Due<Value>,
 ): Effect.Effect<Reconciler, never, Needs | R | Scope.Scope> =>
 	Effect.gen(function* () {
@@ -37,9 +47,10 @@ const watching = <Value, Needs, R>(
 			Effect.andThen(
 				Queue.take(pending),
 				Effect.flatMap(snapshot, (value) =>
-					Effect.andThen(
-						act(value, (cause) => Deferred.failCause(failed, cause)),
-						due === undefined ? Effect.void : waking(timer, pending, value, due),
+					act(value, (cause) => Deferred.failCause(failed, cause)).pipe(
+						Effect.as(false),
+						Effect.catch(() => Effect.succeed(true)),
+						Effect.flatMap((refused) => waking(timer, pending, value, due, refused)),
 					),
 				),
 			),
@@ -60,11 +71,12 @@ export const run = <
 	Output extends Schema.Top,
 	Reads extends readonly RowShape[],
 	Ports extends readonly PortShape[],
+	E,
 	R,
 >(
 	query: QueryDefinition<Name, Input, Output, Reads, Ports>,
 	input: Values<Input>,
-	act: (rows: Output["Type"]) => Effect.Effect<void, never, R>,
+	act: (rows: Output["Type"]) => Effect.Effect<void, E, R>,
 	due?: Due<Output["Type"]>,
 ): Effect.Effect<Reconciler, never, Live | PortServices<Ports> | Scope.Scope | R> =>
 	Effect.gen(function* () {

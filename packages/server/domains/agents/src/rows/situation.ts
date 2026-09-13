@@ -2,7 +2,7 @@ import type { SessionPresence } from "@antumbra/platform-vocabulary/agent-runtim
 import type { AgentStatus } from "@antumbra/platform-vocabulary/agent-runtime/statuses.ts";
 import { Schema } from "effect";
 
-export const AGENT_STATES = ["preparing", "working", "waiting", "idle", "asleep", "retired"] as const;
+export const AGENT_STATES = ["preparing", "working", "waiting", "idle", "asleep", "stranded", "retired"] as const;
 export const AgentStateSchema = Schema.Literals(AGENT_STATES);
 export type AgentState = typeof AgentStateSchema.Type;
 
@@ -21,7 +21,7 @@ export interface Standing {
 	readonly toolCalls: number;
 }
 
-const STRANDED = "its work was never finished — speak to it to take it back up";
+const STRANDED = "the runner lost it mid-turn — hail it to take the work back up";
 
 const plainly = (state: AgentState): Situation => ({ detail: null, standing: state, state });
 
@@ -34,7 +34,7 @@ const waitingFor = (count: number, one: string, many: string): Situation => ({
 export const situation = (held: Standing): Situation => {
 	if (held.status === "spawning") return { detail: held.birthDetail, standing: "preparing", state: "preparing" };
 	if (held.status === "retired") return plainly("retired");
-	if (held.presence === "stranded") return { detail: STRANDED, standing: "waiting for you", state: "waiting" };
+	if (held.presence === "stranded") return { detail: STRANDED, standing: "stranded", state: "stranded" };
 	if (held.status === "dormant" || held.presence === null || held.presence === "ended" || held.presence === "asleep") return plainly("asleep");
 	if (held.subAgents > 0) return waitingFor(held.subAgents, "sub-agent", "sub-agents");
 	if (held.toolCalls > 0) return waitingFor(held.toolCalls, "tool call", "tool calls");

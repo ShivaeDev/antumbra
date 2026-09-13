@@ -62,6 +62,11 @@ it.glass("a session says what this turn and the whole session have cost, and wha
 	expect(models.map(modelWords)).toEqual(["opus · in 130 · out 1,925 · $0.62", "haiku · in 130 · out 1,925"]);
 });
 
+it.glass("a session no model priced still says what it used", function* ({ render }) {
+	const container = yield* render(<SessionCosts standing={standing([spent("haiku", null)], { costPartial: false, costUsd: null })} />);
+	expect(container.textContent).toBe("101K tokens");
+});
+
 it.glass("a session whose models did not all price their turns reads as a floor", function* ({ render }) {
 	const container = yield* render(
 		<SessionCosts standing={standing([spent("opus", 0.62), spent("haiku", null)], { costPartial: true, costUsd: 0.62 })} />,

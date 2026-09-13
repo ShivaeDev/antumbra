@@ -93,11 +93,12 @@ it.app("an agent whose background command is still running waits for it", functi
 	});
 });
 
-it.app("an agent whose work was cut off waits for you", function* (app) {
+it.app("an agent whose work was cut off is stranded", function* (app) {
 	const runner = yield* atWork(app);
 	yield* runner.append([{ ...source, cursor: 2, event: { type: "SessionDetached", sessionId } }]);
-	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "waiting")).toMatchObject({
-		standing: "waiting for you",
+	expect(yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.state === "stranded")).toMatchObject({
+		detail: "the runner lost it mid-turn — hail it to take the work back up",
+		standing: "stranded",
 	});
 });
 

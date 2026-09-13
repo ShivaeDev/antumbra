@@ -1,4 +1,4 @@
-import { click } from "@antumbra/app-testing/glass/dom.ts";
+import { click, press } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { Effect } from "effect";
 import { expect } from "vitest";
@@ -21,12 +21,8 @@ const opens = (container: HTMLElement, name: string): HTMLButtonElement | undefi
 
 it.glass("folded calls keep their running state and reveal each result", function* ({ render }) {
 	const container = yield* render(<TranscriptToolRunRow live run={run} />);
-	expect(container.textContent).toContain("3 tool calls");
-	expect(container.textContent).toContain("1 still running");
 	expect(container.textContent).not.toContain("depth 3 fathoms");
-	const folded = container.querySelector("button");
-	if (folded === null) return yield* Effect.die("Missing folded calls disclosure");
-	yield* click(folded);
+	yield* press(container, "3 tool calls · 1 still running");
 	expect(container.textContent).toContain("now the chart");
 	const read = opens(container, "Read");
 	if (read === undefined) return yield* Effect.die("Missing Read disclosure");
@@ -43,7 +39,5 @@ it.glass("a folded failed call remains visible while stopped work says unfinishe
 		],
 	};
 	const container = yield* render(<TranscriptToolRunRow live={false} run={failed} />);
-	expect(container.textContent).toContain("2 tool calls");
-	expect(container.textContent).toContain("1 failed");
-	expect(container.textContent).toContain("1 unfinished");
+	expect([...container.querySelectorAll("button")].map((fold) => fold.textContent)).toEqual(["2 tool calls · 1 unfinished · 1 failed"]);
 });

@@ -44,7 +44,7 @@ const CurrentComposer = (props: Props & { readonly agent: typeof agentReading.Ro
 					canSend={props.agent.canSend}
 					canAttachImages={support.imageInput}
 					backend={props.agent.backend ?? ""}
-					hint={props.agent.state === "asleep" ? ASLEEP : undefined}
+					hint={props.agent.state === "asleep" && props.agent.canSend ? ASLEEP : undefined}
 					onError={props.onError}
 				/>
 			)}

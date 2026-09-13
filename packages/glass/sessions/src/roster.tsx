@@ -8,6 +8,7 @@ const GROUPS: ReadonlyArray<readonly [string, string]> = [
 	["preparing", "Preparing"],
 	["working", "Working"],
 	["waiting", "Waiting"],
+	["stranded", "Stranded"],
 	["idle", "Idle"],
 	["asleep", "Asleep"],
 	["retired", "Retired"],

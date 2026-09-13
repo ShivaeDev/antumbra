@@ -263,9 +263,13 @@ it.app("a reroute is one line in the record, and the session's spend is split by
 	yield* runner.append(entries);
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
 	const reading = yield* eventually(rpc("sessions.transcript", { id: sessionId }), (held) => held.standing.models.length === 2);
-	expect(reading.items).toContainEqual(expect.objectContaining({ kind: "telemetry", label: "rerouted to gpt-6-astra-safe · highRiskCyberActivity" }));
+	expect(reading.items).toContainEqual(
+		expect.objectContaining({ kind: "telemetry", label: "rerouted to gpt-6-astra-safe · high risk cyber activity" }),
+	);
 	expect(reading.standing.models).toEqual([
-		{ costUsd: 0.6, model: "gpt-6-astra" },
-		{ costUsd: 0.03, model: "gpt-6-astra-safe" },
+		{ costPartial: false, costUsd: 0.6, model: "gpt-6-astra" },
+		{ costPartial: false, costUsd: 0.03, model: "gpt-6-astra-safe" },
 	]);
+	expect(reading.standing.spend.costPartial).toBe(false);
+	expect(reading.standing.spend.costUsd).toBeCloseTo(0.63, 6);
 });

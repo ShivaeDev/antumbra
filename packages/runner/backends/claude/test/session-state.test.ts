@@ -172,19 +172,33 @@ describe("the harness's own account of a session is kept", () => {
 		const mapping = openSessionMapping();
 		const [event] = mapping.frame(
 			result(0.05, [
-				{ cost: 0.04, input: 1500, model: "claude-opus-5", output: 700 },
-				{ cost: 0.01, input: 400, model: "claude-haiku-5", output: 60 },
+				{ cacheRead: 4820, cacheWrite: 12100, cost: 0.04, input: 1500, model: "claude-opus-5", output: 700 },
+				{ cacheRead: 880, cacheWrite: 60, cost: 0.01, input: 400, model: "claude-haiku-5", output: 60 },
 			]),
 		);
 		expect(event).toMatchObject({
 			byModel: [
-				{ costUsd: 0.04, inputTokens: 1500, model: "claude-opus-5", outputTokens: 700 },
-				{ costUsd: 0.01, inputTokens: 400, model: "claude-haiku-5", outputTokens: 60 },
+				{ cacheReadTokens: 4820, cacheWriteTokens: 12100, costUsd: 0.04, inputTokens: 1500, model: "claude-opus-5", outputTokens: 700 },
+				{ cacheReadTokens: 880, cacheWriteTokens: 60, costUsd: 0.01, inputTokens: 400, model: "claude-haiku-5", outputTokens: 60 },
 			],
+			cacheReadTokens: 5700,
+			cacheWriteTokens: 12160,
 			inputTokens: 1900,
 			outputTokens: 760,
 		});
 		expect(event).toHaveProperty("costUsd", expect.closeTo(0.05, 6));
+	});
+
+	it("leaves what a model already spent alone when a result reports nothing at all for it", () => {
+		const mapping = openSessionMapping();
+		mapping.frame(result(0.0412));
+		const [refused] = mapping.frame(result(0, [{ model: "claude-opus-5" }]));
+		expect(refused).toMatchObject({ byModel: [], cacheReadTokens: 0, costUsd: 0, inputTokens: 0, outputTokens: 0 });
+		const [after] = mapping.frame(
+			result(0.06, [{ cacheRead: 4820, cacheWrite: 12100, cost: 0.06, input: 1900, model: "claude-opus-5", output: 730 }]),
+		);
+		expect(after).toMatchObject({ byModel: [{ inputTokens: 400, model: "claude-opus-5" }], inputTokens: 400, outputTokens: 0 });
+		expect(after).toHaveProperty("costUsd", expect.closeTo(0.0188, 6));
 	});
 
 	it("names a model by the id the provider prices it under, not by the alias it was asked for", () => {

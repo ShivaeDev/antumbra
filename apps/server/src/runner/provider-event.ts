@@ -7,8 +7,9 @@ export const providerEventObservation = (entry: LogEntry): FactPayload<typeof pr
 	const event = entry.event;
 	if (event.type !== "ProviderEvent") return null;
 	const provider = event.event;
+	// A turn that named no model spent nothing on any of them, so it is no reading of spend.
 	const usage =
-		provider.type === "usage"
+		provider.type === "usage" && provider.byModel.length > 0
 			? {
 					byModel: provider.byModel,
 					inputTokens: provider.inputTokens,

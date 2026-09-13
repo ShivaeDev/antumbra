@@ -27,15 +27,15 @@ export const backgroundLabel = (event: typeof SessionBackgroundEvent.Type): stri
 export const turnLabel = (event: typeof TurnCompleted.Type): string =>
 	[`turn ${event.status}`, ...(event.durationMs === undefined ? [] : [seconds(event.durationMs)])].join(" · ");
 
-export const reroutedLabel = (event: typeof ModelReroutedEvent.Type): string => `rerouted to ${event.model} · ${event.reason}`;
-
-export const openedLabel = (event: typeof SessionOpened.Type): string => `session opened · ${event.raw.source} ${event.nativeRef}`;
-
 const words = (kind: string): string =>
 	kind
 		.split(/[/_]/)
 		.flatMap((part) => part.split(/(?=[A-Z])/))
 		.join(" ")
 		.toLowerCase();
+
+export const reroutedLabel = (event: typeof ModelReroutedEvent.Type): string => `rerouted to ${event.model} · ${words(event.reason)}`;
+
+export const openedLabel = (event: typeof SessionOpened.Type): string => `session opened · ${event.raw.source} ${event.nativeRef}`;
 
 export const rawLabel = (raw: RawPayload): string => `${raw.source}: ${words(raw.kind)}`;

@@ -2,17 +2,21 @@ import { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/sess
 import { Schema } from "effect";
 import { UsageEvidence } from "#rows/usage-evidence.ts";
 
-// A cost is null where no turn on that model reported one.
-export const SessionModelSpend = Schema.Struct({
+// A cost is null where nothing that ran reported one, and a floor where some of what ran did not.
+export const SessionSpend = Schema.Struct({
+	costPartial: Schema.Boolean,
 	costUsd: Schema.NullOr(Schema.Number),
-	model: Schema.String,
 });
+export type SessionSpend = typeof SessionSpend.Type;
+
+export const SessionModelSpend = Schema.Struct({ ...SessionSpend.fields, model: Schema.String });
 export type SessionModelSpend = typeof SessionModelSpend.Type;
 
 export const SessionStanding = Schema.Struct({
 	background: Schema.Array(BackgroundTask),
 	models: Schema.Array(SessionModelSpend),
 	open: Schema.Array(Schema.Struct({ name: Schema.String })),
+	spend: SessionSpend,
 	state: Schema.optional(Schema.UndefinedOr(SessionState)),
 	usage: Schema.optional(Schema.UndefinedOr(UsageEvidence)),
 });

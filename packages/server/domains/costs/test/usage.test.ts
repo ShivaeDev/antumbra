@@ -161,3 +161,60 @@ it.app("a session that ran two models is two rows of spend, and its own model is
 	expect(costs.total).toMatchObject({ inputTokens: 14, outputTokens: 26, turns: 2 });
 	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ model: "gpt-6-astra" });
 });
+
+it.app("counts no turn for one that named no model, and one turn for a model its breakdown names twice", function* (app) {
+	const runner = yield* connectRunner({ runnerId: "count-runner", logId: "count-log", backends: ["claude"], imageInputBackends: [] });
+	const raw = { source: "claude", kind: "result/success", payload: "{}" };
+	yield* runner.append([
+		{
+			logId: "count-log",
+			cursor: 0,
+			at: 100,
+			event: {
+				type: "SessionStarted",
+				requestId: "count-start",
+				sessionId: "count-session",
+				agentId: "count-agent",
+				backend: "claude",
+				nativeRef: "native",
+				cwd: "/berth",
+				toolSetVersion: "tools",
+				runnerId: "count-runner",
+			},
+		},
+		{
+			logId: "count-log",
+			cursor: 1,
+			at: 101,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId: "count-session",
+				event: { type: "usage", byModel: [], inputTokens: 0, outputTokens: 0, costUsd: 0, raw },
+			},
+		},
+		{
+			logId: "count-log",
+			cursor: 2,
+			at: 102,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId: "count-session",
+				event: {
+					type: "usage",
+					byModel: [
+						{ inputTokens: 10, outputTokens: 2, model: "claude-opus-5" },
+						{ inputTokens: 4, outputTokens: 1, model: "claude-opus-5" },
+					],
+					inputTokens: 14,
+					outputTokens: 3,
+					raw,
+				},
+			},
+		},
+	]);
+	expect(yield* answered(app.api.costs.forAgent({ agentId: "count-agent" }))).toMatchObject({ inputTokens: 14, outputTokens: 3, turns: 1 });
+	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
+	expect(costs.models).toMatchObject([{ model: "claude-opus-5", total: { inputTokens: 14, outputTokens: 3, turns: 1 } }]);
+});

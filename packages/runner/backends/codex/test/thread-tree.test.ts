@@ -206,10 +206,15 @@ describe("the tree reads what codex says about its own agents", () => {
 	});
 });
 
-describe("a reroute moves what the thread is billed to, and nothing else", () => {
+describe("what a thread is billed to follows the work, and nothing else moves", () => {
 	const rerouted = (threadId: string) => ({
 		method: "model/rerouted",
 		params: { fromModel: MODEL, reason: "highRiskCyberActivity", threadId, toModel: SAFE, turnId: TURN },
+	});
+
+	const settings = (threadId: string, model: string) => ({
+		method: "thread/settings/updated",
+		params: { threadId, threadSettings: { model } },
 	});
 
 	const tokens = (threadId: string) => ({
@@ -229,6 +234,22 @@ describe("a reroute moves what the thread is billed to, and nothing else", () =>
 		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: MODEL }], type: "usage" }]);
 		expect(reading.events(rerouted(ROOT))).toMatchObject([{ model: SAFE, reason: "highRiskCyberActivity", type: "model.rerouted" }]);
 		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: SAFE }], type: "usage" }]);
+	});
+
+	it("bills a thread to the model its settings name, and says nothing about it in the record", () => {
+		const reading = tree();
+		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: MODEL }], type: "usage" }]);
+		expect(reading.events(settings(ROOT, SAFE))).toMatchObject([{ type: "raw" }]);
+		expect(reading.events(tokens(ROOT))).toMatchObject([{ byModel: [{ model: SAFE }], type: "usage" }]);
+	});
+
+	it("hands a thread it spawns what it is billed to at the time, and takes nothing back later", () => {
+		const reading = tree();
+		reading.events(spawnedThread(CHILD, ROOT));
+		reading.events(rerouted(ROOT));
+		reading.events(spawnedThread(NIECE, ROOT));
+		expect(reading.events(tokens(CHILD))).toMatchObject([{ byModel: [{ model: MODEL }] }]);
+		expect(reading.events(tokens(NIECE))).toMatchObject([{ byModel: [{ model: SAFE }] }]);
 	});
 
 	it("a node's reroute is its own, and a node that had none bills where its session does", () => {

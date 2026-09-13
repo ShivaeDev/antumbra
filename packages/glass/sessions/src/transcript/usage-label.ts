@@ -24,11 +24,14 @@ const tokens = (event: Usage): ReadonlyArray<string> => [
 	`out ${event.outputTokens}`,
 ];
 
+const turnCost = (event: Usage): ReadonlyArray<string> => (event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]);
+
 const costs = (event: Usage): ReadonlyArray<string> => [
-	...(event.costUsd === undefined ? [] : [`turn ${money(event.costUsd)}`]),
+	...turnCost(event),
 	...(event.cumulativeCostUsd === undefined ? [] : [`session ${money(event.cumulativeCostUsd)}`]),
 ];
 
-export const usageFacts = (event: Usage): ReadonlyArray<string> => [...tokens(event), ...costs(event)];
+// What a session has spent is summed from the models that ran, so the standing bar reads the turn's own cost only.
+export const usageFacts = (event: Usage): ReadonlyArray<string> => [...tokens(event), ...turnCost(event)];
 
 export const usageLabel = (event: Usage): string => ["usage", ...tokens(event), ...share(event), ...costs(event)].join(" · ");

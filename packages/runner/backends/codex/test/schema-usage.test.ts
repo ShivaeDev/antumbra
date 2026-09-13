@@ -17,6 +17,11 @@ describe("the numbers and flags this record shows a reader are the pin's", () =>
 		expect(enumOf("ModelRerouteReason")).toContain("highRiskCyberActivity");
 	});
 
+	it("the one frame that names the model a thread runs on is its settings", () => {
+		expect(bundle.definitions.ThreadSettingsUpdatedNotification?.required ?? []).toEqual(expect.arrayContaining(["threadId", "threadSettings"]));
+		expect(bundle.definitions.ThreadSettings?.required ?? []).toContain("model");
+	});
+
 	it("nothing the pin sends names the model a spawned thread runs on", () => {
 		expect(bundle.definitions.Thread?.properties ?? {}).not.toHaveProperty("model");
 		const spawn = (bundle.definitions.SubAgentSource?.oneOf ?? []).find((variant) => variant.title === "ThreadSpawnSubAgentSource");

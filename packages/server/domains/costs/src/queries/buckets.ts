@@ -3,7 +3,7 @@ import type { sessionUsage } from "@antumbra/domain-sessions/rows/session-usage.
 type SessionUsage = typeof sessionUsage.Row.Type;
 
 import { dayKey } from "#queries/days.ts";
-import { countUsage, emptyTally, type Tally, tallyAt } from "#queries/tally.ts";
+import { countModels, countUsage, emptyTally, type Tally, tallyAt } from "#queries/tally.ts";
 
 export interface SpendSession {
 	readonly agentId: string;
@@ -50,6 +50,6 @@ export const countReading = (tallies: SpendTallies, reading: SessionUsage, sessi
 	countUsage(tallies.overall, reading.usage);
 	countUsage(agentAt(tallies.agents, session.agentId, reading.sessionId).tally, reading.usage);
 	countUsage(voyageId === undefined ? tallies.unassigned : tallyAt(tallies.voyages, voyageId), reading.usage);
-	for (const spent of reading.usage.byModel) countUsage(tallyAt(tallies.models, spent.model), spent);
+	countModels(tallies.models, reading.usage.byModel);
 	countUsage(tallyAt(backendsAt(tallies.days, dayKey(new Date(reading.observedAt))), session.backend), reading.usage);
 };

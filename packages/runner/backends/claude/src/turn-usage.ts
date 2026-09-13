@@ -58,6 +58,10 @@ export const openTurnUsage = (): TurnUsage => {
 		const total = zero();
 		for (const [key, model] of Object.entries(message.modelUsage)) {
 			const cumulative = counted(model);
+			// A result that reports nothing at all for a model is a crashed or refused query, not a counter that went back to nothing.
+			if (!moved(cumulative)) {
+				continue;
+			}
 			const spent = spentSince(cumulative, already.get(key) ?? zero());
 			already.set(key, cumulative);
 			if (moved(spent)) {

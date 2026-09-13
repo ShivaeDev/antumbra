@@ -42,7 +42,7 @@ const turnCompleted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 const tokenUsage = (raw: RawPayload, params: unknown, threadModel: string): AgentEvent[] =>
 	Option.match(decodeUsage(params), {
 		onNone: () => [{ raw, type: "raw" }],
-		// Codex reports per-round usage in `last`; no cost fields are present and no notification names the model a round ran on.
+		// Codex reports per-round usage in `last`; no cost fields are present and the round names no model, so it is billed to what the thread runs on.
 		onSome: ({ tokenUsage }) => {
 			const spent = {
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,

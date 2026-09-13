@@ -83,7 +83,7 @@ const NAMES = ["One", "Two", "Three", "Four", "Five", "Six"] as const;
 it.glass("unfolds the last five voyages opened under the sidebar's Voyages item", function* ({ api, render }) {
 	remembering();
 	for (const name of NAMES) yield* api.voyages.open(opening(name));
-	const voyages = yield* eventually(api.voyages.list({}), (rows) => rows.length === NAMES.length + 1, "every opened voyage to reach the list");
+	const voyages = yield* eventually(api.voyages.list({}), (rows) => rows.length === NAMES.length + 1, "the opened voyages to reach the list");
 	const container = yield* render(
 		<Navigation
 			api={api}
@@ -114,4 +114,43 @@ it.glass("unfolds the last five voyages opened under the sidebar's Voyages item"
 	yield* until(() => rail.textContent?.includes("Six") === true, "the voyages opened to reach the rail");
 	const listed = [...rail.querySelectorAll("button")].map((button) => button.textContent).filter((words) => NAMES.some((name) => words === name));
 	expect(listed).toEqual(["Six", "Five", "Four", "Three", "Two"]);
+});
+
+const RECONNECTING = "Reconnecting to the server…";
+
+const said = (container: HTMLElement): string | null | undefined => container.querySelector('[role="status"]')?.textContent;
+
+it.glass("keeps the settings the navigation reads while the server is away, and takes them back", function* ({ api, render, server }) {
+	const container = yield* render(
+		<Navigation
+			api={api}
+			shell={shell(() => Effect.void)}
+			place={place}
+			onError={(message) => {
+				Effect.runSync(Effect.die(message));
+			}}
+		>
+			{(current, _select, folded) => (
+				<output>
+					{current.mode}:{folded ? "folded" : "open"}
+				</output>
+			)}
+		</Navigation>,
+	);
+	yield* api.settings.setFlag({ key: "wakeOnRoutineMail", on: false });
+	yield* api.settings.setFlag({ key: "foldToolCalls", on: true });
+	yield* until(() => container.querySelector("output")?.textContent === "fleet:folded", "the settings to reach the screen");
+	expect(container.querySelector("nav")?.textContent).toContain("Holdsheld");
+
+	yield* server.away;
+
+	yield* until(() => said(container) === RECONNECTING, "the rail to say it is reconnecting");
+	expect(container.querySelector("output")?.textContent).toBe("fleet:folded");
+	expect(container.querySelector("nav")?.textContent).toContain("Holdsheld");
+
+	yield* server.back;
+
+	yield* until(() => said(container) === "", "the rail to stop saying it");
+	expect(container.querySelector("output")?.textContent).toBe("fleet:folded");
+	expect(container.querySelector("nav")?.textContent).toContain("Holdsheld");
 });

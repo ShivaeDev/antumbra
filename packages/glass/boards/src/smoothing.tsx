@@ -16,7 +16,7 @@ export const SmoothNow = ({ onSmooth, smoothing }: { readonly onSmooth: () => vo
 		size="sm"
 		title={smoothing.uncovered === 0 ? NOTHING_TO_SMOOTH : SMOOTH_NOW}
 		type="button"
-		variant="ghost"
+		variant="outline"
 	>
 		Smooth now
 	</Button>

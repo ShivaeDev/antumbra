@@ -22,9 +22,13 @@ export const Reconnections = ({ children }: { readonly children?: ReactNode }) =
 	return <ReconnectionContext value={reconnection}>{children}</ReconnectionContext>;
 };
 
-export const Holding = ({ children, held }: { readonly children: ReactNode; readonly held: boolean }) => {
+export const useHolding = (held: boolean): void => {
 	const { hold } = useContext(ReconnectionContext);
 	useEffect(() => (held ? hold() : undefined), [held, hold]);
+};
+
+export const Holding = ({ children, held }: { readonly children: ReactNode; readonly held: boolean }) => {
+	useHolding(held);
 	return children;
 };
 

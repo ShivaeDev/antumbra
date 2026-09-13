@@ -1,5 +1,7 @@
 import type { FlagKey } from "@antumbra/domain-settings/ids.ts";
 import { useCommand } from "@antumbra/glass-client/hooks.ts";
+import { Label } from "@antumbra/glass-components/shadcn/label.tsx";
+import { Switch } from "@antumbra/glass-components/shadcn/switch.tsx";
 import { Cause } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId } from "react";
@@ -21,15 +23,8 @@ export const HoldSwitch = ({
 	const id = useId();
 	return (
 		<span className="flex items-center gap-2">
-			<label htmlFor={id}>{held ? "held" : "sending"}</label>
-			<input
-				id={id}
-				aria-label={title}
-				type="checkbox"
-				checked={sending}
-				disabled={command.pending}
-				onChange={(event) => command.run(toggle(event.target.checked))}
-			/>
+			<Label htmlFor={id}>{held ? "held" : "sending"}</Label>
+			<Switch aria-label={title} checked={sending} disabled={command.pending} id={id} onCheckedChange={(on) => command.run(toggle(on))} />
 			{AsyncResult.isFailure(command.result) ? <span role="alert">{Cause.pretty(command.result.cause)}</span> : null}
 		</span>
 	);

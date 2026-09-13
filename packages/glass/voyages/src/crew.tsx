@@ -10,6 +10,16 @@ type Agent = typeof agentReading.Row.Type;
 
 const NOBODY = "Nobody is aboard yet; launching a piece brings its hand aboard.";
 
+const CAPTAIN = "captain";
+
+const crewOf = (agents: readonly Agent[]): readonly Agent[] => {
+	const crew = [];
+	for (const agent of agents) {
+		if (agent.role !== CAPTAIN) crew.push(agent);
+	}
+	return crew;
+};
+
 export const Crew = (props: {
 	readonly api: VoyagesDisplayApi;
 	readonly voyageId: string;
@@ -17,17 +27,19 @@ export const Crew = (props: {
 	readonly onAgent: (agentId: string) => void;
 }) => (
 	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.agents.byVoyage}>
-		{(agents) => (
-			<SectionHeading count={agents.length} title="Crew">
-				{agents.length === 0 ? <p className="text-xs text-muted-foreground">{NOBODY}</p> : null}
-				<ul className="flex min-w-0 flex-col">
-					{agents.map((agent) => (
-						<CrewMember agent={agent} key={agent.id} onAgent={props.onAgent} showing={props.agentId === agent.id} />
-					))}
-				</ul>
-			</SectionHeading>
-		)}
+		{(agents) => <CrewList agentId={props.agentId} crew={crewOf(agents)} onAgent={props.onAgent} />}
 	</Live>
+);
+
+const CrewList = (props: { readonly agentId?: string | undefined; readonly crew: readonly Agent[]; readonly onAgent: (agentId: string) => void }) => (
+	<SectionHeading count={props.crew.length} title="Crew">
+		{props.crew.length === 0 ? <p className="text-xs text-muted-foreground">{NOBODY}</p> : null}
+		<ul className="flex min-w-0 flex-col">
+			{props.crew.map((agent) => (
+				<CrewMember agent={agent} key={agent.id} onAgent={props.onAgent} showing={props.agentId === agent.id} />
+			))}
+		</ul>
+	</SectionHeading>
 );
 
 const CrewMember = (props: { readonly agent: Agent; readonly showing: boolean; readonly onAgent: (agentId: string) => void }) => (

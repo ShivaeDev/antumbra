@@ -2,6 +2,7 @@ import type { HoldQueue, QuietVoyage } from "@antumbra/domain-holds/queries/queu
 import type { Waiting } from "@antumbra/domain-holds/queries/waiting.ts";
 import { useCommand } from "@antumbra/glass-client/hooks.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { HeldReading } from "@antumbra/glass-components/compositions/held-reading.tsx";
 import { messageOf } from "@antumbra/glass-components/refusal.ts";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
@@ -17,7 +18,7 @@ const QUIET = "Nothing is sent to this voyage until you resume it. What it is ho
 export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 	<Live query={api.holds.queues} input={{}} waiting="Reading the holds…">
 		{(view) => (
-			<section className="flex min-h-0 flex-col overflow-y-auto">
+			<HeldReading className="flex min-h-0 flex-col overflow-y-auto">
 				<header className="border-b border-border p-4">
 					<div className="flex justify-between">
 						<h2>The holds</h2>
@@ -41,7 +42,7 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 				{view.queues.map((queue) => (
 					<QueueSection api={api} queue={queue} key={queue.setting} />
 				))}
-			</section>
+			</HeldReading>
 		)}
 	</Live>
 );

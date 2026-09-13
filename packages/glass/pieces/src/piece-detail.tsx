@@ -6,8 +6,8 @@ import { BoardPanel } from "@antumbra/glass-boards/board.tsx";
 import { ChangeOutcomes } from "@antumbra/glass-changes/change-outcomes.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
-import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Badge } from "@antumbra/glass-components/shadcn/badge.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { ReportOutcomes } from "@antumbra/glass-reports/report-outcomes.tsx";
 import type { PieceDisplayActions, PiecesDisplayApi } from "#display.ts";
 import { PieceActs } from "#piece-acts.tsx";
@@ -25,7 +25,7 @@ const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }
 				{(dependencies) => (
 					<>
 						{dependencies.length === 0 ? null : (
-							<p className="text-2xs text-muted-foreground">Depends on: {dependencies.map((dependency) => dependency.title).join(", ")}</p>
+							<p className="text-xs text-muted-foreground">Depends on: {dependencies.map((dependency) => dependency.title).join(", ")}</p>
 						)}
 					</>
 				)}
@@ -33,7 +33,7 @@ const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }
 			<Live input={{ pieceIds: [id] }} query={props.api.rulings.openGates}>
 				{(gates) =>
 					gates.map((gate) => (
-						<p className="text-2xs text-muted-foreground" key={gate.id}>
+						<p className="text-xs text-muted-foreground" key={gate.id}>
 							Awaiting ruling {gate.rulingId}: {gate.question}
 						</p>
 					))

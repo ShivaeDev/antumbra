@@ -43,7 +43,7 @@ export const PieceList = (
 ) => (
 	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.pieces.displayByVoyage}>
 		{(pieces) => (
-			<SectionHeading action={<Chartering api={props.api} voyageId={props.voyageId} />} collapsible count={pieces.length} open title="Board">
+			<SectionHeading action={<Chartering api={props.api} voyageId={props.voyageId} />} collapsible count={pieces.length} defaultOpen title="Board">
 				<div className="flex min-w-0 flex-col gap-3">
 					{pieces.length === 0 ? <p className="text-xs text-muted-foreground">{NOTHING}</p> : null}
 					{pieces.map((piece) => (

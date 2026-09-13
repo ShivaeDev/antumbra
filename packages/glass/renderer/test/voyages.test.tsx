@@ -65,8 +65,14 @@ it.glass("keeps the quiet chip clear of the act that wakes the captain", functio
 	yield* until(() => container.querySelector("h1")?.textContent === "Sound the bar", "the bare voyage's header");
 	const header = container.querySelector("header") ?? expect.fail("the page header");
 	yield* until(() => header.textContent?.includes("quiet") === true, "the quiet chip");
-	const acts = [...header.querySelectorAll("button")].map((button) => button.textContent);
-	expect(acts.at(-1)).toBe("Hail a captain");
+	const chip = [...header.querySelectorAll('[data-slot="badge"]')].find((badge) => badge.textContent === "quiet");
+	if (chip === undefined) return expect.fail("the quiet chip");
+	expect(chip.closest("button")).toBeNull();
+	const acts = [...header.querySelectorAll("button")];
+	expect(acts).toHaveLength(3);
+	expect(acts[0]?.getAttribute("aria-label")).toBe("Back");
+	expect(acts[1]?.textContent).toBe("Quiet");
+	expect(acts.at(-1)?.textContent).toBe("Hail a captain");
 	expect(header.textContent).not.toContain("Wake the captain");
 });
 

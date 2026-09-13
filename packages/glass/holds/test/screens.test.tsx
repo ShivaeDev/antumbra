@@ -31,13 +31,17 @@ const chartering = {
 	dependsOn: [],
 } as const;
 
+const switchOf = (container: HTMLElement, title: string): HTMLElement | null => container.querySelector(`[role="switch"][aria-label="${title}"]`);
+
+const reads = (container: HTMLElement, title: string): string | null | undefined => switchOf(container, title)?.getAttribute("aria-checked");
+
 it.glass("says nothing is waiting and persists the global hold through the switch", function* ({ api, render }) {
 	const container = yield* render(<HoldsPanel api={api} />);
-	yield* until(() => container.querySelector('input[aria-label="All queues"]') !== null, "the hold switches");
+	yield* until(() => switchOf(container, "All queues") !== null, "the hold switches");
 	expect(container.textContent).toContain("Nothing is waiting on a switch.");
 	yield* click(labelled(container, "All queues"));
 	yield* eventually(api.holds.queues({}), (view) => view.everything, "the global hold to take effect");
-	yield* until(() => !labelled<HTMLInputElement>(container, "All queues").checked, "the hold to persist");
+	yield* until(() => reads(container, "All queues") === "false", "the hold to persist");
 });
 
 it.glass("lists what a held switch is keeping back and sends again when it goes back on", function* ({ api, render }) {
@@ -46,13 +50,12 @@ it.glass("lists what a held switch is keeping back and sends again when it goes 
 	yield* api.pieces.launch({ id: PieceId.make("piece") });
 	yield* api.settings.setFlag({ key: "spawnForPiece", on: false });
 	const container = yield* render(<HoldsPanel api={api} />);
-	yield* until(() => container.querySelector('input[aria-label="Spawn an agent for a launched piece"]') !== null, "the held queue");
+	yield* until(() => switchOf(container, "Spawn an agent for a launched piece") !== null, "the held queue");
 	expect(container.textContent).toContain("A launched piece with no living agent gets one.");
 	expect(container.textContent).toContain("Sound");
 	expect(container.textContent).toContain("Reef");
-	const control = labelled<HTMLInputElement>(container, "Spawn an agent for a launched piece");
-	expect(control.checked).toBe(false);
-	yield* click(control);
+	expect(reads(container, "Spawn an agent for a launched piece")).toBe("false");
+	yield* click(labelled(container, "Spawn an agent for a launched piece"));
 	yield* eventually(
 		api.settings.flags({}),
 		(flags) => flags.some((setting) => setting.key === "spawnForPiece" && setting.on),
@@ -63,7 +66,7 @@ it.glass("lists what a held switch is keeping back and sends again when it goes 
 it.glass("keeps a held switch on the page before anything is waiting", function* ({ api, render }) {
 	yield* api.settings.setFlag({ key: "spawnSmoother", on: false });
 	const container = yield* render(<HoldsPanel api={api} />);
-	yield* until(() => container.querySelector('input[aria-label="Spawn a smoother"]') !== null, "the held section");
+	yield* until(() => switchOf(container, "Spawn a smoother") !== null, "the held section");
 	expect(container.textContent).toContain("0 waiting");
 	expect(container.textContent).toContain("Nothing is waiting yet.");
 });
@@ -86,4 +89,20 @@ it.glass("lists a quieted voyage with what it holds and resumes it from the sect
 		"the voyage to come back out of its hold",
 	);
 	yield* until(() => container.textContent?.includes("Nothing is sent to this voyage") !== true, "the section to go away");
+});
+
+it.glass("keeps its switches and takes no touch while the server is away", function* ({ api, render, server }) {
+	yield* api.settings.setFlag({ key: "spawnSmoother", on: false });
+	const container = yield* render(<HoldsPanel api={api} />);
+	yield* until(() => switchOf(container, "Spawn a smoother") !== null, "the hold switches");
+
+	yield* server.away;
+	yield* until(() => container.querySelector('[aria-busy="true"]') !== null, "the panel to hold the reading it has");
+	expect(container.querySelector("[inert]")?.contains(switchOf(container, "Spawn a smoother"))).toBe(true);
+	expect(reads(container, "Spawn a smoother")).toBe("false");
+	expect(reads(container, "All queues")).toBe("true");
+
+	yield* server.back;
+	yield* until(() => container.querySelector('[aria-busy="true"]') === null, "the panel to take the reading again");
+	expect(reads(container, "Spawn a smoother")).toBe("false");
 });

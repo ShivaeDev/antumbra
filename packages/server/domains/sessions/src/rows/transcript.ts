@@ -26,7 +26,13 @@ export const TranscriptTool = Schema.Struct({
 	servedBy: Schema.optional(Schema.Literal("antumbra")),
 });
 export type TranscriptTool = typeof TranscriptTool.Type;
-export const TranscriptRaw = Schema.Struct({ kind: Schema.Literal("raw"), label: Schema.String, payload: Schema.String, seq: Schema.Number });
+export const TranscriptRaw = Schema.Struct({
+	kind: Schema.Literal("raw"),
+	label: Schema.String,
+	payload: Schema.String,
+	seq: Schema.Number,
+	source: Schema.String,
+});
 export type TranscriptRaw = typeof TranscriptRaw.Type;
 export const TranscriptDelegation = Schema.Struct({
 	displayName: Schema.String,
@@ -51,6 +57,11 @@ export const TranscriptItem = Schema.Union([
 	TranscriptRaw,
 	TranscriptDelegation,
 	TranscriptNotice,
-	Schema.Struct({ kind: Schema.Literal("telemetry"), label: Schema.String, seq: Schema.Number }),
+	Schema.Struct({
+		detail: Schema.optional(Schema.UndefinedOr(Schema.String)),
+		kind: Schema.Literal("telemetry"),
+		label: Schema.String,
+		seq: Schema.Number,
+	}),
 ]);
 export type TranscriptItem = typeof TranscriptItem.Type;

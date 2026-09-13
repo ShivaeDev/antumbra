@@ -7,16 +7,11 @@ import { AgentSessions } from "#agent-sessions.tsx";
 import { AgentVoyage, AgentWork } from "#agent-work.tsx";
 import { Diagnostics } from "#diagnostics.tsx";
 import type { SessionsApi } from "#glass.ts";
-import { presenceWords } from "#presence.ts";
 
 type Agent = typeof agentReading.Row.Type;
 
-const STARTING = "Preparing to work";
-
 const OPENS =
 	"-m-1 flex min-w-0 flex-col gap-1 rounded-md p-1 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/60 disabled:pointer-events-none disabled:opacity-60";
-
-const presenceWord = (agent: Agent): string => (agent.presence === null ? STARTING : presenceWords[agent.presence]);
 
 export const AgentCard = (props: {
 	readonly api: SessionsApi;
@@ -28,7 +23,7 @@ export const AgentCard = (props: {
 	readonly onVoyage: (id: string) => void;
 }) => {
 	const conversation = props.agent.currentSessionId;
-	const words = (conversation === null ? props.agent.standing : presenceWord(props.agent)).toLowerCase();
+	const words = props.agent.standing;
 	const open = conversation === null ? undefined : () => props.onSession(conversation);
 	const showing = conversation !== null && conversation === props.sessionId;
 	return (
@@ -53,6 +48,7 @@ export const AgentCard = (props: {
 						<span className="min-w-0 truncate text-sm font-medium">{props.agent.role}</span>
 						<StatusBadge state={words} />
 					</span>
+					{props.agent.detail === null ? null : <span className="min-w-0 truncate text-xs text-muted-foreground">{props.agent.detail}</span>}
 					<AgentWork api={props.api} pieceIds={props.agent.pieceIds} />
 				</button>
 				{props.agent.canRetire ? (

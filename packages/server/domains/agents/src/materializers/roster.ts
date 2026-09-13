@@ -4,33 +4,41 @@ import { sessionPresence } from "@antumbra/platform-vocabulary/agent-runtime/ses
 import { Effect } from "effect";
 import { agent } from "#rows/agent.ts";
 import { agentReading } from "#rows/agent-reading.ts";
+import { birth } from "#rows/birth.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
 import { situation } from "#rows/situation.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
 import { atWork } from "#rows/working.ts";
 export const roster = projection("agentRoster", {
-	reads: [agent, session, pieceAgent, voyageAgent],
+	reads: [agent, birth, session, pieceAgent, voyageAgent],
 	writes: [agentReading],
 	run: Effect.fn("Agents.roster")(function* (reads, writes) {
 		const sessions = yield* reads.session.where({});
+		const births = yield* reads.birth.where({});
 		const pieces = yield* reads.pieceAgent.where({});
 		const voyages = yield* reads.voyageAgent.where({});
 		for (const held of yield* reads.agent.where({})) {
 			const root = sessions.find((value) => value.id === held.currentSessionId && value.parentSessionId === null);
 			const presence =
 				root === undefined ? null : sessionPresence({ attached: root.attached, executionStatus: root.executionStatus, open: root.status === "open" });
-			const busy = sessions.some(
-				(value) =>
-					value.rootSessionId === root?.id &&
-					(value.toolCalls > 0 || value.openDelegations > 0 || (value.attached && value.executionStatus !== "idle")),
-			);
+			const kin = sessions.filter((value) => value.rootSessionId === root?.id);
+			const busy = kin.some((value) => value.toolCalls > 0 || value.openDelegations > 0 || (value.attached && value.executionStatus !== "idle"));
 			const owned = sessions.filter((value) => value.agentId === held.id && value.parentSessionId === null && value.status === "open");
+			const stood = situation({
+				birthDetail: births.find((value) => value.sessionId === held.currentSessionId)?.detail ?? null,
+				commands: root?.openDelegations ?? 0,
+				presence,
+				status: held.status,
+				subAgents: kin.filter((value) => value.parentSessionId !== null && value.status === "open").length,
+				toolCalls: root?.toolCalls ?? 0,
+			});
 			const value = {
 				...held,
 				pieceIds: pieces.filter((link) => link.agentId === held.id).map((link) => link.pieceId),
 				voyageIds: voyages.filter((link) => link.agentId === held.id).map((link) => link.voyageId),
-				presence,
-				standing: situation(held.status, presence),
+				state: stood.state,
+				standing: stood.standing,
+				detail: stood.detail,
 				backend: root?.backend ?? null,
 				idleSince: root?.idleSince ?? null,
 				atWork: atWork(

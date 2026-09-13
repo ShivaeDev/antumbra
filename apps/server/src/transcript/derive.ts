@@ -11,6 +11,7 @@ export const deriveTranscript = (events: ReadonlyArray<SessionEvent>, nodes: Rea
 		nodes: nodesByRef(nodes),
 		shown: new Map(),
 		tools: openToolCalls(items),
+		usage: undefined,
 	};
 	for (const event of events) {
 		applyKnownEvent(state, event.event, event.seq);

@@ -38,4 +38,7 @@ const windowWords = (window: Window): string =>
 		", ",
 	);
 
+export const rateLimitWindows = (event: Limit): string | undefined =>
+	event.windows.length === 0 ? undefined : event.windows.map(windowWords).join(" · ");
+
 export const rateLimitLabel = (event: Limit): string => [STATUS[event.status], ...event.windows.map(windowWords)].join(" · ");

@@ -1,26 +1,34 @@
 import type { TranscriptNotice } from "@antumbra/domain-sessions/rows/transcript.ts";
-import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
+import { Marker } from "@antumbra/glass-components/compositions/marker.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { FoldedItem } from "#transcript/fold.ts";
 import { TranscriptDelegationMark } from "#views/transcript-delegation.tsx";
 import { TranscriptGutter } from "#views/transcript-gutter.tsx";
 import { TranscriptMessage, TranscriptThought } from "#views/transcript-message.tsx";
-import { TranscriptRaw } from "#views/transcript-raw.tsx";
+import { TranscriptRawRunRow } from "#views/transcript-raw-run.tsx";
 import { TranscriptTool } from "#views/transcript-tool.tsx";
 import { TranscriptToolRunRow } from "#views/transcript-tool-run.tsx";
 
-const Telemetry = ({ label }: { readonly label: string }) => (
-	<div className="flex items-center gap-2 py-1">
-		<Separator className="flex-1" />
-		<span className="shrink-0 text-2xs text-muted-foreground">{label}</span>
-		<Separator className="flex-1" />
-	</div>
+const Telemetry = ({ detail, label }: { readonly detail: string | undefined; readonly label: string }) => (
+	<Marker>
+		{detail === undefined ? (
+			label
+		) : (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<span>{label}</span>
+				</TooltipTrigger>
+				<TooltipContent>{detail}</TooltipContent>
+			</Tooltip>
+		)}
+	</Marker>
 );
 
 const Notice = ({ item }: { readonly item: TranscriptNotice }) => (
-	<div className="min-w-0 text-2xs text-muted-foreground">
+	<div className="min-w-0 text-xs text-muted-foreground">
 		<p>{item.title}</p>
-		{item.detail === undefined ? null : <p className="text-muted-foreground/80">{item.detail}</p>}
+		{item.detail === undefined ? null : <p>{item.detail}</p>}
 	</div>
 );
 
@@ -61,22 +69,14 @@ export const TranscriptRow = ({
 	if (item.kind === "toolRun") {
 		return <TranscriptToolRunRow live={live} run={item} />;
 	}
+	if (item.kind === "rawRun") {
+		return <TranscriptRawRunRow run={item} />;
+	}
 	if (item.kind === "delegation") {
 		return <TranscriptDelegationMark item={item} onOpenNode={onOpenNode} />;
 	}
 	if (item.kind === "notice") {
-		return (
-			<TranscriptGutter label="gap">
-				<Notice item={item} />
-			</TranscriptGutter>
-		);
+		return <Notice item={item} />;
 	}
-	if (item.kind === "telemetry") {
-		return <Telemetry label={item.label} />;
-	}
-	return (
-		<TranscriptGutter label="raw">
-			<TranscriptRaw item={item} />
-		</TranscriptGutter>
-	);
+	return <Telemetry detail={item.detail} label={item.label} />;
 };

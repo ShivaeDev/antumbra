@@ -19,7 +19,7 @@ it.glass("a charter opens folded to its first heading", function* ({ render, run
 	);
 	expect(container.textContent).toContain("Captain of the Reef voyage");
 	expect(container.textContent).not.toContain("eastern shoal");
-	const disclosure = container.querySelector<HTMLButtonElement>('button[title="Show this charter"]');
+	const disclosure = container.querySelector<HTMLButtonElement>("button");
 	if (disclosure === null) return yield* Effect.die("Missing charter disclosure");
 	yield* click(disclosure);
 	expect(container.textContent).toContain("Survey the eastern shoal and report the depths you find.");
@@ -38,8 +38,8 @@ it.glass("standing orders fold beside the charter, each summarised by its own wo
 	expect(folds).toHaveLength(2);
 	expect(folds[0]?.textContent).toBe(`Standing orders${orders}`);
 	expect(folds[1]?.textContent).toBe("CharterCaptain of the Reef voyage");
-	const opened = container.querySelector<HTMLButtonElement>('button[title="Show the standing orders"]');
-	if (opened === null) return yield* Effect.die("Missing standing orders disclosure");
+	const opened = folds[0];
+	if (opened === undefined) return yield* Effect.die("Missing standing orders disclosure");
 	yield* click(opened);
 	expect(container.textContent).toContain(orders);
 	expect(container.textContent).not.toContain("eastern shoal");

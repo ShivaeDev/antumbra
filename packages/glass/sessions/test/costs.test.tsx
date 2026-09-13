@@ -2,8 +2,8 @@ import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import type { SessionModelSpend, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { UsageTotal } from "@antumbra/domain-sessions/rows/usage.ts";
 import { expect } from "vitest";
-import { SessionStandingBar } from "#session-standing.tsx";
 import { SpendTable } from "#views/costs-table.tsx";
+import { modelWords, SessionCosts } from "#views/session-costs.tsx";
 import { SpendInline } from "#views/spend-inline.tsx";
 
 const unpriced: UsageTotal = {
@@ -36,44 +36,35 @@ it.glass("partially priced model spend remains a floor with its explanation", fu
 	expect(container.querySelector('[title="Some turns reported no cost, so the real total is higher."]')).not.toBeNull();
 });
 
+const nothing = { cacheReadTokens: 0, cacheWriteTokens: 0, inputTokens: 0, outputTokens: 0 };
+
 const standing = (models: SessionStanding["models"], spend: SessionStanding["spend"]): SessionStanding => ({
-	background: [],
 	models,
 	open: [],
 	spend,
-	state: "idle",
-	usage: { byModel: models.map((spent) => ({ inputTokens: 1, model: spent.model, outputTokens: 1 })), inputTokens: 2, outputTokens: 2 },
+	tokens: { cacheReadTokens: 96_000, cacheWriteTokens: 2_000, inputTokens: 2_000, outputTokens: 500 },
+	turn: spend,
 });
 
-const spent = (model: string, costUsd: number | null): SessionModelSpend => ({ costPartial: false, costUsd, model });
-
-it.glass("a session that ran one model says so without a tally to read", function* ({ render }) {
-	const container = yield* render(
-		<SessionStandingBar activity={{ live: true }} standing={standing([spent("opus", 0.62)], { costPartial: false, costUsd: 0.62 })} />,
-	);
-	expect(container.textContent).toContain("opus");
-	expect(container.textContent).toContain("session $0.6200");
-	expect(container.querySelector("[title]")).toBeNull();
+const spent = (model: string, costUsd: number | null): SessionModelSpend => ({
+	...nothing,
+	costPartial: false,
+	costUsd,
+	inputTokens: 130,
+	model,
+	outputTokens: 1925,
 });
 
-it.glass("a session that ran two models says what each of them cost, and what they cost together", function* ({ render }) {
-	const container = yield* render(
-		<SessionStandingBar
-			activity={{ live: true }}
-			standing={standing([spent("opus", 0.62), spent("haiku", 0.03)], { costPartial: false, costUsd: 0.65 })}
-		/>,
-	);
-	expect(container.querySelector('[title="opus $0.6200 · haiku $0.0300"]')).not.toBeNull();
-	expect(container.textContent).toContain("session $0.6500");
+it.glass("a session says what this turn and the whole session have cost, and what each model ran on", function* ({ render }) {
+	const models = [spent("opus", 0.62), spent("haiku", null)];
+	const container = yield* render(<SessionCosts standing={standing(models, { costPartial: false, costUsd: 0.62 })} />);
+	expect(container.textContent).toContain("turn $0.62 · session $0.62");
+	expect(models.map(modelWords)).toEqual(["opus · in 130 · out 1,925 · $0.62", "haiku · in 130 · out 1,925"]);
 });
 
 it.glass("a session whose models did not all price their turns reads as a floor", function* ({ render }) {
 	const container = yield* render(
-		<SessionStandingBar
-			activity={{ live: true }}
-			standing={standing([spent("opus", 0.62), spent("haiku", null)], { costPartial: true, costUsd: 0.62 })}
-		/>,
+		<SessionCosts standing={standing([spent("opus", 0.62), spent("haiku", null)], { costPartial: true, costUsd: 0.62 })} />,
 	);
-	expect(container.textContent).toContain("session ≥ $0.6200");
-	expect(container.querySelector('[title="opus $0.6200 · haiku cost not reported"]')).not.toBeNull();
+	expect(container.textContent).toContain("session ≥ $0.62");
 });

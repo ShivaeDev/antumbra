@@ -1,7 +1,7 @@
 import type { sessionSituation } from "@antumbra/domain-changes/rows/session-situation.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { useState } from "react";
@@ -42,7 +42,7 @@ const SituationChoices = ({
 	readonly situations: readonly (typeof sessionSituation.Row.Type)[];
 	readonly choose: (situation: typeof sessionSituation.Row.Type) => void;
 }) => (
-	<div className="flex min-w-0 flex-wrap gap-2">
+	<div className="flex min-w-0 flex-wrap gap-2 empty:hidden">
 		{situations.map((situation) => (
 			<Button key={situation.id} onClick={() => choose(situation)} size="sm" variant="outline">
 				{situationLabel[situation.situation]} {situation.reference}

@@ -1,7 +1,7 @@
-import type { SessionSpend, SessionStanding } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
+import type { SessionModelSpend, SessionSpend, SessionStanding, SessionTokens } from "@antumbra/domain-sessions/rows/transcript-standing.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
-import type { BackgroundTask, SessionState } from "@antumbra/platform-vocabulary/session-events/state.ts";
-import type { UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
+import type { ModelUsage, UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
+import { rateLimitWindows } from "#transcript/rate-limit-label.ts";
 import type { SessionEvent, SessionTreeNode } from "#transcript/types.ts";
 
 type OpenTool = SessionStanding["open"][number];
@@ -11,16 +11,24 @@ interface Spend {
 	missing: boolean;
 }
 
+interface Tally extends Spend {
+	cacheReadTokens: number;
+	cacheWriteTokens: number;
+	inputTokens: number;
+	outputTokens: number;
+}
+
 interface Folding {
-	background: ReadonlyArray<BackgroundTask>;
-	readonly models: Map<string, Spend>;
+	readonly models: Map<string, Tally>;
 	readonly open: Map<string, OpenTool>;
-	readonly spend: Spend;
-	state: SessionState | undefined;
-	usage: typeof UsageEvent.Type | undefined;
+	rateLimit: string | undefined;
+	readonly session: Tally;
+	turn: Spend;
 }
 
 const nothingSpent = (): Spend => ({ cost: null, missing: false });
+
+const nothingCounted = (): Tally => ({ ...nothingSpent(), cacheReadTokens: 0, cacheWriteTokens: 0, inputTokens: 0, outputTokens: 0 });
 
 const bill = (held: Spend, costUsd: number | undefined): void => {
 	if (costUsd === undefined) {
@@ -30,38 +38,52 @@ const bill = (held: Spend, costUsd: number | undefined): void => {
 	held.cost = (held.cost ?? 0) + costUsd;
 };
 
-const spendOn = (models: Map<string, Spend>, model: string): Spend => {
+const tallyOn = (models: Map<string, Tally>, model: string): Tally => {
 	const held = models.get(model);
 	if (held !== undefined) {
 		return held;
 	}
-	const fresh = nothingSpent();
+	const fresh = nothingCounted();
 	models.set(model, fresh);
 	return fresh;
 };
 
 const priced = (held: Spend): SessionSpend => ({ costPartial: held.cost !== null && held.missing, costUsd: held.cost });
 
-const countModels = (fold: Folding, event: typeof UsageEvent.Type): void => {
+const tokensOf = (held: Tally): SessionTokens => ({
+	cacheReadTokens: held.cacheReadTokens,
+	cacheWriteTokens: held.cacheWriteTokens,
+	inputTokens: held.inputTokens,
+	outputTokens: held.outputTokens,
+});
+
+const add = (held: Tally, spent: ModelUsage): void => {
+	held.cacheReadTokens += spent.cacheReadTokens ?? 0;
+	held.cacheWriteTokens += spent.cacheWriteTokens ?? 0;
+	held.inputTokens += spent.inputTokens;
+	held.outputTokens += spent.outputTokens;
+	bill(held, spent.costUsd);
+};
+
+const count = (fold: Folding, event: typeof UsageEvent.Type): void => {
+	const turn = nothingSpent();
 	for (const spent of event.byModel) {
-		bill(fold.spend, spent.costUsd);
-		bill(spendOn(fold.models, spent.model), spent.costUsd);
+		add(fold.session, spent);
+		add(tallyOn(fold.models, spent.model), spent);
+		bill(turn, spent.costUsd);
 	}
+	fold.turn = turn;
 };
 
 const belongsToNode = (event: AgentEvent, delegate: boolean): boolean => delegate || !("origin" in event) || event.origin === undefined;
 
 const step = (fold: Folding, event: AgentEvent): void => {
 	switch (event.type) {
-		case "session.state":
-			fold.state = event.state;
-			return;
-		case "session.background":
-			fold.background = event.tasks;
-			return;
 		case "usage":
-			fold.usage = event;
-			countModels(fold, event);
+			count(fold, event);
+			return;
+		case "rate.limit":
+			fold.rateLimit = rateLimitWindows(event);
 			return;
 		case "tool.started":
 			fold.open.set(event.toolId, { name: event.name });
@@ -74,20 +96,22 @@ const step = (fold: Folding, event: AgentEvent): void => {
 	}
 };
 
+const spentOn = ([model, held]: readonly [string, Tally]): SessionModelSpend => ({ ...priced(held), ...tokensOf(held), model });
+
 export const sessionStanding = (events: ReadonlyArray<SessionEvent>, node?: SessionTreeNode | undefined): SessionStanding => {
 	const delegate = node !== undefined && node.depth > 0;
-	const fold: Folding = { background: [], models: new Map(), open: new Map(), spend: nothingSpent(), state: undefined, usage: undefined };
+	const fold: Folding = { models: new Map(), open: new Map(), rateLimit: undefined, session: nothingCounted(), turn: nothingSpent() };
 	for (const row of events) {
 		if (belongsToNode(row.event, delegate)) {
 			step(fold, row.event);
 		}
 	}
 	return {
-		background: fold.background,
-		models: [...fold.models].map(([model, held]) => ({ ...priced(held), model })),
+		models: [...fold.models].map(spentOn),
 		open: [...fold.open.values()],
-		spend: priced(fold.spend),
-		state: fold.state,
-		usage: fold.usage,
+		rateLimit: fold.rateLimit,
+		spend: priced(fold.session),
+		tokens: tokensOf(fold.session),
+		turn: priced(fold.turn),
 	};
 };

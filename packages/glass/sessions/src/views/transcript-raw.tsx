@@ -1,13 +1,8 @@
 import type { TranscriptRaw as RawItem } from "@antumbra/domain-sessions/rows/transcript.ts";
-import { summaryLine } from "#transcript/summary.ts";
-import { Disclosure } from "#views/transcript-disclosure.tsx";
-import { Payload } from "#views/transcript-payload.tsx";
 
 export const TranscriptRaw = ({ item }: { readonly item: RawItem }) => (
-	<Disclosure
-		body={<Payload label="Payload" text={item.payload} />}
-		name={<span className="shrink-0 font-mono text-2xs text-muted-foreground">{item.label}</span>}
-		subject="this payload"
-		summary={summaryLine(item.payload)}
-	/>
+	<div className="flex min-w-0 flex-col gap-1">
+		<span className="font-mono text-xs text-muted-foreground">{item.label}</span>
+		<pre className="max-h-72 overflow-x-auto rounded-md bg-muted p-3 font-mono text-xs whitespace-pre-wrap wrap-anywhere">{item.payload}</pre>
+	</div>
 );

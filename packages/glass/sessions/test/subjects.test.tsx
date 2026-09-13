@@ -10,8 +10,8 @@ import { Effect } from "effect";
 import { expect } from "vitest";
 import { AgentSession } from "#agent-session.tsx";
 import { FleetPanel } from "#fleet.tsx";
-import { PaneHeader } from "#pane-header.tsx";
 import { PieceSession } from "#piece-session.tsx";
+import { SessionHeader } from "#session-header.tsx";
 
 const REEF = Request.make("voyage:reef");
 const SOUNDINGS = Request.make("piece:soundings");
@@ -110,7 +110,7 @@ it.glass("the fleet keeps smoothers out of its groups until it is asked to show 
 	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
 	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
 	const withoutSmoothers = groupsOf(container);
-	expect(withoutSmoothers).toEqual([["Preparing to work", "1"]]);
+	expect(withoutSmoothers).toEqual([["Preparing", "1"]]);
 	expect(container.querySelector('[aria-label="Open smoother"]')).toBeNull();
 
 	yield* click(labelled(container, "Show smoothers"));
@@ -159,16 +159,17 @@ it.glass("the pane header pops out the conversation it is reading", function* ({
 	const node = `${root}:child`;
 	let popped = "";
 	const container = yield* render(
-		<PaneHeader
+		<SessionHeader
 			api={api}
-			onPopOut={(sessionId) => {
+			nodeId={node}
+			onPopOut={(sessionId: string) => {
 				popped = sessionId;
 			}}
-			reading={node}
 			sessionId={root}
+			snapshot={undefined}
 		/>,
 	);
-	yield* click(labelled(container, "Open in a window"));
+	yield* click(labelled(container, "Open in a tab"));
 	expect(popped).toBe(node);
 });
 

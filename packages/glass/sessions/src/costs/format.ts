@@ -36,6 +36,10 @@ const amount = (total: Priced): string | undefined =>
 
 export const costCell = (total: Priced): string => amount(total) ?? "not reported";
 
+// Header summaries round to cents; the floor marker still says when some of what ran reported nothing.
+export const summaryCost = (total: Priced): string | undefined =>
+	total.costUsd === null ? undefined : `${total.costPartial ? "≥ " : ""}$${grouped(total.costUsd, 2)}`;
+
 export const costPhrase = (total: Priced): string => amount(total) ?? "cost not reported";
 
 export const costReported = (total: Priced): boolean => total.costUsd !== null;

@@ -1,20 +1,22 @@
 import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "@antumbra/domain-sessions/rows/transcript.ts";
-import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { AgentEvent, TurnCompleted } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { RateLimitEvent } from "@antumbra/platform-vocabulary/session-events/rate-limit.ts";
 import type { RawEvent } from "@antumbra/platform-vocabulary/session-events/raw.ts";
+import type { UsageEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
 import { backgroundLabel, openedLabel, rawLabel, reroutedLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
 import { transcriptMessage } from "#transcript/message.ts";
 import { rateLimitLabel } from "#transcript/rate-limit-label.ts";
 import type { ToolCalls } from "#transcript/tool-calls.ts";
-import { usageLabel } from "#transcript/usage-label.ts";
+import { turnDetail, turnFacts, turnModels } from "#transcript/usage-label.ts";
 
 export interface Derivation {
 	readonly items: TranscriptItem[];
 	readonly nodes: NodesByRef;
 	readonly shown: Map<string, string>;
 	readonly tools: ToolCalls;
+	usage: typeof UsageEvent.Type | undefined;
 }
 
 const pushNarration = (state: Derivation, item: TranscriptMessage | TranscriptThinking): void => {
@@ -47,15 +49,27 @@ const showReading = (state: Derivation, event: AgentEvent, label: string, seq: n
 };
 
 const showRateLimit = (state: Derivation, event: typeof RateLimitEvent.Type, seq: number): void => {
-	if (event.status === "rejected") {
-		state.shown.delete(subjectOf(event));
+	if (event.status !== "rejected") {
+		return;
 	}
+	state.shown.delete(subjectOf(event));
 	showReading(state, event, rateLimitLabel(event), seq);
+};
+
+const pushTurn = (state: Derivation, event: typeof TurnCompleted.Type, seq: number): void => {
+	const usage = state.usage;
+	state.usage = undefined;
+	state.items.push({
+		...(usage === undefined ? {} : { detail: turnDetail(usage) }),
+		kind: "telemetry",
+		label: [turnLabel(event, usage === undefined ? [] : turnModels(usage)), ...(usage === undefined ? [] : turnFacts(usage))].join(" · "),
+		seq,
+	});
 };
 
 const showRaw = (state: Derivation, event: typeof RawEvent.Type, seq: number): void => {
 	if (fresh(state, subjectOf(event), `${event.raw.source} ${event.raw.kind} ${event.raw.payload}`)) {
-		state.items.push({ kind: "raw", label: rawLabel(event.raw), payload: event.raw.payload, seq });
+		state.items.push({ kind: "raw", label: rawLabel(event.raw), payload: event.raw.payload, seq, source: event.raw.source });
 	}
 };
 
@@ -87,10 +101,10 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			state.tools.complete(event.toolId, event.ok, event.output);
 			return;
 		case "usage":
-			pushTelemetry(state, usageLabel(event), seq);
+			state.usage = event;
 			return;
 		case "turn.completed":
-			pushTelemetry(state, turnLabel(event), seq);
+			pushTurn(state, event, seq);
 			return;
 		case "model.rerouted":
 			pushTelemetry(state, reroutedLabel(event), seq);

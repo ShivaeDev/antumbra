@@ -5,17 +5,24 @@ import { editablesOf, valuesOf } from "@antumbra/glass-components/fields.ts";
 import { sending, useGenerated } from "@antumbra/glass-components/generated.ts";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@antumbra/glass-components/shadcn/dialog.tsx";
+import { inheritedFrom, inheritedWords } from "@antumbra/platform-vocabulary/role-setting.ts";
 import { useMemo, useState } from "react";
 import type { SessionsApi } from "#glass.ts";
 
-const BACKEND_DEFAULT = "backend default";
-
 const NOTHING = {};
 
+const resolvedWords = (named: Resolution["model"]): string => {
+	if (named.value === null) {
+		return inheritedWords("backend");
+	}
+	const inherited = inheritedFrom(named.source);
+	return inherited === undefined ? named.value : `${named.value} · ${inherited}`;
+};
+
 const placeholdersOf = (resolved: Resolution): Readonly<Record<string, string>> => ({
-	backend: `${resolved.backend.value} · default`,
-	effort: resolved.effort.value ?? BACKEND_DEFAULT,
-	model: resolved.model.value ?? BACKEND_DEFAULT,
+	backend: `${resolved.backend.value} · ${inheritedFrom(resolved.backend.source) ?? inheritedWords("backend")}`,
+	effort: resolvedWords(resolved.effort),
+	model: resolvedWords(resolved.model),
 	role: "navigator",
 });
 

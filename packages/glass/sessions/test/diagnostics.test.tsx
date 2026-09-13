@@ -1,5 +1,5 @@
 import { answered } from "@antumbra/app-testing/answers.ts";
-import { click, until } from "@antumbra/app-testing/glass/dom.ts";
+import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -14,9 +14,7 @@ it.glass("a requested birth remains diagnosable before its conversation starts",
 	const agent = yield* answered(api.agents.reading({ id: agentId }));
 	if (agent === null) return yield* Effect.die("Missing requested Agent reading");
 	const container = yield* render(<Diagnostics api={api} agent={agent} />);
-	const disclosure = container.querySelector("summary");
-	if (disclosure === null) return yield* Effect.die("Missing Agent diagnostics disclosure");
-	yield* click(disclosure);
+	yield* press(container, "diagnostics");
 	yield* until(() => container.textContent?.includes("birth · requested") === true, "the pending birth diagnostic");
 	expect(container.textContent).toContain(`current ${sessionId}`);
 });

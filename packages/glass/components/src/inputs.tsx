@@ -2,8 +2,10 @@ import { LINES_CONTROL, TEXT_CONTROL } from "#classes.ts";
 
 export interface Shown {
 	readonly described: string | undefined;
+	readonly focus: boolean;
 	readonly invalid: boolean;
 	readonly name: string;
+	readonly named: string;
 	readonly onBlur: () => void;
 	readonly onChange: (value: unknown) => void;
 	readonly placeholder: string;

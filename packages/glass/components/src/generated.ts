@@ -2,7 +2,7 @@ import * as Form from "@antumbra/glass-form/form.ts";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import { useLayoutEffect, useRef, useState } from "react";
-import { type Editable, type Held, schemaOf } from "#fields.ts";
+import { type Editable, emptyOf, fedByOf, type Held, schemaOf } from "#fields.ts";
 
 const runtime = Atom.runtime(Layer.empty);
 
@@ -57,4 +57,19 @@ export const useGenerated = (editables: readonly Editable[], identity: Held, val
 		}
 	}, [held.form, incoming, sent, values]);
 	return held.form;
+};
+
+const NOTHING: readonly Editable[] = [];
+
+export const changing = (form: Generated, editables: readonly Editable[]): ((name: string, value: unknown) => void) => {
+	const fed = fedByOf(editables);
+	const change = (name: string, value: unknown): void => {
+		form.change(name, value);
+		for (const editable of fed.get(name) ?? NOTHING) {
+			if (editable.name !== name) {
+				change(editable.name, emptyOf(editable.editing));
+			}
+		}
+	};
+	return change;
 };

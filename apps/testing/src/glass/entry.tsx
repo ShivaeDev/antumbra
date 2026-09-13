@@ -1,4 +1,5 @@
 import { type Glass, served } from "@antumbra/glass-client/connect.ts";
+import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { apiOf } from "@antumbra/server-journal/testing/api.ts";
 import { it as effectIt } from "@effect/vitest";
 import { Effect, Layer, type Scope } from "effect";
@@ -8,6 +9,14 @@ import { ScriptedArtifacts } from "#artifacts.ts";
 import { mount, settle } from "#glass/dom.ts";
 
 export type Api = Glass<typeof definition.features>["api"];
+
+type Provider = (props: { readonly children: ReactNode }) => ReactNode;
+
+const dressed = (Connected: Provider, screen: ReactNode): ReactNode => (
+	<Connected>
+		<TooltipProvider>{screen}</TooltipProvider>
+	</Connected>
+);
 
 type Services = Layer.Success<typeof layer>;
 
@@ -29,7 +38,7 @@ export const it = {
 				const glass = served(definition.features, Effect.succeed(api));
 				yield* Effect.addFinalizer(() => Effect.sync(() => glass.registry.dispose()));
 				const { container, root } = yield* mount();
-				const render = (screen: ReactNode) => settle(() => root.render(<glass.Provider>{screen}</glass.Provider>)).pipe(Effect.as(container));
+				const render = (screen: ReactNode) => settle(() => root.render(dressed(glass.Provider, screen))).pipe(Effect.as(container));
 				const run = <Value, Failure, Requirements>(effect: Effect.Effect<Value, Failure, Requirements>) => effect.pipe(Effect.provide(services));
 				const artifacts = yield* run(ScriptedArtifacts);
 				return yield* Effect.gen(() => body({ api: glass.api, artifacts, render, run }));

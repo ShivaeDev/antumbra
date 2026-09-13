@@ -26,9 +26,9 @@ const directory = Layer.effect(
 ).pipe(Layer.provideMerge(NodeFileSystem.layer), Layer.orDie);
 const disk = Journal.file().pipe(Layer.provideMerge(directory));
 
-const previousJournal = Effect.gen(function* () {
+const storedJournal = Effect.gen(function* () {
 	const { write: sql } = yield* Database;
-	yield* sql`CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL)`;
+	yield* sql`CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL, "subject" TEXT)`;
 	yield* sql`CREATE TABLE "applied" ("requestId" TEXT PRIMARY KEY, "seq" INTEGER NOT NULL)`;
 	yield* sql`CREATE TABLE "shape" ("name" TEXT PRIMARY KEY, "hash" TEXT NOT NULL)`;
 	for (const projection of [previousCatalog, count]) {
@@ -38,8 +38,22 @@ const previousJournal = Effect.gen(function* () {
 		yield* sql`INSERT INTO "shape" ${sql.insert({ name: projection.name, hash: shapeOf(projection) })}`;
 	}
 	yield* sql`INSERT INTO "journal" ${sql.insert([
-		{ seq: 7, at: 120, requestId: "catalog", name: "ModelsListed", payload: JSON.stringify({ backend: "claude", failure: null, models: [] }) },
-		{ seq: 8, at: 130, requestId: "count", name: "CountSet", payload: JSON.stringify({ key: "maxParallelSessions", count: 9 }) },
+		{
+			seq: 7,
+			at: 120,
+			requestId: "catalog",
+			name: "ModelsListed",
+			payload: JSON.stringify({ backend: "claude", failure: null, models: [] }),
+			subject: "claude",
+		},
+		{
+			seq: 8,
+			at: 130,
+			requestId: "count",
+			name: "CountSet",
+			payload: JSON.stringify({ key: "maxParallelSessions", count: 9 }),
+			subject: null,
+		},
 	])}`;
 	yield* sql`INSERT INTO "applied" ${sql.insert([
 		{ requestId: "catalog", seq: 7 },
@@ -49,25 +63,24 @@ const previousJournal = Effect.gen(function* () {
 	yield* sql`INSERT INTO "count" ${sql.insert({ key: "maxParallelSessions", scope: "fleet", count: 9 })}`;
 }).pipe(Effect.orDie);
 
-it.effect("upgrades a previous-format journal through production materializers and saves its original database", () =>
+it.effect("rebuilds a projection whose shape changed through production materializers and saves the database it replaced", () =>
 	Effect.gen(function* () {
-		yield* previousJournal;
+		yield* storedJournal;
 		const database = yield* Database;
 		const fs = yield* FileSystem.FileSystem;
 		const directory = yield* DataDirectory;
 		const registry = yield* registryOf(definition);
-		const before = yield* database.read`SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`;
+		const before = yield* database.read`SELECT * FROM "journal" ORDER BY "seq"`;
 		const applied = yield* database.read`SELECT * FROM "applied" ORDER BY "seq"`;
 		yield* start(database.write, registry, database.backup);
-		expect(yield* database.read`SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`).toEqual(before);
-		expect(yield* database.read`SELECT "subject" FROM "journal" ORDER BY "seq"`).toEqual([{ subject: null }, { subject: null }]);
+		expect(yield* database.read`SELECT * FROM "journal" ORDER BY "seq"`).toEqual(before);
 		expect(yield* database.read`SELECT * FROM "applied" ORDER BY "seq"`).toEqual(applied);
 		expect(yield* database.read`SELECT * FROM "backendCatalog"`).toEqual([{ backend: "claude", failure: null, imageInput: null }]);
 		expect(yield* database.read`SELECT "count" FROM "count" WHERE "key" = 'maxParallelSessions'`).toEqual([{ count: 9 }]);
 		const backups = yield* fs.readDirectory(`${directory.path}/backups`);
 		expect(backups).toHaveLength(1);
 		const saved = yield* SqliteClient.make({ filename: `${directory.path}/backups/${backups[0]}`, readonly: true, disableWAL: true });
-		expect(yield* saved`SELECT "seq", "at", "requestId", "name", "payload" FROM "journal" ORDER BY "seq"`).toEqual(before);
+		expect(yield* saved`SELECT * FROM "journal" ORDER BY "seq"`).toEqual(before);
 		expect(yield* saved`SELECT * FROM "backendCatalog"`).toEqual([{ backend: "claude", failure: null }]);
 		yield* start(database.write, registry, database.backup);
 		expect(yield* fs.readDirectory(`${directory.path}/backups`)).toEqual(backups);

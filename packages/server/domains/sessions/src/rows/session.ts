@@ -26,6 +26,7 @@ export const session = row(
 		charterDeliveredAt: Schema.NullOr(Schema.String),
 		attached: Schema.Boolean,
 		idleSince: Schema.NullOr(Schema.String),
+		stoppedAt: Schema.NullOr(Schema.String),
 		openDelegations: Schema.Number,
 		toolCalls: Schema.Number,
 		createdAt: Schema.String,

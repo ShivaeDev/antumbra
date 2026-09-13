@@ -30,6 +30,7 @@ export const start = Effect.fn("sessions.start")(function* (fact: Observation, r
 			charterDeliveredAt: null,
 			attached: true,
 			idleSince: at,
+			stoppedAt: null,
 			openDelegations: 0,
 			toolCalls: 0,
 			createdAt: at,

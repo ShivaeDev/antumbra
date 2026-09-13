@@ -18,6 +18,7 @@ export const hail = command("hail", {
 		UnknownVoyage: { id: Schema.String },
 		CaptainAlreadyHailed: { agentId: Schema.String },
 		CaptainSessionUnavailable: { agentId: Schema.String },
+		CaptainStopped: { agentId: Schema.String },
 		AgentExists: { id: Schema.String },
 	},
 	run: Effect.fn("Agents.hail")(function* (input, rows, reject) {
@@ -30,6 +31,7 @@ export const hail = command("hail", {
 			const roots = yield* rows.session.where({ agentId: current.id, parentSessionId: null, status: "open" });
 			const root = roots.find((held) => held.id === current.currentSessionId);
 			if (root === undefined) return yield* reject.CaptainSessionUnavailable({ agentId: current.id });
+			if (root.stoppedAt !== null) return yield* reject.CaptainStopped({ agentId: current.id });
 			wakeSessionId = root.id;
 		} else if (Option.isSome(yield* rows.agent.find(ids.agentId))) return yield* reject.AgentExists({ id: ids.agentId });
 		return {

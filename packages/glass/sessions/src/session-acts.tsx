@@ -8,38 +8,58 @@ import type { SessionsApi } from "#glass.ts";
 
 type Look = "ghost" | "outline";
 
-const Operation = (props: {
-	readonly api: SessionsApi;
-	readonly sessionId: string;
-	readonly kind: "interrupt" | "sleep";
+const requestedAt = (): string => new Date(Effect.runSync(Clock.currentTimeMillis)).toISOString();
+
+const Act = (props: {
+	readonly disabled: boolean;
 	readonly label: string;
 	readonly look: Look;
-}) => {
+	readonly onAct: () => void;
+	readonly refusal: string | null;
+}) => (
+	<span className="flex min-w-0 items-center gap-2">
+		<Button disabled={props.disabled} size="sm" variant={props.look} onClick={props.onAct}>
+			{props.label}
+		</Button>
+		{props.refusal === null ? null : (
+			<p className="min-w-0 truncate text-xs text-destructive" role="alert">
+				{props.refusal}
+			</p>
+		)}
+	</span>
+);
+
+const Stop = (props: { readonly api: SessionsApi; readonly sessionId: string; readonly look: Look }) => {
+	const action = useCommand(props.api.sessions.stop);
+	return (
+		<Act
+			disabled={action.pending}
+			label="Stop"
+			look={props.look}
+			refusal={AsyncResult.isFailure(action.result) ? messageOf(action.result.cause) : null}
+			onAct={() => action.run({ sessionId: SessionId.make(props.sessionId), reason: "admiral", requestedAt: requestedAt() })}
+		/>
+	);
+};
+
+const Sleep = (props: { readonly api: SessionsApi; readonly sessionId: string; readonly look: Look }) => {
 	const action = useCommand(props.api.sessions.request);
 	return (
-		<span className="flex min-w-0 items-center gap-2">
-			<Button
-				disabled={action.pending}
-				size="sm"
-				variant={props.look}
-				onClick={() =>
-					action.run({
-						sessionId: SessionId.make(props.sessionId),
-						kind: props.kind,
-						inputId: null,
-						reason: "admiral",
-						requestedAt: new Date(Effect.runSync(Clock.currentTimeMillis)).toISOString(),
-					})
-				}
-			>
-				{props.label}
-			</Button>
-			{AsyncResult.isFailure(action.result) ? (
-				<p className="min-w-0 truncate text-xs text-destructive" role="alert">
-					{messageOf(action.result.cause)}
-				</p>
-			) : null}
-		</span>
+		<Act
+			disabled={action.pending}
+			label="Sleep"
+			look={props.look}
+			refusal={AsyncResult.isFailure(action.result) ? messageOf(action.result.cause) : null}
+			onAct={() =>
+				action.run({
+					sessionId: SessionId.make(props.sessionId),
+					kind: "sleep",
+					inputId: null,
+					reason: "admiral",
+					requestedAt: requestedAt(),
+				})
+			}
+		/>
 	);
 };
 
@@ -53,8 +73,8 @@ export const SessionActs = (props: {
 	const look = props.look ?? "outline";
 	return (
 		<>
-			{props.canInterrupt ? <Operation api={props.api} sessionId={props.sessionId} kind="interrupt" label="Interrupt" look={look} /> : null}
-			{props.canSleep ? <Operation api={props.api} sessionId={props.sessionId} kind="sleep" label="Sleep" look={look} /> : null}
+			{props.canInterrupt ? <Stop api={props.api} sessionId={props.sessionId} look={look} /> : null}
+			{props.canSleep ? <Sleep api={props.api} sessionId={props.sessionId} look={look} /> : null}
 		</>
 	);
 };

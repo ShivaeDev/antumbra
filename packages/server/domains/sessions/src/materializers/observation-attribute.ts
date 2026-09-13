@@ -30,6 +30,7 @@ export const attribute = Effect.fn("Sessions.attribute")(function* (fact: Observ
 		toolCalls: 0,
 		openDelegations: 0,
 		idleSince: null,
+		stoppedAt: null,
 		createdAt: new Date(fact.at).toISOString(),
 	};
 	yield* rows.session.insert(value);

@@ -11,6 +11,7 @@ import { consumeSdkMessages } from "#backends/claude/adapters/session.ts";
 
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
 const RESET_SECONDS = 1_788_042_600;
+const MODEL = "claude-opus-5";
 
 type RateLimitFrame = Extract<SDKMessage, { type: "rate_limit_event" }>;
 
@@ -54,7 +55,7 @@ describe("claude capacity evidence", () => {
 			status: "blocked",
 			utilization: 1,
 		});
-		expect(openSessionMapping().frame(rejected)).toMatchObject([
+		expect(openSessionMapping(MODEL).frame(rejected)).toMatchObject([
 			{
 				raw: {
 					kind: "rate_limit_event",
@@ -83,7 +84,7 @@ describe("claude capacity evidence", () => {
 
 	it("leaves provider-managed API retries unclassified", () => {
 		expect(Option.isNone(classifyClaudeCapacity(rawOf(apiRetry)))).toBe(true);
-		expect(openSessionMapping().frame(apiRetry)).toMatchObject([{ raw: { kind: "system/api_retry", source: "claude" }, type: "raw" }]);
+		expect(openSessionMapping(MODEL).frame(apiRetry)).toMatchObject([{ raw: { kind: "system/api_retry", source: "claude" }, type: "raw" }]);
 	});
 
 	it.effect("feeds live SDK capacity evidence to the controller", () =>

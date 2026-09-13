@@ -20,8 +20,8 @@ export interface SessionProjection {
 	readonly events: (frame: SessionFrame) => AgentEvent[];
 }
 
-export const openSessionProjection = (): SessionProjection => {
-	const authors = openMessageAuthors();
+export const openSessionProjection = (sessionModel: string): SessionProjection => {
+	const authors = openMessageAuthors(sessionModel);
 	const boundary = openTurnBoundary();
 	const firstReport = openFirstReport();
 	const project = (type: string, properties: unknown): AgentEvent[] => {

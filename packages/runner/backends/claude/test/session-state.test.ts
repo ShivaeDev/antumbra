@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
+const SESSION_MODEL = "claude-sonnet-5";
 
 const stateFrame = (state: "idle" | "requires_action" | "running"): SDKMessage => ({
 	session_id: SESSION,
@@ -46,25 +47,37 @@ const usage: ResultMessage["usage"] = {
 	speed: "standard",
 };
 
-const result = (totalCostUsd: number, models: ReadonlyArray<string> = ["claude-opus-5"]): SDKMessage => ({
-	duration_api_ms: 9000,
-	duration_ms: 12300,
-	is_error: false,
-	modelUsage: Object.fromEntries(
-		models.map((model) => [
-			model,
+interface Spent {
+	readonly canonical?: string;
+	readonly model: string;
+	readonly totalTokens: number;
+}
+
+const OPUS: ReadonlyArray<Spent> = [{ model: "claude-opus-5", totalTokens: 19150 }];
+
+const modelUsage = (spent: ReadonlyArray<Spent>) =>
+	Object.fromEntries(
+		spent.map((entry) => [
+			entry.model,
 			{
-				cacheCreationInputTokens: usage.cache_creation_input_tokens,
-				cacheReadInputTokens: usage.cache_read_input_tokens,
+				cacheCreationInputTokens: 0,
+				cacheReadInputTokens: 0,
+				...(entry.canonical === undefined ? {} : { canonicalModel: entry.canonical }),
 				contextWindow: 200000,
-				costUSD: totalCostUsd,
-				inputTokens: usage.input_tokens,
+				costUSD: 0,
+				inputTokens: entry.totalTokens,
 				maxOutputTokens: 64000,
-				outputTokens: usage.output_tokens,
+				outputTokens: 0,
 				webSearchRequests: 0,
 			},
 		]),
-	),
+	);
+
+const result = (totalCostUsd: number, spent: ReadonlyArray<Spent> = OPUS): SDKMessage => ({
+	duration_api_ms: 9000,
+	duration_ms: 12300,
+	is_error: false,
+	modelUsage: modelUsage(spent),
 	num_turns: 1,
 	permission_denials: [],
 	result: "done",
@@ -79,14 +92,14 @@ const result = (totalCostUsd: number, models: ReadonlyArray<string> = ["claude-o
 
 describe("the harness's own account of a session is kept", () => {
 	it("keeps every state word, and calls requires_action awaiting input", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		expect(mapping.frame(stateFrame("running"))).toMatchObject([{ state: "running", type: "session.state" }]);
 		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
 		expect(mapping.frame(stateFrame("idle"))).toMatchObject([{ raw: { kind: "system/session_state_changed" }, state: "idle" }]);
 	});
 
 	it("takes the whole background set, and an empty one as the answer it is", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		expect(
 			mapping.frame(
 				tasksFrame([
@@ -119,7 +132,7 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("splits a turn's tokens four ways and names the model that answered", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		const [event] = mapping.frame(result(0.0412));
 		expect(event).toEqual({
 			cacheReadTokens: 4820,
@@ -135,7 +148,7 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("reports the turn's own cost as the step from the running total", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		mapping.frame(result(0.0412));
 		const [second] = mapping.frame(result(0.06));
 		expect(second).toMatchObject({ cumulativeCostUsd: 0.06 });
@@ -143,15 +156,40 @@ describe("the harness's own account of a session is kept", () => {
 	});
 
 	it("reads a total that went backwards as the counter starting over", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(SESSION_MODEL);
 		mapping.frame(result(0.5));
 		const [after] = mapping.frame(result(0.02));
 		expect(after).toMatchObject({ costUsd: 0.02, cumulativeCostUsd: 0.02 });
 	});
 
-	it("names no model when more than one answered", () => {
-		const mapping = openSessionMapping();
-		const [event] = mapping.frame(result(0.01, ["claude-opus-5", "claude-haiku-5"]));
-		expect(event).not.toHaveProperty("model");
+	it("names the model that spent the most of the turn's own tokens", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
+		const [first] = mapping.frame(
+			result(0.01, [
+				{ model: "claude-opus-5", totalTokens: 19150 },
+				{ model: "claude-haiku-5", totalTokens: 400 },
+			]),
+		);
+		expect(first).toMatchObject({ model: "claude-opus-5" });
+		const [second] = mapping.frame(
+			result(0.02, [
+				{ model: "claude-opus-5", totalTokens: 19150 },
+				{ model: "claude-haiku-5", totalTokens: 1200 },
+			]),
+		);
+		expect(second).toMatchObject({ model: "claude-haiku-5" });
+	});
+
+	it("names a model by the id the provider prices it under, not by the alias it was asked for", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
+		const [event] = mapping.frame(result(0.01, [{ canonical: "claude-opus-4-7", model: "opus", totalTokens: 19150 }]));
+		expect(event).toMatchObject({ model: "claude-opus-4-7" });
+	});
+
+	it("names the model the session was started on when no model spent anything this turn", () => {
+		const mapping = openSessionMapping(SESSION_MODEL);
+		mapping.frame(result(0.01));
+		const [second] = mapping.frame(result(0.02));
+		expect(second).toMatchObject({ model: SESSION_MODEL });
 	});
 });

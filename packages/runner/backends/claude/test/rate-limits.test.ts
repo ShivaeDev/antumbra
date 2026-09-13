@@ -5,6 +5,7 @@ import { openSessionMapping } from "#mapping.ts";
 type Info = Extract<SDKMessage, { type: "rate_limit_event" }>["rate_limit_info"];
 
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
+const MODEL = "claude-opus-5";
 
 const frame = (info: Info): SDKMessage => ({
 	rate_limit_info: info,
@@ -13,7 +14,7 @@ const frame = (info: Info): SDKMessage => ({
 	uuid: "9d0d0c62-05de-45b7-9a34-a0f3b1f4b4dd",
 });
 
-const mapped = (info: Info) => openSessionMapping().frame(frame(info));
+const mapped = (info: Info) => openSessionMapping(MODEL).frame(frame(info));
 
 describe("claude's rate limit frames are telemetry, not raw", () => {
 	it("a window's share and reset are read into a percentage and an epoch", () => {

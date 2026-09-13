@@ -6,7 +6,7 @@ import { frameFor } from "#session-frames.ts";
 import { aborted, frame, idled, SESSION, status } from "#test/frames.ts";
 
 const project = (frames: ReadonlyArray<unknown>): AgentEvent[] => {
-	const projection = openSessionProjection();
+	const projection = openSessionProjection("anthropic/claude-opus-5");
 	return frames.flatMap((raw) =>
 		Option.match(frameFor(SESSION, raw), {
 			onNone: () => [],

@@ -4,6 +4,7 @@ import { openSessionMapping } from "#mapping.ts";
 
 // Fixtures are trimmed live captures from claude-code 2.1.236; nested frames contain `parent_agent_id`, which the pinned SDK type omits.
 const SESSION = "57723c86-0b0c-4db1-9c79-1ae37fc5ef4a";
+const MODEL = "claude-opus-5";
 const AGENT_CALL = "toolu_01FXPFYypQqTefL5KPsKV8ww";
 const SUBSESSION = "a2b8c2a1b3d038e69";
 
@@ -101,7 +102,7 @@ const agentReport: SDKUserMessage = {
 
 describe("claude frames map onto the neutral vocabulary", () => {
 	it("attributes a frame to the tool call that spawned it, or to no one", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		const [root] = mapping.frame(toolResult(null));
 		expect(root).toMatchObject({ ok: true, toolId: "toolu_09", type: "tool.completed" });
 		expect(root).not.toHaveProperty("origin");
@@ -110,7 +111,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 
 	it("names the spawning node too when the spawner is itself a subsession", () => {
 		const nested = { ...toolResult(AGENT_CALL), parent_agent_id: SUBSESSION };
-		const [event] = openSessionMapping().frame(nested);
+		const [event] = openSessionMapping(MODEL).frame(nested);
 		expect(event).toMatchObject({
 			origin: { parentNode: SUBSESSION, spawnedBy: AGENT_CALL },
 			type: "tool.completed",
@@ -118,7 +119,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("opens a subsession for a delegated agent, never for a shell command", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		expect(mapping.frame(started)).toEqual([
 			{
 				charter: "Read the domain session cluster and report what each file means",
@@ -138,7 +139,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("says only what the frame said when the provider named nothing", () => {
-		const [event] = openSessionMapping().frame(workflowStarted);
+		const [event] = openSessionMapping(MODEL).frame(workflowStarted);
 		expect(event).toEqual({
 			raw: {
 				kind: "system/task_started",
@@ -152,7 +153,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("ends the subsession when its task is patched terminal", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([
 			{
@@ -164,14 +165,14 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("keeps a running task open and never reads a patch as an ending", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		expect(mapping.frame(updated(SUBSESSION, "running"))).toMatchObject([{ raw: { kind: "system/task_updated" }, type: "raw" }]);
 		expect(mapping.frame(updated(SUBSESSION))).toMatchObject([{ outcome: "completed", type: "subsession.ended" }]);
 	});
 
 	it("reads a task killed by force as an interrupted subsession", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		const [event] = mapping.frame(updated(SUBSESSION, "killed"));
 		expect(event).toMatchObject({
@@ -185,7 +186,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("leaves a shell command's completion raw, and never ends a node twice", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		mapping.frame(bashStarted);
 		expect(mapping.frame(updated("b7eseofo8"))).toMatchObject([{ raw: { kind: "system/task_updated" }, type: "raw" }]);
@@ -194,7 +195,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("closes on the notification when no patch preceded it", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		expect(mapping.frame(notified)).toMatchObject([
 			{
@@ -209,7 +210,7 @@ describe("claude frames map onto the neutral vocabulary", () => {
 	});
 
 	it("reads the Agent tool's own result for the run's totals", () => {
-		const mapping = openSessionMapping();
+		const mapping = openSessionMapping(MODEL);
 		mapping.frame(started);
 		expect(mapping.frame(agentReport)).toMatchObject([
 			{ ok: true, toolId: AGENT_CALL, type: "tool.completed" },

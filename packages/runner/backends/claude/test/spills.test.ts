@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { openSessionMapping } from "#mapping.ts";
 
 const AGENT_CALL = "toolu_01FXPFYypQqTefL5KPsKV8ww";
+const MODEL = "claude-opus-5";
 
 // Trimmed live capture of a tool result whose full output was stored outside the stream.
 const spilled = (parent: string | null): SDKUserMessage => ({
@@ -26,7 +27,7 @@ const spilled = (parent: string | null): SDKUserMessage => ({
 });
 
 it("says where a tool result spilled, on the node that produced it", () => {
-	expect(openSessionMapping().frame(spilled(AGENT_CALL))).toMatchObject([
+	expect(openSessionMapping(MODEL).frame(spilled(AGENT_CALL))).toMatchObject([
 		{ origin: { spawnedBy: AGENT_CALL }, type: "tool.completed" },
 		{
 			detail: "full tool output spilled to /tmp/tool-results/toolu_09.txt (148402 bytes)",
@@ -42,5 +43,5 @@ it("a result that fitted inline leaves no gap behind", () => {
 		...spilled(null),
 		tool_use_result: { stdout: "sounded" },
 	};
-	expect(openSessionMapping().frame(inline)).toMatchObject([{ type: "tool.completed" }]);
+	expect(openSessionMapping(MODEL).frame(inline)).toMatchObject([{ type: "tool.completed" }]);
 });

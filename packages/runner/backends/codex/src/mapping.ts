@@ -38,15 +38,16 @@ const turnCompleted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 		],
 	});
 
-const tokenUsage = (raw: RawPayload, params: unknown): AgentEvent[] =>
+const tokenUsage = (raw: RawPayload, params: unknown, sessionModel: string): AgentEvent[] =>
 	Option.match(decodeUsage(params), {
 		onNone: () => [{ raw, type: "raw" }],
-		// Codex reports per-round usage in `last`; cost fields are not present.
+		// Codex reports per-round usage in `last`; cost fields and the answering model are not present.
 		onSome: ({ tokenUsage }) => [
 			{
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
 				...(tokenUsage.last.cacheWriteInputTokens === undefined ? {} : { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
 				inputTokens: tokenUsage.last.inputTokens,
+				model: sessionModel,
 				outputTokens: tokenUsage.last.outputTokens,
 				raw,
 				type: "usage",
@@ -62,7 +63,7 @@ const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarte
 
 // Codex item/completed carries transcript content; turn/completed does not.
 // Codex exposes background terminals through explicit requests, not a push stream.
-export const toAgentEvents = (notification: RpcNotification): AgentEvent[] => {
+export const toAgentEvents = (notification: RpcNotification, sessionModel: string): AgentEvent[] => {
 	const raw = rawOf(notification.method, notification.params);
 	switch (notification.method) {
 		case "item/started":
@@ -76,7 +77,7 @@ export const toAgentEvents = (notification: RpcNotification): AgentEvent[] => {
 		case "thread/status/changed":
 			return threadStateEvents(raw, notification.params);
 		case "thread/tokenUsage/updated":
-			return tokenUsage(raw, notification.params);
+			return tokenUsage(raw, notification.params, sessionModel);
 		case RATE_LIMITS_METHOD:
 			return rateLimitEvents(raw, notification.params);
 		default:

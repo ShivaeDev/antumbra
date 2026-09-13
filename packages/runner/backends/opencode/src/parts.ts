@@ -22,7 +22,7 @@ const usageEvents = (raw: RawPayload, part: Extract<KnownPart, { type: "step-fin
 		...(part.tokens.cache?.write === undefined ? {} : { cacheWriteTokens: part.tokens.cache.write }),
 		...(part.cost === undefined ? {} : { costUsd: part.cost }),
 		inputTokens: part.tokens.input,
-		...(Option.isNone(author.model) ? {} : { model: author.model.value }),
+		model: author.model,
 		outputTokens: part.tokens.output,
 		raw,
 		type: "usage",

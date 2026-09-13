@@ -11,6 +11,7 @@ import { usageLabel } from "#transcript/usage-label.ts";
 export interface Derivation {
 	readonly items: TranscriptItem[];
 	readonly nodes: NodesByRef;
+	readonly shown: Map<string, string>;
 	readonly tools: ToolCalls;
 }
 
@@ -20,8 +21,22 @@ const pushNarration = (state: Derivation, item: TranscriptMessage | TranscriptTh
 	}
 };
 
+const repeated = (state: Derivation, subject: string, content: string): boolean => {
+	if (state.shown.get(subject) === content) {
+		return true;
+	}
+	state.shown.set(subject, content);
+	return false;
+};
+
 const pushTelemetry = (state: Derivation, label: string, seq: number): void => {
 	state.items.push({ kind: "telemetry", label, seq });
+};
+
+const pushReading = (state: Derivation, subject: string, label: string, seq: number): void => {
+	if (!repeated(state, subject, label)) {
+		pushTelemetry(state, label, seq);
+	}
 };
 
 export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: number): void => {
@@ -58,16 +73,16 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			pushTelemetry(state, turnLabel(event), seq);
 			return;
 		case "rate.limit":
-			pushTelemetry(state, rateLimitLabel(event), seq);
+			pushReading(state, event.type, rateLimitLabel(event), seq);
 			return;
 		case "session.opened":
-			pushTelemetry(state, openedLabel(event), seq);
+			pushReading(state, event.type, openedLabel(event), seq);
 			return;
 		case "session.state":
-			pushTelemetry(state, stateLabel(event), seq);
+			pushReading(state, event.type, stateLabel(event), seq);
 			return;
 		case "session.background":
-			pushTelemetry(state, backgroundLabel(event), seq);
+			pushReading(state, event.type, backgroundLabel(event), seq);
 			return;
 		case "subsession.opened":
 			state.items.push(openedDelegation(state.nodes, event, seq));
@@ -79,12 +94,14 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			state.items.push(gapNotice(event, seq));
 			return;
 		case "raw":
-			state.items.push({
-				kind: "raw",
-				label: rawLabel(event.raw),
-				payload: event.raw.payload,
-				seq,
-			});
+			if (!repeated(state, `${event.type} ${event.raw.source} ${event.raw.kind} ${event.raw.payload}`, event.raw.payload)) {
+				state.items.push({
+					kind: "raw",
+					label: rawLabel(event.raw),
+					payload: event.raw.payload,
+					seq,
+				});
+			}
 			return;
 	}
 	event satisfies never;

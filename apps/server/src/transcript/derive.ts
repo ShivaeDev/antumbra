@@ -9,6 +9,7 @@ export const deriveTranscript = (events: ReadonlyArray<SessionEvent>, nodes: Rea
 	const state: Derivation = {
 		items,
 		nodes: nodesByRef(nodes),
+		shown: new Map(),
 		tools: openToolCalls(items),
 	};
 	for (const event of events) {

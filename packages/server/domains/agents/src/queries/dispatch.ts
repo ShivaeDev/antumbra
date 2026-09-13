@@ -2,6 +2,8 @@ import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
+import { FLEET } from "@antumbra/domain-settings/ids.ts";
+import { allows } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
@@ -10,7 +12,7 @@ import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";
 
-const Target = Schema.Struct({ piece: piece.Row, voyage: voyage.Row, root: Schema.NullOr(session.Row) });
+const Target = Schema.Struct({ piece: piece.Row, voyage: voyage.Row, root: Schema.NullOr(session.Row), held: Schema.Boolean });
 
 export const dispatch = query("dispatch", {
 	input: {},
@@ -24,8 +26,9 @@ export const dispatch = query("dispatch", {
 		const cancel = births.filter(
 			(held) => held.source === "dispatch" && held.status === "requested" && held.pieceId !== null && !eligible.has(held.pieceId),
 		);
-		if ((yield* rows.flag.where({})).some((setting) => setting.on && (setting.key === "holdEverything" || setting.key === "holdPieceDispatch")))
-			return { cancel, ready: [] };
+		const flags = yield* rows.flag.where({ scope: FLEET });
+		const resuming = allows(flags, "resumePieces");
+		const spawning = allows(flags, "spawnForPiece");
 		const voyages = new Map((yield* rows.voyage.where({})).map((voyage) => [voyage.id, voyage]));
 		const agents = yield* rows.agent.where({});
 		const links = yield* rows.pieceAgent.where({});
@@ -40,7 +43,7 @@ export const dispatch = query("dispatch", {
 					return [];
 				const assigned = new Set(links.filter((link) => link.pieceId === piece.id).map((link) => link.agentId));
 				const living = agents.filter((agent) => assigned.has(agent.id) && ["alive", "spawning"].includes(agent.status));
-				if (living.length === 0) return [{ piece, voyage, root: null }];
+				if (living.length === 0) return [{ piece, voyage, root: null, held: !spawning }];
 				const assignedAgent = living.toSorted((a, b) => a.id.localeCompare(b.id))[0];
 				const root = roots.find((root) => assignedAgent?.currentSessionId === root.id);
 				if (
@@ -53,7 +56,7 @@ export const dispatch = query("dispatch", {
 					)
 				)
 					return [];
-				return [{ piece, voyage, root }];
+				return [{ piece, voyage, root, held: !resuming }];
 			});
 		return {
 			cancel,

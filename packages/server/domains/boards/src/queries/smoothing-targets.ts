@@ -1,5 +1,6 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Effect, Schema } from "effect";
 import { BoardId, pieceBoard, voyageBoard } from "#ids.ts";
@@ -52,7 +53,7 @@ export const smoothingTargets = query("smoothingTargets", {
 export const pendingSmoothing = query("pendingSmoothing", {
 	input: {},
 	output: Schema.Array(smoothingAttempt.Row),
-	reads: [smoothingAttempt],
+	reads: [smoothingAttempt, flag],
 	run: Effect.fn("boards.pendingSmoothing")(function* (_input, rows) {
 		return (yield* rows.smoothingAttempt.where({ status: "requested" })).toSorted((left, right) => left.requestedAt.localeCompare(right.requestedAt));
 	}),

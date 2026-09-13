@@ -14,7 +14,7 @@ export const birth = row(
 		operationRequestId: Schema.String,
 		createsAgent: Schema.Boolean,
 		cwd: Schema.NullOr(Schema.String),
-		source: Schema.Literals(["dispatch", "work-now", "direct"]),
+		source: Schema.Literals(["dispatch", "work-now", "direct", "hail", "smoothing"]),
 		agentId: AgentId,
 		sessionId: SessionId,
 		voyageId: Schema.NullOr(VoyageId),

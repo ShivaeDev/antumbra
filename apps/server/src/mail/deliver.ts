@@ -1,8 +1,9 @@
 import { markDelivered } from "@antumbra/domain-mail/commands/mark-delivered.ts";
+import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
 import type { DueWake } from "@antumbra/domain-mail/queries/due-wakes.ts";
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { operations } from "@antumbra/domain-sessions/queries/operations.ts";
-import { flags } from "@antumbra/domain-settings/queries/flags.ts";
+import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
@@ -13,8 +14,8 @@ export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<D
 	const live = yield* Live;
 	const commit = yield* Commit;
 	const chosen = yield* live.read(flags, {});
-	if (chosen.some((flag) => flag.on && (flag.key === "holdEverything" || flag.key === "holdWakes"))) return;
 	for (const wake of due) {
+		if (!allows(chosen, WAKE_SWITCHES[wake.batch.precedence])) continue;
 		const requestId = Request.make(`mail-wake:${wake.sessionId}:${wake.unreadIds.toSorted().join(":")}`);
 		const held = yield* live.read(operations, { sessionId: wake.sessionId });
 		if (

@@ -1,5 +1,6 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { bindSmoothingSession } from "#commands/bind-smoothing-session.ts";
@@ -36,7 +37,7 @@ import { smoothingAttempt } from "#rows/smoothing-attempt.ts";
 import { smoothingSession } from "#rows/smoothing-session.ts";
 
 export const boards = feature("boards", {
-	rows: [boardEntry, piece, voyage, smoothingAttempt, pieceProgress, smoothingSession],
+	rows: [boardEntry, piece, voyage, smoothingAttempt, pieceProgress, smoothingSession, flag],
 	facts: [noteWritten, summaryWritten, pieceSummaryWritten, smoothingRequested, smoothingFinished, smoothingSessionBound, smoothingSessionFinished],
 	commands: [write, summarize, summarizePiece, requestSmoothing, finishSmoothing, bindSmoothingSession, finishSmoothingSession],
 	materializers: [

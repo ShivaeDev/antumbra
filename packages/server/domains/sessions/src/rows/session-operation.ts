@@ -1,3 +1,4 @@
+import { SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { Schema } from "effect";
 import { SessionId, SessionOperationId } from "#ids.ts";
@@ -13,4 +14,8 @@ export const operationFields = {
 	requestedAt: Schema.String,
 };
 
-export const sessionOperation = row("sessionOperation", { ...operationFields, sequence: Schema.Number }, { key: "id", scope: "sessionId" });
+export const sessionOperation = row(
+	"sessionOperation",
+	{ ...operationFields, sequence: Schema.Number, gatedBy: Schema.NullOr(SwitchKey) },
+	{ key: "id", scope: "sessionId" },
+);

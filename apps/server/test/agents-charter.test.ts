@@ -57,7 +57,7 @@ it.app("birth charters carry scoped Boards, binding rulings, and landed Piece ou
 		return held;
 	});
 	yield* app.api.agents.request({ requestId: Request.make("crew"), voyageId, pieceId, role: "crew" });
-	yield* app.api.agents.hail({ requestId: Request.make("captain"), voyageId });
+	yield* app.api.agents.hail({ by: "admiral", requestId: Request.make("captain"), voyageId });
 	const { text: crew } = yield* charter.compose(yield* born("crew"));
 	for (const included of [
 		"Survey before sailing",

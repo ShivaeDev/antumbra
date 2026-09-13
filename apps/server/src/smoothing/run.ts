@@ -4,6 +4,7 @@ import { dueSmoothing } from "@antumbra/domain-boards/queries/due-smoothing.ts";
 import { localDay } from "@antumbra/domain-boards/queries/smoothing-span.ts";
 import { pendingSmoothing, type SmoothingTarget, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-attempt.ts";
+import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
@@ -62,8 +63,12 @@ const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
 });
 
 export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
+	const live = yield* Live;
 	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
-		Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true }),
+		Effect.gen(function* () {
+			if (!allows(yield* live.read(flags, {}), "spawnSmoother")) return;
+			yield* Effect.forEach(attempts, (attempt) => smoothAttempt(attempt, prepare), { discard: true });
+		}),
 	);
 	const day = yield* Effect.forkScoped(Effect.forever(Effect.scoped(watchDay())));
 	return { refresh: pending.refresh, await: Effect.raceAllFirst([pending.await, Effect.asVoid(Fiber.join(day))]) };

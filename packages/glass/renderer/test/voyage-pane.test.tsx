@@ -43,7 +43,7 @@ const crewed = Effect.fnUntraced(function* (api: Api) {
 		dependsOn: [],
 	});
 	yield* api.agents.workNow({ requestId: HAND, pieceId });
-	yield* api.agents.hail({ requestId: CAPTAIN, voyageId });
+	yield* api.agents.hail({ by: "admiral", requestId: CAPTAIN, voyageId });
 	return yield* eventually(api.agents.roster({}), (agents) => agents.length === 2);
 });
 

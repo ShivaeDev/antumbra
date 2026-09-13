@@ -27,6 +27,7 @@
 		"@antumbra/domain-voyages": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/domain-settings": "workspace:*"
 	}
 }

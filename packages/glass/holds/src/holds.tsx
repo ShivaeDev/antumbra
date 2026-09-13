@@ -1,8 +1,12 @@
-import type { HoldQueue, Waiting } from "@antumbra/domain-holds/queries/queues.ts";
+import type { HoldQueue } from "@antumbra/domain-holds/queries/queues.ts";
+import type { Waiting } from "@antumbra/domain-holds/queries/waiting.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import type { HoldsApi } from "#glass.ts";
 import { HoldSwitch } from "#hold-switch.tsx";
 import { waitedWords } from "#waited.ts";
+
+const NOTHING = "Nothing is waiting on a switch.";
+
 export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 	<Live query={api.holds.queues} input={{}} waiting="Reading the holds…">
 		{(view) => (
@@ -10,15 +14,24 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 				<header className="border-b border-border p-4">
 					<div className="flex justify-between">
 						<h2>The holds</h2>
-						<HoldSwitch api={api} setting="holdEverything" title="All queues" held={view.everything} everything={false} />
+						<HoldSwitch
+							api={api}
+							setting="holdEverything"
+							title="All queues"
+							on={view.everything}
+							means="hold"
+							held={view.everything}
+							everything={false}
+						/>
 					</div>
 					<p className="text-xs text-muted-foreground">
 						Everything Antumbra sends on its own. A switch off holds its queue: nothing new goes out, nothing already running is touched, and what is
 						waiting goes out when the switch comes back on.
 					</p>
 				</header>
+				{view.queues.length === 0 ? <p className="p-4 text-xs text-muted-foreground">{NOTHING}</p> : null}
 				{view.queues.map((queue) => (
-					<QueueSection api={api} queue={queue} everything={view.everything} key={queue.kind} />
+					<QueueSection api={api} queue={queue} everything={view.everything} key={queue.setting} />
 				))}
 			</section>
 		)}
@@ -34,7 +47,7 @@ const WaitingRow = ({ waiting, held }: { readonly waiting: typeof Waiting.Type; 
 				{waiting.mail.count} mail{waiting.mail.precedence === "priority" ? " · priority" : ""}
 			</span>
 		)}
-		<span>{waitedWords(waiting.waitedMillis)}</span>
+		{waiting.waitedMillis === null ? null : <span>{waitedWords(waiting.waitedMillis)}</span>}
 		{held ? <span>held</span> : null}
 	</li>
 );
@@ -53,17 +66,13 @@ const QueueSection = ({
 			<h3>
 				{queue.title} · {queue.waiting.length} waiting
 			</h3>
-			<HoldSwitch api={api} setting={queue.setting} title={queue.title} held={queue.own} everything={everything} />
+			<HoldSwitch api={api} setting={queue.setting} title={queue.title} on={queue.on} means="send" held={queue.held} everything={everything} />
 		</header>
 		<p className="text-xs text-muted-foreground">{queue.description}</p>
-		{queue.waiting.length === 0 ? (
-			<p>{queue.quiet}</p>
-		) : (
-			<ul>
-				{queue.waiting.map((waiting) => (
-					<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
-				))}
-			</ul>
-		)}
+		<ul>
+			{queue.waiting.map((waiting) => (
+				<WaitingRow key={waiting.id} waiting={waiting} held={queue.held} />
+			))}
+		</ul>
 	</section>
 );

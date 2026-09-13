@@ -11,7 +11,7 @@ import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";
 
 export const hail = command("hail", {
-	input: { voyageId: VoyageId },
+	input: { voyageId: VoyageId, by: Schema.Literals(["admiral", "agent"]) },
 	reads: [agent, pieceAgent, voyageAgent, session, voyage],
 	emits: birthRequested,
 	rejections: {
@@ -35,7 +35,7 @@ export const hail = command("hail", {
 		return {
 			wakeSessionId,
 			id: ids.birthId,
-			source: "direct" as const,
+			source: input.by === "agent" ? ("hail" as const) : ("direct" as const),
 			agentId: ids.agentId,
 			sessionId: ids.sessionId,
 			voyageId: input.voyageId,

@@ -1,10 +1,11 @@
+import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { toolAnswered, toolAnsweredMaterializer } from "#commands/answer-tool.ts";
 import { toolCalled, toolCalledMaterializer } from "#commands/call-tool.ts";
 import { charter, sessionChartered, sessionCharteredMaterializer } from "#commands/charter.ts";
 import { operationHeld, operationHeldMaterializer } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
-import { operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
+import { gatedOperations, operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
 import { observed } from "#facts/observed.ts";
 import { operationRequested } from "#facts/operation-requested.ts";
 import { pricedTurns, providerEvent } from "#facts/provider-event.ts";
@@ -30,6 +31,7 @@ import { sessionToolCall } from "#rows/session-tool-call.ts";
 import { sessionUsage } from "#rows/session-usage.ts";
 export const sessions = feature("sessions", {
 	rows: [
+		flag,
 		sessionCapacityWait,
 		sessionEvent,
 		sessionUsage,
@@ -53,6 +55,6 @@ export const sessions = feature("sessions", {
 		operationHeldMaterializer,
 		sessionCharteredMaterializer,
 	],
-	migrations: [pricedTurns],
+	migrations: [pricedTurns, gatedOperations],
 	queries: [operations, opening, transcriptSources, toolCall, reading, tree, forAgent, pending],
 });

@@ -9,5 +9,5 @@ export const setFlag = command("setFlag", {
 	reads: [],
 	emits: flagSet,
 	rejections: {},
-	run: (input) => Effect.succeed({ key: input.key, on: input.on }),
+	run: (input) => Effect.succeed({ keys: [input.key], on: input.on }),
 });

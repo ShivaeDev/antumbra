@@ -16,6 +16,7 @@ export const dispatching = reconciler("dispatching", {
 				.pipe(Effect.catch((failure) => Effect.logDebug("a birth cancellation no longer applies", failure)));
 		}
 		for (const target of reading.ready) {
+			if (target.held) continue;
 			const requestId = Id.Request.make(Id.make());
 			if (target.root !== null) {
 				yield* reconciling

@@ -1343,6 +1343,9 @@ importers:
       '@antumbra/domain-pieces':
         specifier: workspace:*
         version: link:../../server/domains/pieces
+      '@antumbra/domain-settings':
+        specifier: workspace:*
+        version: link:../../server/domains/settings
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../../server/domains/voyages
@@ -2479,6 +2482,9 @@ importers:
       '@antumbra/domain-pieces':
         specifier: workspace:*
         version: link:../pieces
+      '@antumbra/domain-settings':
+        specifier: workspace:*
+        version: link:../settings
       '@antumbra/domain-voyages':
         specifier: workspace:*
         version: link:../voyages
@@ -2627,12 +2633,21 @@ importers:
       '@antumbra/domain-agents':
         specifier: workspace:*
         version: link:../agents
+      '@antumbra/domain-boards':
+        specifier: workspace:*
+        version: link:../boards
+      '@antumbra/domain-lifecycle':
+        specifier: workspace:*
+        version: link:../lifecycle
       '@antumbra/domain-mail':
         specifier: workspace:*
         version: link:../mail
       '@antumbra/domain-pieces':
         specifier: workspace:*
         version: link:../pieces
+      '@antumbra/domain-sessions':
+        specifier: workspace:*
+        version: link:../sessions
       '@antumbra/domain-settings':
         specifier: workspace:*
         version: link:../settings
@@ -2988,6 +3003,9 @@ importers:
       '@antumbra/domain-capacity':
         specifier: workspace:*
         version: link:../capacity
+      '@antumbra/domain-settings':
+        specifier: workspace:*
+        version: link:../settings
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature

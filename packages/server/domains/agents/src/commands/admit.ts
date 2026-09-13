@@ -1,7 +1,9 @@
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
-import { COUNTS } from "@antumbra/domain-settings/ids.ts";
+import { FLEET, type SwitchKey } from "@antumbra/domain-settings/ids.ts";
+import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
+import { allows, type Switched } from "@antumbra/domain-settings/queries/flags.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
@@ -10,6 +12,14 @@ import { birthAdmitted } from "#facts/birth-admitted.ts";
 import { BirthId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
+
+const SWITCHES: Partial<Record<typeof birth.Row.Type.source, SwitchKey>> = { dispatch: "spawnForPiece", hail: "spawnOnHail" };
+
+const switchedOn = (flags: ReadonlyArray<Switched>, value: typeof birth.Row.Type): boolean => {
+	const key = SWITCHES[value.source];
+	return key === undefined || allows(flags, key);
+};
+
 export const admit = command("admit", {
 	input: { id: BirthId, backend: Schema.String, model: Schema.String, effort: Schema.NullOr(Schema.String) },
 	reads: [pieceProgress, birth, agent, session, count, flag, capacity],
@@ -31,9 +41,8 @@ export const admit = command("admit", {
 		const eligible = (value: typeof birth.Row.Type) =>
 			value.source !== "dispatch" || value.pieceId === null || eligibility.get(value.pieceId) === true;
 		if (!eligible(held)) return yield* reject.NotEligible({ id: held.id });
-		const flags = yield* rows.flag.where({});
-		if (held.source === "dispatch" && flags.some((value) => value.on && (value.key === "holdEverything" || value.key === "holdPieceDispatch")))
-			return yield* reject.Held({ reason: "dispatch held" });
+		const flags = yield* rows.flag.where({ scope: FLEET });
+		if (!switchedOn(flags, held)) return yield* reject.Held({ reason: `${held.source} births are held` });
 		const capacities = yield* rows.capacity.where({});
 		if (capacities.some((value) => value.backend === input.backend && value.status === "blocked"))
 			return yield* reject.Held({ reason: "provider capacity" });
@@ -47,10 +56,7 @@ export const admit = command("admit", {
 					value.createsAgent &&
 					eligible(value) &&
 					!capacities.some((blocked) => blocked.backend === value.backend && blocked.status === "blocked") &&
-					!(
-						value.source === "dispatch" &&
-						flags.some((setting) => setting.on && (setting.key === "holdPieceDispatch" || setting.key === "holdEverything"))
-					),
+					switchedOn(flags, value),
 			)
 			.toSorted((a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id))[0];
 		if (oldest !== undefined && oldest.id !== held.id) return yield* reject.NotOldest({ id: oldest.id });

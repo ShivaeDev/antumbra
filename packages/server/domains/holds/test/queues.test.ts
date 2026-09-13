@@ -31,9 +31,9 @@ it.app("keeps ready pieces visible while held and removes them when gated", func
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.pieces.launch({ id: PieceId.make("piece") });
-	yield* app.api.settings.setFlag({ key: "holdPieceDispatch", on: true });
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	const held = yield* answered(app.api.holds.queues({}));
-	expect(held.queues[0]).toMatchObject({ held: true, waiting: [{ id: "piece", title: "Sound", voyage: "Reef" }] });
+	expect(held.queues).toMatchObject([{ setting: "spawnForPiece", held: true, waiting: [{ id: "piece", title: "Sound", voyage: "Reef" }] }]);
 	yield* app.api.rulings.request({
 		requester: { kind: "authority", by: "admiral" },
 		rung: "admiral",
@@ -47,6 +47,5 @@ it.app("keeps ready pieces visible while held and removes them when gated", func
 		recommendation: null,
 	});
 	const gated = yield* answered(app.api.holds.queues({}));
-	expect(gated.queues[0]?.waiting).toEqual([]);
-	expect(gated.queues.map((queue) => queue.kind)).toEqual(["dispatch", "wake"]);
+	expect(gated.queues).toEqual([]);
 });

@@ -19,7 +19,7 @@ export const hailCaptain = bind(hailCaptainSpec, (context, input) =>
 			const live = yield* Live;
 			const request = requestId(context);
 			const voyageId = VoyageId.make(input.voyageId);
-			yield* commit.commit(hail, { requestId: request, voyageId }).pipe(
+			yield* commit.commit(hail, { by: "agent", requestId: request, voyageId }).pipe(
 				Effect.catchTag("AlreadyDone", () => Effect.void),
 				Effect.catchTag("CaptainAlreadyHailed", () => Effect.void),
 			);

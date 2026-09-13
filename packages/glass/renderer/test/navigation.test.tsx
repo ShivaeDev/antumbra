@@ -43,7 +43,7 @@ it.glass("remembers navigation through the shell and shows live holds on another
 	yield* press(container, "Quay");
 	yield* until(() => saved.role === "console" && saved.mode === "quay", "the shell to remember Quay");
 	expect(container.querySelector("output")?.textContent).toBe("quay:open");
-	yield* api.settings.setFlag({ key: "holdWakes", on: true });
+	yield* api.settings.setFlag({ key: "wakeOnRoutineMail", on: false });
 	yield* until(() => container.querySelector("nav")?.textContent?.includes("Holdsheld") === true, "the hold to reach navigation");
 	yield* api.settings.setFlag({ key: "foldToolCalls", on: true });
 	yield* until(() => container.querySelector("output")?.textContent === "quay:folded", "the fold setting to reach the current screen");

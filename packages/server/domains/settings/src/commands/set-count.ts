@@ -2,7 +2,8 @@ import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
 import { Effect, Schema } from "effect";
 import { countSet } from "#facts/count-set.ts";
-import { COUNTS, CountKey } from "#ids.ts";
+import { CountKey } from "#ids.ts";
+import { COUNTS } from "#queries/counts.ts";
 
 export const setCount = command("setCount", {
 	input: { key: CountKey, count: titled(Schema.Number.check(Schema.isInt()), { title: "Count" }) },

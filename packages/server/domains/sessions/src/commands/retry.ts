@@ -1,12 +1,22 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { migration } from "@antumbra/platform-feature/migration.ts";
 import { Effect, Option, Schema } from "effect";
 import { SessionOperationId } from "#ids.ts";
 import { session } from "#rows/session.ts";
 import { sessionOperation } from "#rows/session-operation.ts";
 
 export const operationRetried = fact("SessionOperationRetried", { previousId: SessionOperationId, operation: sessionOperation.Row });
+export const gatedOperations = migration(2, {
+	fact: operationRetried.name,
+	rewrite: (stored) => {
+		const operation = stored.payload.operation;
+		if (typeof operation !== "object" || operation === null) return Effect.succeed(stored);
+		return Effect.succeed({ ...stored, payload: { ...stored.payload, operation: { gatedBy: null, ...operation } } });
+	},
+});
+
 export const retry = command("retry", {
 	input: { id: SessionOperationId },
 	reads: [sessionOperation, session],

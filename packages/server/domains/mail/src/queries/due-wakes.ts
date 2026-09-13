@@ -1,7 +1,8 @@
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
-import { COUNTS, FLEET } from "@antumbra/domain-settings/ids.ts";
+import { FLEET } from "@antumbra/domain-settings/ids.ts";
+import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { Clock, Effect, Schema } from "effect";

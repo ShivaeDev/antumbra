@@ -8,12 +8,16 @@ export const HoldSwitch = ({
 	api,
 	setting,
 	title,
+	on,
+	means,
 	held,
 	everything,
 }: {
 	readonly api: HoldsApi;
 	readonly setting: FlagKey;
 	readonly title: string;
+	readonly on: boolean;
+	readonly means: "hold" | "send";
 	readonly held: boolean;
 	readonly everything: boolean;
 }) => {
@@ -21,6 +25,7 @@ export const HoldSwitch = ({
 	const id = useId();
 	const releasedWord = everything ? "everything held" : "sending";
 	const word = held ? "held" : releasedWord;
+	const sending = means === "send" ? on : !on;
 	return (
 		<span className="flex items-center gap-2">
 			<label htmlFor={id}>{word}</label>
@@ -28,9 +33,9 @@ export const HoldSwitch = ({
 				id={id}
 				aria-label={title}
 				type="checkbox"
-				checked={!held}
+				checked={sending}
 				disabled={command.pending}
-				onChange={(event) => command.run({ key: setting, on: !event.target.checked })}
+				onChange={(event) => command.run({ key: setting, on: means === "send" ? event.target.checked : !event.target.checked })}
 			/>
 			{AsyncResult.isFailure(command.result) ? <span role="alert">{Cause.pretty(command.result.cause)}</span> : null}
 		</span>

@@ -5,14 +5,14 @@ import { expect } from "vitest";
 import { HAND, sending } from "#test/mail/kit.ts";
 import { ROOT, working } from "#test/mail/resting.ts";
 
-it.app("releasing a wake hold delivers due mail without marking it read", function* (app) {
+it.app("turning the priority-mail switch back on delivers due mail without marking it read", function* (app) {
 	const runner = yield* working(app);
 	yield* runner.rest(2);
-	yield* app.api.settings.setFlag({ key: "holdWakes", on: true });
+	yield* app.api.settings.setFlag({ key: "wakeOnPriorityMail", on: false });
 	yield* app.api.mail.send(sending("shoal"));
 	expect((yield* answered(app.api.mail.dueWakes({}))).wakes).toHaveLength(1);
 	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }))).toEqual([]);
-	yield* app.api.settings.setFlag({ key: "holdWakes", on: false });
+	yield* app.api.settings.setFlag({ key: "wakeOnPriorityMail", on: true });
 	const delivered = yield* eventually(app.api.mail.mailbox({ agentId: HAND }), (mail) => mail.every((held) => held.deliveredAt !== null));
 	expect(delivered.map((held) => held.readAt)).toEqual([null]);
 	const operations = yield* answered(app.api.sessions.operations({ sessionId: ROOT }));

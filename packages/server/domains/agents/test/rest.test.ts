@@ -46,14 +46,14 @@ it.app("reports the moment an idle agent's siesta comes due and follows the thre
 	yield* app.api.agents.spawn(spawning);
 	yield* runner.append(opened);
 	yield* app.api.settings.setCount({ key: "idleSiestaMinutes", count: 1 });
-	expect((yield* answered(app.api.agents.rest({}))).siestas).toEqual([]);
+	expect((yield* answered(app.api.agents.rest({}), "the rest report to be read")).siestas).toEqual([]);
 
 	yield* runner.append([completed]);
-	yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.canSleep === true);
-	expect((yield* answered(app.api.agents.rest({}))).siestas).toMatchObject([{ sessionId, waitUntil: 60_000 }]);
+	yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held?.canSleep === true, "the agent's reading to allow sleep");
+	expect((yield* answered(app.api.agents.rest({}), "the rest report to be read")).siestas).toMatchObject([{ sessionId, waitUntil: 60_000 }]);
 
 	yield* app.api.settings.setCount({ key: "idleSiestaMinutes", count: 5 });
-	expect((yield* answered(app.api.agents.rest({}))).siestas).toMatchObject([{ sessionId, waitUntil: 300_000 }]);
+	expect((yield* answered(app.api.agents.rest({}), "the rest report to be read")).siestas).toMatchObject([{ sessionId, waitUntil: 300_000 }]);
 });
 
 it.app("asks an idle agent to sleep when its siesta comes due with no row moving", function* (app) {
@@ -61,15 +61,15 @@ it.app("asks an idle agent to sleep when its siesta comes due with no row moving
 	yield* app.api.agents.spawn(spawning);
 	yield* runner.append([...opened, completed]);
 	yield* app.api.settings.setCount({ key: "idleSiestaMinutes", count: 1 });
-	const resting = yield* eventually(app.api.agents.rest({}), (reading) => reading.siestas.length === 1);
+	const resting = yield* eventually(app.api.agents.rest({}), (reading) => reading.siestas.length === 1, "one siesta to appear in the rest report");
 	const siesta = resting.siestas[0];
 	if (siesta === undefined) return yield* Effect.die("Missing siesta candidate");
 
 	yield* app.clock.advance(siesta.waitUntil - (yield* Clock.currentTimeMillis) - 1);
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toEqual([]);
 
 	yield* app.clock.advance(1);
-	const asked = yield* eventually(app.api.sessions.operations({ sessionId }), (rows) => rows.length === 1);
+	const asked = yield* eventually(app.api.sessions.operations({ sessionId }), (rows) => rows.length === 1, "one session operation to appear");
 	expect(asked).toMatchObject([{ kind: "sleep", status: "requested" }]);
 });
 
@@ -82,14 +82,18 @@ it.app("asks for a siesta refused while the agent worked once the work ends", fu
 		completed,
 	]);
 	yield* app.api.settings.setCount({ key: "idleSiestaMinutes", count: 1 });
-	yield* eventually(app.api.agents.reading({ id: agentId }), (held) => held !== null && held.idleSince !== null && !held.canSleep);
+	yield* eventually(
+		app.api.agents.reading({ id: agentId }),
+		(held) => held !== null && held.idleSince !== null && !held.canSleep,
+		"the agent to go idle without becoming sleepable",
+	);
 
 	yield* app.clock.advance(2 * 60_000);
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be listed")).toEqual([]);
 
 	yield* runner.append([
 		{ ...source, cursor: 4, event: { type: "ToolAnswered" as const, sessionId, callId: "call", answer: { ok: true, text: "/berth" } } },
 	]);
-	const asked = yield* eventually(app.api.sessions.operations({ sessionId }), (rows) => rows.length === 1);
+	const asked = yield* eventually(app.api.sessions.operations({ sessionId }), (rows) => rows.length === 1, "one session operation to appear");
 	expect(asked).toMatchObject([{ kind: "sleep", status: "requested" }]);
 });

@@ -18,9 +18,9 @@ it.app("correcting a replacement restores both artifacts", function* (app) {
 	yield* landing(old, "old.md");
 	yield* landing(next, "new.md");
 	yield* app.api.artifacts.supersede(edge);
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ id: old }]);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).history).toMatchObject([{ id: old }]);
 	yield* app.api.artifacts.removeSupersession(edge);
-	const current = yield* answered(app.api.artifacts.byPiece({ pieceId }));
+	const current = yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read");
 	expect(current.current).toHaveLength(2);
 	expect(current.history).toEqual([]);
 });
@@ -41,5 +41,7 @@ it.app("refuses a cycle and an unrelated author's correction", function* (app) {
 	expect(yield* Effect.flip(app.api.artifacts.removeSupersession({ ...edge, actorAgentId: "agent:other" }))).toMatchObject({
 		_tag: "ArtifactSupersessionUnauthorized",
 	});
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ id: old, supersededByArtifactId: next }]);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).history).toMatchObject([
+		{ id: old, supersededByArtifactId: next },
+	]);
 });

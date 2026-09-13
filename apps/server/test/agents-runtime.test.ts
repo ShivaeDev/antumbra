@@ -19,14 +19,16 @@ it.app("provision refusal holds the birth and explicit retry reuses its prepared
 	const provision = yield* runner.next;
 	expect(provision.type).toBe("Provision");
 	yield* runner.reply(provision.requestId, { type: "Refused", reason: "Repository authentication required" });
-	expect(yield* eventually(app.api.agents.birthBySession({ sessionId }), (birth) => birth?.status === "waiting")).toMatchObject({
+	expect(
+		yield* eventually(app.api.agents.birthBySession({ sessionId }), (birth) => birth?.status === "waiting", "the birth to fall waiting"),
+	).toMatchObject({
 		detail: "Repository authentication required",
 	});
-	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId }), "the current reclamation to be read"))).toMatchObject({
 		root: "/prepared/agent",
 		status: "provisioning",
 	});
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toBeNull();
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toBeNull();
 	yield* app.api.agents.retry({ requestId: Request.make("retry"), id: birthId });
 	const retry = yield* runner.next;
 	expect(retry).toMatchObject({ type: "Provision", requestId: "retry:provision", plan: { root: "/prepared/agent", berths: [] } });
@@ -40,8 +42,8 @@ it.app("provision refusal holds the birth and explicit retry reuses its prepared
 		charter: { id: `${birthId}:charter`, parts: [{ type: "text", text: expect.stringContaining("Standing orders") }] },
 	});
 	yield* runner.reply(start.requestId, { type: "Accepted" });
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toBeNull();
-	expect(yield* answered(app.api.agents.byId({ id: agentId }))).toMatchObject({ status: "spawning" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toBeNull();
+	expect(yield* answered(app.api.agents.byId({ id: agentId }), "the agent to be read")).toMatchObject({ status: "spawning" });
 	yield* runner.append([
 		{
 			logId: "log",
@@ -61,8 +63,8 @@ it.app("provision refusal holds the birth and explicit retry reuses its prepared
 		},
 		{ logId: "log", cursor: 1, at: 0, event: { type: "InputAccepted", requestId: start.requestId, sessionId, inputId: `${birthId}:charter` } },
 	]);
-	expect(yield* answered(app.api.agents.byId({ id: agentId }))).toMatchObject({ status: "alive" });
-	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ status: "running" });
+	expect(yield* answered(app.api.agents.byId({ id: agentId }), "the agent to be read")).toMatchObject({ status: "alive" });
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId }), "the birth to be read")).toMatchObject({ status: "running" });
 });
 
 it.app("raising the running budget admits the next held birth", function* (app) {
@@ -72,9 +74,11 @@ it.app("raising the running budget admits the next held birth", function* (app) 
 		yield* app.api.agents.spawn({ requestId: Request.make(id), role: "crew", backend: "claude", model: null, effort: null });
 		yield* app.clock.advance(1);
 	}
-	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 1)).map((birth) => birth.id)).toEqual([birthOf("first")]);
+	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 1, "one admitted birth")).map((birth) => birth.id)).toEqual([
+		birthOf("first"),
+	]);
 	yield* app.api.settings.setCount({ key: "maxParallelSessions", count: 2 });
-	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 2)).map((birth) => birth.id)).toEqual([
+	expect((yield* eventually(app.api.agents.admitted({}), (births) => births.length === 2, "two admitted births")).map((birth) => birth.id)).toEqual([
 		birthOf("first"),
 		birthOf("second"),
 	]);
@@ -92,7 +96,7 @@ it.app("a moorage the runner reports ready passes the same guards as the command
 			event: { type: "MoorageProvisioned", requestId: "stray:provision", agentId: "stray", plan: { root: "/stray", berths: [] } },
 		},
 	]);
-	expect(Option.isNone(yield* answered(app.api.reclamation.current({ agentId: "stray" })))).toBe(true);
+	expect(Option.isNone(yield* answered(app.api.reclamation.current({ agentId: "stray" }), "the current reclamation to be read"))).toBe(true);
 	yield* app.api.agents.spawn({ requestId: requested, role: "crew", backend: "claude", model: "chosen-model", effort: "high" });
 	const plan = yield* runner.next;
 	yield* runner.reply(plan.requestId, { type: "MooragePlanned", plan: { root: "/prepared/moored", berths: [] } });
@@ -111,9 +115,14 @@ it.app("a moorage the runner reports ready passes the same guards as the command
 			},
 		},
 	]);
-	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({ root: "/prepared/moored", status: "ready" });
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId }), "the current reclamation to be read"))).toMatchObject({
+		root: "/prepared/moored",
+		status: "ready",
+	});
 	yield* runner.reply(provision.requestId, { type: "Accepted" });
 	const start = yield* runner.next;
 	expect(start.type).toBe("Start");
-	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId })))).toMatchObject({ status: "ready" });
+	expect(Option.getOrThrow(yield* answered(app.api.reclamation.current({ agentId }), "the current reclamation to be read"))).toMatchObject({
+		status: "ready",
+	});
 });

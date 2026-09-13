@@ -59,12 +59,12 @@ it.app("answers an offered choice and retains its question, context and recommen
 		choices: [{ label: "North" }, { label: "South" }],
 		recommendation: { choice: "North", reasoning: "It is deeper" },
 	});
-	const requested = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("choice") })));
+	const requested = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("choice") }), "the ruling to be read"));
 	const recommended = requested.recommendation?.choiceId;
 	expect(recommended).toBe(requested.choices[0]?.id);
 	yield* app.api.rulings.answer({ ...ruled("choice"), choiceId: recommended ?? null });
-	expect(yield* answered(app.api.rulings.open({}))).toEqual([]);
-	expect(yield* answered(app.api.rulings.standing({ subjects: [] }))).toMatchObject([
+	expect(yield* answered(app.api.rulings.open({}), "the open rulings to be listed")).toEqual([]);
+	expect(yield* answered(app.api.rulings.standing({ subjects: [] }), "the standing rulings to be listed")).toMatchObject([
 		{ question: "Which passage?", context: "The channel has shifted", answer: { text: "Take the northern passage", choiceId: recommended } },
 	]);
 });
@@ -75,7 +75,7 @@ it.app("refuses an answer below the rung and an unknown choice without settling 
 	expect(
 		yield* Effect.flip(app.api.rulings.answer({ ...ruled("authority"), requestId: Id.Request.make("bad-choice"), choiceId: "elsewhere" })),
 	).toMatchObject({ _tag: "ChoiceUnknown" });
-	expect((yield* answered(app.api.rulings.open({}))).map((ruling) => ruling.id)).toEqual(["authority"]);
+	expect((yield* answered(app.api.rulings.open({}), "the open rulings to be listed")).map((ruling) => ruling.id)).toEqual(["authority"]);
 });
 
 it.app("keeps explicit piece gates when parked and releases them only when ruled", function* (app) {
@@ -86,7 +86,7 @@ it.app("keeps explicit piece gates when parked and releases them only when ruled
 	expect(yield* app.rows.pieceRulingGate.count({ pieceId: PieceId.make("piece") })).toBe(1);
 	yield* app.api.rulings.answer(ruled("gate"));
 	expect(yield* app.rows.pieceRulingGate.count({ pieceId: PieceId.make("piece") })).toBe(0);
-	const record = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("gate") })));
+	const record = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("gate") }), "the ruling to be read"));
 	expect(record.parked?.note).toBe("Wait for the tide");
 });
 
@@ -102,8 +102,8 @@ it.app("uses the final radius for standing reach and retains reclassification hi
 		note: "Local question",
 	});
 	yield* app.api.rulings.answer(ruled("reach"));
-	expect(yield* answered(app.api.rulings.binding({ subjects: [] }))).toEqual([]);
-	const record = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("reach") })));
+	expect(yield* answered(app.api.rulings.binding({ subjects: [] }), "the binding rulings to be listed")).toEqual([]);
+	const record = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("reach") }), "the ruling to be read"));
 	expect(record).toMatchObject({ declaredRadius: "fleet", radius: "piece", reclassifications: [{ note: "Local question" }] });
 });
 
@@ -117,9 +117,11 @@ it.app("keeps retired ruling history and its repository reference", function* (a
 		by: "admiral",
 		note: "The passage moved",
 	});
-	expect(yield* answered(app.api.rulings.standing({ subjects: [] }))).toEqual([]);
+	expect(yield* answered(app.api.rulings.standing({ subjects: [] }), "the standing rulings to be listed")).toEqual([]);
 	expect(yield* Effect.flip(app.api.repos.forget({ requestId: Id.Request.make("forget"), id: RepoId.make("repo") }))).toMatchObject({
 		_tag: "Referenced",
 	});
-	expect(Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("history") }))).answer?.text).toBe("Take the northern passage");
+	expect(Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("history") }), "the ruling to be read")).answer?.text).toBe(
+		"Take the northern passage",
+	);
 });

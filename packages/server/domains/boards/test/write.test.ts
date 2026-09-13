@@ -11,7 +11,7 @@ it.app("gives every entry the next number its board has open", function* (app) {
 	yield* app.api.boards.write(noting("swell", "the swell is running"));
 	yield* app.api.boards.write(noting("buoy", "the channel buoy is adrift"));
 
-	const written = yield* answered(app.api.boards.entries({ board: reefBoard }));
+	const written = yield* answered(app.api.boards.entries({ board: reefBoard }), "the board's entries to be listed");
 	expect(written.map((entry) => [entry.seq, entry.body])).toEqual([
 		[1, "the swell is running"],
 		[2, "the channel buoy is adrift"],
@@ -52,6 +52,10 @@ it.app("keeps a voyage's board and its piece's board apart", function* (app) {
 	yield* app.api.boards.write(noting("swell", "the swell is running"));
 	yield* app.api.boards.write(noting("shoal", "the shoal shelves fast", soundingsBoard));
 
-	expect((yield* answered(app.api.boards.entries({ board: reefBoard }))).map((entry) => entry.body)).toEqual(["the swell is running"]);
-	expect((yield* answered(app.api.boards.entries({ board: soundingsBoard }))).map((entry) => entry.body)).toEqual(["the shoal shelves fast"]);
+	expect((yield* answered(app.api.boards.entries({ board: reefBoard }), "the board's entries to be listed")).map((entry) => entry.body)).toEqual([
+		"the swell is running",
+	]);
+	expect((yield* answered(app.api.boards.entries({ board: soundingsBoard }), "the board's entries to be listed")).map((entry) => entry.body)).toEqual(
+		["the shoal shelves fast"],
+	);
 });

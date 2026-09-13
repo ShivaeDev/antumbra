@@ -2,6 +2,7 @@ import type { FlagReading } from "@antumbra/domain-settings/queries/flags.ts";
 import { SettingsRow } from "@antumbra/glass-components/compositions/settings-row.tsx";
 import { editablesOf, identityOf, valuesOf } from "@antumbra/glass-components/fields.ts";
 import { changing, sending, useGenerated } from "@antumbra/glass-components/generated.ts";
+import { useReverted } from "@antumbra/glass-components/reverted.ts";
 import { SettingsField } from "@antumbra/glass-components/settings-field.tsx";
 import { useWrong } from "@antumbra/glass-components/wrong.ts";
 import { useSubmit } from "@antumbra/glass-form/react.ts";
@@ -25,6 +26,7 @@ export const FlagRow = ({ api, row }: { readonly api: SettingsApi; readonly row:
 	const submit = useSubmit(form);
 	const changed = changing(form, editables);
 	const wrong = useWrong(form, editables, submit.result);
+	useReverted(form, submit.result);
 	const change = (name: string, value: unknown): void => {
 		changed(name, value);
 		submit.run();

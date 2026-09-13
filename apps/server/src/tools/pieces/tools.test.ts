@@ -31,7 +31,9 @@ it.app("replaying a charter call creates one Piece and reads its delivered outco
 	expect(first.ok).toBe(true);
 	expect((yield* charterPiece.invoke(context, input)).ok).toBe(true);
 	const id = PieceId.make(requestId(context));
-	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId }))).map((piece) => piece.id)).toEqual([id]);
+	expect((yield* answered(app.api.pieces.displayByVoyage({ voyageId }), "the voyage's pieces to be displayed")).map((piece) => piece.id)).toEqual([
+		id,
+	]);
 	expect(first.text).toContain(`chartered ${id}`);
 	expect((yield* launchPiece.invoke({ ...context, callId: "launch" }, { pieceId: id })).text).toContain("launched into the pool");
 	yield* app.api.reports.land({ pieceId: id, authorAgentId: null, title: "Depth chart", body: "Every shoal surveyed" });
@@ -48,5 +50,5 @@ it.app("captain reach refusals leave another Voyage's Piece held", function* (ap
 	const answer = yield* launchPiece.invoke({ ...context, voyageId: "another-voyage", callId: "launch" }, { pieceId: id });
 	expect(answer).toMatchObject({ ok: false });
 	expect(answer.text).toContain("that piece is not on your voyage");
-	expect(yield* answered(app.api.pieces.progress({ id }))).toMatchObject({ state: "held" });
+	expect(yield* answered(app.api.pieces.progress({ id }), "the piece's progress to be read")).toMatchObject({ state: "held" });
 });

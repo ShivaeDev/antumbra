@@ -21,11 +21,14 @@ it.app("stands a summary in the digest for the entries it covers and opens onto 
 	});
 	yield* app.api.boards.write(noting("wind", "the wind backed at dusk"));
 
-	const digested = yield* answered(app.api.boards.digest({ board: reefBoard }));
+	const digested = yield* answered(app.api.boards.digest({ board: reefBoard }), "the board's digest to be read");
 	expect(digested.map((entry) => entry.body)).toEqual(["the wind backed at dusk", "the approach shifted through the day"]);
 	const summary = digested[1];
 	expect(summary).toMatchObject({ kind: "summary", level: "day", register: "smooth" });
-	const beneath = yield* answered(app.api.boards.under({ board: reefBoard, summaryId: summary?.id ?? "" }));
+	const beneath = yield* answered(
+		app.api.boards.under({ board: reefBoard, summaryId: summary?.id ?? "" }),
+		"the entries under the summary to be read",
+	);
 	expect(beneath.map((entry) => entry.body)).toEqual(["the channel buoy is adrift", "the swell is running"]);
 });
 
@@ -42,6 +45,6 @@ it.app("carries a settled piece's summary onto the voyage that chartered it", fu
 		requestId: Id.Request.make("entry:piece"),
 	});
 
-	const carried = yield* answered(app.api.boards.entries({ board: reefBoard }));
+	const carried = yield* answered(app.api.boards.entries({ board: reefBoard }), "the board's entries to be listed");
 	expect(carried).toMatchObject([{ body: "the eastern shoal is sounded", kind: "pieceSummary", pieceId: soundings, register: "rough", seq: 1 }]);
 });

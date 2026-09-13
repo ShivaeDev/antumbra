@@ -53,7 +53,7 @@ it.app("an offline hail wakes the existing native conversation after cold runner
 		id: inputId,
 		status: "queued_for_wake",
 	});
-	expect(yield* answered(api.sessions.reading({ id: sessionId }))).toMatchObject({ attached: true });
+	expect(yield* answered(api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({ attached: true });
 	yield* clock.advance(1);
 	const calls = yield* RpcTest.makeClient(RunnerRpc, { flatten: true });
 	yield* calls("runner.append", { logId: "log", entries: [{ logId: "log", cursor: 2, at: 1, event: { type: "SessionDetached", sessionId } }] });
@@ -62,5 +62,5 @@ it.app("an offline hail wakes the existing native conversation after cold runner
 	expect(wake).toMatchObject({ type: "Wake", sessionId, nativeRef: "native", options: { cwd: "/berth" }, instruction: { id: inputId } });
 	yield* runner.append([{ logId: "log", cursor: 3, at: 2, event: { type: "InputAccepted", requestId: wake.requestId, sessionId, inputId } }]);
 	yield* runner.reply(wake.requestId, { type: "Accepted" });
-	expect(yield* answered(api.inputs.reading({ sessionId, id: inputId }))).toMatchObject({ status: "accepted" });
+	expect(yield* answered(api.inputs.reading({ sessionId, id: inputId }), "the input to be read")).toMatchObject({ status: "accepted" });
 });

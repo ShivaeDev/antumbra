@@ -7,6 +7,6 @@ it.app("reads model efforts and returns none for an unknown model", function* (a
 	const catalogue = app.api.backends;
 	yield* catalogue.listModels({ backend: "codex", failure: null, models: [codex] });
 
-	expect(yield* answered(catalogue.efforts({ backend: "codex", model: "gpt-5" }))).toEqual(["low", "high"]);
-	expect(yield* answered(catalogue.efforts({ backend: "codex", model: "gpt-4" }))).toEqual([]);
+	expect(yield* answered(catalogue.efforts({ backend: "codex", model: "gpt-5" }), "the model's efforts to be read")).toEqual(["low", "high"]);
+	expect(yield* answered(catalogue.efforts({ backend: "codex", model: "gpt-4" }), "the model's efforts to be read")).toEqual([]);
 });

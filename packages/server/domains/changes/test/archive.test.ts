@@ -30,17 +30,27 @@ it.app("archives a landed change once seven days have passed and leaves a younge
 		attachment: { _tag: "Observed" },
 		observedAt: yield* recorded(6 * DAY_MILLIS),
 	});
-	const landed = yield* eventually(app.api.changes.quay({}), (rows) => rows.length === 2);
+	const landed = yield* eventually(app.api.changes.quay({}), (rows) => rows.length === 2, "two rows on the quay");
 	expect(landed.map((row) => row.group)).toEqual(["landed", "landed"]);
 
 	yield* app.clock.advance(REMAINING_MILLIS);
-	const quay = yield* eventually(app.api.changes.quay({}), (rows) => rows.some((row) => row.group === "archived"));
+	const quay = yield* eventually(
+		app.api.changes.quay({}),
+		(rows) => rows.some((row) => row.group === "archived"),
+		"a row on the quay to be archived",
+	);
 	expect(quay.find((row) => row.id === older)).toMatchObject({ group: "archived", stage: "landed" });
 	expect(quay.find((row) => row.id === younger)).toMatchObject({ group: "landed", stage: "landed" });
 
-	const waiting = yield* answered(app.api.changes.browse({ query: "", repositoryId: null, status: "all", selectedId: null }));
+	const waiting = yield* answered(
+		app.api.changes.browse({ query: "", repositoryId: null, status: "all", selectedId: null }),
+		"the browse view of all changes to render",
+	);
 	expect(waiting).toMatchObject({ rows: [{ id: younger }], total: 2, waiting: 0 });
-	const archived = yield* answered(app.api.changes.browse({ query: "", repositoryId: null, status: "archived", selectedId: null }));
+	const archived = yield* answered(
+		app.api.changes.browse({ query: "", repositoryId: null, status: "archived", selectedId: null }),
+		"the browse view of archived changes to render",
+	);
 	expect(archived.rows).toMatchObject([{ id: older }]);
 
 	const archivedAt = (yield* app.rows.change.get(older)).archivedAt;

@@ -20,6 +20,10 @@ it.glass("retries a blocked provider and refreshes its card", function* ({ api, 
 	expect(container.textContent).toContain("Quota reached");
 	expect(container.textContent).toContain("100% used");
 	yield* press(container, "Retry provider");
-	yield* eventually(api.capacity.providers({}), (rows) => rows.some((row) => row.backend === "codex" && row.status === "available"));
+	yield* eventually(
+		api.capacity.providers({}),
+		(rows) => rows.some((row) => row.backend === "codex" && row.status === "available"),
+		"the codex provider to become available",
+	);
 	yield* until(() => !container.textContent?.includes("Provider paused"), "the released provider card to disappear");
 });

@@ -14,7 +14,11 @@ it.app("dispatch queues eligible work once and cancels its pending birth when pa
 	const occupying = Request.make("occupying");
 	yield* knownModels(app.api, "claude", "opus");
 	yield* app.api.agents.spawn({ requestId: occupying, role: "crew", backend: "claude", model: null, effort: null });
-	yield* eventually(app.api.agents.admitted({}), (births) => births.some((birth) => birth.id === identity(occupying).birthId));
+	yield* eventually(
+		app.api.agents.admitted({}),
+		(births) => births.some((birth) => birth.id === identity(occupying).birthId),
+		"the occupying birth to be admitted",
+	);
 	yield* app.api.voyages.open({
 		requestId: Request.make(voyageId),
 		name: "Reef",
@@ -40,12 +44,20 @@ it.app("dispatch queues eligible work once and cancels its pending birth when pa
 		});
 		yield* app.api.pieces.launch({ id });
 	}
-	const queued = yield* eventually(app.api.agents.births({}), (births) => births.some((birth) => birth.pieceId === prerequisite));
+	const queued = yield* eventually(
+		app.api.agents.births({}),
+		(births) => births.some((birth) => birth.pieceId === prerequisite),
+		"the prerequisite piece's birth to be queued",
+	);
 	expect(queued.filter((birth) => birth.pieceId !== null)).toMatchObject([{ pieceId: prerequisite, source: "dispatch", status: "requested" }]);
 	const pending = queued.find((birth) => birth.pieceId === prerequisite);
-	expect((yield* answered(app.api.agents.dispatch({}))).ready).toEqual([]);
+	expect((yield* answered(app.api.agents.dispatch({}), "dispatch to answer")).ready).toEqual([]);
 	yield* app.api.pieces.park({ id: prerequisite });
 	expect(
-		yield* eventually(app.api.agents.births({}), (births) => births.some((birth) => birth.id === pending?.id && birth.status === "cancelled")),
+		yield* eventually(
+			app.api.agents.births({}),
+			(births) => births.some((birth) => birth.id === pending?.id && birth.status === "cancelled"),
+			"the pending birth to be cancelled",
+		),
 	).toEqual(expect.arrayContaining([expect.objectContaining({ id: pending?.id, status: "cancelled" })]));
 });

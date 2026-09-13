@@ -1,6 +1,7 @@
 import type { HoldQueue } from "@antumbra/domain-holds/queries/queues.ts";
 import type { Waiting } from "@antumbra/domain-holds/queries/waiting.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { HeldReading } from "@antumbra/glass-components/compositions/held-reading.tsx";
 import { useId } from "react";
 import type { HoldsApi } from "#glass.ts";
 import { HoldSwitch } from "#hold-switch.tsx";
@@ -12,7 +13,7 @@ const EMPTY = "Nothing is waiting yet.";
 export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 	<Live query={api.holds.queues} input={{}} waiting="Reading the holds…">
 		{(view) => (
-			<section className="flex min-h-0 flex-col overflow-y-auto">
+			<HeldReading className="flex min-h-0 flex-col overflow-y-auto">
 				<header className="border-b border-border p-4">
 					<div className="flex justify-between">
 						<h2>The holds</h2>
@@ -33,7 +34,7 @@ export const HoldsPanel = ({ api }: { readonly api: HoldsApi }) => (
 				{view.queues.map((queue) => (
 					<QueueSection api={api} queue={queue} key={queue.setting} />
 				))}
-			</section>
+			</HeldReading>
 		)}
 	</Live>
 );

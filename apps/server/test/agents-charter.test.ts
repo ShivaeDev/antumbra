@@ -52,7 +52,10 @@ it.app("birth charters carry scoped Boards, binding rulings, and landed Piece ou
 	yield* app.api.reports.land({ pieceId, authorAgentId: null, title: "Shoal survey result", body: "The east passage is clear" });
 	const charter = yield* Charter;
 	const born = Effect.fn("CharterTest.born")(function* (requestId: string) {
-		const held = yield* answered(app.api.agents.birthBySession({ sessionId: identity(Request.make(requestId)).sessionId }));
+		const held = yield* answered(
+			app.api.agents.birthBySession({ sessionId: identity(Request.make(requestId)).sessionId }),
+			"the birth to be recorded",
+		);
 		if (held === null) return yield* Effect.die(`the ${requestId} birth was not recorded`);
 		return held;
 	});
@@ -111,7 +114,7 @@ it.app("a crew charter names its berth folder, its work branch and the rules tha
 		runner: "runner",
 		plan: { root: "/moorage/crew", berths: [{ slug: "reef", source, ref: "main", branch: `work/${agentId}/reef`, path: "/moorage/crew/reef" }] },
 	});
-	const held = yield* answered(app.api.agents.birthBySession({ sessionId }));
+	const held = yield* answered(app.api.agents.birthBySession({ sessionId }), "the crew birth to be recorded");
 	if (held === null) return yield* Effect.die("the crew birth was not recorded");
 	const { text } = yield* (yield* Charter).compose(held);
 	expect(text).toContain("Working directory: /moorage/crew");
@@ -135,7 +138,7 @@ it.app("a charter leaves out a berth that has been reclaimed", function* (app) {
 	const claim = Request.make("reclaim");
 	yield* app.commit.reclamation.claim({ agentId, requestId: claim });
 	yield* app.api.reclamation.reclaimed({ id: berthId(agentId, "reef"), claimRequestId: reclaimRequestId(claim, berthId(agentId, "reef")) });
-	const held = yield* answered(app.api.agents.birthBySession({ sessionId }));
+	const held = yield* answered(app.api.agents.birthBySession({ sessionId }), "the crew birth to be recorded");
 	if (held === null) return yield* Effect.die("the crew birth was not recorded");
 	const { text } = yield* (yield* Charter).compose(held);
 	expect(text).toContain("Working directory: /moorage/crew");

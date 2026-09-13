@@ -46,7 +46,7 @@ export const crewed = Effect.fnUntraced(function* (api: Api) {
 	});
 	yield* api.agents.workNow({ requestId: HAND, pieceId });
 	yield* api.agents.hail({ requestId: CAPTAIN, voyageId, by: "admiral" });
-	return yield* eventually(api.agents.roster({}), (agents) => agents.length === 2);
+	return yield* eventually(api.agents.roster({}), (agents) => agents.length === 2, "both agents to reach the roster");
 });
 
 export const shell: Shell = {

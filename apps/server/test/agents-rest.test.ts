@@ -55,8 +55,8 @@ it.app("siesta waits for acquired background work to settle and keeps the native
 		},
 	]);
 	yield* app.clock.advance(60001);
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ canSleep: false });
-	expect(yield* answered(app.api.sessions.operations({ sessionId }))).toEqual([]);
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent to be read")).toMatchObject({ canSleep: false });
+	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the session's operations to be read")).toEqual([]);
 	yield* runner.append([
 		{
 			...source,
@@ -69,6 +69,14 @@ it.app("siesta waits for acquired background work to settle and keeps the native
 	expect(sleep).toMatchObject({ type: "Sleep", sessionId });
 	yield* runner.reply(sleep.requestId, { type: "Accepted" });
 	yield* runner.append([{ ...source, cursor: 5, at: 60001, event: { type: "SessionSlept", sessionId, requestId: sleep.requestId } }]);
-	expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ nativeRef: "native", status: "open", attached: false });
-	expect(yield* answered(app.api.agents.reading({ id: agentId }))).toMatchObject({ standing: "asleep", state: "asleep", status: "alive" });
+	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the session to be read")).toMatchObject({
+		nativeRef: "native",
+		status: "open",
+		attached: false,
+	});
+	expect(yield* answered(app.api.agents.reading({ id: agentId }), "the agent to be read")).toMatchObject({
+		standing: "asleep",
+		state: "asleep",
+		status: "alive",
+	});
 });

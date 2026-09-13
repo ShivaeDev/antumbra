@@ -42,10 +42,10 @@ it.app("records tool answers under the bound session and replays them without re
 		[first, "First sounding"],
 		[second, "Second sounding"],
 	] as const) {
-		const notes = yield* answered(app.api.boards.digest({ board: agentBoard(bound.agentId) }));
+		const notes = yield* answered(app.api.boards.digest({ board: agentBoard(bound.agentId) }), "the agent board's digest to be read");
 		expect(notes).toHaveLength(1);
 		expect(notes[0]).toMatchObject({ authorAgentId: bound.agentId, body });
-		expect(yield* answered(app.api.sessions.reading({ id: bound.sessionId }))).toMatchObject({ toolCalls: 1 });
+		expect(yield* answered(app.api.sessions.reading({ id: bound.sessionId }), "the session to be read")).toMatchObject({ toolCalls: 1 });
 	}
 	const read = { sessionId: first.sessionId, callId: "read", name: "read_board", input: { scope: "self" } };
 	const reading = yield* invoke(read);
@@ -60,5 +60,5 @@ it.app("serves only the tools frozen for the session", function* (app) {
 	const answer = yield* invoke(call);
 	expect(answer).toEqual({ ok: false, text: "no tool named register_repo is bound to this session" });
 	expect(yield* invoke(call)).toEqual(answer);
-	expect(yield* answered(app.api.repos.all({}))).toEqual([]);
+	expect(yield* answered(app.api.repos.all({}), "the repos to be listed")).toEqual([]);
 });

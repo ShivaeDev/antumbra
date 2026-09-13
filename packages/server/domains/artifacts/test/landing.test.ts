@@ -15,7 +15,7 @@ it.app("landed bytes survive losing their source", function* (app) {
 	yield* landing("chart", "old.md");
 	app.artifacts.source.clear();
 	expect(yield* readArtifact(ArtifactId.make("chart"))).toMatchObject({ markdown: "# Old soundings" });
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toHaveLength(1);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toHaveLength(1);
 });
 
 it.app("only an explicit revision moves an artifact into history", function* (app) {
@@ -26,9 +26,9 @@ it.app("only an explicit revision moves an artifact into history", function* (ap
 	app.artifacts.source.set("new.md", "# New soundings");
 	yield* landing("old", "old.md");
 	yield* landing("same", "old.md");
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toHaveLength(2);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toHaveLength(2);
 	yield* landing("revision", "new.md", ArtifactId.make("old"));
-	const reading = yield* answered(app.api.artifacts.byPiece({ pieceId }));
+	const reading = yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read");
 	expect(reading.current.map(({ id }) => id)).toEqual(expect.arrayContaining(["same", "revision"]));
 	expect(reading.history).toMatchObject([{ id: "old", supersededByArtifactId: "revision" }]);
 	expect(yield* app.rows.pieceOutcome.where({ pieceId })).toEqual(
@@ -46,7 +46,7 @@ it.app("an unavailable source leaves no landed artifact", function* (app) {
 	app.artifacts.source.set("old.md", "# Old soundings");
 	app.artifacts.source.set("new.md", "# New soundings");
 	expect(yield* Effect.flip(landing("missing", "missing.md"))).toMatchObject({ _tag: "ArtifactPublicationFailed" });
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toEqual([]);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toEqual([]);
 });
 
 it.app("an author without ready source ownership cannot land bytes", function* (app) {
@@ -54,5 +54,5 @@ it.app("an author without ready source ownership cannot land bytes", function* (
 	yield* app.api.pieces.charter(chartering);
 	app.artifacts.source.set("old.md", "# Old soundings");
 	expect(yield* Effect.flip(landing("unowned", "old.md"))).toMatchObject({ _tag: "ArtifactSourceNotOwned" });
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toEqual([]);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toEqual([]);
 });

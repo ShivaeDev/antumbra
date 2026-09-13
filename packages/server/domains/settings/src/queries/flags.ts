@@ -29,11 +29,6 @@ export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {
 		fallback: true,
 		title: "Send idle agents to siesta",
 	},
-	signChanges: {
-		description: "Adds one line at the end of every pull request body saying it was opened through Antumbra.",
-		fallback: true,
-		title: "Sign pull requests",
-	},
 	spawnForPiece: {
 		description: "A launched piece with no living agent gets one.",
 		fallback: true,

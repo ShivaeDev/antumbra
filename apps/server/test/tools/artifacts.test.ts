@@ -48,9 +48,11 @@ it.app("artifact tools bind authors and keep replacement corrections", function*
 	const next = requestId({ ...context, callId: "artifact:new" });
 	const edge = { supersededArtifactId: old, successorArtifactId: next };
 	expect(yield* supersedeArtifactTool.invoke({ ...context, callId: "replace" }, edge)).toMatchObject({ ok: true });
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).history).toMatchObject([{ authorAgentId: context.agentId, id: old }]);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).history).toMatchObject([
+		{ authorAgentId: context.agentId, id: old },
+	]);
 	expect(yield* removeArtifactSupersessionTool.invoke({ ...context, callId: "correct" }, edge)).toMatchObject({ ok: true });
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toHaveLength(2);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toHaveLength(2);
 });
 
 it.app("a repeated landing can answer after its source is gone", function* (app) {
@@ -64,5 +66,5 @@ it.app("a repeated landing can answer after its source is gone", function* (app)
 	const first = yield* landArtifactTool.invoke(context, input);
 	app.artifacts.source.clear();
 	expect(yield* landArtifactTool.invoke(context, input)).toEqual(first);
-	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }))).current).toHaveLength(1);
+	expect((yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read")).current).toHaveLength(1);
 });

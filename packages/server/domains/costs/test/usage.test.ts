@@ -63,9 +63,9 @@ it.app("includes delegated usage and preserves unreported costs", function* (app
 		},
 	];
 	yield* runner.append(entries);
-	const total = yield* answered(app.api.costs.forAgent({ agentId: "cost-agent" }));
+	const total = yield* answered(app.api.costs.forAgent({ agentId: "cost-agent" }), "the agent's cost total to be read");
 	expect(total).toMatchObject({ turns: 2, inputTokens: 40, outputTokens: 60, cacheReadTokens: 5, costUsd: 0.1, costPartial: true });
-	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
+	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }), "the cost reading to render");
 	expect(costs.total).toEqual(total);
 	expect(costs.unassigned).toEqual(total);
 	expect(costs.agents).toMatchObject([{ agentId: "cost-agent", sessionIds: ["cost-session", "cost-session:child"] }]);
@@ -119,7 +119,7 @@ it.app("a session that ran two models is two rows of spend, and its own model is
 			},
 		},
 	]);
-	const first = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
+	const first = yield* answered(app.api.costs.reading({ today: "1970-01-01" }), "the cost reading to render");
 	expect(first.models).toMatchObject([{ model: "gpt-6-astra", total: { inputTokens: 10, outputTokens: 20, turns: 1 } }]);
 	yield* runner.append([
 		{
@@ -156,10 +156,14 @@ it.app("a session that ran two models is two rows of spend, and its own model is
 			},
 		},
 	]);
-	const costs = yield* eventually(app.api.costs.reading({ today: "1970-01-01" }), (reading) => reading.models.length === 2);
+	const costs = yield* eventually(
+		app.api.costs.reading({ today: "1970-01-01" }),
+		(reading) => reading.models.length === 2,
+		"two models of spend in the cost reading",
+	);
 	expect(costs.models.map((spent) => spent.model).toSorted()).toEqual(["gpt-6-astra", "gpt-6-astra-safe"]);
 	expect(costs.total).toMatchObject({ inputTokens: 14, outputTokens: 26, turns: 2 });
-	expect(yield* answered(app.api.agents.birthBySession({ sessionId }))).toMatchObject({ model: "gpt-6-astra" });
+	expect(yield* answered(app.api.agents.birthBySession({ sessionId }), "the birth to be read")).toMatchObject({ model: "gpt-6-astra" });
 });
 
 it.app("counts no turn for one that named no model, and one turn for a model its breakdown names twice", function* (app) {
@@ -214,7 +218,11 @@ it.app("counts no turn for one that named no model, and one turn for a model its
 			},
 		},
 	]);
-	expect(yield* answered(app.api.costs.forAgent({ agentId: "count-agent" }))).toMatchObject({ inputTokens: 14, outputTokens: 3, turns: 1 });
-	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }));
+	expect(yield* answered(app.api.costs.forAgent({ agentId: "count-agent" }), "the agent's cost total to be read")).toMatchObject({
+		inputTokens: 14,
+		outputTokens: 3,
+		turns: 1,
+	});
+	const costs = yield* answered(app.api.costs.reading({ today: "1970-01-01" }), "the cost reading to render");
 	expect(costs.models).toMatchObject([{ model: "claude-opus-5", total: { inputTokens: 14, outputTokens: 3, turns: 1 } }]);
 });

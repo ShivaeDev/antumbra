@@ -555,12 +555,18 @@ importers:
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../../packages/platform/vocabulary
+      '@antumbra/runner-fabric':
+        specifier: workspace:*
+        version: link:../../packages/runner/fabric
       '@antumbra/server-journal':
         specifier: workspace:*
         version: link:../../packages/server/journal
       '@effect/platform-node':
         specifier: 'catalog:'
         version: 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1)
+      '@effect/sql-sqlite-node':
+        specifier: 'catalog:'
+        version: 4.0.0-rc.112(effect@4.0.0-rc.112)
       effect:
         specifier: 'catalog:'
         version: 4.0.0-rc.112

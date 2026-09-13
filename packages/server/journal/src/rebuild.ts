@@ -4,6 +4,7 @@ import { scopeKey, tableKey } from "#keys.ts";
 import { replay } from "#replay.ts";
 
 export const rebuild = Effect.fn("Journal.rebuild")(function* (context: CommitContext) {
+	yield* context.backup;
 	const sql = context.sql;
 	const dirty = new Set<string>();
 	yield* sql

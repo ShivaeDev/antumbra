@@ -41,7 +41,7 @@ const onDisk = Effect.fn("journal.onDisk")(function* () {
 		yield* files.makeDirectory(backups, { recursive: true });
 		const target = `${backups}/journal-${now}-${crypto.randomUUID()}.db`;
 		yield* write`VACUUM INTO ${target}`;
-		yield* Effect.logInfo("journal backed up before upgrade", { path: target });
+		yield* Effect.logInfo("journal backed up", { path: target });
 		yield* prune(files, backups);
 	}).pipe(Effect.orDie);
 	return { backup, read, write };
@@ -59,7 +59,7 @@ export const layer = (definition: AppDefinition): Layer.Layer<Commit | Live, nev
 			const reactivity = yield* Reactivity;
 			const registry = yield* registryOf(definition);
 			yield* start(database.write, registry, database.backup);
-			return Context.make(Commit, commitService({ reactivity, registry, sql: database.write })).pipe(
+			return Context.make(Commit, commitService({ backup: database.backup, reactivity, registry, sql: database.write })).pipe(
 				Context.add(Live, liveService({ reactivity, registry, sql: database.read })),
 			);
 		}),

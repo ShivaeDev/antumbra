@@ -33,6 +33,7 @@ export interface CommitService {
 export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/server-journal/Commit") {}
 
 export interface CommitContext {
+	readonly backup: Effect.Effect<void>;
 	readonly reactivity: Reactivity["Service"];
 	readonly registry: Registry;
 	readonly sql: SqlClient;

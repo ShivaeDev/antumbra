@@ -65,7 +65,7 @@ const setup = Effect.gen(function* () {
 	const registry = yield* registryOf(definition);
 	const reactivity = yield* Reactivity;
 	yield* start(database.write, registry);
-	return { commit: commitService({ reactivity, registry, sql: database.write }), database };
+	return { commit: commitService({ backup: database.backup, reactivity, registry, sql: database.write }), database };
 });
 
 const record = { at: 120, cursor: 0, logId: "runner", requestId: Request.make("runner:0") };

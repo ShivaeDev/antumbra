@@ -57,7 +57,7 @@ const setup = Effect.gen(function* () {
 	const registry = yield* registryOf(definition);
 	const reactivity = yield* Reactivity;
 	yield* start(database.write, registry);
-	return { database, registry, reactivity, commit: commitService({ sql: database.write, registry, reactivity }) };
+	return { database, registry, reactivity, commit: commitService({ backup: database.backup, sql: database.write, registry, reactivity }) };
 });
 
 it.effect("source materialization precedes the ordered derived stages", () =>
@@ -73,7 +73,7 @@ it.effect("a failing derived stage rolls back the source fact and every row", ()
 	Effect.gen(function* () {
 		const { database, registry, reactivity } = yield* setup;
 		const failing = { ...registry, projections: [...registry.projections, { reads: [], writes: [], run: () => Effect.die("projection failed") }] };
-		const commit = commitService({ sql: database.write, registry: failing, reactivity });
+		const commit = commitService({ backup: database.backup, sql: database.write, registry: failing, reactivity });
 		expect(Exit.isFailure(yield* Effect.exit(commit.commit(add, { id: "one", value: 3, requestId: Request.make("one") })))).toBe(true);
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "source"`)).toEqual([]);
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "total"`)).toEqual([]);
@@ -159,7 +159,8 @@ it.effect("debug replay applies revised derivation and preserves facts, provenan
 				else yield* writes.doubled.insert({ id: "sum", value: total.value * 3 });
 			}),
 		});
-		yield* commitService({ sql: database.write, reactivity, registry: yield* registryOf(app([sample], [sum, triple])) }).rebuild;
+		yield* commitService({ backup: database.backup, sql: database.write, reactivity, registry: yield* registryOf(app([sample], [sum, triple])) })
+			.rebuild;
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "source" ORDER BY "id"`)).toEqual(rows);
 		expect(yield* Effect.orDie(database.read`SELECT * FROM "journal" ORDER BY "seq"`)).toEqual(facts);
 		expect(yield* Effect.orDie(database.read`SELECT "value" FROM "doubled"`)).toEqual([{ value: 21 }]);
@@ -186,7 +187,12 @@ it.effect("commands wait for replay before reading derived rows", () =>
 					yield* double.run(reads, writes);
 				}),
 		};
-		const current = commitService({ sql: database.write, reactivity, registry: yield* registryOf(app([sample], [sum, held])) });
+		const current = commitService({
+			backup: database.backup,
+			sql: database.write,
+			reactivity,
+			registry: yield* registryOf(app([sample], [sum, held])),
+		});
 		const copy = command("copy", {
 			input: { id: Schema.String },
 			reads: [doubled],

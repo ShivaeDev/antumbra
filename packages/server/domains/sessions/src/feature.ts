@@ -11,6 +11,7 @@ import { providerEvent } from "#facts/provider-event.ts";
 import { observedMaterializer } from "#materializers/observed.ts";
 import { operationRequestedMaterializer } from "#materializers/operation-requested.ts";
 import { providerEventMaterializer } from "#materializers/provider-event.ts";
+import { opening } from "#queries/opening.ts";
 import { operations } from "#queries/operations.ts";
 import { pending } from "#queries/pending.ts";
 import { forAgent, reading } from "#queries/reading.ts";
@@ -52,5 +53,5 @@ export const sessions = feature("sessions", {
 		operationHeldMaterializer,
 		sessionCharteredMaterializer,
 	],
-	queries: [operations, transcriptSources, toolCall, reading, tree, forAgent, pending],
+	queries: [operations, opening, transcriptSources, toolCall, reading, tree, forAgent, pending],
 });

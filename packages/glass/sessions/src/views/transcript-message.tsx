@@ -2,11 +2,11 @@ import type { TranscriptMessage as MessageItem, TranscriptThinking } from "@antu
 import { MarkdownView } from "@antumbra/glass-components/markdown-view.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import { TranscriptImage } from "@antumbra/glass-inputs/transcript-image.tsx";
-import { openingSummary } from "#transcript/opening.ts";
+import { headline, runsLong } from "#transcript/opening.ts";
 import { Disclosure } from "#views/transcript-disclosure.tsx";
 
-const SERVED = {
-	charter: { name: "Charter", subject: "this charter" },
+const INSTRUCTED = {
+	steer: { name: "Steer", subject: "what steered the session" },
 	wake: { name: "Wake", subject: "what woke the session" },
 };
 
@@ -21,18 +21,42 @@ const UserImages = ({ api, item, sessionId }: { readonly api: InputsClient; read
 	);
 };
 
+const Words = ({ markdown }: { readonly markdown: string }) => <MarkdownView className="markdown-typed" markdown={markdown} />;
+
+const Section = ({ markdown, name, subject }: { readonly markdown: string; readonly name: string; readonly subject: string }) => (
+	<Disclosure
+		bare
+		body={<Words markdown={markdown} />}
+		name={<span className="shrink-0 font-medium">{name}</span>}
+		subject={subject}
+		summary={headline(markdown)}
+	/>
+);
+
 const UserWords = ({ item }: { readonly item: MessageItem }) => {
 	if (item.text === "") {
 		return null;
 	}
-	const words = <MarkdownView className="markdown-typed" markdown={item.text} />;
-	const served = item.served === undefined ? undefined : SERVED[item.served];
-	const summary = served === undefined ? undefined : openingSummary(item.text);
-	if (served === undefined || summary === undefined) {
-		return words;
+	if (item.served === "charter") {
+		return (
+			<>
+				{item.standingOrders === undefined ? null : <Section markdown={item.standingOrders} name="Standing orders" subject="the standing orders" />}
+				<Section markdown={item.text} name="Charter" subject="this charter" />
+			</>
+		);
+	}
+	const instructed = item.served === undefined ? undefined : INSTRUCTED[item.served];
+	if (instructed === undefined || !runsLong(item.text)) {
+		return <Words markdown={item.text} />;
 	}
 	return (
-		<Disclosure bare body={words} name={<span className="shrink-0 font-medium">{served.name}</span>} subject={served.subject} summary={summary} />
+		<Disclosure
+			bare
+			body={<Words markdown={item.text} />}
+			name={<span className="shrink-0 font-medium">{instructed.name}</span>}
+			subject={instructed.subject}
+			summary={headline(item.text)}
+		/>
 	);
 };
 

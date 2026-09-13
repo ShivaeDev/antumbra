@@ -79,10 +79,11 @@ node that produced it, so one Session reads as a tree whose root is the Session 
 read on its own — the renderer opens a node's feed — while only the root is resumed, sent to, or stopped. Delegated work stays the Session's work, but
 the log says who actually did it.
 
-A transcript begins with the words its Session was started with, and each instruction that later woke it reads as the user turn of that wake. Antumbra
-records what it delivered as it delivers it, so what an Agent was asked is durable truth of ours rather than something a provider may or may not echo
-back; the record is written once and the reading joins it. A Session that runs under a constrained prompt shows those standing orders in the same
-opening turn, because for every other role the same guidance arrives inside the charter.
+A transcript begins with the words its Session was started with, and every instruction Antumbra later composed and delivered — waking a sleeping
+Session, steering a live one — reads as the user turn that carried it. Antumbra records what it delivers as it delivers it, so what an Agent was asked
+is durable truth of ours rather than something a provider may or may not echo back. The charter is recorded once and never composed again: a birth
+that is held and admitted a second time is started with the words its transcript already shows. A Session that runs under a constrained prompt shows
+those standing orders beside its charter in the opening turn, because for every other role the same guidance arrives inside the charter.
 
 The transcript accumulates messages, pairs tool lifecycle events, and renders usage and turn events as visual rhythm rather than domain boundaries.
 Usage events are also the fleet's only account of what its work costs: totals are read back out of the stored events rather than counted on the write

@@ -1,3 +1,4 @@
+import type { App } from "@antumbra/app-testing/entry.ts";
 import { eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { AgentId } from "@antumbra/domain-agents/ids.ts";
@@ -17,7 +18,7 @@ const voyageId = VoyageId.make("opening-voyage");
 const sessionId = SessionId.make("opening-session");
 const agentId = AgentId.make("opening-smoother");
 
-it.app("the transcript opens with the words the session was started with, and a wake adds its own turn", function* ({ api }) {
+const smoothing = Effect.fn("transcript.smoothing")(function* (api: App["api"], entries: LogEntry[]) {
 	const runner = yield* connectRunner({ runnerId: "runner", logId: "log", backends: ["claude"], imageInputBackends: [] });
 	yield* api.voyages.open({
 		requestId: Request.make(voyageId),
@@ -48,9 +49,9 @@ it.app("the transcript opens with the words the session was started with, and a 
 	yield* api.agents.smooth({ requestId: Request.make("opening-smooth"), agentId, sessionId, voyageId, cwd: "/berth" });
 	const start = yield* runner.next;
 	if (start.type !== "Start") return yield* Effect.die(`Expected Start, received ${start.type}`);
-	const charter = start.charter.parts[0];
-	if (charter.type !== "text") return yield* Effect.die("Expected the charter to open with text");
-	const entries: LogEntry[] = [
+	const opening = start.charter.parts[0];
+	if (opening.type !== "text") return yield* Effect.die("Expected the charter to open with text");
+	entries.push(
 		{
 			logId: "log",
 			cursor: 0,
@@ -68,19 +69,7 @@ it.app("the transcript opens with the words the session was started with, and a 
 			},
 		},
 		{ logId: "log", cursor: 1, at: 1, event: { type: "InputAccepted", requestId: start.requestId, sessionId, inputId: start.charter.id } },
-		{
-			logId: "log",
-			cursor: 2,
-			at: 2,
-			event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "user", text: charter.text, raw } },
-		},
-		{
-			logId: "log",
-			cursor: 3,
-			at: 3,
-			event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "agent", text: "Summarised.", raw } },
-		},
-	];
+	);
 	yield* runner.reply(start.requestId, { type: "Accepted" });
 	yield* Effect.forkScoped(
 		Effect.forever(
@@ -94,16 +83,40 @@ it.app("the transcript opens with the words the session was started with, and a 
 			}),
 		),
 	);
-	yield* runner.append(entries);
+	return { charter: opening.text, runner };
+});
+
+const reading = Effect.fn("transcript.reading")(function* () {
 	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
-	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
+	return yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
+});
+
+it.app("the transcript opens with the charter the session was started with, and a wake adds its own turn", function* ({ api }) {
+	const entries: LogEntry[] = [];
+	const { charter, runner } = yield* smoothing(api, entries);
+	entries.push(
+		{
+			logId: "log",
+			cursor: 2,
+			at: 2,
+			event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "user", text: charter, raw } },
+		},
+		{
+			logId: "log",
+			cursor: 3,
+			at: 3,
+			event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "agent", text: "Summarised.", raw } },
+		},
+	);
+	yield* runner.append(entries);
+	const updates = yield* reading();
 	const opened = yield* eventually(Stream.fromQueue(updates), (reading) =>
 		reading.items.some((item) => item.kind === "message" && item.role === "agent"),
 	);
 	const [first] = opened.items;
-	expect(first).toMatchObject({ kind: "message", role: "user", served: "charter" });
-	expect(first?.kind === "message" ? first.text : "").toBe(`${smootherWords}\n\n${charter.text}`);
+	expect(first).toMatchObject({ kind: "message", role: "user", served: "charter", standingOrders: smootherWords, text: charter });
 	expect(opened.items.filter((item) => item.kind === "message" && item.role === "user")).toHaveLength(1);
+
 	yield* api.sessions.request({
 		requestId: Request.make("opening-wake"),
 		sessionId,
@@ -112,8 +125,35 @@ it.app("the transcript opens with the words the session was started with, and a 
 		reason: "Finish the summary",
 		requestedAt: new Date(4).toISOString(),
 	});
+	const accepted: LogEntry = {
+		logId: "log",
+		cursor: 4,
+		at: 4,
+		event: { type: "InputAccepted", requestId: "opening-wake", sessionId, inputId: "opening-wake" },
+	};
+	entries.push(accepted);
+	yield* runner.append([accepted]);
 	const woken = yield* eventually(Stream.fromQueue(updates), (reading) =>
 		reading.items.some((item) => item.kind === "message" && item.text === "Finish the summary"),
 	);
 	expect(woken.items.at(-1)).toMatchObject({ kind: "message", role: "user", served: "wake", text: "Finish the summary" });
+});
+
+it.app("a backend that never echoes its input shows the charter exactly once", function* ({ api }) {
+	const entries: LogEntry[] = [];
+	const { charter, runner } = yield* smoothing(api, entries);
+	entries.push({
+		logId: "log",
+		cursor: 2,
+		at: 2,
+		event: { type: "ProviderEvent", observation: "live", sessionId, event: { type: "message", role: "agent", text: "Summarised.", raw } },
+	});
+	yield* runner.append(entries);
+	const updates = yield* reading();
+	const opened = yield* eventually(Stream.fromQueue(updates), (reading) =>
+		reading.items.some((item) => item.kind === "message" && item.role === "agent"),
+	);
+	const spoken = opened.items.filter((item) => item.kind === "message" && item.role === "user");
+	expect(spoken).toHaveLength(1);
+	expect(spoken[0]).toMatchObject({ kind: "message", role: "user", served: "charter", text: charter });
 });

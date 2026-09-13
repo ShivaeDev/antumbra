@@ -4,6 +4,12 @@ import { SessionId } from "#ids.ts";
 
 export const sessionOpening = row(
 	"sessionOpening",
-	{ id: SessionId, standingOrders: Schema.NullOr(Schema.String), charter: Schema.String, sequence: Schema.Number },
+	{
+		id: SessionId,
+		inputId: Schema.String,
+		standingOrders: Schema.NullOr(Schema.String),
+		charter: Schema.String,
+		sequence: Schema.Number,
+	},
 	{ key: "id" },
 );

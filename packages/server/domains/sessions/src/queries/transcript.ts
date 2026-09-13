@@ -20,7 +20,8 @@ export const transcriptSources = query("transcriptSources", {
 		const operations = yield* rows.sessionOperation.where({ sessionId: input.id });
 		const instructions = [];
 		for (const operation of operations) {
-			if (operation.kind !== "wake" || operation.inputId !== null || operation.status === "cancelled") continue;
+			const spoken = operation.kind === "wake" || operation.kind === "steer";
+			if (!spoken || operation.inputId !== null || operation.status !== "accepted") continue;
 			instructions.push(operation);
 		}
 		return {

@@ -87,6 +87,8 @@ const PieceCrew = (props: { readonly api: PiecesDisplayApi; readonly pieceId: Pi
 	);
 };
 
+const WAITING: readonly Progress["state"][] = ["blocked", "held", "landing"];
+
 const PieceControls = (props: {
 	readonly api: PiecesDisplayApi;
 	readonly onWorkNow: (pieceId: string) => void;
@@ -94,11 +96,14 @@ const PieceControls = (props: {
 	readonly progress: Progress | null;
 }) => {
 	const progress = props.progress;
-	const movable = progress !== null && !progress.settledDone && !progress.abandoned;
+	if (progress === null) {
+		return null;
+	}
+	const movable = !progress.settledDone && !progress.abandoned;
 	return (
 		<div className="flex flex-wrap gap-1.5">
 			<PieceActs api={props.api} movable={movable} piece={props.piece} />
-			{movable ? (
+			{movable && WAITING.includes(progress.state) ? (
 				<Button onClick={() => props.onWorkNow(props.piece.id)} size="sm" variant="outline">
 					Work now
 				</Button>

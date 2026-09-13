@@ -66,9 +66,10 @@ it.effect("opens another window as a tab that reaches the same server and lands 
 	Effect.gen(function* () {
 		browser();
 		const place = transcriptPlace("session-1");
-		yield* Effect.promise(() => bridgeAt(LINK).openWindow(place));
+		yield* Effect.promise(() => bridgeAt(`${LINK}&fixture=1`).openWindow(place));
 		const tab = new URL(opened[0] ?? "");
 		expect(`${tab.origin}${tab.pathname}`).toBe("http://localhost:5183/");
+		expect(tab.searchParams.get("fixture")).toBe("1");
 		const opening = bridgeAt(tab.href);
 		expect(yield* Effect.promise(() => opening.server())).toEqual({ port: 41267, token: "a-dev-token" });
 		expect(yield* Effect.promise(() => opening.windowPlace())).toEqual(place);

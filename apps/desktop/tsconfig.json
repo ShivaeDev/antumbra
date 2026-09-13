@@ -3,6 +3,7 @@
 	"include": ["script", "src", "test"],
 	"compilerOptions": {
 		"jsx": "react-jsx",
+		"types": ["node", "vite/client"],
 		"resolveJsonModule": true
 	}
 }

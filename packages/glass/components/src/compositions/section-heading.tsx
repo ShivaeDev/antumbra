@@ -18,9 +18,11 @@ const HeadingWords = (props: Words) => (
 	</>
 );
 
-export const SectionHeading = (props: Words & { readonly action?: ReactNode; readonly children?: ReactNode; readonly collapsible?: boolean }) =>
+export const SectionHeading = (
+	props: Words & { readonly action?: ReactNode; readonly children?: ReactNode; readonly collapsible?: boolean; readonly open?: boolean },
+) =>
 	props.collapsible === true ? (
-		<Collapsible>
+		<Collapsible defaultOpen={props.open === true}>
 			<div className={ROW}>
 				<CollapsibleTrigger className="group flex min-w-0 items-center gap-2">
 					<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground group-data-[state=open]:rotate-90" />

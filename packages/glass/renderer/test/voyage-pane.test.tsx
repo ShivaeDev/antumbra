@@ -1,77 +1,41 @@
-import { eventually } from "@antumbra/app-testing/answers.ts";
-import { click, labelled, until } from "@antumbra/app-testing/glass/dom.ts";
-import { type Api, it } from "@antumbra/app-testing/glass/entry.tsx";
-import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { click, labelled, settle, until } from "@antumbra/app-testing/glass/dom.ts";
+import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
-import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
-import { Effect } from "effect";
-import type { ReactNode } from "react";
-import { VoyagesPage } from "#navigation/voyages.tsx";
-import type { Shell } from "#shell.ts";
+import { crewed, NAME, opened, pieceId, screen } from "#test/kit.tsx";
 
-const REEF = Request.make("voyage:reef");
-const SOUNDINGS = Request.make("piece:soundings");
-const HAND = Request.make("agent:soundings");
-const CAPTAIN = Request.make("agent:captain");
-
-const voyageId = VoyageId.make(REEF);
-const pieceId = PieceId.make(SOUNDINGS);
-
-const crewed = Effect.fnUntraced(function* (api: Api) {
-	yield* api.voyages.open({
-		requestId: REEF,
-		kind: "voyage",
-		name: "Chart the reef",
-		northStar: "every shoal is known",
-		context: "",
-		captainBackend: null,
-		captainModel: null,
-		captainEffort: null,
-		crewBackend: null,
-		crewModel: null,
-		crewEffort: null,
-	});
-	yield* api.pieces.charter({
-		requestId: SOUNDINGS,
-		voyageId,
-		title: "Soundings",
-		charter: "sound the reef",
-		expectation: "Soundings is landed",
-		role: "hand",
-		dependsOn: [],
-	});
-	yield* api.agents.workNow({ requestId: HAND, pieceId });
-	yield* api.agents.hail({ requestId: CAPTAIN, voyageId, by: "admiral" });
-	return yield* eventually(api.agents.roster({}), (agents) => agents.length === 2, "both agents to reach the roster");
+const sized = (target: Element, width: number): ResizeObserverEntry => ({
+	borderBoxSize: [],
+	contentBoxSize: [],
+	contentRect: new DOMRectReadOnly(0, 0, width, 0),
+	devicePixelContentBoxSize: [],
+	target,
 });
 
-const shell: Shell = {
-	place: Effect.succeed({ role: "console", mode: "voyages", changeId: null, pieceId: null, sessionId: null, voyageId }),
-	info: Effect.succeed({ productVersion: "1", chromeVersion: "1", electronVersion: "1", nodeVersion: "1" }),
-	remember: () => Effect.void,
-	open: () => Effect.void,
-	restart: Effect.void,
-	restartServer: Effect.void,
-	openExternal: () => undefined,
+const observing = (): ((width: number) => void) => {
+	let announce: ((width: number) => void) | undefined;
+	class Watcher implements ResizeObserver {
+		readonly told: ResizeObserverCallback;
+		constructor(told: ResizeObserverCallback) {
+			this.told = told;
+		}
+		observe(target: Element): void {
+			announce = (width) => this.told([sized(target, width)], this);
+		}
+		unobserve(): void {
+			announce = undefined;
+		}
+		disconnect(): void {
+			announce = undefined;
+		}
+	}
+	Object.defineProperty(globalThis, "ResizeObserver", { configurable: true, value: Watcher });
+	return (width) => {
+		if (announce !== undefined) announce(width);
+	};
 };
 
-const screen = (api: Api, place: ConsolePlace, onPlace: (next: ConsolePlace) => void): ReactNode => (
-	<VoyagesPage
-		api={api}
-		onError={(message) => Effect.runSync(Effect.die(message))}
-		onPlace={onPlace}
-		place={place}
-		readArtifact={() => Effect.die("no artifact in this test")}
-		renderSession={(sessionId) => <output>{sessionId}</output>}
-		shell={shell}
-	/>
-);
-
-const opened: ConsolePlace = { role: "console", mode: "voyages", changeId: null, pieceId: null, sessionId: null, voyageId };
-
-it.glass("gives a picked voyage the whole width until something is opened beside it", function* ({ api, render }) {
+it.glass("gives an opened voyage the whole width until something is opened beside it", function* ({ api, render }) {
 	yield* crewed(api);
 	const container = yield* render(screen(api, opened, () => undefined));
 	yield* until(() => container.textContent?.includes("Soundings") === true, "the voyage's pieces to reach the detail");
@@ -104,4 +68,36 @@ it.glass("a piece and a member of the crew take turns in the pane", function* ({
 	expect(place.pieceId).toBeNull();
 	yield* render(screen(api, place, remember));
 	yield* until(() => container.querySelector("output")?.textContent === captain.currentSessionId, "the captain's conversation again");
+});
+
+it.glass("shows the pane alone below the detail's floor and gives the detail back when it closes", function* ({ api, render }) {
+	const crew = yield* crewed(api);
+	const hand = crew.find((agent) => agent.role === "hand");
+	if (hand === undefined) return expect.fail("the piece's hand");
+	const resize = observing();
+	let place: ConsolePlace = { ...opened, pieceId };
+	const remember = (next: ConsolePlace) => {
+		place = next;
+	};
+	const container = yield* render(screen(api, place, remember));
+	yield* until(() => container.querySelector("output")?.textContent === hand.currentSessionId, "the piece's conversation in the pane");
+	yield* settle(() => resize(881));
+	expect(container.textContent).toContain(NAME);
+
+	yield* settle(() => resize(880));
+	expect(container.textContent).not.toContain("Soundings");
+	expect(container.querySelector("output")?.textContent).toBe(hand.currentSessionId);
+	expect(container.querySelector('[aria-label="Resize the session"]')).toBeNull();
+
+	yield* render(screen(api, { ...place, pieceId: null }, remember));
+	yield* until(() => container.textContent?.includes("Soundings") === true, "the detail to take the width back");
+});
+
+it.glass("keeps the voyage title on one line with the whole title in its tooltip", function* ({ api, render }) {
+	yield* crewed(api);
+	const container = yield* render(screen(api, opened, () => undefined));
+	yield* until(() => container.querySelector("h1")?.textContent === NAME, "the voyage's own page header");
+	const title = container.querySelector("h1");
+	expect(title?.className).toContain("truncate");
+	expect(title?.closest('[data-slot="tooltip-trigger"]')).not.toBeNull();
 });

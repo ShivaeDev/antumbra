@@ -1,6 +1,6 @@
 import { Live } from "@antumbra/glass-client/live.tsx";
 import type { ReactNode } from "react";
-import { CaptainCall } from "#captain.tsx";
+import { CaptainAct } from "#captain.tsx";
 import type { VoyagesDisplayApi } from "#display.ts";
 
 export const Flagship = (props: {
@@ -28,7 +28,7 @@ const CaptainConversation = (props: {
 			captain?.currentSessionId == null ? (
 				<section className="m-auto flex flex-col items-center gap-3">
 					<p className="text-xs text-muted-foreground">the flagship captain has no conversation open yet</p>
-					<CaptainCall api={props.api} onHail={props.onHail} voyageId={props.voyageId} />
+					<CaptainAct api={props.api} onHail={props.onHail} voyageId={props.voyageId} />
 				</section>
 			) : (
 				props.renderSession(captain.currentSessionId)

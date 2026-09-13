@@ -5,7 +5,7 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
-import { CaptainCall } from "#captain.tsx";
+import { CaptainLine } from "#captain.tsx";
 import { Crew } from "#crew.tsx";
 
 const REEF = Request.make("voyage:reef");
@@ -34,12 +34,11 @@ it.glass("opens the captain from the line that names the captain", function* ({ 
 	yield* crewed(api);
 	let opened = "";
 	const container = yield* render(
-		<CaptainCall
+		<CaptainLine
 			api={api}
 			onAgent={(agentId) => {
 				opened = agentId;
 			}}
-			onHail={() => undefined}
 			voyageId={voyageId}
 		/>,
 	);

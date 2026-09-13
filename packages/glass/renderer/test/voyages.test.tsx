@@ -1,32 +1,71 @@
-import { eventually } from "@antumbra/app-testing/answers.ts";
-import { click, fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
+import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
+import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import { expect } from "@effect/vitest";
-import { VoyagesAside } from "#navigation/voyages-aside.tsx";
+import { BARE, bare, CHARTER, crewed, listing, NAME, NORTH_STAR, screen, voyageId } from "#test/kit.tsx";
 
-it.glass("opens a Voyage from navigation and selects its live list entry", function* ({ api, render }) {
-	let selected = "";
+const heading = (container: HTMLElement, title: string): HTMLElement => {
+	const found = [...container.querySelectorAll("h2")].find((candidate) => candidate.textContent === title);
+	return found ?? expect.fail(`the ${title} heading`);
+};
+
+const trigger = (container: HTMLElement, title: string): HTMLElement => {
+	const found = heading(container, title).closest('[data-slot="collapsible-trigger"]');
+	return found instanceof HTMLElement ? found : expect.fail(`the ${title} heading to fold`);
+};
+
+it.glass("opens a voyage in the list's place and comes back to the list", function* ({ api, render }) {
+	yield* crewed(api);
+	let place: ConsolePlace = listing;
+	const remember = (next: ConsolePlace) => {
+		place = next;
+	};
+	const container = yield* render(screen(api, place, remember));
+	yield* until(() => container.querySelector(`[aria-label="Open ${NAME}"]`) !== null, "the voyage list");
+	expect(container.querySelector("h1")?.textContent).toBe("Voyages");
+
+	yield* click(labelled(container, `Open ${NAME}`));
+	expect(place.voyageId).toBe(voyageId);
+	const detail = yield* render(screen(api, place, remember));
+	yield* until(() => detail.querySelector("h1")?.textContent === NAME, "the voyage's own page header");
+	expect(detail.querySelector(`[aria-label="Open ${NAME}"]`)).toBeNull();
+	const header = detail.querySelector("header") ?? expect.fail("the voyage's page header");
+	yield* until(() => header.textContent?.includes("a captain") === true, "the header's act on the captain");
+	expect([...header.querySelectorAll("button")].at(-1)?.textContent).toContain("a captain");
+
+	yield* click(labelled(detail, "Back"));
+	expect(place.voyageId).toBeNull();
+	yield* render(screen(api, place, remember));
+	yield* until(() => container.querySelector("h1")?.textContent === "Voyages", "the list to take the place back");
+});
+
+it.glass("folds the voyage's prose and keeps the board open with its charter act", function* ({ api, render }) {
+	yield* crewed(api);
 	const container = yield* render(
-		<VoyagesAside
-			api={api}
-			onHail={() => undefined}
-			selected={undefined}
-			onSelect={(id) => {
-				selected = id;
-			}}
-		/>,
+		screen(api, { role: "console", mode: "voyages", changeId: null, pieceId: null, sessionId: null, voyageId }, () => undefined),
 	);
-	expect(document.querySelector('[role="dialog"]')).toBeNull();
-	yield* press(container, "Open voyage");
-	const opening = yield* renderedForm(document.body, "Open voyage");
-	yield* fill(opening, "Open voyage Name", "Chart the reef");
-	yield* fill(opening, "Open voyage North star", "Every shoal is known");
-	yield* submit(document.body, "Open voyage");
-	const voyages = yield* eventually(api.voyages.list({}), (rows) => rows.length === 2, "the newly opened voyage to reach the list");
-	const charted = voyages.find((row) => row.kind === "voyage");
-	expect(charted).toMatchObject({ name: "Chart the reef", northStar: "Every shoal is known" });
-	yield* until(() => document.querySelector('[role="dialog"]') === null, "the successful opening to close its dialog");
-	yield* until(() => container.textContent?.includes("Chart the reef") === true, "the new Voyage to appear in navigation");
-	yield* click(labelled(container, "Open Chart the reef"));
-	expect(selected).toBe(charted?.id);
+	yield* until(() => container.textContent?.includes("Soundings") === true, "the voyage's pieces to reach the board");
+	expect(container.textContent).not.toContain(NORTH_STAR);
+	expect(container.textContent).not.toContain(CHARTER);
+
+	yield* click(trigger(container, "North star"));
+	yield* until(() => container.textContent?.includes(NORTH_STAR) === true, "the north star to unfold");
+	yield* click(trigger(container, "Charter"));
+	yield* until(() => container.textContent?.includes(CHARTER) === true, "the charter to unfold");
+
+	const board = heading(container, "Board").closest("div");
+	if (board === null) return expect.fail("the Board heading row");
+	yield* press(board, "Charter piece");
+	yield* until(() => document.querySelector('[role="dialog"]') !== null, "the chartering dialog");
+});
+
+it.glass("keeps the quiet chip clear of the act that wakes the captain", function* ({ api, render }) {
+	yield* api.voyages.open(bare);
+	const container = yield* render(screen(api, { ...listing, voyageId: BARE }, () => undefined));
+	yield* until(() => container.querySelector("h1")?.textContent === "Sound the bar", "the bare voyage's header");
+	const header = container.querySelector("header") ?? expect.fail("the page header");
+	yield* until(() => header.textContent?.includes("quiet") === true, "the quiet chip");
+	const acts = [...header.querySelectorAll("button")].map((button) => button.textContent);
+	expect(acts.at(-1)).toBe("Hail a captain");
+	expect(header.textContent).not.toContain("Wake the captain");
 });

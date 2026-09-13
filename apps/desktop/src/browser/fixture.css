@@ -1,0 +1,13 @@
+body.fixture-shell {
+	display: flex;
+	flex-direction: column;
+}
+
+.fixture-shell > #root {
+	flex: 1;
+	min-height: 0;
+}
+
+.fixture-shell > #root > main {
+	height: 100%;
+}

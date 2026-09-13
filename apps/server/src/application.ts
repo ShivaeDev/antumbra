@@ -1,4 +1,3 @@
-import { app } from "@antumbra/server-journal/app.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
 import { serving } from "@antumbra/server-journal/rpc.ts";
 import { Effect, Layer, Path } from "effect";
@@ -10,17 +9,18 @@ import { charters } from "#agents/charter.ts";
 import { provisioning } from "#agents/provisioning.ts";
 import { runnerOperations } from "#agents/runner-operations.ts";
 import { toolCatalog } from "#agents/tool-catalog.ts";
-import { features } from "#features.ts";
+import { debugHandlers } from "#debug.ts";
+import { definition } from "#definition.ts";
 import { Files } from "#files.ts";
 import { lifecycleHandlers } from "#lifecycle/handlers.ts";
-import { projections } from "#projections.ts";
 import { layer as connections } from "#runner/connections.ts";
 import { layer as runnerHandlers } from "#runner/rpc.ts";
 import { runtime } from "#runtime.ts";
 import { execution } from "#sessions/execution/service.ts";
+import { runnerTranscriptLog } from "#transcript/read-log.ts";
 import { transcriptLayer } from "#transcript/route.ts";
 
-export const definition = app(features, projections);
+export { definition } from "#definition.ts";
 
 const inputs = Layer.unwrap(
 	Effect.gen(function* () {
@@ -32,9 +32,10 @@ const inputs = Layer.unwrap(
 const journal = Journal.layer(definition);
 const services = connections.pipe(Layer.provideMerge(journal));
 const ports = Layer.mergeAll(charters, provisioning, runnerOperations, toolCatalog).pipe(Layer.provideMerge(services));
-const delivery = Layer.mergeAll(inputDeliveryLayer, execution, artifactSource).pipe(Layer.provideMerge(ports));
+const delivery = Layer.mergeAll(inputDeliveryLayer, execution, artifactSource, runnerTranscriptLog).pipe(Layer.provideMerge(ports));
 
 export const application = Layer.mergeAll(
+	debugHandlers,
 	runtime,
 	serving(definition.features),
 	artifactContentHandlers,

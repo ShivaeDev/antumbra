@@ -3,13 +3,17 @@ import { PageHeader } from "@antumbra/glass-components/compositions/page-header.
 import { RoleDefaults } from "@antumbra/glass-role-settings/defaults.tsx";
 import { Settings } from "@antumbra/glass-settings/settings.tsx";
 import type { RendererProps } from "#props.ts";
+import { RebuildControl } from "#settings/rebuild-control.tsx";
 import { RestartControl } from "#settings/restart-control.tsx";
 import type { Shell } from "#shell.ts";
 
 const DESCRIPTION = "Changes take effect on the next pass of the work they govern; running sessions are not interrupted.";
 
 export const SettingsPanel = (
-	props: Pick<RendererProps, "api"> & { readonly onError: (message: string) => void; readonly shell: Pick<Shell, "restart" | "restartServer"> },
+	props: Pick<RendererProps, "api" | "rebuildProjections"> & {
+		readonly onError: (message: string) => void;
+		readonly shell: Pick<Shell, "restart" | "restartServer">;
+	},
 ) => (
 	<section className="flex min-h-0 min-w-0 flex-1 flex-col px-6 pt-5">
 		<PageHeader description={DESCRIPTION} title="Settings" />
@@ -18,6 +22,7 @@ export const SettingsPanel = (
 				<RoleDefaults api={props.api} />
 				<Settings api={props.api} />
 			</HeldReading>
+			<RebuildControl rebuild={props.rebuildProjections} onError={props.onError} />
 			<RestartControl onError={props.onError} shell={props.shell} />
 		</div>
 	</section>

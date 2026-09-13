@@ -1,4 +1,5 @@
 import { contentClient } from "@antumbra/glass-artifacts/content-client.ts";
+import { debugClient } from "@antumbra/glass-client/debug.ts";
 import { type Dialing, dialing } from "@antumbra/glass-client/serving.ts";
 import { inputsClient } from "@antumbra/glass-inputs/client.ts";
 import { sessionsClient } from "@antumbra/glass-sessions/client.ts";
@@ -23,6 +24,7 @@ export const mount = (container: HTMLElement, bridge: ShellBridge, connecting: C
 	Effect.gen(function* () {
 		const glass = yield* connecting;
 		yield* Effect.addFinalizer(() => Effect.sync(() => glass.registry.dispose()));
+		const rebuildProjections = yield* debugClient;
 		const inputs = yield* inputsClient;
 		const sessions = yield* sessionsClient;
 		const readArtifact = yield* contentClient;
@@ -30,7 +32,15 @@ export const mount = (container: HTMLElement, bridge: ShellBridge, connecting: C
 		yield* Effect.addFinalizer(() => Effect.sync(() => root.unmount()));
 		root.render(
 			<glass.Provider>
-				<Surface api={glass.api} shell={shellOf(bridge)} inputs={inputs} sessions={sessions} drafts={draftsOf(bridge)} readArtifact={readArtifact} />
+				<Surface
+					rebuildProjections={rebuildProjections}
+					api={glass.api}
+					shell={shellOf(bridge)}
+					inputs={inputs}
+					sessions={sessions}
+					drafts={draftsOf(bridge)}
+					readArtifact={readArtifact}
+				/>
 			</glass.Provider>,
 		);
 		return yield* Effect.never;

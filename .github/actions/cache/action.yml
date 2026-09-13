@@ -1,0 +1,32 @@
+name: Cache
+description: Restore a cache and optionally save it after the job succeeds.
+
+inputs:
+  path:
+    description: Files and directories to cache.
+    required: true
+  key:
+    description: Exact cache key.
+    required: true
+  restore-keys:
+    description: Fallback cache key prefixes.
+    default: ""
+  save:
+    description: Whether this job owns writes to the cache.
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4
+      if: inputs.save == 'true'
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}
+    - uses: actions/cache/restore@v4
+      if: inputs.save != 'true'
+      with:
+        path: ${{ inputs.path }}
+        key: ${{ inputs.key }}
+        restore-keys: ${{ inputs.restore-keys }}

@@ -14,13 +14,13 @@ const pieceId = PieceId.make("piece:reef");
 const repoId = RepoId.make("repo:reef");
 const source = "https://github.com/example/reef.git";
 const proposal = { repo: "reef", title: "Soundings reach the chart", body: "Why?\n\nThe eastern shoal is uncharted." };
-const seen = (branch: string): Observation => ({
+const seen = (branch: string, headSha: string): Observation => ({
 	repoId,
 	externalId: "41",
 	activityAt: 2000,
 	baseRef: "main",
 	headRef: branch,
-	headSha: "sha-1",
+	headSha,
 	isDraft: false,
 	checks: "green",
 	review: "approved",
@@ -79,9 +79,9 @@ const berthed = Effect.fn("test.berthed")(function* (app: App) {
 			event: {
 				type: "SessionStarted",
 				...logged,
-				agentId: planning.agentId,
-				backend: "claude",
-				cwd: "/moorage",
+				agentId: starting.options.agentId,
+				backend: starting.options.backend,
+				cwd: starting.options.cwd,
 				nativeRef: "native",
 				runnerId: "runner",
 				toolSetVersion: starting.options.toolSet.version,
@@ -126,7 +126,26 @@ it.app("signs the body it opens with one trailer line", function* (app) {
 	yield* runner.reply(push.requestId, { type: "Accepted" });
 	const pending = yield* host.nextOpen;
 	expect(pending.request.body).toBe(`${proposal.body}\n\nOpened through Antumbra`);
-	yield* pending.accept(seen(branch));
+	yield* pending.accept(seen(branch, "sha-1"));
+	expect(yield* Fiber.join(opening)).toMatchObject({ ok: true });
+});
+
+it.app("publishes the commits the berth gained after the change was first submitted", function* (app) {
+	const { branch, evidence, runner, sessionId } = yield* berthed(app);
+	const host = yield* ScriptedHost;
+	const submitting = yield* Effect.forkChild(runner.tool({ sessionId, callId: "submit", name: "submit_change", input: { repo: "reef" } }));
+	const first = yield* runner.next;
+	yield* runner.reply(first.requestId, { type: "ChangeCaptured", evidence });
+	expect(yield* Fiber.join(submitting)).toMatchObject({ ok: true });
+	const opening = yield* Effect.forkChild(runner.tool({ sessionId, callId: "open", name: "open_change", input: proposal }));
+	const second = yield* runner.next;
+	yield* runner.reply(second.requestId, { type: "ChangeCaptured", evidence: { ...evidence, headSha: "sha-2" } });
+	const push = yield* runner.next;
+	expect(push).toMatchObject({ type: "PushChange", headSha: "sha-2" });
+	yield* runner.reply(push.requestId, { type: "Accepted" });
+	const pending = yield* host.nextOpen;
+	expect(pending.request.headSha).toBe("sha-2");
+	yield* pending.accept(seen(branch, "sha-2"));
 	expect(yield* Fiber.join(opening)).toMatchObject({ ok: true });
 });
 
@@ -141,6 +160,6 @@ it.app("leaves the body unsigned when the fleet turns the signature off", functi
 	yield* runner.reply(push.requestId, { type: "Accepted" });
 	const pending = yield* host.nextOpen;
 	expect(pending.request.body).toBe(proposal.body);
-	yield* pending.accept(seen(branch));
+	yield* pending.accept(seen(branch, "sha-1"));
 	expect(yield* Fiber.join(opening)).toMatchObject({ ok: true });
 });

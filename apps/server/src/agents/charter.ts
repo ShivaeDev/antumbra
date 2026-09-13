@@ -52,7 +52,7 @@ const berthing = Effect.fn("Agents.berthing")(function* (agentId: string): Effec
 	const registered = yield* live.read(repos, {});
 	const lines = [];
 	for (const registration of registered) {
-		const berth = moored.find((row) => row.source === registration.source && row.status !== "reclaimed");
+		const berth = moored.find((row) => row.source === registration.source && row.status !== "reclaimed" && row.status !== "stranded");
 		if (berth === undefined) continue;
 		lines.push({ branch: berth.branch, folder: berth.path, repo: registration.name });
 	}

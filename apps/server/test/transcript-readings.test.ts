@@ -12,7 +12,16 @@ const opened: AgentEvent = { nativeRef: "thread-one", raw: raw("system/init", "{
 const running: AgentEvent = { raw: raw("turn/started", "{}"), state: "running", type: "session.state" };
 const idle: AgentEvent = { raw: raw("turn/completed", "{}"), state: "idle", type: "session.state" };
 const said: AgentEvent = { raw: raw("item/completed", "{}"), role: "agent", text: "on it", type: "message" };
-const allowed: AgentEvent = { raw: raw("account/rateLimits/updated", "{}"), status: "allowed", type: "rate.limit", windows: [] };
+const delegateRunning: AgentEvent = { origin: { spawnedBy: "task" }, raw: raw("turn/started", "{}"), state: "running", type: "session.state" };
+
+const rated = (status: "allowed" | "rejected", usedPercent?: number): AgentEvent => ({
+	raw: raw("account/rateLimits/updated", "{}"),
+	status,
+	type: "rate.limit",
+	windows: usedPercent === undefined ? [] : [{ usedPercent }],
+});
+
+const notice = (payload: string): AgentEvent => ({ raw: raw("mcpServer/startupStatus/updated", payload), type: "raw" });
 
 const shownAs = (item: TranscriptItem): ReadonlyArray<string> => {
 	if (item.kind === "telemetry") {
@@ -23,37 +32,62 @@ const shownAs = (item: TranscriptItem): ReadonlyArray<string> => {
 
 const labels = (events: ReadonlyArray<SessionEvent>): ReadonlyArray<string> => deriveTranscript(events).flatMap(shownAs);
 
+const shownFor = (event: AgentEvent): ReadonlyArray<string> => labels(streamed(event));
+
 it("shows a reading once until it says something else", () => {
 	expect(labels(streamed(opened, running, running, idle, idle, running))).toEqual([
-		"session opened · codex thread-one",
-		"state · running",
-		"state · idle",
-		"state · running",
+		...shownFor(opened),
+		...shownFor(running),
+		...shownFor(idle),
+		...shownFor(running),
 	]);
 });
 
 it("shows a reading once however far apart its repeats arrive", () => {
-	expect(labels(streamed(allowed, opened, allowed, said, opened, allowed))).toEqual(["rate limit", "session opened · codex thread-one"]);
+	const allowed = rated("allowed");
+	expect(labels(streamed(allowed, opened, allowed, said, opened, allowed))).toEqual([...shownFor(allowed), ...shownFor(opened)]);
 });
 
-it("shows every distinct provider record and folds an exact repeat", () => {
-	const starting: AgentEvent = { raw: raw("mcpServer/startupStatus/updated", '{"name":"node_repl","status":"starting"}'), type: "raw" };
-	const ready: AgentEvent = { raw: raw("mcpServer/startupStatus/updated", '{"name":"node_repl","status":"ready"}'), type: "raw" };
-	const other: AgentEvent = { raw: raw("mcpServer/startupStatus/updated", '{"name":"cua_repl","status":"ready"}'), type: "raw" };
-	expect(labels(streamed(starting, ready, other, ready))).toEqual([
-		'raw {"name":"node_repl","status":"starting"}',
-		'raw {"name":"node_repl","status":"ready"}',
-		'raw {"name":"cua_repl","status":"ready"}',
+it("shows a rate limit again when the share it reports moves", () => {
+	const ninth = rated("allowed", 9);
+	const tenth = rated("allowed", 10);
+	expect(labels(streamed(ninth, ninth, tenth))).toEqual([...shownFor(ninth), ...shownFor(tenth)]);
+});
+
+it("shows every refusal, and the standing that follows one", () => {
+	const allowed = rated("allowed");
+	const rejected = rated("rejected");
+	expect(labels(streamed(allowed, rejected, rejected, allowed))).toEqual([
+		...shownFor(allowed),
+		...shownFor(rejected),
+		...shownFor(rejected),
+		...shownFor(allowed),
 	]);
+});
+
+it("shows a provider notice again when another notice came between", () => {
+	const starting = notice('{"name":"node_repl","status":"starting"}');
+	const ready = notice('{"name":"node_repl","status":"ready"}');
+	const other = notice('{"name":"cua_repl","status":"ready"}');
+	expect(labels(streamed(starting, ready, ready, other, ready))).toEqual([
+		...shownFor(starting),
+		...shownFor(ready),
+		...shownFor(other),
+		...shownFor(ready),
+	]);
+});
+
+it("keeps a delegate's reading from hiding the session's own", () => {
+	expect(labels(streamed(delegateRunning, running))).toEqual([...shownFor(delegateRunning), ...shownFor(running)]);
 });
 
 it("keeps every turn's own usage and completion", () => {
 	const usage: AgentEvent = { inputTokens: 10, outputTokens: 20, raw: raw("result/success", "{}"), type: "usage" };
 	const completed: AgentEvent = { durationMs: 1000, raw: raw("result/success", "{}"), status: "completed", type: "turn.completed" };
 	expect(labels(streamed(usage, completed, usage, completed))).toEqual([
-		"usage · in 10 · out 20",
-		"turn completed · 1.0s",
-		"usage · in 10 · out 20",
-		"turn completed · 1.0s",
+		...shownFor(usage),
+		...shownFor(completed),
+		...shownFor(usage),
+		...shownFor(completed),
 	]);
 });

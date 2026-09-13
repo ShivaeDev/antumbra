@@ -1,5 +1,7 @@
 import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "@antumbra/domain-sessions/rows/transcript.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
+import type { RateLimitEvent } from "@antumbra/platform-vocabulary/session-events/rate-limit.ts";
+import type { RawEvent } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
 import { backgroundLabel, openedLabel, rawLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
@@ -21,21 +23,39 @@ const pushNarration = (state: Derivation, item: TranscriptMessage | TranscriptTh
 	}
 };
 
-const repeated = (state: Derivation, subject: string, content: string): boolean => {
+const subjectOf = (event: AgentEvent): string => {
+	const origin = "origin" in event && event.origin !== undefined ? `${event.origin.spawnedBy} ${event.origin.node ?? ""}` : "";
+	return `${event.type} ${origin}`;
+};
+
+const fresh = (state: Derivation, subject: string, content: string): boolean => {
 	if (state.shown.get(subject) === content) {
-		return true;
+		return false;
 	}
 	state.shown.set(subject, content);
-	return false;
+	return true;
 };
 
 const pushTelemetry = (state: Derivation, label: string, seq: number): void => {
 	state.items.push({ kind: "telemetry", label, seq });
 };
 
-const pushReading = (state: Derivation, subject: string, label: string, seq: number): void => {
-	if (!repeated(state, subject, label)) {
+const showReading = (state: Derivation, event: AgentEvent, label: string, seq: number): void => {
+	if (fresh(state, subjectOf(event), label)) {
 		pushTelemetry(state, label, seq);
+	}
+};
+
+const showRateLimit = (state: Derivation, event: typeof RateLimitEvent.Type, seq: number): void => {
+	if (event.status === "rejected") {
+		state.shown.delete(subjectOf(event));
+	}
+	showReading(state, event, rateLimitLabel(event), seq);
+};
+
+const showRaw = (state: Derivation, event: typeof RawEvent.Type, seq: number): void => {
+	if (fresh(state, subjectOf(event), `${event.raw.source} ${event.raw.kind} ${event.raw.payload}`)) {
+		state.items.push({ kind: "raw", label: rawLabel(event.raw), payload: event.raw.payload, seq });
 	}
 };
 
@@ -73,16 +93,16 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			pushTelemetry(state, turnLabel(event), seq);
 			return;
 		case "rate.limit":
-			pushReading(state, event.type, rateLimitLabel(event), seq);
+			showRateLimit(state, event, seq);
 			return;
 		case "session.opened":
-			pushReading(state, event.type, openedLabel(event), seq);
+			showReading(state, event, openedLabel(event), seq);
 			return;
 		case "session.state":
-			pushReading(state, event.type, stateLabel(event), seq);
+			showReading(state, event, stateLabel(event), seq);
 			return;
 		case "session.background":
-			pushReading(state, event.type, backgroundLabel(event), seq);
+			showReading(state, event, backgroundLabel(event), seq);
 			return;
 		case "subsession.opened":
 			state.items.push(openedDelegation(state.nodes, event, seq));
@@ -94,14 +114,7 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			state.items.push(gapNotice(event, seq));
 			return;
 		case "raw":
-			if (!repeated(state, `${event.type} ${event.raw.source} ${event.raw.kind} ${event.raw.payload}`, event.raw.payload)) {
-				state.items.push({
-					kind: "raw",
-					label: rawLabel(event.raw),
-					payload: event.raw.payload,
-					seq,
-				});
-			}
+			showRaw(state, event, seq);
 			return;
 	}
 	event satisfies never;

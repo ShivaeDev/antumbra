@@ -38,7 +38,7 @@ export const useSessionInput = (api: InputsClient, drafts: Drafts, sessionId: st
 				images.clear();
 				yield* words.clear(sent);
 				setInputId(undefined);
-				images.announce(receipt.status === "accepted" ? "Message sent" : "Message queued while the session wakes");
+				images.announce(receipt.status === "accepted" ? "Message sent" : "Message recorded and queued.");
 			}).pipe(
 				Effect.catch((error) =>
 					Effect.sync(() => {

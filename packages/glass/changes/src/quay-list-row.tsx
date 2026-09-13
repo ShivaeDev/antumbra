@@ -1,16 +1,9 @@
 import { cn } from "@antumbra/glass-components/class-names.ts";
 import { Badge } from "@antumbra/glass-components/ui/badge.tsx";
-import type { QuayChange, QuayGroup } from "#glass.ts";
-import { groupTitle } from "#groups.ts";
+import type { QuayChange } from "#glass.ts";
+import { groupVariant, stateLabel } from "#groups.ts";
 import { changeNumber } from "#marks.ts";
 import { whenLabel } from "#time.ts";
-
-const GROUP_VARIANTS: Readonly<Record<QuayGroup, "destructive" | "outline" | "success" | "warning">> = {
-	alongside: "success",
-	checksRunning: "warning",
-	draft: "outline",
-	needsAttention: "destructive",
-};
 
 const WorkLine = ({ item }: { readonly item: QuayChange }) => {
 	if (item.pieces.length > 1) {
@@ -50,7 +43,7 @@ export const QuayListRow = ({
 					<Badge className="max-w-32 truncate font-mono" variant="outline">
 						{item.repoName}
 					</Badge>
-					<Badge variant={GROUP_VARIANTS[item.group]}>{groupTitle[item.group]}</Badge>
+					<Badge variant={groupVariant[item.group]}>{stateLabel(item)}</Badge>
 					<span className="ml-auto shrink-0 text-2xs text-muted-foreground">{whenLabel(item.activityAt)}</span>
 				</span>
 				<span className="truncate text-2xs text-muted-foreground">

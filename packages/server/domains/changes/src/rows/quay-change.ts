@@ -7,7 +7,7 @@ export const quayChange = row(
 	{
 		...change.fields,
 		repoName: Schema.String,
-		group: Schema.Literals(["alongside", "checksRunning", "draft", "needsAttention"]),
+		group: Schema.Literals(["alongside", "checksRunning", "draft", "landed", "needsAttention"]),
 		pieces: Schema.Array(QuayPiece),
 	},
 	{ key: "id" },

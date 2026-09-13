@@ -55,6 +55,9 @@ The **Quay** is the admiral's surface for Changes. It groups work by where it st
 showing the host's latest useful evidence. The Quay has no separate durable substance; it is a projection of Changes, Reviews, repositories, Pieces,
 and host capability.
 
+A Change that has landed or closed stays on the Quay beneath the ones still waiting, because what a Voyage just delivered is the reading the admiral
+came for. Antumbra observes an open Change until the host reports it landed or closed; that final reading is the last one taken.
+
 Because a Piece may produce several Changes and a Change may satisfy one of several Outcomes, the Quay never assumes one Piece, one repository, or one
 pull request are the same object.
 

@@ -8,6 +8,22 @@ export const pieceId = PieceId.make("piece:reef");
 export const repoId = RepoId.make("repo:reef");
 const voyageId = VoyageId.make("voyage:reef");
 export const changeId = "change:reef";
+export const observed = {
+	repoId,
+	externalId: "41",
+	activityAt: 1000,
+	baseRef: "main",
+	headRef: "work/reef",
+	headSha: "sha-1",
+	isDraft: false,
+	checks: "red",
+	review: "approved",
+	mergeable: "clean",
+	stage: "open",
+	raw: { state: "open" },
+	title: "Soundings",
+	url: "https://github.com/example/reef/pull/41",
+} as const;
 export const ready = Effect.fnUntraced(function* (api: Api) {
 	yield* api.voyages.open({
 		requestId: Request.make(voyageId),
@@ -39,21 +55,6 @@ export const ready = Effect.fnUntraced(function* (api: Api) {
 		agentId: null,
 		host: "github",
 		observedAt: new Date(2000).toISOString(),
-		observation: {
-			repoId,
-			externalId: "41",
-			activityAt: 1000,
-			baseRef: "main",
-			headRef: "work/reef",
-			headSha: "sha-1",
-			isDraft: false,
-			checks: "red",
-			review: "approved",
-			mergeable: "clean",
-			stage: "open",
-			raw: { state: "open" },
-			title: "Soundings",
-			url: "https://github.com/example/reef/pull/41",
-		},
+		observation: observed,
 	});
 });

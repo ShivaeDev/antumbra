@@ -2,9 +2,13 @@ import { watching } from "@antumbra/platform-rpc/query.ts";
 import { Schema, Stream } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
+import { RpcClientDefect, RpcClientError } from "effect/unstable/rpc/RpcClientError";
+import { SocketCloseError } from "effect/unstable/socket/Socket";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const fields = { board: Schema.String };
+
+const dropped = new RpcClientError({ reason: new SocketCloseError({ code: 1000 }) });
 
 beforeEach(() => {
 	vi.useFakeTimers();
@@ -21,20 +25,45 @@ const watched = (live: () => Stream.Stream<unknown, unknown>) => {
 	return seen;
 };
 
-it("reads the query again after the connection drops, until the server answers", () => {
+const failingOnce = (failure: unknown) => {
 	let subscriptions = 0;
 	const seen = watched(() =>
 		Stream.suspend(() => {
 			subscriptions += 1;
-			return subscriptions === 1 ? Stream.fail(new Error("the server went away")) : Stream.make("aboard");
+			return subscriptions === 1 ? Stream.fail(failure) : Stream.make("aboard");
 		}),
 	);
+	return { seen, subscriptions: () => subscriptions };
+};
+
+it("reads the query again after the connection drops, until the server answers", () => {
+	const { seen, subscriptions } = failingOnce(dropped);
 
 	expect(seen.some(AsyncResult.isFailure)).toBe(true);
 	vi.advanceTimersByTime(1000);
 
-	expect(subscriptions).toBe(2);
+	expect(subscriptions()).toBe(2);
 	expect(seen.at(-1)).toMatchObject({ _tag: "Success", value: "aboard" });
+});
+
+it("leaves a query that failed for its own reason alone", () => {
+	const { seen, subscriptions } = failingOnce(new Error("the voyage is not there"));
+
+	vi.advanceTimersByTime(5000);
+
+	expect(subscriptions()).toBe(1);
+	expect(seen.at(-1)).toSatisfy(AsyncResult.isFailure);
+});
+
+it("leaves a query the client could not decode alone", () => {
+	const { seen, subscriptions } = failingOnce(
+		new RpcClientError({ reason: new RpcClientDefect({ cause: null, message: "the answer did not decode" }) }),
+	);
+
+	vi.advanceTimersByTime(5000);
+
+	expect(subscriptions()).toBe(1);
+	expect(seen.at(-1)).toSatisfy(AsyncResult.isFailure);
 });
 
 it("leaves a query that answers alone", () => {

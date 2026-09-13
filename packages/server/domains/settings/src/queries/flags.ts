@@ -3,9 +3,11 @@ import { Effect, Schema } from "effect";
 import { FLAG_KEYS, FLAGS, FLEET, FlagKey } from "#ids.ts";
 import { flag } from "#rows/flag.ts";
 
+export const FlagReading = Schema.Struct({ description: Schema.String, key: FlagKey, on: Schema.Boolean, title: Schema.String });
+
 export const flags = query("flags", {
 	input: {},
-	output: Schema.Array(Schema.Struct({ description: Schema.String, key: FlagKey, on: Schema.Boolean, title: Schema.String })),
+	output: Schema.Array(FlagReading),
 	reads: [flag],
 	scope: () => FLEET,
 	run: Effect.fn("settings.flags")(function* (_input, rows) {

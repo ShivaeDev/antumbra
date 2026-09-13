@@ -5,18 +5,21 @@ export const RoleGrid = ({
 	rows,
 }: {
 	readonly columns: readonly [string, string, string];
-	readonly rows: readonly { readonly cells: ReactNode; readonly label: string }[];
+	readonly rows: readonly { readonly cells: ReactNode; readonly label: string; readonly labelId: string }[];
 }) => (
-	<div className="grid grid-cols-[96px_repeat(3,176px)] items-center gap-x-3 gap-y-2">
+	<div className="grid grid-cols-[96px_repeat(3,minmax(0,176px))_auto] items-center gap-x-3 gap-y-2">
 		<span />
 		{columns.map((column) => (
 			<span className="text-xs text-muted-foreground" key={column}>
 				{column}
 			</span>
 		))}
+		<span />
 		{rows.map((row) => (
 			<Fragment key={row.label}>
-				<span className="truncate text-sm">{row.label}</span>
+				<span className="truncate text-sm" id={row.labelId}>
+					{row.label}
+				</span>
 				{row.cells}
 			</Fragment>
 		))}

@@ -1,5 +1,6 @@
 import type { ProviderCapacities } from "@antumbra/glass-capacity/capacity.tsx";
 import type { QuayPanel } from "@antumbra/glass-changes/quay-panel.tsx";
+import type { ErrorsPanel } from "@antumbra/glass-errors/errors.tsx";
 import type { HoldsPanel } from "@antumbra/glass-holds/holds.tsx";
 import type { RoleSettingsApi } from "@antumbra/glass-role-settings/glass.ts";
 import type { RulingsPanel } from "@antumbra/glass-rulings/rulings.tsx";
@@ -17,4 +18,5 @@ export type RendererApi = SettingsApi &
 	ComponentProps<typeof Flagship>["api"] &
 	ComponentProps<typeof QuayPanel>["api"] &
 	ComponentProps<typeof HoldsPanel>["api"] &
-	ComponentProps<typeof RulingsPanel>["api"];
+	ComponentProps<typeof RulingsPanel>["api"] &
+	ComponentProps<typeof ErrorsPanel>["api"];

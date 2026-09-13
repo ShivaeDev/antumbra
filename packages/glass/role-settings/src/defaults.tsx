@@ -1,16 +1,20 @@
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@antumbra/glass-components/shadcn/card.tsx";
 import type { RoleSettingsApi } from "#glass.ts";
 import { RoleForms } from "#rows.tsx";
 
 export const RoleDefaults = (props: { readonly api: RoleSettingsApi }) => (
-	<section className="flex flex-col gap-3 rounded-md border border-border p-4">
-		<h3 className="text-sm font-medium">Fleet defaults</h3>
-		<p className="text-xs text-muted-foreground">
-			Each role runs on these unless a voyage sets its own; the flagship and smoother are fleet-wide. Empty fields show what the backend picks on its
-			own.
-		</p>
-		<Live input={{}} query={props.api.roleSettings.defaults} waiting="Reading the fleet's defaults…">
-			{(rows) => <RoleForms choose={props.api.roleSettings.choose} rows={rows} />}
-		</Live>
-	</section>
+	<Card className="max-w-[720px]">
+		<CardHeader>
+			<CardTitle className="text-sm font-medium">Fleet defaults</CardTitle>
+			<CardDescription className="text-xs">
+				Each role runs on these unless a voyage sets its own; the flagship and smoother are fleet-wide.
+			</CardDescription>
+		</CardHeader>
+		<CardContent>
+			<Live input={{}} query={props.api.roleSettings.defaults} waiting="Reading the fleet's defaults…">
+				{(rows) => <RoleForms choose={props.api.roleSettings.choose} rows={rows} />}
+			</Live>
+		</CardContent>
+	</Card>
 );

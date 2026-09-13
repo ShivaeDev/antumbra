@@ -14,6 +14,7 @@ export class ScriptedHost extends Context.Service<
 		readonly nextOpen: Effect.Effect<PendingOpen>;
 		readonly setObservation: (observation: Observation) => Effect.Effect<void>;
 		readonly setCapability: (capability: Capability) => Effect.Effect<void>;
+		readonly setBroken: (detail: string | null) => Effect.Effect<void>;
 	}
 >()("@antumbra/app-testing/ScriptedHost") {}
 
@@ -24,6 +25,7 @@ export const layer = Layer.effectContext(
 		const pending = yield* Effect.acquireRelease(Queue.make<PendingOpen>(), Queue.shutdown);
 		const observations = new Map<string, Observation>();
 		let capability: Capability = { available: true, detail: "available" };
+		let broken: string | null = null;
 		const setObservation = (observation: Observation) =>
 			Effect.sync(() => {
 				observations.set(key(observation.repoId, observation.externalId), observation);
@@ -31,7 +33,7 @@ export const layer = Layer.effectContext(
 		const host: ChangeHost = {
 			tag: "scripted",
 			supports: () => true,
-			capability: Effect.sync(() => capability),
+			capability: Effect.suspend(() => (broken === null ? Effect.succeed(capability) : Effect.die(new Error(broken)))),
 			open: (request) =>
 				Effect.gen(function* () {
 					const answer = yield* Deferred.make<Observation, ChangeHostRefused>();
@@ -59,6 +61,10 @@ export const layer = Layer.effectContext(
 		};
 		return Context.make(ScriptedHost, {
 			nextOpen: Queue.take(pending),
+			setBroken: (detail) =>
+				Effect.sync(() => {
+					broken = detail;
+				}),
 			setObservation,
 			setCapability: (value) =>
 				Effect.sync(() => {

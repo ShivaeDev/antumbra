@@ -3,7 +3,6 @@ import { useAtomRef } from "@effect/atom-react";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { useId } from "react";
 import { drawnAs } from "#controls.tsx";
-import { DIALOG_KIT } from "#dialog-inputs.tsx";
 import { type Editable, type Held, titleOf } from "#fields.ts";
 import { changing, type Generated } from "#generated.ts";
 import type { Shown } from "#inputs.tsx";
@@ -11,6 +10,7 @@ import { messageOf } from "#refusal.ts";
 import { Button } from "#shadcn/button.tsx";
 import { DialogClose, DialogFooter } from "#shadcn/dialog.tsx";
 import { Label } from "#shadcn/label.tsx";
+import { SHADCN_KIT } from "#shadcn-inputs.tsx";
 
 const Field = (props: {
 	readonly change: (name: string, value: unknown) => void;
@@ -38,7 +38,7 @@ const Field = (props: {
 	return (
 		<div className="grid gap-1.5">
 			<Label htmlFor={named}>{title}</Label>
-			{drawnAs(props.editable, shown, props.values, DIALOG_KIT)}
+			{drawnAs(props.editable, shown, props.values, SHADCN_KIT)}
 			{field.error === undefined ? null : (
 				<p className="text-xs text-destructive" id={said}>
 					{field.error}

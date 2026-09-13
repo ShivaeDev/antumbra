@@ -45,6 +45,7 @@
 		"radix-ui": "catalog:",
 		"react-markdown": "catalog:",
 		"remark-gfm": "catalog:",
+		"sonner": "catalog:",
 		"tailwind-merge": "catalog:",
 		"tailwindcss": "catalog:"
 	}

@@ -1,7 +1,7 @@
 import { cn } from "@antumbra/glass-components/class-names.ts";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
 import type { ConsoleMode } from "@antumbra/platform-shell/windows.ts";
-import { Anchor, Coins, Flag, Gavel, type LucideIcon, Pause, Settings, Ship, Users } from "lucide-react";
+import { Anchor, Coins, Flag, Gavel, type LucideIcon, Pause, Settings, Ship, TriangleAlert, Users } from "lucide-react";
 
 interface ModeEntry {
 	readonly icon: LucideIcon;
@@ -18,6 +18,7 @@ const MODES: ReadonlyArray<ModeEntry> = [
 	{ icon: Coins, label: "Costs", mode: "costs" },
 	{ icon: Pause, label: "Holds", mode: "holds" },
 	{ icon: Settings, label: "Settings", mode: "settings" },
+	{ icon: TriangleAlert, label: "Errors", mode: "errors" },
 ];
 
 export const ModeNav = ({

@@ -1,6 +1,6 @@
 import { Data, Schema } from "effect";
 
-export const ConsoleMode = Schema.Literals(["flagship", "fleet", "voyages", "quay", "rulings", "costs", "holds", "settings"]);
+export const ConsoleMode = Schema.Literals(["flagship", "fleet", "voyages", "quay", "rulings", "costs", "holds", "settings", "errors"]);
 export type ConsoleMode = typeof ConsoleMode.Type;
 
 export const ConsolePlace = Schema.Struct({

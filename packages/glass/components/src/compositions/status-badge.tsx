@@ -27,6 +27,7 @@ const STATES: Readonly<Record<string, Tone>> = {
 	quiet: "neutral",
 	reclaiming: "neutral",
 	retired: "neutral",
+	stopped: "failed",
 	stranded: "failed",
 	waiting: "attention",
 	"waiting for you": "attention",

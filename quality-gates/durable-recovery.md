@@ -9,8 +9,9 @@ product ruling.
 
 Recovery is exactly this: persistence writes a `VACUUM INTO` backup before migrations run and keeps the five newest; a graceful quit marks attached
 roots draining, cuts their turns, and settles them to idle; a restart the admiral asks for records the attached roots in an `AppMeta` row and the next
-boot deletes the row and wakes exactly those roots; the dev loop relaunches Electron on exit code 75. Nothing else resumes a Session, and nothing
-retries on its own. A change that adds to this list needs a product ruling first.
+boot deletes the row and wakes exactly those roots; the dev loop relaunches Electron on exit code 75; a server loop stopped by a defect stays stopped
+until a person presses Resume on the Errors screen, which re-forks that one loop. Nothing else resumes a Session, and nothing retries on its own. A
+change that adds to this list needs a product ruling first.
 
 ## Rules
 

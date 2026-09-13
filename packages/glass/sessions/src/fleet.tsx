@@ -1,13 +1,11 @@
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { ReposDialog } from "@antumbra/glass-repos/repos-dialog.tsx";
-import type { SessionsClient } from "#client.ts";
 import type { SessionsApi } from "#glass.ts";
 import { Roster } from "#roster.tsx";
 import { SpawnDialog } from "#spawn-dialog.tsx";
 
 export const FleetPanel = (props: {
 	readonly api: SessionsApi;
-	readonly sessions: SessionsClient;
 	readonly sessionId?: string | undefined;
 	readonly onSession: (id: string) => void;
 	readonly onOpenTranscript?: ((id: string) => void) | undefined;

@@ -8,6 +8,7 @@ import { SessionPane } from "@antumbra/glass-sessions/session-pane.tsx";
 import { Flagship } from "@antumbra/glass-voyages/flagship.tsx";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
 import { Cause, Effect } from "effect";
+import { SessionBeside } from "#navigation/session-beside.tsx";
 import { VoyagesPage } from "#navigation/voyages.tsx";
 import type { RendererProps } from "#props.ts";
 import { SettingsPanel } from "#settings/settings.tsx";
@@ -41,6 +42,7 @@ export const ConsoleMain = (
 			sessionId={sessionId}
 			key={sessionId}
 			onClose={onClose}
+			onPopOut={openTranscript}
 			foldToolCalls={props.foldToolCalls}
 			onError={props.onError}
 		/>
@@ -50,18 +52,18 @@ export const ConsoleMain = (
 			return <Flagship api={props.api} renderSession={session} onHail={hail} />;
 		case "fleet":
 			return (
-				<div className="flex min-h-0 min-w-0 flex-1">
+				<SessionBeside
+					session={props.place.sessionId === null ? null : session(props.place.sessionId, () => props.onPlace({ ...props.place, sessionId: null }))}
+				>
 					<FleetPanel
 						api={props.api}
-						sessions={props.sessions}
 						onOpenTranscript={openTranscript}
 						sessionId={props.place.sessionId ?? undefined}
 						onSession={(sessionId) => props.onPlace({ ...props.place, sessionId })}
 						onPiece={(voyageId, pieceId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId })}
 						onVoyage={(voyageId) => props.onPlace({ ...props.place, mode: "voyages", voyageId, pieceId: null })}
 					/>
-					{props.place.sessionId === null ? null : session(props.place.sessionId, () => props.onPlace({ ...props.place, sessionId: null }))}
-				</div>
+				</SessionBeside>
 			);
 		case "settings":
 			return <SettingsPanel {...props} />;
@@ -81,6 +83,6 @@ export const ConsoleMain = (
 		case "holds":
 			return <HoldsPanel api={props.api} />;
 		case "voyages":
-			return <VoyagesPage {...props} />;
+			return <VoyagesPage {...props} renderSession={session} />;
 	}
 };

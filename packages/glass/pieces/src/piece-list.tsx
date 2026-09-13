@@ -34,7 +34,12 @@ const Chartering = (props: { readonly api: PiecesDisplayApi; readonly voyageId: 
 };
 
 export const PieceList = (
-	props: PieceDisplayActions & { readonly api: PiecesDisplayApi; readonly voyageId: string; readonly selected?: string | undefined },
+	props: PieceDisplayActions & {
+		readonly api: PiecesDisplayApi;
+		readonly voyageId: string;
+		readonly selected?: string | undefined;
+		readonly onSelect: (pieceId: string | null) => void;
+	},
 ) => (
 	<Live input={{ voyageId: VoyageId.make(props.voyageId) }} query={props.api.pieces.displayByVoyage}>
 		{(pieces) => (

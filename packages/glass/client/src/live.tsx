@@ -12,11 +12,11 @@ const WAITING = "Reading…";
 export const reading = <A,>(result: AsyncResult.AsyncResult<A, unknown>, words: string, shown: (value: A) => ReactNode): ReactNode =>
 	AsyncResult.match(result, {
 		onFailure: () => (
-			<p className="text-2xs text-destructive" role="alert">
+			<span className="block text-2xs text-destructive" role="alert">
 				{UNREACHED}
-			</p>
+			</span>
 		),
-		onInitial: () => <p className="text-xs text-muted-foreground">{words}</p>,
+		onInitial: () => <span className="block text-xs text-muted-foreground">{words}</span>,
 		onSuccess: (success) => shown(success.value),
 	});
 

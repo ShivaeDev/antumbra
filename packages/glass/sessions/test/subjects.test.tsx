@@ -8,6 +8,7 @@ import { Effect } from "effect";
 import { expect } from "vitest";
 import { AgentSession } from "#agent-session.tsx";
 import { FleetPanel } from "#fleet.tsx";
+import { PaneHeader } from "#pane-header.tsx";
 import { PieceSession } from "#piece-session.tsx";
 
 const REEF = Request.make("voyage:reef");
@@ -80,10 +81,13 @@ it.glass("a piece opens the session of the agent working it", function* ({ api, 
 	expect(container.querySelector("output")?.textContent).toBe(identity(CREW).sessionId);
 });
 
-it.glass("a piece nobody is working says so where its session would be", function* ({ api, render }) {
+it.glass("a piece no agent has spoken for says so where its session would be", function* ({ api, render }) {
 	yield* charted(api);
 	const container = yield* render(<PieceSession api={api} pieceId={pieceId} renderSession={(id) => <output>{id}</output>} />);
-	yield* until(() => container.textContent?.includes("No agent is working this piece yet") === true, "the pane to say the piece has no crew");
+	yield* until(
+		() => container.textContent?.includes("No agent of this piece has a conversation yet") === true,
+		"the pane to say the piece has no crew",
+	);
 	expect(container.querySelector("output")).toBeNull();
 });
 
@@ -104,4 +108,24 @@ it.glass("an agent opens its own conversation, by its id alone", function* ({ ap
 	const container = yield* render(<AgentSession api={api} agentId={identity(CREW).agentId} renderSession={(id) => <output>{id}</output>} />);
 	yield* until(() => container.querySelector("output") !== null, "the agent's conversation to reach the pane");
 	expect(container.querySelector("output")?.textContent).toBe(identity(CREW).sessionId);
+});
+
+it.glass("the pane header pops out the conversation it is reading", function* ({ api, render }) {
+	yield* charted(api);
+	yield* api.agents.workNow({ requestId: CREW, pieceId });
+	const root = identity(CREW).sessionId;
+	const node = `${root}:child`;
+	let popped = "";
+	const container = yield* render(
+		<PaneHeader
+			api={api}
+			onPopOut={(sessionId) => {
+				popped = sessionId;
+			}}
+			reading={node}
+			sessionId={root}
+		/>,
+	);
+	yield* click(labelled(container, "Open in a window"));
+	expect(popped).toBe(node);
 });

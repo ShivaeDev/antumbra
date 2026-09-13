@@ -15,7 +15,7 @@ interface Props {
 
 const NOTHING_SAID = "This agent has no conversation to read yet";
 
-const spoken = (sessions: readonly Session[]): Session | undefined => {
+export const lastConversation = (sessions: readonly Session[]): Session | undefined => {
 	let latest: Session | undefined;
 	for (const held of sessions) {
 		if (held.parentSessionId !== null) continue;
@@ -37,7 +37,7 @@ export const AgentSession = (props: Props) => (
 const LastConversation = (props: Props) => (
 	<Live input={{ agentId: props.agentId }} query={props.api.sessions.forAgent} waiting="Reading the conversation…">
 		{(sessions) => {
-			const last = spoken(sessions);
+			const last = lastConversation(sessions);
 			if (last === undefined) return <PaneNote>{NOTHING_SAID}</PaneNote>;
 			return props.renderSession(last.id);
 		}}

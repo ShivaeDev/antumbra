@@ -10,6 +10,7 @@ const STEPS: Record<string, number> = { ArrowLeft: 16, ArrowRight: -16 };
 interface Grab {
 	readonly from: number;
 	readonly width: number;
+	readonly at: number;
 }
 
 const between = (width: number): number => Math.min(WIDEST, Math.max(NARROWEST, width));
@@ -25,12 +26,13 @@ export const SessionBeside = (props: { readonly children: ReactNode; readonly se
 	};
 	const drag = (event: PointerEvent<HTMLHRElement>) => {
 		if (grabbed === null) return;
+		setGrabbed({ ...grabbed, at: event.clientX });
 		setWidth(dragged(grabbed, event.clientX));
 	};
-	const release = (event: PointerEvent<HTMLHRElement>) => {
+	const letGo = (clientX?: number) => {
 		if (grabbed === null) return;
 		setGrabbed(null);
-		keep(dragged(grabbed, event.clientX));
+		keep(dragged(grabbed, clientX ?? grabbed.at));
 	};
 	return (
 		<div className={cn("flex min-h-0 min-w-0 flex-1", grabbed === null ? undefined : "cursor-col-resize select-none")}>
@@ -51,14 +53,14 @@ export const SessionBeside = (props: { readonly children: ReactNode; readonly se
 							event.preventDefault();
 							keep(between(width + step));
 						}}
-						onLostPointerCapture={release}
-						onPointerCancel={release}
+						onLostPointerCapture={() => letGo()}
+						onPointerCancel={() => letGo()}
 						onPointerDown={(event) => {
-							setGrabbed({ from: event.clientX, width });
+							setGrabbed({ at: event.clientX, from: event.clientX, width });
 							event.currentTarget.setPointerCapture(event.pointerId);
 						}}
 						onPointerMove={drag}
-						onPointerUp={release}
+						onPointerUp={(event) => letGo(event.clientX)}
 						tabIndex={0}
 					/>
 					<div className="flex min-h-0 max-w-[60%] shrink-0 flex-col" style={{ width }}>

@@ -15,7 +15,7 @@ import type { RendererProps } from "#props.ts";
 const NOTHING_OPEN = "Nothing open yet — pick a piece or a member of the crew to read the conversation here";
 
 export const VoyagesPage = (
-	props: RendererProps & {
+	props: Pick<RendererProps, "api" | "readArtifact" | "shell"> & {
 		readonly place: ConsolePlace;
 		readonly onPlace: (place: ConsolePlace) => void;
 		readonly onError: (message: string) => void;

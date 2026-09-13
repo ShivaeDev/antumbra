@@ -45,4 +45,3 @@ it.app("a hail waiting on its switch does not keep the captain from its mail", f
 		{ kind: "wake", reason: mailWords({ count: 1, precedence: "priority" }) },
 	]);
 });
-

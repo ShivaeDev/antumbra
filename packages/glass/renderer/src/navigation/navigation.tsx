@@ -1,5 +1,6 @@
 import { SWITCH_KEYS } from "@antumbra/domain-settings/ids.ts";
 import { allows, type FlagReading } from "@antumbra/domain-settings/queries/flags.ts";
+import type { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { useReading } from "@antumbra/glass-client/live.tsx";
 import type { SettingsApi } from "@antumbra/glass-settings/glass.ts";
 import type { VoyagesApi } from "@antumbra/glass-voyages/glass.ts";
@@ -11,6 +12,7 @@ import { NavRail } from "#navigation/nav-rail.tsx";
 import type { Shell } from "#shell.ts";
 
 const NOTHING: readonly (typeof FlagReading.Type)[] = [];
+const NONE: readonly (typeof voyage.Row.Type)[] = [];
 
 export const Navigation = (props: {
 	readonly api: SettingsApi & VoyagesApi;
@@ -22,7 +24,8 @@ export const Navigation = (props: {
 	const [place, setPlace] = useState(props.place);
 	const [recent, setRecent] = useState(openedVoyages);
 	const flags = useReading(props.api.settings.flags, {}) ?? NOTHING;
-	const held = SWITCH_KEYS.some((key) => !allows(flags, key));
+	const voyages = useReading(props.api.voyages.list, {}) ?? NONE;
+	const held = SWITCH_KEYS.some((key) => !allows(flags, key)) || voyages.some((row) => row.quietedAt !== null);
 	const foldToolCalls = flags.some((flag) => flag.key === "foldToolCalls" && flag.on);
 	const voyageId = place.mode === "voyages" ? place.voyageId : null;
 	useEffect(() => {

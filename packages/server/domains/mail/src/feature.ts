@@ -1,4 +1,5 @@
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
+import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
@@ -18,7 +19,7 @@ import { unread } from "#queries/unread.ts";
 import { message } from "#rows/message.ts";
 
 export const mail = feature("mail", {
-	rows: [message, agent, session, sessionOperation, count],
+	rows: [message, agent, session, sessionOperation, count, voyageAgent],
 	facts: [messageSent, messageDelivered, messageRead],
 	commands: [send, markDelivered, markRead],
 	materializers: [messageSentMaterializer, messageDeliveredMaterializer, messageReadMaterializer],

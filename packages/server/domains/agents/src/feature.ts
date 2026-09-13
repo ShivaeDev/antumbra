@@ -64,6 +64,7 @@ import { captain } from "#queries/captain.ts";
 import { captain as captainView } from "#queries/captain-reading.ts";
 import { dispatch } from "#queries/dispatch.ts";
 import { pending } from "#queries/pending.ts";
+import { pendingOperations } from "#queries/pending-operations.ts";
 import { reading } from "#queries/reading.ts";
 import { rest } from "#queries/rest.ts";
 import { roster } from "#queries/roster.ts";
@@ -137,6 +138,7 @@ export const agents = feature("agents", {
 		birthBySession,
 		dispatch,
 		pending,
+		pendingOperations,
 		admitted,
 	],
 	ports: [Charter, Provisioning, RunnerOperations, ToolCatalog],

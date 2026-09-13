@@ -1,4 +1,5 @@
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
+import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { FLEET } from "@antumbra/domain-settings/ids.ts";
@@ -13,6 +14,7 @@ import { message } from "#rows/message.ts";
 export const DueWake = Schema.Struct({
 	agentId: agent.fields.id,
 	sessionId: session.fields.id,
+	voyageId: Schema.NullOr(voyageAgent.fields.voyageId),
 	batch: MailBatch,
 	unreadIds: Schema.Array(MessageId),
 	waitedMillis: Schema.Number,
@@ -24,17 +26,17 @@ const DueWakes = Schema.Struct({ wakes: Schema.Array(DueWake), waitUntil: Schema
 export const dueWakes = query("dueWakes", {
 	input: {},
 	output: DueWakes,
-	reads: [message, agent, session, sessionOperation, count],
+	reads: [message, agent, session, sessionOperation, count, voyageAgent],
 	run: Effect.fn("mail.dueWakes")(function* (_input, rows) {
 		const settings = yield* rows.count.where({ scope: FLEET });
 		const quietMillis = (settings.find((value) => value.key === "routineMailMinutes")?.count ?? COUNTS.routineMailMinutes.fallback) * 60_000;
 		const nowMillis = yield* Clock.currentTimeMillis;
 		const alive = new Map((yield* rows.agent.where({ status: "alive" })).map((value) => [String(value.id), value.id]));
-		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle" });
+		const sailing = new Map((yield* rows.voyageAgent.where({})).map((crew) => [String(crew.agentId), crew.voyageId]));
+		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle", parentSessionId: null });
 		const wakes: DueWake[] = [];
 		let waitUntil: number | null = null;
 		for (const root of resting) {
-			if (root.parentSessionId !== null) continue;
 			if (root.stoppedAt !== null) continue;
 			const ownerId = alive.get(root.agentId);
 			if (ownerId === undefined) continue;
@@ -48,6 +50,7 @@ export const dueWakes = query("dueWakes", {
 			wakes.push({
 				agentId: ownerId,
 				sessionId: root.id,
+				voyageId: sailing.get(String(ownerId)) ?? null,
 				batch,
 				unreadIds: unread.map((held) => held.id),
 				waitedMillis: nowMillis - Math.min(...unread.map((held) => Date.parse(held.sentAt))),

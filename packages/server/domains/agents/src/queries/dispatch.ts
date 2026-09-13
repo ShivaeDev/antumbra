@@ -41,9 +41,10 @@ export const dispatch = query("dispatch", {
 				const voyage = voyages.get(piece.voyageId);
 				if (voyage === undefined || births.some((held) => held.pieceId === piece.id && ["requested", "admitted", "waiting"].includes(held.status)))
 					return [];
+				const quieted = voyage.quietedAt !== null;
 				const assigned = new Set(links.filter((link) => link.pieceId === piece.id).map((link) => link.agentId));
 				const living = agents.filter((agent) => assigned.has(agent.id) && ["alive", "spawning"].includes(agent.status));
-				if (living.length === 0) return [{ piece, voyage, root: null, held: !spawning }];
+				if (living.length === 0) return [{ piece, voyage, root: null, held: quieted || !spawning }];
 				const assignedAgent = living.toSorted((a, b) => a.id.localeCompare(b.id))[0];
 				const root = roots.find((root) => assignedAgent?.currentSessionId === root.id);
 				if (root !== undefined && root.stoppedAt !== null) return [];
@@ -58,7 +59,7 @@ export const dispatch = query("dispatch", {
 					)
 				)
 					return [];
-				return [{ piece, voyage, root, held: !resuming }];
+				return [{ piece, voyage, root, held: quieted || !resuming }];
 			});
 		return {
 			cancel,

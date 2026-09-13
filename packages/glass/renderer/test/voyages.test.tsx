@@ -68,9 +68,26 @@ it.glass("keeps the quiet chip clear of the act that wakes the captain", functio
 	const chip = [...header.querySelectorAll('[data-slot="badge"]')].find((badge) => badge.textContent === "quiet");
 	if (chip === undefined) return expect.fail("the quiet chip");
 	expect(chip.closest("button")).toBeNull();
+	expect(chip.parentElement?.querySelector("h1")?.textContent).toBe("Sound the bar");
 	const acts = [...header.querySelectorAll("button")];
-	expect(acts).toHaveLength(2);
+	expect(acts).toHaveLength(3);
 	expect(acts[0]?.getAttribute("aria-label")).toBe("Back");
+	expect(acts[1]?.textContent).toBe("Quiet");
 	expect(acts.at(-1)?.textContent).toBe("Hail a captain");
 	expect(header.textContent).not.toContain("Wake the captain");
+});
+
+it.glass("quiets a voyage from its header and offers to resume it", function* ({ api, render }) {
+	yield* api.voyages.open(bare);
+	const container = yield* render(screen(api, { ...listing, voyageId: BARE }, () => undefined));
+	yield* until(() => container.querySelector("h1")?.textContent === "Sound the bar", "the bare voyage's header");
+	const header = container.querySelector("header") ?? expect.fail("the page header");
+	yield* until(() => [...header.querySelectorAll("button")].some((act) => act.textContent === "Quiet"), "the quiet act");
+	expect([...header.querySelectorAll("button")].at(-1)?.textContent).toBe("Hail a captain");
+
+	yield* press(header, "Quiet");
+	yield* until(() => [...header.querySelectorAll("button")].some((act) => act.textContent === "Resume"), "the resume act");
+	expect([...header.querySelectorAll('[data-slot="badge"]')].map((chip) => chip.textContent)).toEqual(["quiet by you"]);
+	expect(header.textContent).toContain("Nothing is sent to it until you resume it.");
+	expect([...header.querySelectorAll("button")].at(-1)?.textContent).toBe("Hail a captain");
 });

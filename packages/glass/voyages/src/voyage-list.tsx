@@ -27,7 +27,7 @@ const VoyageCard = (props: Props & { readonly voyage: typeof voyage.Row.Type }) 
 						<span className="min-w-0 truncate text-sm font-medium">{props.voyage.name}</span>
 						{props.voyage.kind === "flagship" ? <Badge variant="secondary">Flagship</Badge> : null}
 						<span className="ml-auto shrink-0">
-							<VoyageState api={props.api} voyageId={props.voyage.id} />
+							<VoyageState api={props.api} quieted={props.voyage.quietedAt !== null} voyageId={props.voyage.id} />
 						</span>
 					</span>
 					<span className="line-clamp-2 text-xs text-muted-foreground">{props.voyage.northStar}</span>

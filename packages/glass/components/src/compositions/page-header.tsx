@@ -3,16 +3,30 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "#shadcn/tooltip.tsx";
 
 const TITLE = "truncate text-lg font-semibold";
 
+const Title = ({ title, tooltip }: { readonly title: string; readonly tooltip: boolean }) =>
+	tooltip ? (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<h1 className={TITLE}>{title}</h1>
+			</TooltipTrigger>
+			<TooltipContent>{title}</TooltipContent>
+		</Tooltip>
+	) : (
+		<h1 className={TITLE}>{title}</h1>
+	);
+
 export const PageHeader = ({
 	actions,
 	back,
 	description,
+	state,
 	title,
 	titleTooltip,
 }: {
 	readonly actions?: ReactNode;
 	readonly back?: ReactNode;
 	readonly description?: ReactNode;
+	readonly state?: ReactNode;
 	readonly title: string;
 	readonly titleTooltip?: boolean;
 }) => (
@@ -20,16 +34,10 @@ export const PageHeader = ({
 		<div className="flex min-w-0 items-start gap-2">
 			{back}
 			<div className="min-w-0">
-				{titleTooltip === true ? (
-					<Tooltip>
-						<TooltipTrigger asChild>
-							<h1 className={TITLE}>{title}</h1>
-						</TooltipTrigger>
-						<TooltipContent>{title}</TooltipContent>
-					</Tooltip>
-				) : (
-					<h1 className={TITLE}>{title}</h1>
-				)}
+				<div className="flex min-w-0 flex-wrap items-center gap-2">
+					<Title title={title} tooltip={titleTooltip === true} />
+					{state}
+				</div>
 				{description === undefined ? null : (
 					<p className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">{description}</p>
 				)}

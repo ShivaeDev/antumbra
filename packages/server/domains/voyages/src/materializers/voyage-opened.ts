@@ -17,6 +17,7 @@ export const voyageOpenedMaterializer = materializer(voyageOpened, {
 			name: fact.name,
 			northStar: fact.northStar,
 			openedAt: fact.openedAt,
+			quietedAt: null,
 		});
 		for (const role of VOYAGE_AGENT_ROLES) {
 			const chosen = role === "captain" ? fact.captain : fact.crew;

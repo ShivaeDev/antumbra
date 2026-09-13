@@ -5,6 +5,7 @@ import { StatusBadge } from "@antumbra/glass-components/compositions/status-badg
 import { Progress } from "@antumbra/glass-components/shadcn/progress.tsx";
 import type { ReactNode } from "react";
 import type { VoyagesApi } from "#glass.ts";
+import { QUIET_CHIP, QUIET_DETAIL } from "#quiet.tsx";
 
 type Reading = typeof voyageProgress.Row.Type;
 
@@ -23,17 +24,24 @@ const watched = (props: { readonly api: VoyagesApi; readonly voyageId: string })
 	query: props.api.voyages.progress,
 });
 
-export const VoyageState = (props: { readonly api: VoyagesApi; readonly voyageId: string }) => (
-	<Live {...watched(props)}>{(progress) => (progress?.state === "quiet" ? <StatusBadge state="quiet" /> : null)}</Live>
-);
+export const VoyageState = (props: { readonly api: VoyagesApi; readonly voyageId: string; readonly quieted: boolean }) => {
+	if (props.quieted) return <StatusBadge state={QUIET_CHIP} />;
+	return <Live {...watched(props)}>{(progress) => (progress?.state === "quiet" ? <StatusBadge state="quiet" /> : null)}</Live>;
+};
 
-export const VoyageCaption = (props: { readonly api: VoyagesApi; readonly voyageId: string; readonly spend?: ReactNode }) => (
+export const VoyageCaption = (props: {
+	readonly api: VoyagesApi;
+	readonly voyageId: string;
+	readonly quieted: boolean;
+	readonly spend?: ReactNode;
+}) => (
 	<Live {...watched(props)}>
 		{(progress) =>
 			progress === null ? null : (
 				<>
 					<span className="tabular-nums">{wordsOf(progress)}</span>
 					{props.spend}
+					{props.quieted ? <span className="min-w-0 basis-full">{QUIET_DETAIL}</span> : null}
 				</>
 			)
 		}

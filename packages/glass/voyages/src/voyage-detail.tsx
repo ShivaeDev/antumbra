@@ -16,6 +16,7 @@ import { CaptainAct, CaptainLine } from "#captain.tsx";
 import { Crew } from "#crew.tsx";
 import type { VoyageDisplayActions, VoyagesDisplayApi } from "#display.ts";
 import { VoyageCaption, VoyageState } from "#progress.tsx";
+import { QuietAct } from "#quiet.tsx";
 
 const BACK = "Back";
 
@@ -42,18 +43,20 @@ const Back = ({ onBack }: { readonly onBack: () => void }) => (
 
 const VoyageContents = (props: Props & { readonly voyage: typeof Voyage.Row.Type }) => {
 	const voyage = props.voyage;
+	const quieted = voyage.quietedAt !== null;
 	return (
 		<section className="flex min-h-0 min-w-0 flex-1 flex-col">
 			<div className="max-w-[1040px] shrink-0 px-6 pt-5">
 				<PageHeader
 					actions={
 						<>
-							<VoyageState api={props.api} voyageId={voyage.id} />
+							<QuietAct api={props.api} quieted={quieted} voyageId={voyage.id} />
 							<CaptainAct api={props.api} onHail={props.onHail} voyageId={voyage.id} />
 						</>
 					}
 					back={<Back onBack={props.onBack} />}
-					description={<VoyageCaption api={props.api} spend={props.renderSpend?.(voyage.id)} voyageId={voyage.id} />}
+					description={<VoyageCaption api={props.api} quieted={quieted} spend={props.renderSpend?.(voyage.id)} voyageId={voyage.id} />}
+					state={<VoyageState api={props.api} quieted={quieted} voyageId={voyage.id} />}
 					title={voyage.name}
 					titleTooltip
 				/>

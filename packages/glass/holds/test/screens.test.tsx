@@ -1,5 +1,5 @@
 import { eventually } from "@antumbra/app-testing/answers.ts";
-import { click, labelled, until } from "@antumbra/app-testing/glass/dom.ts";
+import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
@@ -69,6 +69,26 @@ it.glass("keeps a held switch on the page before anything is waiting", function*
 	yield* until(() => switchOf(container, "Spawn a smoother") !== null, "the held section");
 	expect(container.textContent).toContain("0 waiting");
 	expect(container.textContent).toContain("Nothing is waiting yet.");
+});
+
+it.glass("lists a quieted voyage with what it holds and resumes it from the section", function* ({ api, render }) {
+	yield* api.voyages.open(opening);
+	yield* api.pieces.charter(chartering);
+	yield* api.pieces.launch({ id: PieceId.make("piece") });
+	yield* api.voyages.quiet({ id: VoyageId.make("voyage") });
+	const container = yield* render(<HoldsPanel api={api} />);
+	yield* until(() => container.textContent?.includes("Reef") === true, "the quieted voyage's section");
+	expect(container.textContent).toContain("Nothing is sent to this voyage until you resume it, and what it is holding goes out then.");
+	expect(container.textContent).toContain("Sound");
+	expect(container.textContent).toContain("1 waiting");
+
+	yield* press(container, "Resume");
+	yield* eventually(
+		api.voyages.list({}),
+		(voyages) => voyages.every((sailing) => sailing.quietedAt === null),
+		"the voyage to come back out of its hold",
+	);
+	yield* until(() => container.textContent?.includes("Nothing is sent to this voyage") !== true, "the section to go away");
 });
 
 it.glass("keeps its switches and takes no touch while the server is away", function* ({ api, render, server }) {

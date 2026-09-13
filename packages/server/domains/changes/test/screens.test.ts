@@ -4,7 +4,8 @@ import { identity } from "@antumbra/domain-agents/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
 import { ChangeId } from "#ids.ts";
-import { adoption, chartering, opening, pieceId, registration, repoId, seen } from "#test/kit.ts";
+import { browse } from "#queries/browse.ts";
+import { adoption, chartering, opening, pieceId, registration, repoId, request, seen } from "#test/kit.ts";
 
 it.app("filters the Quay without losing its selected change or landed piece outcome", function* (app) {
 	yield* app.api.voyages.open(opening);
@@ -24,7 +25,34 @@ it.app("filters the Quay without losing its selected change or landed piece outc
 		observedAt: new Date(4000).toISOString(),
 	});
 	expect((yield* answered(app.api.changes.byPiece({ pieceId })))[0]).toMatchObject({ id, stage: "landed", repoName: "reef" });
-	expect(yield* answered(app.api.changes.quay({}))).toEqual([]);
+	expect(yield* answered(app.api.changes.quay({}))).toMatchObject([{ id, group: "landed", stage: "landed" }]);
+});
+
+it.app("pushes a host observation into the live Quay and lists every registered repository", function* (app) {
+	yield* app.api.voyages.open(opening);
+	yield* app.api.pieces.charter(chartering);
+	yield* app.api.repos.register(registration);
+	yield* app.api.changes.adopt(adoption);
+	const live = yield* app.live(browse, { query: "", repositoryId: null, selectedId: null, status: "all" });
+	yield* app.settle();
+	const before = (yield* live.seen).length;
+
+	yield* app.api.changes.observe({
+		requestId: request("observe:landed"),
+		host: "github",
+		observation: seen("landed", 3000),
+		attachment: { _tag: "Observed" },
+		observedAt: new Date(4000).toISOString(),
+	});
+	yield* app.settle();
+
+	const views = yield* live.seen;
+	expect(views.length).toBeGreaterThan(before);
+	expect(views.at(-1)?.rows).toMatchObject([{ group: "landed", stage: "landed" }]);
+
+	yield* app.api.repos.register({ requestId: request("repo:shoal"), defaultRef: "main", source: "https://github.com/example/shoal.git" });
+	yield* app.settle();
+	expect((yield* live.seen).at(-1)?.repositories).toMatchObject([{ name: "reef" }, { name: "shoal" }]);
 });
 
 it.app("shows situations only while the assigned session and external change are open", function* (app) {

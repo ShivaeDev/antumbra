@@ -28,7 +28,7 @@ it.app("records adoption once and preserves terminal host truth against a later 
 	expect((yield* answered(app.api.changes.all({})))[0]?.stage).toBe("landed");
 	expect(yield* app.rows.changeTransition.count({})).toBe(1);
 	expect((yield* app.rows.voyageActivity.where({ sourceKind: "change" }))[0]?.at).toBe(new Date(3000).toISOString());
-	expect(yield* answered(app.api.changes.quay({}))).toEqual([]);
+	expect(yield* answered(app.api.changes.quay({}))).toMatchObject([{ group: "landed", stage: "landed" }]);
 	expect((yield* app.rows.pieceOutcome.where({ sourceKind: "change" }))[0]?.status).toBe("landed");
 });
 

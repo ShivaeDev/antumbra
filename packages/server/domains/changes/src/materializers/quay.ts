@@ -10,7 +10,7 @@ import { pieceChange } from "#rows/piece-change.ts";
 import { quayChange } from "#rows/quay-change.ts";
 
 const group = (held: ChangeRow): typeof quayChange.Row.Type.group => {
-	if (held.stage === "withdrawn") return "needsAttention";
+	if (held.stage === "landed" || held.stage === "withdrawn") return "landed";
 	if (held.draftAt !== null) return "draft";
 	if (held.checks === "red" || held.review === "changes_requested" || held.mergeable === "conflict") return "needsAttention";
 	return held.mergeable === "clean" && held.checks !== "pending" ? "alongside" : "checksRunning";
@@ -26,7 +26,7 @@ export const quayProjection = projection("changeQuay", {
 		const sessions = new Map((yield* reads.session.where({})).map((row) => [String(row.id), row]));
 		const links = Map.groupBy(yield* reads.pieceChange.where({}), (row) => row.changeId);
 		const current = yield* reads.quayChange.where({});
-		const candidates = (yield* reads.change.where({})).filter((row) => row.stage !== "landed" && !dismissed.has(row.id));
+		const candidates = (yield* reads.change.where({})).filter((row) => !dismissed.has(row.id));
 		const desired = candidates
 			.map((held) => {
 				const origin = held.originSessionId === null ? undefined : sessions.get(held.originSessionId);

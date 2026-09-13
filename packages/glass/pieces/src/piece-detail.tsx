@@ -15,7 +15,6 @@ import { RewirePiece } from "#rewire-piece.tsx";
 
 type Props = PieceDisplayActions & { readonly api: PiecesDisplayApi; readonly pieceId: string };
 type Progress = typeof pieceProgress.Row.Type;
-const MOVING: readonly Progress["state"][] = ["blocked", "held", "landing"];
 const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }) => {
 	const piece = props.piece;
 	const id = piece.id;
@@ -48,12 +47,7 @@ const DetailContents = (props: Props & { readonly piece: typeof Piece.Row.Type }
 				<ChangeOutcomes api={props.api} pieceId={id} />
 			</div>
 			<Live input={{ id }} query={props.api.pieces.progress}>
-				{(progress) => (
-					<div className="flex flex-wrap gap-1.5">
-						<PieceActs api={props.api} concluded={progress?.concluded === true} piece={piece} />
-						<WorkNow onWorkNow={props.onWorkNow} pieceId={id} progress={progress} />
-					</div>
-				)}
+				{(progress) => <PieceControls api={props.api} onWorkNow={props.onWorkNow} piece={piece} progress={progress} />}
 			</Live>
 			<Live input={{ id }} query={props.api.pieces.dependencies}>
 				{(dependencies) => <RewirePiece api={props.api} piece={{ ...piece, dependsOn: dependencies.map((dependency) => dependency.id) }} />}
@@ -93,9 +87,22 @@ const PieceCrew = (props: { readonly api: PiecesDisplayApi; readonly pieceId: Pi
 	);
 };
 
-const WorkNow = (props: { readonly onWorkNow: (pieceId: string) => void; readonly pieceId: PieceId; readonly progress: Progress | null }) =>
-	props.progress !== null && MOVING.includes(props.progress.state) ? (
-		<Button onClick={() => props.onWorkNow(props.pieceId)} size="sm" variant="outline">
-			Work now
-		</Button>
-	) : null;
+const PieceControls = (props: {
+	readonly api: PiecesDisplayApi;
+	readonly onWorkNow: (pieceId: string) => void;
+	readonly piece: typeof Piece.Row.Type;
+	readonly progress: Progress | null;
+}) => {
+	const progress = props.progress;
+	const movable = progress !== null && !progress.settledDone && !progress.abandoned;
+	return (
+		<div className="flex flex-wrap gap-1.5">
+			<PieceActs api={props.api} movable={movable} piece={props.piece} />
+			{movable ? (
+				<Button onClick={() => props.onWorkNow(props.piece.id)} size="sm" variant="outline">
+					Work now
+				</Button>
+			) : null}
+		</div>
+	);
+};

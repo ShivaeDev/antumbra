@@ -58,7 +58,7 @@ it.glass("shows dependencies and reads a newly landed report inside Piece detail
 	yield* until(() => container.textContent?.includes("A safe western passage") === true, "the report body");
 });
 
-it.glass("takes a landed Piece off the acts that move it", function* ({ api, render, run }) {
+it.glass("takes a landed Piece off the acts that move it while its crew still works", function* ({ api, render, run }) {
 	yield* charted(api);
 	let work = "";
 	const container = yield* render(
@@ -78,6 +78,7 @@ it.glass("takes a landed Piece off the acts that move it", function* ({ api, ren
 	yield* press(container, "Work now");
 	expect(work).toBe(pieceId);
 
+	yield* api.agents.workNow({ requestId: Id.Request.make("crew"), pieceId });
 	yield* api.reports.land(survey);
 	yield* until(() => container.textContent?.includes("Work now") === false, "the landed Piece to offer no more acts");
 	expect(container.textContent).not.toContain("Park");

@@ -114,7 +114,7 @@ it.glass("launches, parks, and unparks a piece", function* ({ api, render }) {
 	yield* charted(api);
 	const container = yield* render(
 		<Live input={{ id: soundings }} query={api.pieces.byId}>
-			{(piece) => (piece === null ? null : <PieceActs api={api} concluded={false} piece={piece} />)}
+			{(piece) => (piece === null ? null : <PieceActs api={api} movable piece={piece} />)}
 		</Live>,
 	);
 	yield* until(() => container.querySelector("button") !== null, "the piece actions to appear");

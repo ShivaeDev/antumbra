@@ -21,9 +21,10 @@ export const draft = <Values extends Readonly<Record<string, unknown>>>(initial:
 			return changed(state.value);
 		}),
 		receive: (incoming: Values): void => {
-			if (!changed(state.value)) {
-				state.set({ baseline: incoming, current: incoming });
-			}
+			state.update((held) => (changed(held) ? { ...held, baseline: incoming } : { baseline: incoming, current: incoming }));
+		},
+		revert: (): void => {
+			state.update((held) => ({ ...held, current: held.baseline }));
 		},
 		values: state.prop("current"),
 	};

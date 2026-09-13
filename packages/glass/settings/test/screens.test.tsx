@@ -1,5 +1,5 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
-import { click, fill, labelled, renderedControl, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
+import { click, fill, form, labelled, renderedControl, submit, until, write } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";
@@ -18,6 +18,11 @@ const WAKES = [
 	"Spawn a smoother",
 	"Send idle agents to siesta",
 ];
+
+const reads = (container: HTMLElement, title: string): string | null | undefined =>
+	container.querySelector(`[role="switch"][aria-label="${title}"]`)?.getAttribute("aria-checked");
+
+const refusalIn = (container: HTMLElement): HTMLElement | null => form(container, "Hold everything").querySelector('[role="alert"]');
 
 const groupOf = (container: HTMLElement, title: string): HTMLElement => {
 	for (const card of container.querySelectorAll<HTMLElement>('[data-slot="card"]')) {
@@ -52,7 +57,53 @@ it.glass("says a count's unit beside its field instead of in its label", functio
 it.glass("saves a flag as it is switched", function* ({ api, render }) {
 	const container = yield* render(<Settings api={api} />);
 	yield* renderedControl(container, "Hold everything");
+	expect(labelled(container, "Hold everything").getAttribute("role")).toBe("switch");
+	expect(reads(container, "Hold everything")).toBe("false");
 	yield* click(labelled(container, "Hold everything"));
+	const saved = yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
+		"the hold-everything flag to switch on",
+	);
+	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
+	yield* until(() => reads(container, "Hold everything") === "true", "the switch to read on");
+});
+
+it.glass("returns a switch to the server's value when its save fails, and keeps one that lands", function* ({ api, render, server }) {
+	const container = yield* render(<Settings api={api} />);
+	yield* renderedControl(container, "Hold everything");
+	expect(reads(container, "Hold everything")).toBe("false");
+
+	yield* server.away;
+	yield* click(labelled(container, "Hold everything"));
+	yield* until(() => refusalIn(container) !== null, "the row to say the save failed");
+	yield* until(() => reads(container, "Hold everything") === "false", "the switch to read the server's value again");
+
+	yield* server.back;
+	yield* click(labelled(container, "Hold everything"));
+	const saved = yield* eventually(
+		api.settings.flags({}),
+		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),
+		"the hold-everything flag to switch on",
+	);
+	expect(saved.find((flag) => flag.key === "holdEverything")?.on).toBe(true);
+	yield* until(() => refusalIn(container) === null, "the refusal to go");
+	expect(reads(container, "Hold everything")).toBe("true");
+});
+
+it.glass("returns the switch after a second failed save as well as the first", function* ({ api, render, server }) {
+	const container = yield* render(<Settings api={api} />);
+	yield* renderedControl(container, "Hold everything");
+
+	yield* server.away;
+	yield* click(labelled(container, "Hold everything"));
+	yield* until(() => refusalIn(container) !== null, "the row to say the first save failed");
+	yield* click(labelled(container, "Hold everything"));
+	yield* until(() => reads(container, "Hold everything") === "false", "the switch to read the server's value again");
+
+	yield* server.back;
+	yield* click(labelled(container, "Hold everything"));
+	yield* until(() => reads(container, "Hold everything") === "true", "the saved switch to read on");
 	const saved = yield* eventually(
 		api.settings.flags({}),
 		(flags) => flags.some((flag) => flag.key === "holdEverything" && flag.on),

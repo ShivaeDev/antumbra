@@ -1,9 +1,12 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { ReportId } from "@antumbra/domain-reports/ids.ts";
+import type { ReportReading } from "@antumbra/domain-reports/queries/by-id.ts";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
-import { Live } from "@antumbra/glass-client/live.tsx";
+import { Live, lastRead } from "@antumbra/glass-client/live.tsx";
+import { useHolding } from "@antumbra/glass-client/reconnection.tsx";
 import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeDetail, OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
+import { Option } from "effect";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import { FileTextIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -20,18 +23,20 @@ const ReadingReport = (props: {
 	readonly onClose: () => void;
 }): ReactNode => {
 	const result = useLive(props.api.reports.byId, { id: ReportId.make(props.selected.id) });
-	const detail = AsyncResult.match(result, {
-		onInitial: (): OutcomeDetail => ({ _tag: "loading", title: props.selected.title }),
-		onFailure: (): OutcomeDetail => ({ _tag: "failed", title: props.selected.title, message: UNREACHED }),
-		onSuccess: ({ value }): OutcomeDetail => {
-			if (value === null) return { _tag: "failed", title: props.selected.title, message: `no such report: ${props.selected.id}` };
-			return {
-				_tag: "loaded",
-				title: value.authorAgentId === null ? value.title : `${value.title} — report by ${value.authorAgentId}`,
-				markdown: value.body,
-			};
-		},
-	});
+	const last = lastRead(result);
+	useHolding(Option.isSome(last) && !AsyncResult.isSuccess(result));
+	const read = (value: ReportReading | null): OutcomeDetail => {
+		if (value === null) return { _tag: "failed", title: props.selected.title, message: `no such report: ${props.selected.id}` };
+		return {
+			_tag: "loaded",
+			title: value.authorAgentId === null ? value.title : `${value.title} — report by ${value.authorAgentId}`,
+			markdown: value.body,
+		};
+	};
+	const unread: OutcomeDetail = AsyncResult.isFailure(result)
+		? { _tag: "failed", title: props.selected.title, message: UNREACHED }
+		: { _tag: "loading", title: props.selected.title };
+	const detail = Option.match(last, { onNone: () => unread, onSome: read });
 	return (
 		<>
 			<OutcomeChips disabled={detail._tag === "loading"} icon={<FileTextIcon />} onOpen={props.onOpen} outcomes={props.reports} />

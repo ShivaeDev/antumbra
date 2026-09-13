@@ -95,36 +95,24 @@ const result = (totalCostUsd: number, spent: ReadonlyArray<Spent> = OPUS): SDKMe
 });
 
 describe("the harness's own account of a session is kept", () => {
-	it.each([
-		{
-			type: "system",
-			subtype: "session_state_changed",
-			state: "running",
-			uuid: "f1b35bd2-e12f-49b6-a7cf-0650935de52f",
-			session_id: "c216b86b-1b46-479b-9f9a-b65705eda904",
-		},
-		{
-			type: "system",
-			subtype: "session_state_changed",
-			state: "idle",
-			uuid: "c26223ab-2001-473c-98bf-1b760250e66c",
-			session_id: "c216b86b-1b46-479b-9f9a-b65705eda904",
-		},
-	] satisfies SDKMessage[])("maps the captured SDK $state frame to session state", (frame) => {
-		expect(openSessionMapping().frame(frame)).toEqual([
+	it("keeps every state word, and calls requires_action awaiting input", () => {
+		const mapping = openSessionMapping();
+		const running = stateFrame("running");
+		const action = stateFrame("requires_action");
+		const idle = stateFrame("idle");
+		expect(mapping.frame(running)).toEqual([
+			{ raw: { kind: "system/session_state_changed", payload: JSON.stringify(running), source: "claude" }, state: "running", type: "session.state" },
+		]);
+		expect(mapping.frame(action)).toEqual([
 			{
-				raw: { kind: "system/session_state_changed", payload: JSON.stringify(frame), source: "claude" },
-				state: frame.state,
+				raw: { kind: "system/session_state_changed", payload: JSON.stringify(action), source: "claude" },
+				state: "awaiting-input",
 				type: "session.state",
 			},
 		]);
-	});
-
-	it("keeps every state word, and calls requires_action awaiting input", () => {
-		const mapping = openSessionMapping();
-		expect(mapping.frame(stateFrame("running"))).toMatchObject([{ state: "running", type: "session.state" }]);
-		expect(mapping.frame(stateFrame("requires_action"))).toMatchObject([{ state: "awaiting-input", type: "session.state" }]);
-		expect(mapping.frame(stateFrame("idle"))).toMatchObject([{ raw: { kind: "system/session_state_changed" }, state: "idle" }]);
+		expect(mapping.frame(idle)).toEqual([
+			{ raw: { kind: "system/session_state_changed", payload: JSON.stringify(idle), source: "claude" }, state: "idle", type: "session.state" },
+		]);
 	});
 
 	it("takes the whole background set, and an empty one as the answer it is", () => {

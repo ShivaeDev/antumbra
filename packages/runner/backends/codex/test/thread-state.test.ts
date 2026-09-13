@@ -4,6 +4,7 @@ import { toAgentEvents } from "#mapping.ts";
 const THREAD = "019ff334-ec21-7373-a31e-e8a0db309020";
 const TURN = "019ff334-ed58-7ff3-8dfb-1ceb96c93ccd";
 const MODEL = "gpt-6-astra";
+const SAFE = "gpt-6-astra-safe";
 
 const status = (params: Record<string, unknown>) => ({
 	method: "thread/status/changed",
@@ -85,12 +86,12 @@ describe("what codex says a thread is doing is kept", () => {
 		expect(usage).not.toHaveProperty("cumulativeCostUsd");
 	});
 
-	it("names the model the session was started on, which codex never reports with the tokens", () => {
+	it("bills the round to the model the thread is running on, which codex never reports with the tokens", () => {
 		const [usage] = toAgentEvents(
 			tokens({ cachedInputTokens: 0, inputTokens: 1410, outputTokens: 210 }, { cachedInputTokens: 1200, inputTokens: 2810, outputTokens: 410 }),
 			MODEL,
 		);
-		expect(usage).toMatchObject({ model: MODEL, type: "usage" });
+		expect(usage).toMatchObject({ byModel: [{ cacheReadTokens: 0, inputTokens: 1410, model: MODEL, outputTokens: 210 }], type: "usage" });
 	});
 
 	it("leaves an unreported cache write out rather than writing it as zero", () => {
@@ -100,5 +101,15 @@ describe("what codex says a thread is doing is kept", () => {
 		);
 		expect(usage).toMatchObject({ cacheReadTokens: 0, inputTokens: 1410 });
 		expect(usage).not.toHaveProperty("cacheWriteTokens");
+		expect(usage).toMatchObject({ byModel: [expect.not.objectContaining({ cacheWriteTokens: expect.anything() })] });
+	});
+
+	it("a reroute is one record of where the work went and why", () => {
+		expect(
+			toAgentEvents(
+				{ method: "model/rerouted", params: { fromModel: MODEL, reason: "highRiskCyberActivity", threadId: THREAD, toModel: SAFE, turnId: TURN } },
+				MODEL,
+			),
+		).toMatchObject([{ model: SAFE, reason: "highRiskCyberActivity", type: "model.rerouted" }]);
 	});
 });

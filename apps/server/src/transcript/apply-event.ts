@@ -2,7 +2,7 @@ import type { TranscriptItem, TranscriptMessage, TranscriptThinking } from "@ant
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { endedDelegation, type NodesByRef, openedDelegation } from "#transcript/delegation.ts";
 import { gapNotice } from "#transcript/gaps.ts";
-import { backgroundLabel, openedLabel, rawLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
+import { backgroundLabel, openedLabel, rawLabel, reroutedLabel, stateLabel, turnLabel } from "#transcript/labels.ts";
 import { transcriptMessage } from "#transcript/message.ts";
 import { rateLimitLabel } from "#transcript/rate-limit-label.ts";
 import type { ToolCalls } from "#transcript/tool-calls.ts";
@@ -56,6 +56,9 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 			return;
 		case "turn.completed":
 			pushTelemetry(state, turnLabel(event), seq);
+			return;
+		case "model.rerouted":
+			pushTelemetry(state, reroutedLabel(event), seq);
 			return;
 		case "rate.limit":
 			pushTelemetry(state, rateLimitLabel(event), seq);

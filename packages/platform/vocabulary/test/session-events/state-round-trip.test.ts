@@ -32,6 +32,10 @@ it("a background set survives the trip, empty or full", () => {
 
 it("a usage split survives the trip, and one without cache counts still does", () => {
 	const split: AgentEvent = {
+		byModel: [
+			{ cacheReadTokens: 96000, cacheWriteTokens: 0, costUsd: 0.018, inputTokens: 1400, model: "claude-opus-5", outputTokens: 200 },
+			{ cacheReadTokens: 240, cacheWriteTokens: 0, costUsd: 0.0008, inputTokens: 10, model: "claude-haiku-5", outputTokens: 10 },
+		],
 		cacheReadTokens: 96240,
 		cacheWriteTokens: 0,
 		costUsd: 0.0188,
@@ -43,12 +47,18 @@ it("a usage split survives the trip, and one without cache counts still does", (
 	};
 	expect(trip(split)).toEqual({ _tag: "Known", event: split });
 	const bare: AgentEvent = {
+		byModel: [{ inputTokens: 10, model: "gpt-6-astra", outputTokens: 2 }],
 		inputTokens: 10,
 		outputTokens: 2,
 		raw,
 		type: "usage",
 	};
 	expect(trip(bare)).toEqual({ _tag: "Known", event: bare });
+});
+
+it("a reroute survives the trip", () => {
+	const event: AgentEvent = { model: "gpt-6-astra-safe", raw, reason: "highRiskCyberActivity", type: "model.rerouted" };
+	expect(trip(event)).toEqual({ _tag: "Known", event });
 });
 
 it("a state word outside the three is not admitted", () => {

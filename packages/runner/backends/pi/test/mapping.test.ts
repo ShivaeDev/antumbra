@@ -51,7 +51,13 @@ describe("pi events on the neutral log", () => {
 		const events = toAgentEvents(message, NONE);
 		expect(kinds(events)).toEqual(["thinking", "message", "usage"]);
 		expect(events[1]).toMatchObject({ role: "agent", text: "all done" });
-		expect(events[2]).toMatchObject({ cacheReadTokens: 3, costUsd: 0.1, inputTokens: 11, model: "claude-sonnet-4-5", outputTokens: 5 });
+		expect(events[2]).toMatchObject({
+			byModel: [{ cacheReadTokens: 3, costUsd: 0.1, inputTokens: 11, model: "claude-sonnet-4-5", outputTokens: 5 }],
+			cacheReadTokens: 3,
+			costUsd: 0.1,
+			inputTokens: 11,
+			outputTokens: 5,
+		});
 	});
 
 	it("says nothing for an assistant message that only called tools", () => {

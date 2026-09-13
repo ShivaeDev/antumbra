@@ -1,7 +1,8 @@
 import type { UsageTotal } from "@antumbra/domain-sessions/rows/usage.ts";
 import type { UsageEvidence } from "@antumbra/domain-sessions/rows/usage-evidence.ts";
 
-type Usage = UsageEvidence;
+// A turn's totals and one model's share of them are counted the same way.
+type Spent = UsageEvidence | UsageEvidence["byModel"][number];
 
 export interface Tally {
 	cacheReadTokens: number;
@@ -23,7 +24,7 @@ export const emptyTally = (): Tally => ({
 	turns: 0,
 });
 
-export const countUsage = (tally: Tally, usage: Usage): void => {
+export const countUsage = (tally: Tally, usage: Spent): void => {
 	tally.cacheReadTokens += usage.cacheReadTokens ?? 0;
 	tally.cacheWriteTokens += usage.cacheWriteTokens ?? 0;
 	tally.inputTokens += usage.inputTokens;

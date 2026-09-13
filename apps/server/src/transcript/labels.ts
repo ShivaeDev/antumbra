@@ -1,6 +1,7 @@
 import type { SessionOpened, TurnCompleted } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import type { SessionBackgroundEvent, SessionState, SessionStateEvent } from "@antumbra/platform-vocabulary/session-events/state.ts";
+import type { ModelReroutedEvent } from "@antumbra/platform-vocabulary/session-events/usage.ts";
 
 const seconds = (ms: number): string => `${(ms / 1000).toFixed(1)}s`;
 
@@ -25,6 +26,8 @@ export const backgroundLabel = (event: typeof SessionBackgroundEvent.Type): stri
 
 export const turnLabel = (event: typeof TurnCompleted.Type): string =>
 	[`turn ${event.status}`, ...(event.durationMs === undefined ? [] : [seconds(event.durationMs)])].join(" · ");
+
+export const reroutedLabel = (event: typeof ModelReroutedEvent.Type): string => `rerouted to ${event.model} · ${event.reason}`;
 
 export const openedLabel = (event: typeof SessionOpened.Type): string => `session opened · ${event.raw.source} ${event.nativeRef}`;
 

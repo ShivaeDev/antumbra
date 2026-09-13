@@ -66,7 +66,15 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 				type: "ProviderEvent",
 				observation: "live",
 				sessionId,
-				event: { type: "usage", inputTokens: 10, outputTokens: 20, costUsd: 0.01, cumulativeCostUsd: 50, raw },
+				event: {
+					type: "usage",
+					byModel: [{ inputTokens: 10, outputTokens: 20, costUsd: 0.01, model: "gpt-6-astra" }],
+					inputTokens: 10,
+					outputTokens: 20,
+					costUsd: 0.01,
+					cumulativeCostUsd: 50,
+					raw,
+				},
 			},
 		},
 	];
@@ -127,4 +135,78 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		outputTokens: 20,
 		costUsd: 0.01,
 	});
+});
+
+it.app("a reroute is one line in the record, and the session's spend is split by the models that ran", function* () {
+	const runner = yield* connectRunner({ runnerId: "transcript-runner", logId: "transcript-log", backends: ["codex"], imageInputBackends: [] });
+	const entries: LogEntry[] = [
+		started,
+		{
+			logId: "transcript-log",
+			cursor: 1,
+			at: 101,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: {
+					type: "usage",
+					byModel: [{ inputTokens: 10, outputTokens: 20, costUsd: 0.6, model: "gpt-6-astra" }],
+					inputTokens: 10,
+					outputTokens: 20,
+					costUsd: 0.6,
+					raw,
+				},
+			},
+		},
+		{
+			logId: "transcript-log",
+			cursor: 2,
+			at: 102,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: { type: "model.rerouted", model: "gpt-6-astra-safe", reason: "highRiskCyberActivity", raw },
+			},
+		},
+		{
+			logId: "transcript-log",
+			cursor: 3,
+			at: 103,
+			event: {
+				type: "ProviderEvent",
+				observation: "live",
+				sessionId,
+				event: {
+					type: "usage",
+					byModel: [{ inputTokens: 4, outputTokens: 6, costUsd: 0.03, model: "gpt-6-astra-safe" }],
+					inputTokens: 4,
+					outputTokens: 6,
+					costUsd: 0.03,
+					raw,
+				},
+			},
+		},
+	];
+	yield* Effect.forkScoped(
+		Effect.forever(
+			Effect.gen(function* () {
+				const operation = yield* runner.next;
+				const result =
+					operation.type === "ReadLog"
+						? { type: "LogRead" as const, entries: entries.filter((entry) => entry.cursor > operation.after) }
+						: { type: "Accepted" as const };
+				yield* runner.reply(operation.requestId, result);
+			}),
+		),
+	);
+	yield* runner.append(entries);
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const reading = yield* eventually(rpc("sessions.transcript", { id: sessionId }), (held) => held.standing.models.length === 2);
+	expect(reading.items).toContainEqual(expect.objectContaining({ kind: "telemetry", label: "rerouted to gpt-6-astra-safe · highRiskCyberActivity" }));
+	expect(reading.standing.models).toEqual([
+		{ costUsd: 0.6, model: "gpt-6-astra" },
+		{ costUsd: 0.03, model: "gpt-6-astra-safe" },
+	]);
 });

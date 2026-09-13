@@ -21,6 +21,7 @@ export interface ThreadTree {
 export const openThreadTree = (rootThreadId: string, claims: ThreadClaims, sessionModel: string): ThreadTree => {
 	const spawnCalls = new Map<string, string>();
 	const stated = new Set<string>();
+	const reroutes = new Map<string, string>();
 	const owns = (threadId: string): boolean => threadId === rootThreadId || claims.ownerOf(threadId) === rootThreadId;
 	const once = (key: string): boolean => {
 		if (stated.has(key)) {
@@ -73,6 +74,17 @@ export const openThreadTree = (rootThreadId: string, claims: ThreadClaims, sessi
 		const raw = rawOf("thread/closed", params);
 		return once(`ended/${threadId}`) ? [closedWithoutWord(threadId, raw)] : [{ raw, type: "raw" }];
 	};
+	const mapped = (notification: RpcNotification, threadId: string, root: boolean): ReadonlyArray<AgentEvent> =>
+		!root && notification.method === "thread/closed"
+			? closed(threadId, notification.params)
+			: (lifecycle(notification, threadId) ?? toAgentEvents(notification, reroutes.get(threadId) ?? sessionModel));
+	const rebill = (threadId: string, events: ReadonlyArray<AgentEvent>): void => {
+		for (const event of events) {
+			if (event.type === "model.rerouted") {
+				reroutes.set(threadId, event.model);
+			}
+		}
+	};
 	const events = (notification: RpcNotification): ReadonlyArray<AgentEvent> => {
 		if (notification.method === "thread/started") {
 			return spawnedThread(notification.params);
@@ -82,18 +94,17 @@ export const openThreadTree = (rootThreadId: string, claims: ThreadClaims, sessi
 			return [];
 		}
 		const threadId = scoped.value.threadId;
-		if (threadId === rootThreadId) {
-			return lifecycle(notification, threadId) ?? toAgentEvents(notification, sessionModel);
+		const root = threadId === rootThreadId;
+		const found = mapped(notification, threadId, root);
+		rebill(threadId, found);
+		if (root) {
+			return found;
 		}
-		const mapped =
-			notification.method === "thread/closed"
-				? closed(threadId, notification.params)
-				: (lifecycle(notification, threadId) ?? toAgentEvents(notification, sessionModel));
 		const origin: Origin = {
 			node: threadId,
 			spawnedBy: spawnCalls.get(threadId) ?? threadId,
 		};
-		return mapped.map((event) => attributed(event, origin));
+		return found.map((event) => attributed(event, origin));
 	};
 	return { events };
 };

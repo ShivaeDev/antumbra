@@ -2,7 +2,7 @@ import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/ev
 import type { RawPayload } from "@antumbra/platform-vocabulary/session-events/raw.ts";
 import { Option, Schema } from "effect";
 import { itemCompleted, itemStarted } from "#items.ts";
-import { ItemNotification, TokenUsageNotification, TurnNotification } from "#protocol.ts";
+import { ItemNotification, ModelReroutedNotification, TokenUsageNotification, TurnNotification } from "#protocol.ts";
 import { RATE_LIMITS_METHOD, rateLimitEvents } from "#rate-limits.ts";
 import type { RpcNotification } from "#rpc.ts";
 import { threadStateEvents } from "#thread-state.ts";
@@ -10,6 +10,7 @@ import { threadStateEvents } from "#thread-state.ts";
 const decodeTurn = Schema.decodeUnknownOption(TurnNotification);
 const decodeUsage = Schema.decodeUnknownOption(TokenUsageNotification);
 const decodeItem = Schema.decodeUnknownOption(ItemNotification);
+const decodeRerouted = Schema.decodeUnknownOption(ModelReroutedNotification);
 
 export const rawOf = (kind: string, payload: unknown): RawPayload => ({
 	kind,
@@ -38,21 +39,25 @@ const turnCompleted = (raw: RawPayload, params: unknown): AgentEvent[] =>
 		],
 	});
 
-const tokenUsage = (raw: RawPayload, params: unknown, sessionModel: string): AgentEvent[] =>
+const tokenUsage = (raw: RawPayload, params: unknown, threadModel: string): AgentEvent[] =>
 	Option.match(decodeUsage(params), {
 		onNone: () => [{ raw, type: "raw" }],
-		// Codex reports per-round usage in `last`; cost fields and the answering model are not present.
-		onSome: ({ tokenUsage }) => [
-			{
+		// Codex reports per-round usage in `last`; no cost fields are present and no notification names the model a round ran on.
+		onSome: ({ tokenUsage }) => {
+			const spent = {
 				cacheReadTokens: tokenUsage.last.cachedInputTokens,
 				...(tokenUsage.last.cacheWriteInputTokens === undefined ? {} : { cacheWriteTokens: tokenUsage.last.cacheWriteInputTokens }),
 				inputTokens: tokenUsage.last.inputTokens,
-				model: sessionModel,
 				outputTokens: tokenUsage.last.outputTokens,
-				raw,
-				type: "usage",
-			},
-		],
+			};
+			return [{ ...spent, byModel: [{ ...spent, model: threadModel }], raw, type: "usage" }];
+		},
+	});
+
+const modelRerouted = (raw: RawPayload, params: unknown): AgentEvent[] =>
+	Option.match(decodeRerouted(params), {
+		onNone: () => [{ raw, type: "raw" }],
+		onSome: ({ reason, toModel }) => [{ model: toModel, raw, reason, type: "model.rerouted" }],
 	});
 
 const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarted): AgentEvent[] =>
@@ -63,7 +68,7 @@ const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarte
 
 // Codex item/completed carries transcript content; turn/completed does not.
 // Codex exposes background terminals through explicit requests, not a push stream.
-export const toAgentEvents = (notification: RpcNotification, sessionModel: string): AgentEvent[] => {
+export const toAgentEvents = (notification: RpcNotification, threadModel: string): AgentEvent[] => {
 	const raw = rawOf(notification.method, notification.params);
 	switch (notification.method) {
 		case "item/started":
@@ -77,7 +82,9 @@ export const toAgentEvents = (notification: RpcNotification, sessionModel: strin
 		case "thread/status/changed":
 			return threadStateEvents(raw, notification.params);
 		case "thread/tokenUsage/updated":
-			return tokenUsage(raw, notification.params, sessionModel);
+			return tokenUsage(raw, notification.params, threadModel);
+		case "model/rerouted":
+			return modelRerouted(raw, notification.params);
 		case RATE_LIMITS_METHOD:
 			return rateLimitEvents(raw, notification.params);
 		default:

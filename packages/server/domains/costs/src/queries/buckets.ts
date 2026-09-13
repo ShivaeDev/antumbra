@@ -18,7 +18,7 @@ export interface AgentTally {
 export interface SpendTallies {
 	readonly agents: Map<string, AgentTally>;
 	readonly days: Map<string, Map<string, Tally>>;
-	readonly models: Map<string | null, Tally>;
+	readonly models: Map<string, Tally>;
 	readonly overall: Tally;
 	readonly unassigned: Tally;
 	readonly voyages: Map<string, Tally>;
@@ -50,6 +50,6 @@ export const countReading = (tallies: SpendTallies, reading: SessionUsage, sessi
 	countUsage(tallies.overall, reading.usage);
 	countUsage(agentAt(tallies.agents, session.agentId, reading.sessionId).tally, reading.usage);
 	countUsage(voyageId === undefined ? tallies.unassigned : tallyAt(tallies.voyages, voyageId), reading.usage);
-	countUsage(tallyAt(tallies.models, reading.usage.model ?? null), reading.usage);
+	for (const spent of reading.usage.byModel) countUsage(tallyAt(tallies.models, spent.model), spent);
 	countUsage(tallyAt(backendsAt(tallies.days, dayKey(new Date(reading.observedAt))), session.backend), reading.usage);
 };

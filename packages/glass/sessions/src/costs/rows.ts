@@ -25,8 +25,5 @@ export const voyageRows = (costs: CostsView): ReadonlyArray<SpendRow> =>
 		...(costs.unassigned.turns === 0 ? [] : [{ key: "", name: "No voyage", tone: "absent" as const, total: costs.unassigned }]),
 	].toSorted(bySpend);
 
-const modelRow = (model: string | null, total: UsageTotal): SpendRow =>
-	model === null ? { key: "", name: "not reported", tone: "absent", total } : { key: model, name: model, tone: "mono", total };
-
 export const modelRows = (costs: CostsView): ReadonlyArray<SpendRow> =>
-	costs.models.map((spent) => modelRow(spent.model, spent.total)).toSorted(bySpend);
+	costs.models.map((spent) => ({ key: spent.model, name: spent.model, tone: "mono" as const, total: spent.total })).toSorted(bySpend);

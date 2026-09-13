@@ -16,18 +16,16 @@ const isSettled = (part: Settled, author: MessageAuthor): boolean => author.role
 const spokenEvents = (raw: RawPayload, part: Settled, author: MessageAuthor): AgentEvent[] =>
 	part.type === "reasoning" ? [{ raw, text: part.text, type: "thinking" }] : [{ raw, role: author.role, text: part.text, type: "message" }];
 
-const usageEvents = (raw: RawPayload, part: Extract<KnownPart, { type: "step-finish" }>, author: MessageAuthor): AgentEvent[] => [
-	{
+const usageEvents = (raw: RawPayload, part: Extract<KnownPart, { type: "step-finish" }>, author: MessageAuthor): AgentEvent[] => {
+	const spent = {
 		...(part.tokens.cache?.read === undefined ? {} : { cacheReadTokens: part.tokens.cache.read }),
 		...(part.tokens.cache?.write === undefined ? {} : { cacheWriteTokens: part.tokens.cache.write }),
 		...(part.cost === undefined ? {} : { costUsd: part.cost }),
 		inputTokens: part.tokens.input,
-		model: author.model,
 		outputTokens: part.tokens.output,
-		raw,
-		type: "usage",
-	},
-];
+	};
+	return [{ ...spent, byModel: [{ ...spent, model: author.model }], raw, type: "usage" }];
+};
 
 const authoredEvents = (raw: RawPayload, part: KnownPart, author: MessageAuthor, firstReport: (key: string) => boolean): AgentEvent[] => {
 	if (part.type === "tool") {

@@ -19,7 +19,7 @@ const share = (event: Usage): ReadonlyArray<string> => {
 };
 
 const tokens = (event: Usage): ReadonlyArray<string> => [
-	...(event.model === undefined ? [] : [event.model]),
+	...event.byModel.map((spent) => spent.model),
 	`in ${event.inputTokens}`,
 	...(event.cacheReadTokens === undefined ? [] : [`cache read ${event.cacheReadTokens}`]),
 	...(event.cacheWriteTokens === undefined ? [] : [`cache write ${event.cacheWriteTokens}`]),

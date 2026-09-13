@@ -68,6 +68,15 @@ export const TokenUsageNotification = Schema.Struct({
 	turnId: Schema.String,
 });
 
+// Codex may add reroute reasons, so the reason is read as the free word it is rather than the one-value enum the pin declares.
+export const ModelReroutedNotification = Schema.Struct({
+	fromModel: Schema.String,
+	reason: Schema.String,
+	threadId: Schema.String,
+	toModel: Schema.String,
+	turnId: Schema.String,
+});
+
 export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
 
 // Only Codex spawn metadata carries a parent thread id; other names may be absent.

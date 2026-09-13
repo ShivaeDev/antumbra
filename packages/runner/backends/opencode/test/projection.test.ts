@@ -83,11 +83,11 @@ it("carries the answering model onto the spend of the step it finished", () => {
 	]);
 	expect(events).toEqual([
 		{
+			byModel: [{ cacheReadTokens: 7, cacheWriteTokens: 3, costUsd: 0.25, inputTokens: 11, model: "opencode-go/deepseek-v4-flash", outputTokens: 5 }],
 			cacheReadTokens: 7,
 			cacheWriteTokens: 3,
 			costUsd: 0.25,
 			inputTokens: 11,
-			model: "opencode-go/deepseek-v4-flash",
 			outputTokens: 5,
 			raw: expect.anything(),
 			type: "usage",
@@ -97,7 +97,7 @@ it("carries the answering model onto the spend of the step it finished", () => {
 
 it("spends on the model the session was started on when the message named none", () => {
 	const events = project([spoke("msg_a", "assistant"), part(stepFinish("msg_a"))]);
-	expect(events).toMatchObject([{ model: SESSION_MODEL, type: "usage" }]);
+	expect(events).toMatchObject([{ byModel: [{ model: SESSION_MODEL }], type: "usage" }]);
 });
 
 it("keeps a part whose message was never announced as raw evidence", () => {

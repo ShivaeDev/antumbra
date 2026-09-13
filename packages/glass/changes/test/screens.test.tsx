@@ -1,6 +1,7 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
 import { fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
+import { ScriptedHost } from "@antumbra/app-testing/host.ts";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
@@ -12,6 +13,8 @@ import { ChangeOutcomes } from "#change-outcomes.tsx";
 import { QuayPanel } from "#quay-panel.tsx";
 import { SessionSituations } from "#session-situations.tsx";
 import { changeId, observed, pieceId, ready, recorded, repoId, words } from "#test/kit.ts";
+
+const CORRECTED = "https://github.com/example/reef/pull/100";
 
 const repositoryOptions = (container: HTMLElement): readonly string[] =>
 	[...labelled<HTMLSelectElement>(container, "Repository").options].map((option) => option.textContent ?? "");
@@ -56,11 +59,31 @@ it.glass("offers adoption and keeps a host refusal editable for retry", function
 	expect(refused).toBeDefined();
 	if (refused === undefined) return;
 	expect(refused.url).toBe("https://github.com/example/reef/pull/99");
-	yield* fill(retry, "Retry adoption Pull request URL", "https://github.com/example/reef/pull/100");
+	yield* fill(retry, "Retry adoption Pull request URL", CORRECTED);
 	yield* submit(container, "Retry adoption");
-	const corrected = yield* eventually(api.changes.adoptions({}), (rows) => rows[0]?.url === "https://github.com/example/reef/pull/100");
+	const corrected = yield* eventually(api.changes.adoptions({}), (rows) => rows[0]?.url === CORRECTED);
 	expect(corrected[0]).toMatchObject({ id: refused.id });
 	expect((yield* answered(api.changes.quay({}))).length).toBe(1);
+});
+
+it.glass("adopts the corrected pull request when a refused adoption is retried", function* ({ api, render, run }) {
+	yield* ready(api);
+	const host = yield* run(ScriptedHost);
+	const container = yield* render(<QuayPanel api={api} onSelect={() => undefined} onOpenSession={() => undefined} />);
+	yield* until(() => container.textContent?.includes("1 of 1 pull requests") === true, "the adoption control to arrive");
+	yield* press(container, "Adopt a pull request");
+	const form = yield* renderedForm(document.body, "Adopt change");
+	yield* fill(form, "Adopt change Piece", pieceId);
+	yield* fill(form, "Adopt change Repository", repoId);
+	yield* fill(form, "Adopt change Pull request URL", "https://github.com/example/reef/pull/99");
+	yield* submit(document.body, "Adopt change");
+	const retry = yield* renderedForm(container, "Retry adoption");
+	yield* host.setObservation({ ...observed, externalId: "100", headRef: "work/reef-100", title: "Shoals", url: CORRECTED });
+	yield* fill(retry, "Retry adoption Pull request URL", CORRECTED);
+	yield* submit(container, "Retry adoption");
+	yield* until(() => container.textContent?.includes("2 of 2 pull requests") === true, "the corrected pull request to reach the quay");
+	expect(container.textContent).toContain("Shoals#100");
+	expect(yield* answered(api.changes.adoptions({}))).toEqual([]);
 });
 
 it.glass("keeps a merged change under Landed and offers every registered repository", function* ({ api, render }) {

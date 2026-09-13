@@ -9,6 +9,7 @@ export const installShellBridge = () =>
 		rememberPlace: (place) => ipcRenderer.invoke(Channel.REMEMBER_PLACE_CHANNEL, place),
 		openWindow: (place) => ipcRenderer.invoke(Channel.OPEN_WINDOW_CHANNEL, place),
 		restart: () => ipcRenderer.invoke(Channel.RESTART_CHANNEL),
+		restartServer: () => ipcRenderer.invoke(Channel.RESTART_SERVER_CHANNEL),
 		appInfo: () => ipcRenderer.invoke(Channel.APP_INFO_CHANNEL),
 		openExternal: (url) => {
 			ipcRenderer.send(Channel.OPEN_EXTERNAL_CHANNEL, url);

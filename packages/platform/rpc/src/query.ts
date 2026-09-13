@@ -1,9 +1,11 @@
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import type { Cause, Stream } from "effect";
-import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import type { Unauthorized } from "#token.ts";
+
+const AGAIN_AFTER = 1000;
 
 export interface Watch<Query extends QueryShape, Failure> {
 	(input: Values<Query["input"]>): Stream.Stream<Query["output"]["Type"], Failure | Unauthorized>;
@@ -17,6 +19,20 @@ export interface Watching {
 	readonly atom: (input: Record<string, unknown>) => Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>;
 }
 
+const reconnecting = (source: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>): Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =>
+	Atom.transform(
+		source,
+		(get) => {
+			const result = get(source);
+			if (AsyncResult.isFailure(result)) {
+				const waited = setTimeout(() => get.refresh(source), AGAIN_AFTER);
+				get.addFinalizer(() => clearTimeout(waited));
+			}
+			return result;
+		},
+		{ initialValueTarget: source },
+	);
+
 export const watching = (fields: Fields, live: (input: Record<string, unknown>) => Stream.Stream<unknown, unknown>): Watching => {
 	const named = Object.keys(fields);
 	const held = new Map<string, Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>>();
@@ -26,7 +42,7 @@ export const watching = (fields: Fields, live: (input: Record<string, unknown>) 
 		if (known !== undefined) {
 			return known;
 		}
-		const made = Atom.make(live(input));
+		const made = reconnecting(Atom.make(live(input)));
 		held.set(key, made);
 		return made;
 	};

@@ -31,6 +31,7 @@ describes one of these carries a marker pointing here. When one ships, its line 
   pass do not. [Guide.](rulings.md#standing-rulings-and-smoothing)
 - **One schema for the screen too** — the fields and columns a screen lays out derived from the same Schema classes. Tables, wire, and forms already
   derive from the feature schemas; every screen still writes its own fields out by hand.
-- **Server swap and runner drain** — restarting either process without touching an agent. A requested restart cuts turns and wakes the roots it cut
-  today.
+- **Server swap and runner drain** — swapping the server for a new build behind a preflight on a copy and a tool-set check, and restarting the runner
+  without touching an agent. Restarting the server on its own exists; the preflight, the tool-set check, and the runner side do not, and a requested
+  restart of the whole app still cuts turns and wakes the roots it cut.
 - **Retention of provider events** — provider events kept for a bounded window; the window is undecided.

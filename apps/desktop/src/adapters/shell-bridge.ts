@@ -30,6 +30,10 @@ export const registerShellBridge = (registry: WindowRegistry, restart: () => Pro
 			owner(event);
 			return restart();
 		});
+		ipcMain.handle(Channel.RESTART_SERVER_CHANNEL, (event) => {
+			owner(event);
+			return run(ServerProcess.use((source) => source.restart));
+		});
 		ipcMain.handle(Channel.WINDOW_PLACE_CHANNEL, (event) =>
 			run(WindowSource.use((source) => source.place).pipe(Effect.provideService(RequestOrigin, { windowId: owner(event) }))),
 		);

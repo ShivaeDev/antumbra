@@ -4,12 +4,25 @@ import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import { ServerTools } from "@antumbra/runner-fabric/ports.ts";
-import { Effect, Layer } from "effect";
+import { Effect, Fiber, Latch, Layer } from "effect";
 import * as RpcTest from "effect/unstable/rpc/RpcTest";
 import { expect } from "vitest";
 import { file } from "#adapters/log.ts";
 import { RunnerClient } from "#connection.ts";
 import { serverTools } from "#tools.ts";
+
+const started = (requestId: string, agentId: string, sessionId: string) =>
+	({
+		type: "SessionStarted",
+		requestId,
+		sessionId,
+		agentId,
+		backend: "claude",
+		cwd: "/berth",
+		nativeRef: "native",
+		runnerId: "runner",
+		toolSetVersion: "crew-v1",
+	}) as const;
 
 it.app("acknowledges the first session and tool log before invoking its bound tool", function* (app) {
 	const requestId = Request.make("first-agent");
@@ -21,20 +34,34 @@ it.app("acknowledges the first session and tool log before invoking its bound to
 		const log = yield* RunnerLog;
 		const tools = yield* ServerTools;
 		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(-1);
-		yield* log.append({
-			type: "SessionStarted",
-			requestId,
-			sessionId,
-			agentId,
-			backend: "claude",
-			cwd: "/berth",
-			nativeRef: "native",
-			runnerId: "runner",
-			toolSetVersion: "crew-v1",
-		});
+		yield* log.append(started(requestId, agentId, sessionId));
 		const call = { sessionId, callId: "first-tool", name: "write_board", input: { scope: "self", body: "First sounding" } };
 		yield* log.append({ type: "ToolCalled", sessionId, callId: call.callId, name: call.name, input: JSON.stringify(call.input) });
 		expect(yield* tools.call(call)).toEqual({ ok: true, text: "written to the self board" });
+		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(1);
+		expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ toolCalls: 1 });
+	}).pipe(Effect.provide(serverTools.pipe(Layer.provideMerge(local))));
+});
+
+it.app("holds a tool call while the server is away and completes it once it answers again", function* (app) {
+	const requestId = Request.make("waiting-agent");
+	const { agentId, sessionId } = identity(requestId);
+	yield* app.api.agents.spawn({ requestId, role: "hand", backend: "claude", model: null, effort: null });
+	const calls = yield* RpcTest.makeClient(RunnerRpc);
+	const reachable = yield* Latch.make();
+	const local = Layer.merge(file({ filename: ":memory:", seed: "waiting-log" }), Layer.succeed(RunnerClient, { calls, connected: reachable.await }));
+	yield* Effect.gen(function* () {
+		const log = yield* RunnerLog;
+		const tools = yield* ServerTools;
+		yield* log.append(started(requestId, agentId, sessionId));
+		const call = { sessionId, callId: "waiting-tool", name: "write_board", input: { scope: "self", body: "Held sounding" } };
+		yield* log.append({ type: "ToolCalled", sessionId, callId: call.callId, name: call.name, input: JSON.stringify(call.input) });
+
+		const held = yield* Effect.forkChild(tools.call(call));
+		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(-1);
+		yield* reachable.open;
+
+		expect(yield* Fiber.join(held)).toEqual({ ok: true, text: "written to the self board" });
 		expect(yield* calls["runner.cursor"]({ logId: log.logId })).toBe(1);
 		expect(yield* answered(app.api.sessions.reading({ id: sessionId }))).toMatchObject({ toolCalls: 1 });
 	}).pipe(Effect.provide(serverTools.pipe(Layer.provideMerge(local))));

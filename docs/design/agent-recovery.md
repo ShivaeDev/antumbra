@@ -157,6 +157,12 @@ attachment, which cuts the turn, and settles the row to idle. Only when every si
 the app running and, if a restart was requested, abandons it. A forced shutdown merely ends local execution. It does not synthesize a mailbox read,
 Session closure, Agent retirement, or resource reclamation; startup reconciles the surviving durable truth.
 
+Restarting the server alone is a separate act that cuts nothing. The server closes its commit path and exits, and the shell starts it again on the
+same endpoint; no drain is sent, no Session is closed, and nothing is recorded for a wake, because no turn was cut. The runner keeps its provider
+sessions, reconnects on its own, and flushes its log after the server's committed cursor, so a tool call in flight waits for the connection and
+completes once it is back. The glass says it is reconnecting where its content would be and comes back by itself. Only a person asks for this; the
+shell's restart-on-exit is unchanged, and swapping the server for a new build is a further act that does not exist yet.
+
 Authentication requirements, exhausted provider capacity, and unsafe resource state park the Intent as waiting, with the reason on its row. It stays
 parked until an explicit retry — the admiral retrying a provider, or another send to the same Session — moves it back to queued, and the attempt then
 begins again from durable truth. A successful intent means its promised durable boundary was reached, not merely that background work was detached.

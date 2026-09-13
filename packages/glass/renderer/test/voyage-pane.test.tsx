@@ -52,6 +52,7 @@ const shell: Shell = {
 	remember: () => Effect.void,
 	open: () => Effect.void,
 	restart: Effect.void,
+	restartServer: Effect.void,
 	openExternal: () => undefined,
 };
 

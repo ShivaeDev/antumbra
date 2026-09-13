@@ -13,6 +13,7 @@ const shell = (remember: (next: WindowPlace) => Effect.Effect<void>): Shell => (
 	remember,
 	open: () => Effect.void,
 	restart: Effect.void,
+	restartServer: Effect.void,
 	openExternal: () => undefined,
 });
 

@@ -8,61 +8,79 @@ import { ShellState } from "#adapters/shell-state.ts";
 
 vi.mock("electron", () => ({ app: { isPackaged: false } }));
 
+const SERVER_ARGS = ["/server.js", "--data", "/data/server", "--files", "/data"];
+
+const bundleOf = (command: ChildProcess.Command): string => (command._tag === "StandardCommand" ? (command.args[0] ?? "") : "");
+
+interface Spawns {
+	readonly ends: Queue.Queue<Deferred.Deferred<ChildProcessSpawner.ExitCode>>;
+	readonly requests: Queue.Queue<ChildProcess.Command>;
+	readonly spawner: ChildProcessSpawner.ChildProcessSpawner["Service"];
+	readonly terminated: readonly string[];
+}
+
+const spawns = Effect.gen(function* () {
+	const requests = yield* Queue.unbounded<ChildProcess.Command>();
+	const ends = yield* Queue.unbounded<Deferred.Deferred<ChildProcessSpawner.ExitCode>>();
+	const terminated: string[] = [];
+	const spawner = ChildProcessSpawner.make((command) =>
+		Effect.acquireRelease(
+			Effect.gen(function* () {
+				yield* Queue.offer(requests, command);
+				const end = yield* Deferred.make<ChildProcessSpawner.ExitCode>();
+				if (bundleOf(command) === "/server.js") yield* Queue.offer(ends, end);
+				return {
+					command,
+					handle: ChildProcessSpawner.makeHandle({
+						all: Stream.empty,
+						exitCode: Deferred.await(end),
+						getInputFd: () => Sink.drain,
+						getOutputFd: () => Stream.empty,
+						isRunning: Effect.succeed(true),
+						kill: () => Effect.asVoid(Deferred.succeed(end, ChildProcessSpawner.ExitCode(0))),
+						pid: ChildProcessSpawner.ProcessId(1),
+						stderr: Stream.empty,
+						stdin: Sink.drain,
+						stdout: Stream.make(new TextEncoder().encode('{"port":49123}\n')),
+						unref: Effect.succeed(Effect.void),
+					}),
+				};
+			}),
+			({ command }) =>
+				Effect.sync(() => {
+					terminated.push(bundleOf(command));
+				}),
+		).pipe(Effect.map((value) => value.handle)),
+	);
+	return { ends, requests, spawner, terminated } satisfies Spawns;
+});
+
+const siblings = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], remembered: number[]) => {
+	const state = Layer.succeed(ShellState, {
+		identity: { port: 0, token: "token", runnerId: "runner-id", logId: "log-id" },
+		rememberPort: (port) =>
+			Effect.sync(() => {
+				remembered.push(port);
+			}),
+	});
+	const server = ServerProcessLive("/server.js", "/data/server", "/data");
+	return Layer.merge(server, RunnerProcessLayer("/runner.js", "/data").pipe(Layer.provide(server))).pipe(
+		Layer.provide(state),
+		Layer.provide(Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner)),
+	);
+};
+
 it.effect("restarts the server on its chosen endpoint without replacing its sibling runner", () =>
 	Effect.gen(function* () {
-		const requests = yield* Queue.unbounded<ChildProcess.Command>();
-		const exit = yield* Deferred.make<ChildProcessSpawner.ExitCode>();
-		const terminated: string[] = [];
+		const { ends, requests, spawner, terminated } = yield* spawns;
 		const remembered: number[] = [];
-		let servers = 0;
-		const spawner = ChildProcessSpawner.make((command) =>
-			Effect.acquireRelease(
-				Effect.gen(function* () {
-					yield* Queue.offer(requests, command);
-					const server = command._tag === "StandardCommand" && command.args[0] === "/server.js";
-					if (server) servers += 1;
-					return {
-						command,
-						handle: ChildProcessSpawner.makeHandle({
-							all: Stream.empty,
-							exitCode: server && servers === 1 ? Deferred.await(exit) : Effect.never,
-							getInputFd: () => Sink.drain,
-							getOutputFd: () => Stream.empty,
-							isRunning: Effect.succeed(true),
-							kill: () => Effect.void,
-							pid: ChildProcessSpawner.ProcessId(1),
-							stderr: Stream.empty,
-							stdin: Sink.drain,
-							stdout: Stream.make(new TextEncoder().encode('{"port":49123}\n')),
-							unref: Effect.succeed(Effect.void),
-						}),
-					};
-				}),
-				({ command }) =>
-					Effect.sync(() => {
-						if (command._tag === "StandardCommand") terminated.push(command.args[0] ?? "");
-					}),
-			).pipe(Effect.map((value) => value.handle)),
-		);
-		const state = Layer.succeed(ShellState, {
-			identity: { port: 0, token: "token", runnerId: "runner-id", logId: "log-id" },
-			rememberPort: (port) =>
-				Effect.sync(() => {
-					remembered.push(port);
-				}),
-		});
-		const server = ServerProcessLive("/server.js", "/data/server", "/data");
-		const layers = Layer.merge(server, RunnerProcessLayer("/runner.js", "/data").pipe(Layer.provide(server))).pipe(
-			Layer.provide(state),
-			Layer.provide(Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner)),
-		);
 		yield* Effect.scoped(
 			Effect.gen(function* () {
 				yield* ServerProcess;
 				yield* RunnerProcess;
 				const first = yield* Queue.take(requests);
 				const runner = yield* Queue.take(requests);
-				expect(first).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "0"] });
+				expect(first).toMatchObject({ args: [...SERVER_ARGS, "--port", "0"] });
 				expect(runner).toMatchObject({
 					args: [
 						"/runner.js",
@@ -78,12 +96,31 @@ it.effect("restarts the server on its chosen endpoint without replacing its sibl
 						"log-id",
 					],
 				});
-				yield* Deferred.succeed(exit, ChildProcessSpawner.ExitCode(1));
-				expect(yield* Queue.take(requests)).toMatchObject({ args: ["/server.js", "--data", "/data/server", "--files", "/data", "--port", "49123"] });
+				yield* Deferred.succeed(yield* Queue.take(ends), ChildProcessSpawner.ExitCode(1));
+				expect(yield* Queue.take(requests)).toMatchObject({ args: [...SERVER_ARGS, "--port", "49123"] });
 				expect(terminated).not.toContain("/runner.js");
-			}).pipe(Effect.provide(layers)),
+			}).pipe(Effect.provide(siblings(spawner, remembered))),
 		);
 		expect(remembered).toEqual([49123]);
 		expect(terminated).toContain("/runner.js");
+	}),
+);
+
+it.effect("starts the server again when the act asks for it and leaves the runner alone", () =>
+	Effect.gen(function* () {
+		const { requests, spawner, terminated } = yield* spawns;
+		yield* Effect.scoped(
+			Effect.gen(function* () {
+				const server = yield* ServerProcess;
+				yield* RunnerProcess;
+				yield* Queue.take(requests);
+				yield* Queue.take(requests);
+
+				yield* server.restart;
+
+				expect(yield* Queue.take(requests)).toMatchObject({ args: [...SERVER_ARGS, "--port", "49123"] });
+				expect(terminated).not.toContain("/runner.js");
+			}).pipe(Effect.provide(siblings(spawner, []))),
+		);
 	}),
 );

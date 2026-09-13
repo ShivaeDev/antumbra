@@ -5,15 +5,15 @@ import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
 import type { ReactNode } from "react";
 import { useLive } from "#hooks.ts";
 
-const UNREACHED = "The server could not be reached";
+const RECONNECTING = "Reconnecting to the server…";
 
 const WAITING = "Reading…";
 
 export const reading = <A,>(result: AsyncResult.AsyncResult<A, unknown>, words: string, shown: (value: A) => ReactNode): ReactNode =>
 	AsyncResult.match(result, {
 		onFailure: () => (
-			<span className="block text-2xs text-destructive" role="alert">
-				{UNREACHED}
+			<span className="block text-xs text-muted-foreground" role="status">
+				{RECONNECTING}
 			</span>
 		),
 		onInitial: () => <span className="block text-xs text-muted-foreground">{words}</span>,

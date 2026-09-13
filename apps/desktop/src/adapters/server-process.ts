@@ -5,9 +5,10 @@ import { ShellState } from "#adapters/shell-state.ts";
 
 export type { Serving } from "@antumbra/platform-shell/bridge.ts";
 
-export class ServerProcess extends Context.Service<ServerProcess, { readonly serving: Effect.Effect<Serving> }>()(
-	"@antumbra/desktop/ServerProcess",
-) {}
+export class ServerProcess extends Context.Service<
+	ServerProcess,
+	{ readonly serving: Effect.Effect<Serving>; readonly restart: Effect.Effect<void> }
+>()("@antumbra/desktop/ServerProcess") {}
 
 interface Running {
 	readonly child: ChildProcessSpawner.ChildProcessHandle;
@@ -60,6 +61,12 @@ export const ServerProcessLive = (bundle: string, directory: string, files: stri
 			const running = yield* ScopedRef.fromAcquire(started(bundle, directory, files, token, port));
 			yield* state.rememberPort((yield* ScopedRef.get(running)).port);
 			yield* Effect.forkScoped(restarting(running, bundle, directory, files, token));
-			return { serving: Effect.map(ScopedRef.get(running), ({ port }) => ({ port, token })) };
+			return {
+				restart: ScopedRef.get(running).pipe(
+					Effect.flatMap(({ child }) => child.kill()),
+					Effect.orDie,
+				),
+				serving: Effect.map(ScopedRef.get(running), ({ port }) => ({ port, token })),
+			};
 		}),
 	).pipe(Layer.orDie);

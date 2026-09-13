@@ -4,6 +4,7 @@ import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
+import { FleetPanel } from "#fleet.tsx";
 import { SessionHeader } from "#session-header.tsx";
 
 const CREW = Request.make("agent:glass-stop");
@@ -44,4 +45,7 @@ it.glass("the act on a working session reads Stop and leaves the session held", 
 	yield* press(container, "Stop");
 	yield* until(() => container.textContent?.includes("stopped by you") === true, "the chip to say the session is held");
 	expect(named(container, "Stop")).toBe(false);
+
+	const fleet = yield* render(<FleetPanel api={api} onPiece={() => undefined} onSession={() => undefined} onVoyage={() => undefined} />);
+	yield* until(() => [...fleet.querySelectorAll("h2")].some((heading) => heading.textContent === "Stopped"), "the fleet to group the held agent");
 });

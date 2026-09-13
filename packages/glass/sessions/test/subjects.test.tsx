@@ -14,6 +14,7 @@ import { PieceSession } from "#piece-session.tsx";
 const REEF = Request.make("voyage:reef");
 const SOUNDINGS = Request.make("piece:soundings");
 const CREW = Request.make("agent:soundings");
+const SMOOTHER = Request.make("agent:smoothing");
 
 const voyageId = VoyageId.make(REEF);
 const pieceId = PieceId.make(SOUNDINGS);
@@ -89,6 +90,25 @@ it.glass("a piece no agent has spoken for says so where its session would be", f
 		"the pane to say the piece has no crew",
 	);
 	expect(container.querySelector("output")).toBeNull();
+});
+
+it.glass("the fleet keeps smoothers out of its groups until it is asked to show them", function* ({ api, render }) {
+	yield* charted(api);
+	yield* api.agents.workNow({ requestId: CREW, pieceId });
+	const smoother = identity(SMOOTHER);
+	yield* api.agents.smooth({ requestId: SMOOTHER, agentId: smoother.agentId, sessionId: smoother.sessionId, voyageId, cwd: null });
+	const container = yield* render(<FleetPanel api={api} onSession={() => undefined} onPiece={() => undefined} onVoyage={() => undefined} />);
+	yield* until(() => container.querySelector('[aria-label="Open hand"]') !== null, "the agent to reach the roster");
+	const groups = () => [...container.querySelectorAll("section > header")].map((header) => header.textContent);
+	const withoutSmoothers = groups();
+	expect(withoutSmoothers).toEqual(["Preparing to work1"]);
+	expect(container.querySelector('[aria-label="Open smoother"]')).toBeNull();
+
+	const toggle = container.querySelector<HTMLInputElement>('input[type="checkbox"]');
+	if (toggle === null) return yield* Effect.die("Missing the fleet's smoothers toggle");
+	yield* click(toggle);
+	yield* until(() => container.querySelector('[aria-label="Open smoother"]') !== null, "the smoother to join the roster");
+	expect(groups()).toEqual([...withoutSmoothers, "Smoothing1"]);
 });
 
 it.glass("an agent with no open conversation cannot be opened from its card", function* ({ api, render }) {

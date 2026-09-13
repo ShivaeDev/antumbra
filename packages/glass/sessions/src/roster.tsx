@@ -3,10 +3,12 @@ import { Separator } from "@antumbra/glass-components/ui/separator.tsx";
 import type { ComponentProps } from "react";
 import { AgentCard } from "#agent-card.tsx";
 
-const order = ["Working", "Stranded", "Preparing to work", "Idle", "Asleep", "No open conversation", "Dormant", "Retired"];
+const order = ["Working", "Stranded", "Preparing to work", "Idle", "Asleep", "No open conversation", "Dormant", "Retired", "Smoothing"];
+
+const groupOf = (agent: typeof agentReading.Row.Type): string => (agent.role === "smoother" ? "Smoothing" : agent.standing);
 
 export const Roster = (props: Omit<ComponentProps<typeof AgentCard>, "agent"> & { readonly agents: readonly (typeof agentReading.Row.Type)[] }) => {
-	const groups = Map.groupBy(props.agents, (agent) => agent.standing);
+	const groups = Map.groupBy(props.agents, groupOf);
 	return [...groups]
 		.toSorted(([left], [right]) => order.indexOf(left) - order.indexOf(right))
 		.map(([standing, agents]) => (

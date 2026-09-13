@@ -64,7 +64,7 @@ export const openThreadTree = (rootThreadId: string, claims: ThreadClaims, sessi
 		if (item.kind === "interrupted") {
 			return once(`ended/${node}`) ? [interrupted(item, raw)] : [{ raw, type: "raw" }];
 		}
-		return item.kind === "interacted" || !once(`opened/${node}`)
+		return item.kind !== "started" || !once(`opened/${node}`)
 			? [{ raw, type: "raw" }]
 			: [announced(item, threadId, spawnCalls.get(node) ?? item.id, raw)];
 	};

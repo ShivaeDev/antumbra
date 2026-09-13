@@ -38,8 +38,19 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	});
 
 	it("the sub-agent words we fold on are the bundle's, verbatim", () => {
-		expect(enumOf("SubAgentActivityKind")).toEqual(["started", "interacted", "interrupted"]);
-		expect(enumOf("CollabAgentTool")).toEqual(["spawnAgent", "sendInput", "resumeAgent", "wait", "closeAgent"]);
+		expect(enumOf("SubAgentActivityKind")).toEqual(["started", "interacted", "interrupted", "completed"]);
+		expect(enumOf("CollabAgentTool")).toEqual([
+			"spawnAgent",
+			"sendInput",
+			"resumeAgent",
+			"wait",
+			"closeAgent",
+			"sendMessage",
+			"followupTask",
+			"interruptAgent",
+			"listAgents",
+		]);
+		expect(enumOf("CollabAgentToolCallStatus")).toEqual(["inProgress", "completed", "failed", "interrupted"]);
 	});
 
 	it("a spawned sub-agent thread is the only source that names a parent", () => {
@@ -95,6 +106,25 @@ describe("the codex protocol slice agrees with the pinned schema bundle", () => 
 	it("the policy values we send exist", () => {
 		expect(enumOf("SandboxMode")).toContain("workspace-write");
 		expect(enumOf("ApprovalsReviewer")).toContain("auto_review");
+	});
+
+	it.each([
+		["item/started", "ItemStartedNotification", ["item", "startedAtMs", "threadId", "turnId"]],
+		["item/completed", "ItemCompletedNotification", ["completedAtMs", "item", "threadId", "turnId"]],
+		["turn/started", "TurnStartedNotification", ["threadId", "turn"]],
+		["turn/completed", "TurnCompletedNotification", ["threadId", "turn"]],
+		["thread/started", "ThreadStartedNotification", ["thread"]],
+		["thread/closed", "ThreadClosedNotification", ["threadId"]],
+		["thread/status/changed", "ThreadStatusChangedNotification", ["status", "threadId"]],
+		["thread/tokenUsage/updated", "ThreadTokenUsageUpdatedNotification", ["threadId", "tokenUsage", "turnId"]],
+		["thread/settings/updated", "ThreadSettingsUpdatedNotification", ["threadId", "threadSettings"]],
+		["model/rerouted", "ModelReroutedNotification", ["fromModel", "reason", "threadId", "toModel", "turnId"]],
+		["account/rateLimits/updated", "AccountRateLimitsUpdatedNotification", ["rateLimits"]],
+		["error", "ErrorNotification", ["error", "threadId", "turnId", "willRetry"]],
+	] as const)("%s retains its payload contract", (method, name, required) => {
+		const notification = serverNotifications.oneOf?.find((variant) => variant.properties?.method?.enum?.includes(method));
+		expect(notification?.properties?.params?.$ref).toBe(`#/definitions/${name}`);
+		expect(bundle.definitions[name]?.required).toEqual(required);
 	});
 
 	it("the payload types we decode exist in the bundle", () => {

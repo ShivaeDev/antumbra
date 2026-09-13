@@ -7,6 +7,7 @@ import { Reactivity } from "effect/unstable/reactivity/Reactivity";
 export class RunnerConnections extends Context.Service<
 	RunnerConnections,
 	{
+		readonly news: (logId: string, subject: string, content: string) => Effect.Effect<boolean>;
 		readonly operations: (registration: Registration) => Stream.Stream<Operation>;
 		readonly reply: (reply: Reply) => Effect.Effect<void>;
 	}
@@ -27,6 +28,15 @@ export const layer = Layer.effectContext(
 		const reactivity = yield* Reactivity;
 		const connections = new Map<string, Connected>();
 		const pending = new Map<string, Map<string, Pending>>();
+		const reported = new Map<string, Map<string, string>>();
+		const news = (logId: string, subject: string, content: string): Effect.Effect<boolean> =>
+			Effect.sync(() => {
+				const known = reported.get(logId) ?? new Map<string, string>();
+				reported.set(logId, known);
+				if (known.get(subject) === content) return false;
+				known.set(subject, content);
+				return true;
+			});
 		const waiting = (runnerId: string): Map<string, Pending> => {
 			const known = pending.get(runnerId);
 			if (known !== undefined) return known;
@@ -47,6 +57,7 @@ export const layer = Layer.effectContext(
 		const connect = Effect.fn("RunnerConnections.connect")(function* (connection: Connected) {
 			const runnerId = connection.registration.runnerId;
 			const previous = connections.get(runnerId);
+			reported.delete(connection.registration.logId);
 			connections.set(runnerId, connection);
 			if (previous !== undefined) yield* Queue.shutdown(previous.queue);
 			yield* Queue.offerAll(
@@ -81,6 +92,6 @@ export const layer = Layer.effectContext(
 		return Context.make(RunnerOperations, {
 			connected: Effect.sync(() => [...connections.values()].map(({ registration }) => registration)),
 			execute,
-		}).pipe(Context.add(RunnerConnections, { operations, reply }));
+		}).pipe(Context.add(RunnerConnections, { news, operations, reply }));
 	}),
 );

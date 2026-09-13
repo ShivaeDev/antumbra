@@ -11,12 +11,15 @@ import { QuayDismiss } from "#quay-dismiss.tsx";
 import { QuayPublication } from "#quay-publication.tsx";
 import { QuayStatus } from "#quay-status.tsx";
 import { QuayWork } from "#quay-work.tsx";
-import { whenLabel } from "#time.ts";
+import { dayLabel, whenLabel } from "#time.ts";
 
 const OriginSession = ({ item, onOpenSession }: { readonly item: QuayChange; readonly onOpenSession: (sessionId: string) => void }) => {
 	const sessionId = item.originSessionId;
 	if (sessionId === null) {
 		return <span className="text-xs text-muted-foreground">No linked session</span>;
+	}
+	if (item.archivedAt !== null) {
+		return <span className="font-mono text-xs text-muted-foreground">Session {sessionId}</span>;
 	}
 	return (
 		<Button
@@ -29,6 +32,28 @@ const OriginSession = ({ item, onOpenSession }: { readonly item: QuayChange; rea
 		>
 			Session {sessionId}
 		</Button>
+	);
+};
+
+const LatestStamp = ({ item }: { readonly item: QuayChange }) => {
+	const archived = item.archivedAt;
+	if (archived === null) {
+		return (
+			<>
+				<p className="text-2xs text-muted-foreground">Latest host activity</p>
+				<time className="text-xs" dateTime={item.activityAt}>
+					{whenLabel(item.activityAt)}
+				</time>
+			</>
+		);
+	}
+	return (
+		<>
+			<p className="text-2xs text-muted-foreground">Archived</p>
+			<time className="text-xs" dateTime={archived}>
+				{dayLabel(archived)}
+			</time>
+		</>
 	);
 };
 
@@ -91,10 +116,7 @@ export const QuayDetail = ({
 					<OriginSession item={item} onOpenSession={onOpenSession} />
 				</div>
 				<div>
-					<p className="text-2xs text-muted-foreground">Latest host activity</p>
-					<time className="text-xs" dateTime={item.activityAt}>
-						{whenLabel(item.activityAt)}
-					</time>
+					<LatestStamp item={item} />
 					<p className="text-2xs text-muted-foreground">
 						Observed {whenLabel(item.observedAt)} via {item.host}
 					</p>

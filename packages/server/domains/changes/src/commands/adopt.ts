@@ -85,6 +85,7 @@ export const adopt = command("adopt", {
 			observedAt: now,
 			landedAt: null,
 			withdrawnAt: null,
+			archivedAt: null,
 			createdAt: now,
 		};
 		const observed =

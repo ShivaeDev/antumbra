@@ -27,7 +27,7 @@ const crewed = Effect.fnUntraced(function* (api: Api) {
 		crewModel: null,
 		crewEffort: null,
 	});
-	yield* api.agents.hail({ requestId: HAIL, voyageId });
+	yield* api.agents.hail({ requestId: HAIL, voyageId, by: "admiral" });
 });
 
 it.glass("opens the captain from the line that names the captain", function* ({ api, render }) {

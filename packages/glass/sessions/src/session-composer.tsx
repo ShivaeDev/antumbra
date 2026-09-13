@@ -1,4 +1,5 @@
 import type { agentReading } from "@antumbra/domain-agents/rows/agent-reading.ts";
+import type { AgentState } from "@antumbra/domain-agents/rows/situation.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { SessionSituations } from "@antumbra/glass-changes/session-situations.tsx";
 import { Live } from "@antumbra/glass-client/live.tsx";
@@ -17,7 +18,11 @@ interface Props {
 }
 
 const READ_ONLY = "This transcript is read only.";
-const ASLEEP = "Asleep. Your message will wake it.";
+
+const HINTS: Partial<Record<AgentState, string>> = {
+	asleep: "Asleep. Your message will wake it.",
+	stopped: "Stopped. Your message will resume it.",
+};
 
 const Footer = ({ children }: { readonly children: ReactNode }) => (
 	<div className="shrink-0 border-t border-border">
@@ -44,7 +49,7 @@ const CurrentComposer = (props: Props & { readonly agent: typeof agentReading.Ro
 					canSend={props.agent.canSend}
 					canAttachImages={support.imageInput}
 					backend={props.agent.backend ?? ""}
-					hint={props.agent.state === "asleep" && props.agent.canSend ? ASLEEP : undefined}
+					hint={props.agent.canSend ? HINTS[props.agent.state] : undefined}
 					onError={props.onError}
 				/>
 			)}

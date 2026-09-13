@@ -13,6 +13,7 @@ export const agentReading = row(
 		detail: Schema.NullOr(Schema.String),
 		backend: Schema.NullOr(Schema.String),
 		atWork: Schema.Boolean,
+		working: Schema.Boolean,
 		canSend: Schema.Boolean,
 		canSleep: Schema.Boolean,
 		canInterrupt: Schema.Boolean,

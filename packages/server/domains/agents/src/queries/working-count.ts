@@ -6,6 +6,6 @@ export const workingCount = query("workingCount", {
 	output: Schema.Number,
 	reads: [agentReading],
 	run: Effect.fn("Agents.workingCount")(function* (_input, rows) {
-		return yield* rows.agentReading.count({ canInterrupt: true });
+		return yield* rows.agentReading.count({ working: true });
 	}),
 });

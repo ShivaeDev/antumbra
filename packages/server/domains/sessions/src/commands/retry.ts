@@ -18,6 +18,7 @@ export const retry = command("retry", {
 			return yield* reject.Unavailable({ message: "The operation is not waiting for retry" });
 		const root = yield* rows.session.find(held.value.sessionId);
 		if (Option.isNone(root) || root.value.status !== "open") return yield* reject.Unavailable({ message: "The session has ended" });
+		if (root.value.stoppedAt !== null) return yield* reject.Unavailable({ message: "The session is stopped" });
 		return {
 			previousId: input.id,
 			operation: { ...held.value, id: SessionOperationId.make(input.requestId), status: "requested" as const, detail: null },

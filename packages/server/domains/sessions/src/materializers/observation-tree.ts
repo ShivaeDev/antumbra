@@ -46,6 +46,7 @@ const open = Effect.fn("Sessions.openNode")(function* (fact: Observation, rows: 
 		outcome: null,
 		createdAt: at,
 		idleSince: null,
+		stoppedAt: null,
 		toolCalls: 0,
 		openDelegations: 0,
 		attached: fact.live,

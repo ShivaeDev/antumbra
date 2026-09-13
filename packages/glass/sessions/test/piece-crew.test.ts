@@ -21,6 +21,7 @@ const crewMember = {
 	state: "asleep",
 	status: "alive",
 	updatedAt: "2026-09-01T00:00:00.000Z",
+	working: false,
 	voyageIds: [],
 } satisfies typeof agentReading.Row.Type;
 

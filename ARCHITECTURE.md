@@ -76,7 +76,7 @@ row, so the moment a command is answered every projection already reflects it an
 Provider events are not domain facts: they live in the runner's log, and a domain fact names a Session by id.
 
 Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts. An existing journal is
-backed up before an actual rebuild. This is not a promise to retain or prune a fixed number of backups.
+backed up before an actual rebuild, and the `backups` directory beside it keeps the five newest copies and deletes the rest.
 
 A fact migration is a numbered one-shot rewrite of stored facts. A feature declares its migrations beside its facts, numbered from one, and startup
 applies every declared migration the `fact_migration` table does not already record, feature by feature and in each feature's declared order, after

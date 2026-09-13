@@ -16,6 +16,19 @@ const writer = Effect.fn("journal.writer")(function* (filename: string) {
 
 const shared = Effect.map(writer(":memory:"), (client): Clients => ({ backup: Effect.void, read: client, write: client }));
 
+const BACKUP = /^journal-(\d+)-[0-9a-f-]+\.db$/;
+const KEPT = 5;
+
+const prune = Effect.fn("journal.prune")(function* (files: FileSystem.FileSystem, backups: string) {
+	const taken: { readonly at: number; readonly name: string }[] = [];
+	for (const name of yield* files.readDirectory(backups)) {
+		const found = BACKUP.exec(name);
+		if (found !== null) taken.push({ at: Number(found[1]), name });
+	}
+	taken.sort((first, second) => second.at - first.at);
+	for (const stale of taken.slice(KEPT)) yield* files.remove(`${backups}/${stale.name}`);
+});
+
 const onDisk = Effect.fn("journal.onDisk")(function* () {
 	const directory = yield* DataDirectory;
 	const files = yield* FileSystem.FileSystem;
@@ -29,6 +42,7 @@ const onDisk = Effect.fn("journal.onDisk")(function* () {
 		const target = `${backups}/journal-${now}-${crypto.randomUUID()}.db`;
 		yield* write`VACUUM INTO ${target}`;
 		yield* Effect.logInfo("journal backed up before upgrade", { path: target });
+		yield* prune(files, backups);
 	}).pipe(Effect.orDie);
 	return { backup, read, write };
 });

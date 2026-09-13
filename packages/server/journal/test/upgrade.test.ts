@@ -1,12 +1,15 @@
 import { definition } from "@antumbra/app-testing/entry.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
+import { feature } from "@antumbra/platform-feature/feature.ts";
+import type { Fields } from "@antumbra/platform-feature/fields.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import { NodeFileSystem } from "@effect/platform-node";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { it } from "@effect/vitest";
 import { Effect, FileSystem, Layer, Schema } from "effect";
+import * as TestClock from "effect/testing/TestClock";
 import { expect } from "vitest";
-import { registryOf } from "#app.ts";
+import { app, registryOf } from "#app.ts";
 import { Database, DataDirectory } from "#database.ts";
 import * as Journal from "#journal.ts";
 import { start } from "#startup.ts";
@@ -110,5 +113,36 @@ it.effect("a fresh journal creates no rebuild backup", () =>
 		const directory = yield* DataDirectory;
 		yield* start(database.write, yield* registryOf(definition), database.backup);
 		expect(yield* fs.exists(`${directory.path}/backups`)).toBe(false);
+	}).pipe(Effect.provide(disk), Effect.orDie),
+);
+
+const notes = (fields: Fields) =>
+	feature("notes", { rows: [row("note", fields, { key: "id" })], facts: [], commands: [], materializers: [], queries: [] });
+const thin = app([notes({ id: Schema.String })]);
+const wide = app([notes({ id: Schema.String, text: Schema.String })]);
+
+const stampOf = (name: string): number => Number(name.split("-")[1]);
+
+it.effect("rebuild backups keep the five newest and leave every other file alone", () =>
+	Effect.gen(function* () {
+		const database = yield* Database;
+		const fs = yield* FileSystem.FileSystem;
+		const directory = yield* DataDirectory;
+		const backups = `${directory.path}/backups`;
+		yield* start(database.write, yield* registryOf(thin), database.backup);
+		yield* fs.makeDirectory(backups, { recursive: true });
+		yield* fs.writeFileString(`${backups}/readme.txt`, "kept");
+		for (const round of [1, 2, 3, 4, 5, 6]) {
+			yield* TestClock.adjust("1 minute");
+			yield* start(database.write, yield* registryOf(round % 2 === 1 ? wide : thin), database.backup);
+		}
+		const remaining = yield* fs.readDirectory(backups);
+		const stamps: number[] = [];
+		for (const name of remaining) {
+			if (name !== "readme.txt") stamps.push(stampOf(name));
+		}
+		stamps.sort((first, second) => first - second);
+		expect(stamps).toEqual([120_000, 180_000, 240_000, 300_000, 360_000]);
+		expect(remaining).toContain("readme.txt");
 	}).pipe(Effect.provide(disk), Effect.orDie),
 );

@@ -7,5 +7,5 @@ const FIXED = { kind: "voyage" } as const;
 const SUBMIT = "Open voyage";
 
 export const OpenVoyage = (props: { readonly api: VoyagesApi; readonly onOpened: () => void }): ReactNode => (
-	<CommandForm command={props.api.voyages.open} fixed={FIXED} sent={props.onOpened} submit={SUBMIT} titles />
+	<CommandForm command={props.api.voyages.open} fixed={FIXED} heading={false} sent={props.onOpened} submit={SUBMIT} titles />
 );

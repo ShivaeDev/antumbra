@@ -12,6 +12,10 @@ const NOTHING: readonly Editable[] = [];
 
 const SENDING_WORDS = "Saving…";
 
+const REFUSAL = `w-full ${ALERT}`;
+
+const INDENTED_REFUSAL = `${REFUSAL} pl-[5rem]`;
+
 const Spacer = () => (
 	<span aria-hidden="true" className={TITLE}>
 		&nbsp;
@@ -85,7 +89,7 @@ export const Row = (props: {
 			</span>
 			{props.description === undefined ? null : <p className={`w-full ${NOTE}`}>{props.description}</p>}
 			{settled === null ? null : (
-				<p className={`w-full pl-[5rem] ${ALERT}`} role="alert">
+				<p className={props.heading ? INDENTED_REFUSAL : REFUSAL} role="alert">
 					{settled}
 				</p>
 			)}

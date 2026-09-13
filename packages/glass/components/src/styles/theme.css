@@ -12,7 +12,4 @@
 
 @source "../../../";
 
-/* The shadcn components ship `dark:` utilities and read the class rather than
-   the media query, so the document element carries `dark` and the variant is
-   bound to it. */
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&);

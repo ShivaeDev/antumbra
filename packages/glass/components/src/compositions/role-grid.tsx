@@ -4,7 +4,7 @@ export const RoleGrid = ({
 	columns,
 	rows,
 }: {
-	readonly columns: readonly string[];
+	readonly columns: readonly [string, string, string];
 	readonly rows: readonly { readonly cells: ReactNode; readonly label: string }[];
 }) => (
 	<div className="grid grid-cols-[96px_repeat(3,176px)] items-center gap-x-3 gap-y-2">

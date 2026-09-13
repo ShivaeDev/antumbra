@@ -22,6 +22,7 @@
 		"test:packages": "node script/test.ts --config script/vitest.workspace.ts",
 		"test:server": "pnpm --filter @antumbra/server test",
 		"typecheck": "pnpm --recursive --no-sort --if-present typecheck",
+		"typecheck:shard": "node script/typecheck.ts",
 		"typecheck:compat": "pnpm --recursive --no-sort --if-present typecheck:compat",
 		"typecheck:compat:workspace": "tsc6 --noEmit -p tsconfig.workspace.json",
 		"typecheck:root": "tsc --noEmit",

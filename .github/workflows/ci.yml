@@ -20,17 +20,23 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    name: typecheck (${{ matrix.shard }}/3)
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - run: pnpm typecheck
-      - run: pnpm typecheck:root
+      - run: pnpm typecheck:shard ${{ matrix.shard }}/3
 
-  typecheck-compat:
+  typecheck-workspace:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - run: pnpm typecheck:workspace
+      - run: pnpm typecheck:root
       - run: pnpm typecheck:compat:workspace
 
   test:
@@ -48,14 +54,38 @@ jobs:
 
   isolated:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [server, desktop-runner-app]
+    name: isolated (${{ matrix.group }})
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache/restore@v4
+        if: matrix.group == 'desktop-runner-app'
+        id: electron-cache
+        with:
+          path: ~/.cache/electron
+          key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
+          restore-keys: |
+            electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
+        with:
+          save-cache: ${{ matrix.group == 'desktop-runner-app' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm test:desktop
+        if: matrix.group == 'desktop-runner-app'
       - run: pnpm test:runner
+        if: matrix.group == 'desktop-runner-app'
       - run: pnpm test:server
+        if: matrix.group == 'server'
       - run: pnpm test:app
+        if: matrix.group == 'desktop-runner-app'
+      - uses: actions/cache/save@v4
+        if: matrix.group == 'desktop-runner-app' && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.electron-cache.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cache/electron
+          key: ${{ steps.electron-cache.outputs.cache-primary-key }}
 
   guards:
     runs-on: ubuntu-latest
@@ -77,7 +107,7 @@ jobs:
     needs:
       - lint
       - typecheck
-      - typecheck-compat
+      - typecheck-workspace
       - test
       - isolated
       - guards
@@ -88,7 +118,7 @@ jobs:
         run: |
           test "${{ needs.lint.result }}" = success
           test "${{ needs.typecheck.result }}" = success
-          test "${{ needs.typecheck-compat.result }}" = success
+          test "${{ needs.typecheck-workspace.result }}" = success
           test "${{ needs.test.result }}" = success
           test "${{ needs.isolated.result }}" = success
           test "${{ needs.guards.result }}" = success
@@ -98,23 +128,29 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: electron-cache
         with:
           path: |
             ~/Library/Caches/electron
             ~/Library/Caches/electron-builder
-          key: electron-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: electron-cache-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('apps/desktop/electron-builder.yml') }}
           restore-keys: |
             electron-cache-${{ runner.os }}-
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup
         with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile --filter @antumbra/desktop...
+          filter: '@antumbra/desktop...'
+          save-cache: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:
           name: antumbra-macos-dmg
           path: apps/desktop/release/*.dmg
           if-no-files-found: error
+      - uses: actions/cache/save@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.electron-cache.outputs.cache-hit != 'true'
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/Library/Caches/electron-builder
+          key: ${{ steps.electron-cache.outputs.cache-primary-key }}

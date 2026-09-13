@@ -63,13 +63,13 @@ describe("what codex says a thread is doing is kept", () => {
 				{
 					cachedInputTokens: 96240,
 					cacheWriteInputTokens: 12100,
-					inputTokens: 1410,
+					inputTokens: 109750,
 					outputTokens: 210,
 				},
 				{
 					cachedInputTokens: 192400,
 					cacheWriteInputTokens: 18100,
-					inputTokens: 2810,
+					inputTokens: 213310,
 					outputTokens: 410,
 				},
 			),
@@ -84,6 +84,18 @@ describe("what codex says a thread is doing is kept", () => {
 		});
 		expect(usage).not.toHaveProperty("costUsd");
 		expect(usage).not.toHaveProperty("cumulativeCostUsd");
+	});
+
+	it("keeps cached input out of the round's ordinary input", () => {
+		const last = { inputTokens: 102443, cachedInputTokens: 99712, cacheWriteInputTokens: 0, outputTokens: 487 };
+		const [usage] = toAgentEvents(tokens(last, last), MODEL);
+		const spent = { inputTokens: 2731, cacheReadTokens: 99712, cacheWriteTokens: 0, outputTokens: 487 };
+		expect(usage).toMatchObject({ ...spent, byModel: [{ ...spent, model: MODEL }], type: "usage" });
+	});
+
+	it("floors ordinary input at zero when cache counts exceed input", () => {
+		const last = { inputTokens: 100, cachedInputTokens: 90, cacheWriteInputTokens: 20, outputTokens: 10 };
+		expect(toAgentEvents(tokens(last, last), MODEL)).toMatchObject([{ inputTokens: 0, byModel: [{ inputTokens: 0 }], type: "usage" }]);
 	});
 
 	it("bills the round to the model the thread is running on, which codex never reports with the tokens", () => {

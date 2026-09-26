@@ -1,42 +1,38 @@
 import process from "node:process";
-import { NodeRuntime } from "@effect/platform-node";
-import { Cause, Clock, Console, Effect, Result } from "effect";
-import { conditional } from "#pr/adapters/gh.ts";
-import { checksPath, issueCommentsPath, parseCommand, pullPath, reviewCommentsPath, reviewsPath, type Target, type Until } from "#pr/command.ts";
-import type { Outcome } from "#pr/observation.ts";
-import { initial, render, step, type Watch } from "#pr/program.ts";
+import { NodeRuntime, NodeServices } from "@effect/platform-node";
+import { Cause, Clock, Console, Effect, type FileSystem, Result } from "effect";
+import { conditionalGet, currentRepo } from "#pr/adapters/gh.ts";
+import { load, save, statePath } from "#pr/adapters/state.ts";
+import { type Command, needsHere, parseCommand, resolved } from "#pr/command.ts";
+import { type Fleet, fleetFrom, memoryOf } from "#pr/fleet.ts";
+import { render } from "#pr/lines.ts";
+import { encodeMemory } from "#pr/memory.ts";
+import { round } from "#pr/round.ts";
 
 const interval = "30 seconds";
 
-type Read = (path: string) => Effect.Effect<Outcome>;
-
-const reader = (): Read => {
-	const get = conditional();
-	return (path) =>
-		get(path).pipe(
-			Effect.map((response): Outcome => (response.body === undefined ? { kind: "same" } : { kind: "body", body: response.body })),
-			Effect.catch((error) => Effect.succeed<Outcome>({ kind: "failed", message: error.message })),
-		);
-};
-
-const round = (target: Target, until: Until, read: Read, watch: Watch): Effect.Effect<void> =>
+const loop = (path: string, fleet: Fleet, saved: string): Effect.Effect<void, Error, FileSystem.FileSystem> =>
 	Effect.gen(function* () {
-		const head = watch.pieces.pull?.head;
-		const now = yield* Clock.currentTimeMillis;
-		const progress = step(watch, until, now, {
-			checks: head === undefined ? undefined : { head, outcome: yield* read(checksPath(target, head)) },
-			comments: yield* read(issueCommentsPath(target)),
-			inline: yield* read(reviewCommentsPath(target)),
-			pull: yield* read(pullPath(target)),
-			reviews: yield* read(reviewsPath(target)),
-		});
-		yield* Effect.forEach(progress.lines, (line) => Console.log(render(line)));
-		if (progress.exit !== undefined) {
-			process.exitCode = progress.exit;
+		const next = yield* round(conditionalGet, fleet, yield* Clock.currentTimeMillis);
+		yield* Effect.forEach(next.events, (event) => Console.log(render(event)));
+		const encoded = encodeMemory(memoryOf(next.fleet));
+		if (encoded !== saved) yield* save(path, encoded);
+		if (next.exit !== undefined) {
+			process.exitCode = next.exit;
 			return;
 		}
 		yield* Effect.sleep(interval);
-		yield* round(target, until, read, progress.watch);
+		yield* loop(path, next.fleet, encoded);
+	});
+
+const watch = (command: Command) =>
+	Effect.gen(function* () {
+		const here = needsHere(command.sources) ? yield* currentRepo : "";
+		if (here !== "") yield* Console.error(`bare pull request numbers resolve against ${here}, the GitHub repository of the current directory`);
+		const { repos, targets } = resolved(command.sources, here);
+		const path = command.state ?? statePath(targets, repos, command.until);
+		const memory = yield* load(path);
+		yield* loop(path, fleetFrom(targets, repos, command.until, memory), encodeMemory(memory));
 	});
 
 const program = Effect.gen(function* () {
@@ -46,7 +42,7 @@ const program = Effect.gen(function* () {
 		process.exitCode = 2;
 		return;
 	}
-	yield* round(command.success.target, command.success.until, reader(), initial);
+	yield* watch(command.success);
 }).pipe(
 	Effect.catchCause((cause) =>
 		Console.error(Cause.pretty(cause)).pipe(
@@ -57,6 +53,7 @@ const program = Effect.gen(function* () {
 			),
 		),
 	),
+	Effect.provide(NodeServices.layer),
 );
 
 NodeRuntime.runMain(program, { disableErrorReporting: true });

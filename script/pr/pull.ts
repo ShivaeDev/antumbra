@@ -1,11 +1,14 @@
 import { Result, Schema } from "effect";
-import { decoder } from "#pr/decode.ts";
+import { decoder, firstPage, pagesDecoder } from "#pr/decode.ts";
 
-export type Ci = "failed" | "green" | "none" | "pending";
-export type Lifecycle = "closed" | "merged" | "open";
+export const Lifecycle = Schema.Literals(["closed", "merged", "open"]);
+export type Lifecycle = typeof Lifecycle.Type;
 
-export type Pull = { readonly conflict: boolean | undefined; readonly head: string; readonly lifecycle: Lifecycle };
-export type Checks = { readonly ci: Ci; readonly failed: readonly string[] };
+export const Merge = Schema.Literals(["behind", "clean", "conflict"]);
+export type Merge = typeof Merge.Type;
+
+export const Pull = Schema.Struct({ head: Schema.String, lifecycle: Lifecycle, merge: Schema.optional(Merge) });
+export type Pull = typeof Pull.Type;
 
 const PullBody = Schema.Struct({
 	head: Schema.Struct({ sha: Schema.String }),
@@ -14,17 +17,15 @@ const PullBody = Schema.Struct({
 	state: Schema.String,
 });
 
-const ChecksBody = Schema.Struct({
-	check_runs: Schema.Array(Schema.Struct({ conclusion: Schema.NullOr(Schema.String), name: Schema.String, status: Schema.String })),
-});
+const OpenBody = Schema.Array(Schema.Struct({ number: Schema.Number }));
 
-const failedConclusions = new Set(["action_required", "cancelled", "failure", "stale", "startup_failure", "timed_out"]);
-
-const rate = (runs: ReadonlyArray<{ readonly conclusion: string | null; readonly status: string }>): Ci => {
-	if (runs.length === 0) return "none";
-	if (runs.some((run) => run.status !== "completed")) return "pending";
-	if (runs.some((run) => run.conclusion !== null && failedConclusions.has(run.conclusion))) return "failed";
-	return "green";
+const merges: Readonly<Record<string, Merge>> = {
+	behind: "behind",
+	blocked: "clean",
+	clean: "clean",
+	dirty: "conflict",
+	has_hooks: "clean",
+	unstable: "clean",
 };
 
 const lifecycleOf = (merged: boolean, state: string): Lifecycle => {
@@ -33,17 +34,16 @@ const lifecycleOf = (merged: boolean, state: string): Lifecycle => {
 };
 
 const decodePull = decoder(Schema.fromJsonString(PullBody));
-const decodeChecks = decoder(Schema.fromJsonString(ChecksBody));
+const decodeOpen = pagesDecoder(decoder(Schema.fromJsonString(OpenBody)));
 
-export const pullFrom = (body: string): Result.Result<Pull, string> =>
-	Result.map(decodePull(body), (pull) => ({
-		conflict: pull.mergeable_state === "unknown" ? undefined : pull.mergeable_state === "dirty",
-		head: pull.head.sha,
-		lifecycle: lifecycleOf(pull.merged, pull.state),
-	}));
+export const pullFrom = firstPage(
+	(body): Result.Result<Pull, string> =>
+		Result.map(decodePull(body), (pull) => ({
+			head: pull.head.sha,
+			lifecycle: lifecycleOf(pull.merged, pull.state),
+			merge: merges[pull.mergeable_state],
+		})),
+);
 
-export const checksFrom = (body: string): Result.Result<Checks, string> =>
-	Result.map(decodeChecks(body), (checks) => ({
-		ci: rate(checks.check_runs),
-		failed: checks.check_runs.filter((run) => run.conclusion !== null && failedConclusions.has(run.conclusion)).map((run) => run.name),
-	}));
+export const openFrom = (pages: readonly string[]): Result.Result<readonly number[], string> =>
+	Result.map(decodeOpen(pages), (pulls) => pulls.map((pull) => pull.number));

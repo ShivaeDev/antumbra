@@ -13,5 +13,8 @@ For judgment beyond the mechanical gates, follow only the applicable routes in `
 `docs/contributing/pull-requests.md`.
 
 - `pnpm wt new <lane>/<task>` opens the worktree a change is built in; the name must have exactly that shape.
-- `pnpm pr watch <pull request url or number>` prints one JSON line when the pull request needs someone (merged, closed, conflict, changes requested,
-  a failed check once every check has settled, a review or comment) and nothing otherwise; `--until ci` exits with the checks' verdict instead.
+- `pnpm pr watch <pull request | owner/repo>...` prints one JSON line, naming the pull request, when one needs someone (merged, closed, a conflict,
+  its clearing, falling behind, changes requested, checks and commit statuses settling red or green on a head, a new review or comment) and nothing
+  otherwise. `owner/repo` follows every open pull request of that repository, and a bare number means the repository of the current directory. A state
+  file under `~/.antumbra/pr-watch/` (or `--state <file>`) keeps a restart from repeating a line, and a first run takes existing comments as read.
+  `--until ci` exits with one pull request's check verdict instead.

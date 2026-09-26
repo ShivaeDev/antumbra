@@ -1,42 +1,91 @@
 import { Result } from "effect";
 
-export const usage = "usage: pnpm pr watch <pull request url or number> [--until end|ci]";
+export const usage = [
+	"usage: pnpm pr watch <pull request | owner/repo>... [--until end|ci] [--state <file>]",
+	"  a pull request is its link, owner/repo#number, or a bare number in the GitHub repository of the current directory",
+	"  owner/repo watches every open pull request of that repository",
+	"  --until ci takes exactly one pull request",
+].join("\n");
 
 export type Until = "ci" | "end";
 
 export type Target = { readonly number: number; readonly repo: string };
 
-export type Command = { readonly target: Target; readonly until: Until };
+export type Source =
+	| { readonly kind: "pull"; readonly number: number; readonly repo: string | undefined }
+	| { readonly kind: "repo"; readonly repo: string };
 
-const linked = /^https:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/pull\/(\d+)(?:[/?#].*)?$/;
+export type Command = { readonly sources: readonly Source[]; readonly state: string | undefined; readonly until: Until };
+
+const linked = /^https:\/\/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/(\d+)(?:[/?#].*)?$/;
+const qualified = /^([^/\s#]+\/[^/\s#]+)#(\d+)$/;
 const numbered = /^#?(\d+)$/;
+const repository = /^([^/\s#]+\/[^/\s#]+)$/;
 
-export const targetFrom = (spec: string): Target | undefined => {
-	const link = linked.exec(spec);
-	if (link !== null) return { number: Number(link[3]), repo: `${link[1]}/${link[2]}` };
-	const bare = numbered.exec(spec);
-	if (bare !== null) return { number: Number(bare[1]), repo: "{owner}/{repo}" };
-	return undefined;
+export const sourceFrom = (spec: string): Source | undefined => {
+	const [, repo = "", number = ""] = linked.exec(spec) ?? qualified.exec(spec) ?? [];
+	if (repo !== "") return { kind: "pull", number: Number(number), repo };
+	const [, bare] = numbered.exec(spec) ?? [];
+	if (bare !== undefined) return { kind: "pull", number: Number(bare), repo: undefined };
+	const [, whole] = repository.exec(spec) ?? [];
+	return whole === undefined ? undefined : { kind: "repo", repo: whole };
 };
 
-const commandFrom = (spec: string, until: Until): Result.Result<Command, string> => {
-	const target = targetFrom(spec);
-	if (target === undefined) return Result.fail(`not a pull request: "${spec}"\n${usage}`);
-	return Result.succeed({ target, until });
+export const keyOf = (target: Target): string => `${target.repo}#${target.number}`;
+
+const flags = new Set(["--state", "--until"]);
+
+type Parts = { readonly options: ReadonlyMap<string, string>; readonly specs: readonly string[] };
+
+const split = (args: readonly string[]): Parts | undefined => {
+	const options = new Map<string, string>();
+	const specs: string[] = [];
+	for (let index = 0; index < args.length; index += 1) {
+		const arg = args[index] ?? "";
+		const value = args[index + 1];
+		if (!arg.startsWith("-")) {
+			specs.push(arg);
+			continue;
+		}
+		if (!flags.has(arg) || options.has(arg) || value === undefined || value.startsWith("-")) return undefined;
+		options.set(arg, value);
+		index += 1;
+	}
+	return { options, specs };
+};
+
+const sourcesFrom = (specs: readonly string[]): Result.Result<readonly Source[], string> => {
+	const sources: Source[] = [];
+	for (const spec of specs) {
+		const source = sourceFrom(spec);
+		if (source === undefined) return Result.fail(`not a pull request or repository: "${spec}"\n${usage}`);
+		sources.push(source);
+	}
+	return Result.succeed(sources);
 };
 
 export const parseCommand = (args: readonly string[]): Result.Result<Command, string> => {
-	const [verb, spec, flag, value] = args;
-	if (verb !== "watch" || spec === undefined || spec.startsWith("-")) return Result.fail(usage);
-	if (args.length === 2) return commandFrom(spec, "end");
-	if (args.length === 4 && flag === "--until" && (value === "ci" || value === "end")) return commandFrom(spec, value);
-	return Result.fail(usage);
+	const [verb, ...rest] = args;
+	const parts = split(rest);
+	if (verb !== "watch" || parts === undefined || parts.specs.length === 0) return Result.fail(usage);
+	const until = parts.options.get("--until") ?? "end";
+	if (until !== "ci" && until !== "end") return Result.fail(usage);
+	return Result.flatMap(sourcesFrom(parts.specs), (sources) => {
+		if (until === "ci" && (sources.length !== 1 || sources[0]?.kind !== "pull")) return Result.fail(usage);
+		return Result.succeed({ sources, state: parts.options.get("--state"), until });
+	});
 };
 
-const page = "per_page=100";
+type Resolved = { readonly repos: readonly string[]; readonly targets: readonly Target[] };
 
-export const pullPath = (target: Target): string => `repos/${target.repo}/pulls/${target.number}`;
-export const checksPath = (target: Target, head: string): string => `repos/${target.repo}/commits/${head}/check-runs?${page}`;
-export const reviewsPath = (target: Target): string => `repos/${target.repo}/pulls/${target.number}/reviews?${page}`;
-export const reviewCommentsPath = (target: Target): string => `repos/${target.repo}/pulls/${target.number}/comments?${page}`;
-export const issueCommentsPath = (target: Target): string => `repos/${target.repo}/issues/${target.number}/comments?${page}`;
+export const needsHere = (sources: readonly Source[]): boolean => sources.some((source) => source.kind === "pull" && source.repo === undefined);
+
+export const resolved = (sources: readonly Source[], here: string): Resolved => {
+	const targets = new Map<string, Target>();
+	for (const source of sources) {
+		if (source.kind !== "pull") continue;
+		const target = { number: source.number, repo: source.repo ?? here };
+		targets.set(keyOf(target), target);
+	}
+	return { repos: [...new Set(sources.flatMap((source) => (source.kind === "repo" ? [source.repo] : [])))], targets: [...targets.values()] };
+};

@@ -1,47 +1,42 @@
 import type { Until } from "#pr/command.ts";
+import { type Failing, failingFrom, noticed } from "#pr/failing.ts";
+import type { Line } from "#pr/lines.ts";
 import type { Note } from "#pr/notes.ts";
 import { absorb, nothing, type Observation, observationFrom, type Pieces, type Reading } from "#pr/observation.ts";
-import type { Lifecycle } from "#pr/pull.ts";
+import type { Lifecycle, Merge } from "#pr/pull.ts";
 
 export const emptyLimit = 300_000;
-export const errorLimit = 600_000;
 
-export type Line =
-	| { readonly state: "changes-requested" | "ci-green" | "closed" | "conflict" | "merged" | "no-checks" | "superseded"; readonly head: string }
-	| { readonly state: "ci-failed"; readonly head: string; readonly checks: readonly string[] }
-	| { readonly state: "gh-error"; readonly message: string; readonly minutes: number }
-	| Note;
-
-export const render = (line: Line): string => JSON.stringify(line);
-
-export type Failing = { readonly message: string; readonly reported: boolean; readonly since: number };
+type Settled = { readonly ci: "failed" | "green"; readonly head: string };
 
 export type Watch = {
 	readonly armed: string | undefined;
+	readonly backlog: boolean;
 	readonly changesRequested: boolean;
-	readonly conflict: boolean;
 	readonly emptySince: number | undefined;
 	readonly failing: Failing | undefined;
-	readonly failureReported: string | undefined;
 	readonly head: string | undefined;
 	readonly lifecycle: Lifecycle;
+	readonly merge: Merge | undefined;
 	readonly pieces: Pieces;
 	readonly seen: ReadonlySet<string>;
+	readonly settled: Settled | undefined;
 };
 
 export type Step = { readonly exit: number | undefined; readonly lines: readonly Line[]; readonly watch: Watch };
 
 export const initial: Watch = {
 	armed: undefined,
+	backlog: true,
 	changesRequested: false,
-	conflict: false,
 	emptySince: undefined,
 	failing: undefined,
-	failureReported: undefined,
 	head: undefined,
 	lifecycle: "open",
+	merge: undefined,
 	pieces: nothing,
 	seen: new Set(),
+	settled: undefined,
 };
 
 type End = "ci-failed" | "ci-green" | "ended" | "no-checks" | "superseded";
@@ -53,18 +48,7 @@ const exitFor = (until: Until, end: End): number => {
 	return exits[end];
 };
 
-const key = (note: Note): string => `${note.state}:${note.id}`;
-
-const failingFrom = (previous: Failing | undefined, message: string | undefined, now: number): Failing | undefined => {
-	if (message === undefined) return undefined;
-	return previous === undefined ? { message, reported: false, since: now } : { ...previous, message };
-};
-
-const complaint = (failing: Failing, now: number): Line => ({
-	state: "gh-error",
-	message: failing.message,
-	minutes: Math.floor((now - failing.since) / 60_000),
-});
+export const noteKey = (note: Note): string => `${note.state}:${note.id}`;
 
 const emptySinceFor = (watch: Watch, now: number, observation: Observation): number | undefined => {
 	if (observation.ci !== "none") return undefined;
@@ -80,59 +64,76 @@ const endFor = (until: Until, observation: Observation, armed: string, expired: 
 	return expired ? "no-checks" : undefined;
 };
 
-const ended = (watch: Watch, observation: Observation): readonly Line[] => {
-	if (observation.lifecycle === "open" || observation.lifecycle === watch.lifecycle) return [];
+const failure = (observation: Observation): Line => ({ state: "ci-failed", head: observation.head, ...observation.failed });
+
+const settling = (
+	watch: Watch,
+	until: Until,
+	observation: Observation,
+): { readonly lines: readonly Line[]; readonly settled: Settled | undefined } => {
+	const ci = observation.ci;
+	if (ci !== "failed" && ci !== "green") return { lines: [], settled: watch.settled };
+	if (watch.settled?.ci === ci && watch.settled.head === observation.head) return { lines: [], settled: watch.settled };
+	const line: Line = ci === "green" ? { state: "ci-green", head: observation.head } : failure(observation);
+	return { lines: until === "end" ? [line] : [], settled: { ci, head: observation.head } };
+};
+
+const merging = (previous: Merge | undefined, next: Merge | undefined, head: string): readonly Line[] => {
+	if (next === undefined || next === previous) return [];
+	if (next !== "clean") return [{ state: next, head }];
+	return previous === undefined ? [] : [{ state: "mergeable", head }];
+};
+
+const ended = (until: Until, watch: Watch, observation: Observation): readonly Line[] => {
+	if (observation.lifecycle === "open") return [];
+	if (until === "end" && observation.lifecycle === watch.lifecycle) return [];
 	return [{ state: observation.lifecycle, head: observation.head }];
 };
 
 const verdict = (until: Until, end: End | undefined, observation: Observation): readonly Line[] => {
-	if (until === "end" || end === undefined || end === "ci-failed" || end === "ended") return [];
-	return [{ state: end, head: observation.head }];
+	if (until === "end" || end === undefined || end === "ended") return [];
+	return [end === "ci-failed" ? failure(observation) : { state: end, head: observation.head }];
 };
 
 const advance = (watch: Watch, until: Until, now: number, observation: Observation, pieces: Pieces, failing: Failing | undefined): Step => {
 	const armed = watch.armed ?? observation.head;
-	const conflict = observation.conflict ?? watch.conflict;
-	const red = observation.ci === "failed" && watch.failureReported !== observation.head;
+	const merge = observation.merge ?? watch.merge;
 	const emptySince = emptySinceFor(watch, now, observation);
 	const end = endFor(until, observation, armed, emptySince !== undefined && now - emptySince >= emptyLimit);
-	const fresh = observation.notes.filter((note) => !watch.seen.has(key(note)));
+	const fresh = observation.notes.filter((note) => !watch.seen.has(noteKey(note)));
+	const ci = settling(watch, until, observation);
 	return {
 		exit: end === undefined ? undefined : exitFor(until, end),
 		lines: [
-			...fresh,
-			...(red ? [{ state: "ci-failed" as const, head: observation.head, checks: observation.failed }] : []),
-			...(conflict && !watch.conflict ? [{ state: "conflict" as const, head: observation.head }] : []),
+			...(watch.backlog ? [] : fresh),
+			...ci.lines,
+			...merging(watch.merge, merge, observation.head),
 			...(observation.changesRequested && !watch.changesRequested ? [{ state: "changes-requested" as const, head: observation.head }] : []),
-			...ended(watch, observation),
+			...ended(until, watch, observation),
 			...verdict(until, end, observation),
 		],
 		watch: {
 			armed,
+			backlog: watch.backlog && failing !== undefined,
 			changesRequested: observation.changesRequested,
-			conflict,
 			emptySince,
 			failing,
-			failureReported: red ? observation.head : watch.failureReported,
 			head: observation.head,
 			lifecycle: observation.lifecycle,
+			merge,
 			pieces,
-			seen: new Set([...watch.seen, ...fresh.map(key)]),
+			seen: new Set([...watch.seen, ...fresh.map(noteKey)]),
+			settled: ci.settled,
 		},
 	};
 };
 
 export const step = (watch: Watch, until: Until, now: number, reading: Reading): Step => {
 	const absorbed = absorb(watch.pieces, reading);
-	const failing = failingFrom(watch.failing, absorbed.error, now);
-	const due = failing !== undefined && !failing.reported && now - failing.since >= errorLimit;
+	const complaint = noticed(failingFrom(watch.failing, absorbed.error, now), now);
 	const observation = observationFrom(absorbed.pieces);
-	if (observation === undefined) {
-		const lines = failing === undefined ? [] : [complaint(failing, now)];
-		return { exit: 2, lines, watch: { ...watch, failing, pieces: absorbed.pieces } };
-	}
-	const carried = due && failing !== undefined ? { ...failing, reported: true } : failing;
-	const progress = advance(watch, until, now, observation, absorbed.pieces, carried);
-	const noticed = due && failing !== undefined ? [complaint(failing, now)] : [];
-	return { ...progress, lines: [...noticed, ...progress.lines] };
+	if (observation === undefined)
+		return { exit: undefined, lines: complaint.lines, watch: { ...watch, failing: complaint.failing, pieces: absorbed.pieces } };
+	const progress = advance(watch, until, now, observation, absorbed.pieces, complaint.failing);
+	return { ...progress, lines: [...complaint.lines, ...progress.lines] };
 };

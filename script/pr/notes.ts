@@ -1,24 +1,31 @@
 import { Result, Schema } from "effect";
-import { decoder } from "#pr/decode.ts";
+import { decoder, pagesDecoder } from "#pr/decode.ts";
 
-export type Verdict = "approved" | "changes-requested" | "commented";
+const Verdict = Schema.Literals(["approved", "changes-requested", "commented"]);
+type Verdict = typeof Verdict.Type;
 
-export type Note =
-	| { readonly state: "review"; readonly id: number; readonly author: string; readonly verdict: Verdict; readonly body: string; readonly url: string }
-	| {
-			readonly state: "review-comment";
-			readonly id: number;
-			readonly author: string;
-			readonly path: string;
-			readonly line: number | null;
-			readonly reply: boolean;
-			readonly body: string;
-			readonly url: string;
-	  }
-	| { readonly state: "comment"; readonly id: number; readonly author: string; readonly body: string; readonly url: string };
+const said = { id: Schema.Number, author: Schema.String };
 
-export type Reviews = { readonly changesRequested: boolean; readonly notes: readonly Note[]; readonly pending: readonly number[] };
-export type Inline = { readonly note: Note; readonly review: number | null };
+export const Note = Schema.Union([
+	Schema.Struct({ state: Schema.Literal("review"), ...said, verdict: Verdict, body: Schema.String, url: Schema.String }),
+	Schema.Struct({
+		state: Schema.Literal("review-comment"),
+		...said,
+		path: Schema.String,
+		line: Schema.NullOr(Schema.Number),
+		reply: Schema.Boolean,
+		body: Schema.String,
+		url: Schema.String,
+	}),
+	Schema.Struct({ state: Schema.Literal("comment"), ...said, body: Schema.String, url: Schema.String }),
+]);
+export type Note = typeof Note.Type;
+
+export const Reviews = Schema.Struct({ changesRequested: Schema.Boolean, notes: Schema.Array(Note), pending: Schema.Array(Schema.Number) });
+export type Reviews = typeof Reviews.Type;
+
+export const Inline = Schema.Struct({ note: Note, review: Schema.NullOr(Schema.Number) });
+export type Inline = typeof Inline.Type;
 
 const User = Schema.Struct({ login: Schema.String });
 
@@ -54,12 +61,12 @@ const decidedBy = (reviews: ReadonlyArray<{ readonly state: string; readonly use
 	return [...latest.values()].includes("CHANGES_REQUESTED");
 };
 
-const decodeReviews = decoder(Schema.fromJsonString(ReviewsBody));
-const decodeInline = decoder(Schema.fromJsonString(InlineBody));
-const decodeComments = decoder(Schema.fromJsonString(CommentsBody));
+const decodeReviews = pagesDecoder(decoder(Schema.fromJsonString(ReviewsBody)));
+const decodeInline = pagesDecoder(decoder(Schema.fromJsonString(InlineBody)));
+const decodeComments = pagesDecoder(decoder(Schema.fromJsonString(CommentsBody)));
 
-export const reviewsFrom = (body: string): Result.Result<Reviews, string> =>
-	Result.map(decodeReviews(body), (reviews) => ({
+export const reviewsFrom = (pages: readonly string[]): Result.Result<Reviews, string> =>
+	Result.map(decodeReviews(pages), (reviews) => ({
 		changesRequested: decidedBy(reviews),
 		notes: reviews
 			.filter((review) => review.state !== "PENDING")
@@ -74,8 +81,8 @@ export const reviewsFrom = (body: string): Result.Result<Reviews, string> =>
 		pending: reviews.filter((review) => review.state === "PENDING").map((review) => review.id),
 	}));
 
-export const inlineFrom = (body: string): Result.Result<readonly Inline[], string> =>
-	Result.map(decodeInline(body), (comments) =>
+export const inlineFrom = (pages: readonly string[]): Result.Result<readonly Inline[], string> =>
+	Result.map(decodeInline(pages), (comments) =>
 		comments.map((comment) => ({
 			note: {
 				state: "review-comment" as const,
@@ -91,8 +98,8 @@ export const inlineFrom = (body: string): Result.Result<readonly Inline[], strin
 		})),
 	);
 
-export const commentsFrom = (body: string): Result.Result<readonly Note[], string> =>
-	Result.map(decodeComments(body), (comments) =>
+export const commentsFrom = (pages: readonly string[]): Result.Result<readonly Note[], string> =>
+	Result.map(decodeComments(pages), (comments) =>
 		comments.map((comment) => ({
 			state: "comment" as const,
 			id: comment.id,

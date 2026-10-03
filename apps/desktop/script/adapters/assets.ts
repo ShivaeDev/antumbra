@@ -19,7 +19,7 @@ export const copySkillAssets = (desktopRoot: string) =>
 
 export const copyOpencodePluginAssets = (desktopRoot: string) =>
 	Effect.sync(() => {
-		const source = dirname(fileURLToPath(import.meta.resolve("@antumbra/runner/backends/opencode/plugin/caller-session.js")));
+		const source = dirname(fileURLToPath(import.meta.resolve("@antumbra/runner/backends/opencode/adapters/plugin/caller-session.ts")));
 		const target = join(desktopRoot, "out", "opencode");
 		rmSync(target, { force: true, recursive: true });
 		mkdirSync(target, { recursive: true });

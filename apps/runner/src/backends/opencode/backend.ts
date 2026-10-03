@@ -18,7 +18,7 @@ export interface OpencodeOptions {
 
 export const makeOpencodeBackend = Effect.fn("OpenCode.makeBackend")(function* (options: OpencodeOptions) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-	const plugin = options.plugin ?? fileURLToPath(new URL("./plugin/caller-session.js", import.meta.url));
+	const plugin = options.plugin ?? fileURLToPath(new URL("./adapters/plugin/caller-session.ts", import.meta.url));
 	const liveServer = Effect.fn("OpenCode.sessionServer")(function* (definitions: ReadonlyArray<ToolDefinition>, constrained: boolean) {
 		const sessions = makeToolSessions(definitions.map((tool) => tool.name));
 		const tools = yield* serveToolRequests(answerToolRequest(definitions, sessions));

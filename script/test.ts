@@ -22,7 +22,7 @@ const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 				stdout: "inherit",
 				stderr: "inherit",
 				extendEnv: true,
-				env: { NODE_OPTIONS: `${nodeOptions}${process.allowedNodeEnvironmentFlags.has("--no-webstorage") ? " --no-webstorage" : ""}` },
+				env: { NODE_OPTIONS: `${nodeOptions}${process.allowedNodeEnvironmentFlags.has("--webstorage") ? " --no-webstorage" : ""}` },
 			},
 		),
 	);

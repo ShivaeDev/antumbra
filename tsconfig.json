@@ -3,5 +3,8 @@
 	"compilerOptions": {
 		"resolveJsonModule": true
 	},
-	"include": ["script"]
+	"include": [
+		"script",
+		".dependency-cruiser.ts"
+	]
 }

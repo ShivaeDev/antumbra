@@ -56,13 +56,11 @@ export const cruiseBoundaries = async ({ analysisRoot, repositoryRoot, sourceRoo
 			return nextResolve(specifier, context);
 		},
 	});
-	const [{ cruise }, { default: extractOptions }] = await Promise.all([
+	const [{ cruise }, { default: configuration }] = await Promise.all([
 		import("dependency-cruiser"),
-		import("dependency-cruiser/config-utl/extract-depcruise-options"),
+		import(pathToFileURL(join(repositoryRoot, ".dependency-cruiser.ts")).href),
 	]);
-	const options = await extractOptions(join(repositoryRoot, ".dependency-cruiser.mjs"));
-	options.outputType = "json";
-	options.baseDir = analysisRoot;
+	const options = { ...configuration.options, validate: true, ruleSet: configuration, outputType: "json" as const, baseDir: analysisRoot };
 	const cruiseResult = await cruise([...sourceRoots], options);
 	const report = Schema.decodeUnknownSync(CruiseReport)(
 		typeof cruiseResult.output === "string" ? JSON.parse(cruiseResult.output) : cruiseResult.output,

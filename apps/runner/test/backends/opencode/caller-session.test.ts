@@ -1,4 +1,4 @@
-import callerSession from "@antumbra/runner/backends/opencode/plugin/caller-session.js";
+import callerSession from "@antumbra/runner/backends/opencode/adapters/plugin/caller-session.ts";
 import { wireName } from "@antumbra/runner-backends-opencode/tool-names.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";

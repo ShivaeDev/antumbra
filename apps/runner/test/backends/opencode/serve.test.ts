@@ -19,7 +19,7 @@ const OPTIONS = {
 	command: "/opt/homebrew/bin/opencode",
 	constrained: false,
 	cwd: "/moorage",
-	plugin: "/antumbra/opencode/caller-session.js",
+	plugin: "/antumbra/opencode/caller-session.ts",
 	skills: "/antumbra/skills",
 	tools: "http://127.0.0.1:52001",
 };
@@ -68,7 +68,7 @@ it.effect("asks for a port the machine handed out, naming Antumbra's skills, too
 					env: {
 						OPENCODE_CONFIG_CONTENT: JSON.stringify({
 							mcp: { antumbra: { timeout: 300_000, type: "remote", url: "http://127.0.0.1:52001" } },
-							plugin: ["file:///antumbra/opencode/caller-session.js"],
+							plugin: ["file:///antumbra/opencode/caller-session.ts"],
 							skills: { paths: ["/antumbra/skills"] },
 						}),
 					},
@@ -89,7 +89,7 @@ it.effect("the constrained server drops the admiral's configuration, offers no s
 					env: {
 						OPENCODE_CONFIG_CONTENT: JSON.stringify({
 							mcp: { antumbra: { timeout: 300_000, type: "remote", url: "http://127.0.0.1:52001" } },
-							plugin: ["file:///antumbra/opencode/caller-session.js"],
+							plugin: ["file:///antumbra/opencode/caller-session.ts"],
 							agent: { antumbra: { prompt: "Follow the instructions in the system message." } },
 						}),
 						OPENCODE_DISABLE_CLAUDE_CODE_PROMPT: "1",

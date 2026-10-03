@@ -14,7 +14,7 @@ beforeEach(() => {
 
 it.effect("omits unavailable CLI backends while retaining the embedded Pi backend", () =>
 	Effect.gen(function* () {
-		const registered = yield* backends({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills", plugin: "/tmp/antumbra/opencode/caller-session.js" });
+		const registered = yield* backends({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills", plugin: "/tmp/antumbra/opencode/caller-session.ts" });
 		expect([...registered.keys()]).toEqual(["pi"]);
 	}).pipe(Effect.provide(NodeServices.layer)),
 );
@@ -22,7 +22,7 @@ it.effect("omits unavailable CLI backends while retaining the embedded Pi backen
 it.live("registers all installed CLI backends without opening a provider session", () =>
 	Effect.gen(function* () {
 		vi.mocked(findOnLoginPath).mockImplementation((name) => Effect.succeed(Option.some(`/cli/${name}`)));
-		const registered = yield* backends({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills", plugin: "/tmp/antumbra/opencode/caller-session.js" });
+		const registered = yield* backends({ cwd: "/tmp/antumbra", skills: "/tmp/antumbra/skills", plugin: "/tmp/antumbra/opencode/caller-session.ts" });
 		expect([...registered.keys()]).toEqual(["claude", "codex", "opencode", "pi"]);
 	}).pipe(Effect.provide(NodeServices.layer)),
 );

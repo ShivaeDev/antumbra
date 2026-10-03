@@ -19,6 +19,9 @@ address in an ordinary browser tab to run the same window against the running se
 Use Node 26.10.0 and pnpm 12.8.1. The root `packageManager` includes the registry integrity hash, and `.node-version` records the runtime. CI uses
 these same pins.
 
+The package Node requirement is `>=24`, so deployment hosts such as Vercel can use Node 24. Local development and CI use the pinned Node 26.10.0
+runtime.
+
 ```sh
 corepack enable
 pnpm install --frozen-lockfile

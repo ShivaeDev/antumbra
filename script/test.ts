@@ -17,7 +17,13 @@ const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 		ChildProcess.make(
 			process.execPath,
 			[fileURLToPath(new URL("./vitest.mjs", import.meta.resolve("vitest/package.json"))), "run", ...settings, ...process.argv.slice(2)],
-			{ stdin: "inherit", stdout: "inherit", stderr: "inherit", extendEnv: true, env: { NODE_OPTIONS: `${nodeOptions} --no-webstorage` } },
+			{
+				stdin: "inherit",
+				stdout: "inherit",
+				stderr: "inherit",
+				extendEnv: true,
+				env: { NODE_OPTIONS: `${nodeOptions}${process.allowedNodeEnvironmentFlags.has("--no-webstorage") ? " --no-webstorage" : ""}` },
+			},
 		),
 	);
 });

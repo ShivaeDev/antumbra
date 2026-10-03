@@ -12,11 +12,12 @@ const retried = ["--retry=2", "--reporter=default", "--reporter=github-actions",
 
 const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+	const nodeOptions = yield* Config.string("NODE_OPTIONS").pipe(Config.withDefault(""));
 	return yield* spawner.exitCode(
 		ChildProcess.make(
 			process.execPath,
 			[fileURLToPath(new URL("./vitest.mjs", import.meta.resolve("vitest/package.json"))), "run", ...settings, ...process.argv.slice(2)],
-			{ stdin: "inherit", stdout: "inherit", stderr: "inherit" },
+			{ stdin: "inherit", stdout: "inherit", stderr: "inherit", extendEnv: true, env: { NODE_OPTIONS: `${nodeOptions} --no-webstorage` } },
 		),
 	);
 });

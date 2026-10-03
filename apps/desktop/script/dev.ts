@@ -1,5 +1,5 @@
 import { dirname } from "node:path";
-import { Console, Effect } from "effect";
+import { Config, Console, Effect } from "effect";
 import { exitAsksForRestart } from "#restart-exit-code.ts";
 import { copyOpencodePluginAssets, copySkillAssets } from "#script/adapters/assets.ts";
 import { closeWatcher, watchMainAndPreload } from "#script/adapters/bundler.ts";
@@ -8,7 +8,7 @@ import { startRendererServer, stopRendererServer } from "#script/adapters/render
 import { runMain } from "#script/adapters/run.ts";
 
 const desktopRoot = dirname(import.meta.dirname);
-const RENDERER_PORT = 5183;
+const RENDERER_PORT = Effect.runSync(Config.int("ANTUMBRA_RENDERER_PORT").pipe(Config.withDefault(5183)));
 
 const restartPending = (): void => {
 	Effect.runSync(Console.log("core restart pending — main-process bundle rebuilt; restart the app to adopt it"));

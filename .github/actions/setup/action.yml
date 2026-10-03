@@ -15,7 +15,7 @@ runs:
     - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 24
+        node-version: 26.10.0
         cache: ${{ inputs.save-cache == 'true' && 'pnpm' || '' }}
     - id: store
       if: inputs.save-cache != 'true'

@@ -1,5 +1,4 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { Schema } from "effect";
-import { PieceId } from "#ids.ts";
+import { PieceParked } from "@antumbra/platform-vocabulary/piece.ts";
 
-export const pieceParked = fact("PieceParked", { id: PieceId, parkedAt: Schema.String });
+export const pieceParked = fact("PieceParked", PieceParked.fields);

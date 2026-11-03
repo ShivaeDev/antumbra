@@ -1,0 +1,29 @@
+import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { PieceId } from "@antumbra/platform-vocabulary/piece.ts";
+import { VoyageId } from "@antumbra/platform-vocabulary/voyage.ts";
+
+export const reef = VoyageId.make("voyage:reef");
+export const opening = {
+	captainBackend: null,
+	captainEffort: null,
+	captainModel: null,
+	crewBackend: null,
+	crewEffort: null,
+	crewModel: null,
+	context: "the reef is uncharted",
+	kind: "voyage",
+	name: "Chart the reef",
+	northStar: "every shoal is known",
+	requestId: Request.make(reef),
+} as const;
+export const request = (name: string) => Request.make(name);
+export const pieceOf = (name: string) => PieceId.make(`piece:${name}`);
+export const chartering = (name: string, dependsOn: readonly string[] = []) => ({
+	voyageId: reef,
+	title: name,
+	charter: `sound ${name}`,
+	expectation: `${name} is landed`,
+	role: "hand",
+	dependsOn,
+	requestId: request(pieceOf(name)),
+});

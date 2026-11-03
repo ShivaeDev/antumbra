@@ -39,9 +39,9 @@ Add `--target postgres` to `fixture check` to also start an app-owned PostgreSQL
 an isolated database cloned from that migrated template. `fixture capture <label> --target postgres` captures the same journal archive and immediately
 runs that check. The PostgreSQL database, templates, instance and socket are released when the check ends.
 
-The PostgreSQL composition currently establishes only the storage namespace. Domain data still belongs to the journal; the check validates captured
-domain reads there and PostgreSQL schema readiness separately. Domain storage changes must add their fixture mappings and readout comparisons as they
-move to PostgreSQL. A successful schema check does not prove that archived domain data has moved.
+The PostgreSQL check replays captured Voyage and Piece facts through the published events store and rebuilds their projections. It compares Piece
+rows, edges, progress and Voyage membership with the journal. Outcome, assignment and ruling-gate rows from domains that still use the journal enter
+as typed Piece progress observations, so their contribution to Piece progress also survives a rebuild. Other domain storage remains on the journal.
 
 These checks and `pnpm test:app` require PostgreSQL server and client binaries. Set `ANTUMBRA_POSTGRES_BIN_DIRECTORY` to their directory when they are
 outside `PATH` and the directory reported by `pg_config --bindir`. Missing binaries fail the tests; PostgreSQL stories never skip. Application time in

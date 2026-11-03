@@ -1,5 +1,9 @@
+import { PieceHistory } from "@antumbra/server-journal/postgres/pieces/service.ts";
+import { rebuild } from "@antumbra/server-journal/postgres/rebuild.ts";
 import { postgresTests } from "@antumbra/server-journal/postgres/testing.ts";
 import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
+import { PiecesContract } from "@antumbra/server-pieces/contract.ts";
+import { pieces } from "@antumbra/server-pieces/handlers.ts";
 import { VoyagesContract } from "@antumbra/server-voyages/contract.ts";
 import { voyages } from "@antumbra/server-voyages/handlers.ts";
 import { NodeServices } from "@effect/platform-node";
@@ -10,11 +14,12 @@ import { Clock, Data, Effect, Layer, Ref } from "effect";
 import { RpcTest } from "effect/rpc";
 import { TestClock } from "effect/testing";
 import { journalComparison } from "#test-support/journal-comparison.ts";
+import { observeJournal } from "#test-support/journal-evidence.ts";
 import { replayJournal } from "#test-support/journal-replay.ts";
 
 class Rejected extends Data.TaggedError("VoyageStoryRejected") {}
 
-export const postgresApplication = voyages.pipe(Layer.provideMerge(VoyageHistory.layer));
+export const postgresApplication = Layer.merge(voyages, pieces).pipe(Layer.provideMerge(Layer.merge(VoyageHistory.layer, PieceHistory.layer)));
 
 const create = Effect.fn("PostgresApp.create")(function* () {
 	const published = yield* Ref.make<readonly unknown[]>([]);
@@ -23,10 +28,18 @@ const create = Effect.fn("PostgresApp.create")(function* () {
 	const services = yield* Layer.build(application);
 	const api = yield* RpcTest.makeClient(VoyagesContract.application).pipe(Effect.provideContext(services));
 	const history = yield* VoyageHistory.pipe(Effect.provideContext(services));
+	const pieceApi = yield* RpcTest.makeClient(PiecesContract.application).pipe(Effect.provideContext(services));
+	const pieceHistory = yield* PieceHistory.pipe(Effect.provideContext(services));
 	return {
-		api,
+		api: { ...api, ...pieceApi },
+		rebuild: () => rebuild().pipe(Effect.provideContext(services)),
+		pieceHistory,
+		transaction: <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+			transact(effect, { onSqlError: (error) => error }).pipe(Effect.provideContext(services)),
 		journal: journalComparison,
 		replayJournal: (journal: Effect.Success<ReturnType<typeof journalComparison>>) => replayJournal(journal).pipe(Effect.provideContext(services)),
+		observeJournal: (journal: Effect.Success<ReturnType<typeof journalComparison>>, requestId: Parameters<typeof observeJournal>[1]) =>
+			observeJournal(journal, requestId).pipe(Effect.provideContext(services)),
 		history,
 		published: () => Ref.get(published),
 		clearPublished: () => Ref.set(published, []),

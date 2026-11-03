@@ -1,6 +1,6 @@
-import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { PieceId as IdSchema } from "@antumbra/platform-vocabulary/piece.ts";
 
-export const PieceId = Id.brand("PieceId");
+export const PieceId = IdSchema;
 export type PieceId = typeof PieceId.Type;
 
 export const edgeId = (from: PieceId, to: PieceId): string => `${from}/${to}`;

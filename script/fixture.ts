@@ -30,7 +30,7 @@ const check = Effect.fn("Fixture.check")(function* (selector: string, target: Ta
 		}),
 	);
 	yield* Console.log(
-		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL Voyage history and rows match" : ""}.`,
+		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL Voyage and Piece histories and rows match" : ""}.`,
 	);
 });
 

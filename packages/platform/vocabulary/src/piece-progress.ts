@@ -1,20 +1,12 @@
-import type { RowValue } from "@antumbra/platform-feature/row.ts";
-import type { PieceId } from "#ids.ts";
-import type { piece } from "#rows/piece.ts";
-import type { pieceAssignmentWork } from "#rows/piece-assignment-work.ts";
-import type { pieceEdge } from "#rows/piece-edge.ts";
-import type { pieceOutcome } from "#rows/piece-outcome.ts";
-import type { pieceProgress } from "#rows/piece-progress.ts";
-import type { pieceRulingGate } from "#rows/piece-ruling-gate.ts";
-
-type Piece = RowValue<typeof piece>;
+import type { Piece, PieceEdge, PieceId, PieceProgress } from "#piece.ts";
+import type { PieceAssignmentWork, PieceOutcome, PieceRulingGate } from "#piece-evidence.ts";
 
 interface Evidence {
-	readonly pieces: readonly RowValue<typeof piece>[];
-	readonly outcomes: readonly RowValue<typeof pieceOutcome>[];
-	readonly assignments: readonly RowValue<typeof pieceAssignmentWork>[];
-	readonly edges: readonly RowValue<typeof pieceEdge>[];
-	readonly gates: readonly RowValue<typeof pieceRulingGate>[];
+	readonly pieces: readonly (typeof Piece.Type)[];
+	readonly outcomes: readonly (typeof PieceOutcome.Type)[];
+	readonly assignments: readonly (typeof PieceAssignmentWork.Type)[];
+	readonly edges: readonly (typeof PieceEdge.Type)[];
+	readonly gates: readonly (typeof PieceRulingGate.Type)[];
 }
 
 interface Settlement {
@@ -38,7 +30,7 @@ const settlements = (evidence: Evidence): Settlement => {
 	return { done, abandoned, landing };
 };
 
-const stateOf = (piece: Piece, evidence: Evidence, settled: Settlement): RowValue<typeof pieceProgress>["state"] => {
+const stateOf = (piece: typeof Piece.Type, evidence: Evidence, settled: Settlement): (typeof PieceProgress.Type)["state"] => {
 	if (settled.abandoned.has(piece.id)) return "abandoned";
 	if (settled.done.has(piece.id)) return "done";
 	if (piece.parkedAt !== null) return "parked";
@@ -48,7 +40,7 @@ const stateOf = (piece: Piece, evidence: Evidence, settled: Settlement): RowValu
 	return settled.landing.has(piece.id) ? "landing" : "ready";
 };
 
-export const progressOf = (evidence: Evidence): readonly RowValue<typeof pieceProgress>[] => {
+export const progressOf = (evidence: Evidence): readonly (typeof PieceProgress.Type)[] => {
 	const settled = settlements(evidence);
 	const working = new Set(evidence.assignments.filter((assignment) => assignment.working).map((assignment) => assignment.pieceId));
 	return evidence.pieces.map((piece) => {

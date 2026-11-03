@@ -1,7 +1,7 @@
 import { voyagePieceProgress } from "@antumbra/domain-voyages/rows/voyage-piece-progress.ts";
 import { projection } from "@antumbra/platform-feature/projection.ts";
+import { progressOf } from "@antumbra/platform-vocabulary/piece-progress.ts";
 import { Effect, Option, Schema } from "effect";
-import { progressOf } from "#materializers/states.ts";
 import { piece } from "#rows/piece.ts";
 import { pieceAssignmentWork } from "#rows/piece-assignment-work.ts";
 import { pieceEdge } from "#rows/piece-edge.ts";

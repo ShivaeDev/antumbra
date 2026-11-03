@@ -1,5 +1,4 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { PieceId } from "#ids.ts";
+import { PieceEdge } from "@antumbra/platform-vocabulary/piece.ts";
 
-export const pieceEdge = row("pieceEdge", { id: Schema.String, from: PieceId, to: PieceId }, { key: "id", scope: "to" });
+export const pieceEdge = row("pieceEdge", PieceEdge.fields, { key: "id", scope: "to" });

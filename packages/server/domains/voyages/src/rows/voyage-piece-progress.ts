@@ -1,15 +1,4 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { VoyageId } from "#ids.ts";
+import { VoyagePieceProgress } from "@antumbra/platform-vocabulary/piece.ts";
 
-export const voyagePieceProgress = row(
-	"voyagePieceProgress",
-	{
-		id: Schema.String,
-		voyageId: VoyageId,
-		state: Schema.Literals(["abandoned", "active", "blocked", "done", "held", "landing", "parked", "ready"]),
-		lastStirredAt: Schema.NullOr(Schema.String),
-		concluded: Schema.Boolean,
-	},
-	{ key: "id", scope: "voyageId" },
-);
+export const voyagePieceProgress = row("voyagePieceProgress", VoyagePieceProgress.fields, { key: "id", scope: "voyageId" });

@@ -1,14 +1,4 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { PieceId } from "#ids.ts";
+import { PieceAssignmentWork } from "@antumbra/platform-vocabulary/piece-evidence.ts";
 
-export const pieceAssignmentWork = row(
-	"pieceAssignmentWork",
-	{
-		id: Schema.String,
-		pieceId: PieceId,
-		agentId: Schema.String,
-		working: Schema.Boolean,
-	},
-	{ key: "id", scope: "pieceId" },
-);
+export const pieceAssignmentWork = row("pieceAssignmentWork", PieceAssignmentWork.fields, { key: "id", scope: "pieceId" });

@@ -4,6 +4,19 @@ import { RunnerFabric } from "#fabric.ts";
 import { RunnerLog } from "#log.ts";
 import { fixture, start } from "#test/fixture.ts";
 
+it.effect("releases attached provider resources when the fabric layer closes", () =>
+	Effect.gen(function* () {
+		const test = yield* fixture;
+		yield* Effect.gen(function* () {
+			const fabric = yield* RunnerFabric;
+			expect(yield* fabric.execute(start)).toEqual({ type: "Accepted" });
+			expect(yield* fabric.attached()).toEqual(new Set(["session"]));
+			expect(yield* Deferred.isDone(test.released)).toBe(false);
+		}).pipe(Effect.provide(test.live));
+		expect(yield* Deferred.isDone(test.released)).toBe(true);
+	}),
+);
+
 it.effect("queues the first input when it is needed to announce native identity", () =>
 	Effect.gen(function* () {
 		const test = yield* fixture;

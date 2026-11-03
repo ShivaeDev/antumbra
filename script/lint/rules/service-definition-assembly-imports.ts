@@ -55,7 +55,7 @@ export const serviceAssemblyImports = (source: ts.SourceFile): ServiceAssemblyIm
 		const imported = valueImport(statement);
 		if (imported === undefined) continue;
 		collectValueImports(imported.clause, values);
-		if (imported.module === "@antumbra/platform-service-definition/define-service.ts") {
+		if (imported.module === "@shivaedev/service/defineService.ts") {
 			collectDefinitionImport(imported.clause, definitions, unsupported);
 		}
 		if (imported.module === "effect") {

@@ -1,4 +1,4 @@
-import * as Form from "@antumbra/glass-form/form.ts";
+import * as Form from "@shivaedev/form/form.ts";
 import { Effect, Layer } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -28,7 +28,7 @@ function spotted(failure: unknown): unknown {
 }
 
 const generate = (editables: readonly Editable[], identity: Held, values: Held, send: Sending, sent: () => void) =>
-	Form.make(schemaOf(editables), {
+	Form.form(schemaOf(editables), {
 		initialValues: values,
 		onSubmit: (chosen, submitter) =>
 			Effect.catch(send({ ...identity, ...chosen }), (failure) => {

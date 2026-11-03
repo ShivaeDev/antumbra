@@ -27,10 +27,10 @@
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/glass-form": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@shivaedev/form": "catalog:"
 	}
 }

@@ -35,7 +35,6 @@
 		"effect": "catalog:",
 		"react": "catalog:",
 		"@antumbra/domain-repos": "workspace:*",
-		"@antumbra/glass-form": "workspace:*",
 		"@antumbra/domain-changes": "workspace:*",
 		"@antumbra/domain-pieces": "workspace:*",
 		"@antumbra/domain-sessions": "workspace:*",

@@ -3,6 +3,7 @@ import { snapshotJournal } from "@antumbra/server-journal/testing/snapshot.ts";
 import { Effect, Layer } from "effect";
 import { Reactivity } from "effect/reactivity";
 import { definition, layer } from "#app.ts";
+import { connectRunner } from "#runner.ts";
 
 export const journalComparison = Effect.fn("PostgresApp.journalComparison")(function* () {
 	const services = yield* Layer.build(layer);
@@ -10,6 +11,7 @@ export const journalComparison = Effect.fn("PostgresApp.journalComparison")(func
 	const reactivity = yield* Reactivity.Reactivity.pipe(Effect.provideContext(services));
 	return {
 		api,
+		runner: (registration: Parameters<typeof connectRunner>[0]) => connectRunner(registration).pipe(Effect.provideContext(services)),
 		snapshot: (filename: string) => snapshotJournal(filename).pipe(Effect.provideContext(services)),
 		watchKeys: (keys: readonly string[]) =>
 			Effect.gen(function* () {

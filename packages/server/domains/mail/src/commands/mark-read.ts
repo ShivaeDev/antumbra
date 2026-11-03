@@ -1,8 +1,8 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import { Clock, Effect, Schema } from "effect";
 import { addressed } from "#commands/addressed.ts";
 import { messageRead } from "#facts/message-read.ts";
-import { MessageId } from "#ids.ts";
 import { message } from "#rows/message.ts";
 
 export const markRead = command("markRead", {

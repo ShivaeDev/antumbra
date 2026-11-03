@@ -6,8 +6,8 @@ import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import { Clock, Effect, Schema } from "effect";
-import { MessageId } from "#ids.ts";
 import { dueMail, MailBatch, quietEnd } from "#queries/due-mail.ts";
 import { message } from "#rows/message.ts";
 

@@ -1,6 +1,6 @@
 import { identity } from "@antumbra/domain-agents/ids.ts";
-import { MessageId } from "@antumbra/domain-mail/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 
 export const HAND_REQUEST = Id.Request.make("agent-hand");
 

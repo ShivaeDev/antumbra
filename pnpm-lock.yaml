@@ -834,6 +834,9 @@ importers:
       '@antumbra/server-journal':
         specifier: workspace:*
         version: link:../../packages/server/journal
+      '@antumbra/server-mail':
+        specifier: workspace:*
+        version: link:../../packages/server/mail
       '@antumbra/server-pieces':
         specifier: workspace:*
         version: link:../../packages/server/pieces
@@ -3241,6 +3244,9 @@ importers:
       '@antumbra/platform-feature':
         specifier: workspace:*
         version: link:../../../platform/feature
+      '@antumbra/platform-vocabulary':
+        specifier: workspace:*
+        version: link:../../../platform/vocabulary
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -3402,6 +3408,49 @@ importers:
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(vitest@5.0.5(@types/node@24.10.1)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.10.1
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@24.10.1)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/mail:
+    dependencies:
+      '@antumbra/domain-mail':
+        specifier: workspace:*
+        version: link:../domains/mail
+      '@antumbra/platform-vocabulary':
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
+      '@antumbra/server-journal':
+        specifier: workspace:*
+        version: link:../journal
+      '@shivaedev/changes':
+        specifier: 'catalog:'
+        version: 0.9.0(effect@4.0.6)
+      '@shivaedev/contract':
+        specifier: 'catalog:'
+        version: 0.32.0(effect@4.0.6)
+      '@shivaedev/service':
+        specifier: 'catalog:'
+        version: 0.6.1(effect@4.0.6)
+      effect:
+        specifier: 'catalog:'
+        version: 4.0.6
+    devDependencies:
+      '@antumbra/app-testing':
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      '@antumbra/domain-agents':
+        specifier: workspace:*
+        version: link:../domains/agents
       '@types/node':
         specifier: 'catalog:'
         version: 24.10.1

@@ -1,13 +1,4 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { Schema } from "effect";
-import { MessageId } from "#ids.ts";
-import { MessagePrecedence } from "#rows/message.ts";
+import { MessageSent } from "@antumbra/platform-vocabulary/mail.ts";
 
-export const messageSent = fact("MessageSent", {
-	id: MessageId,
-	toAgentId: Schema.String,
-	authorAgentId: Schema.NullOr(Schema.String),
-	body: Schema.String,
-	precedence: MessagePrecedence,
-	sentAt: Schema.String,
-});
+export const messageSent = fact("MessageSent", MessageSent.fields);

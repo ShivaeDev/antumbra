@@ -1,11 +1,11 @@
 import { captainReading } from "@antumbra/domain-agents/rows/captain-reading.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
-import { MessageId } from "@antumbra/domain-mail/ids.ts";
 import { message } from "@antumbra/domain-mail/rows/message.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionToolCall } from "@antumbra/domain-sessions/rows/session-tool-call.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import { Effect, Schema } from "effect";
 import { askNoticeId, parkNoticeId, RulingId } from "#ids.ts";
 import { ascentWords } from "#queries/ascent-words.ts";

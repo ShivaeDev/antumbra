@@ -49,6 +49,7 @@
 		"@shivaedev/sql": "catalog:",
 		"@shivaedev/test-sql": "catalog:",
 		"@antumbra/server-voyages": "workspace:*",
-		"@antumbra/server-pieces": "workspace:*"
+		"@antumbra/server-pieces": "workspace:*",
+		"@antumbra/server-mail": "workspace:*"
 	}
 }

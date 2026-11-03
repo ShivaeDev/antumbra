@@ -22,12 +22,15 @@ const check = Effect.fn("Fixture.check")(function* (selector: string, target: Ta
 		Effect.gen(function* () {
 			const extracted = yield* extractFixture({ archiveRoot: paths.archiveRoot, selector, destination: paths.check });
 			yield* checkViewer(checkout);
-			if (target === "postgres") yield* checkPostgresFixture;
+			if (target === "postgres") {
+				const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db"));
+				yield* Console.log(JSON.stringify({ postgres }));
+			}
 			return extracted;
 		}),
 	);
 	yield* Console.log(
-		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL migrations passed" : ""}.`,
+		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL Voyage history and rows match" : ""}.`,
 	);
 });
 

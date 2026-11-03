@@ -5,8 +5,8 @@ import { changing, sending, useGenerated } from "@antumbra/glass-components/gene
 import { SaveAction } from "@antumbra/glass-components/save-action.tsx";
 import { SettingsField } from "@antumbra/glass-components/settings-field.tsx";
 import { useWrong } from "@antumbra/glass-components/wrong.ts";
-import { useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
+import { useSubmit } from "@shivaedev/form/adapters/react.ts";
 import { type ReactNode, useId, useMemo } from "react";
 import type { Choose } from "#glass.ts";
 import { placeholdersOf } from "#resolved.ts";

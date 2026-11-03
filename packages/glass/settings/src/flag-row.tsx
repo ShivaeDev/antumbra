@@ -5,8 +5,8 @@ import { changing, sending, useGenerated } from "@antumbra/glass-components/gene
 import { useReverted } from "@antumbra/glass-components/reverted.ts";
 import { SettingsField } from "@antumbra/glass-components/settings-field.tsx";
 import { useWrong } from "@antumbra/glass-components/wrong.ts";
-import { useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
+import { useSubmit } from "@shivaedev/form/adapters/react.ts";
 import { useId, useMemo } from "react";
 import type { SettingsApi } from "#glass.ts";
 

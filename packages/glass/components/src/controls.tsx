@@ -1,6 +1,6 @@
 import { useChoices } from "@antumbra/glass-client/wiring.ts";
-import { useField } from "@antumbra/glass-form/react.ts";
 import type { Choice } from "@antumbra/platform-feature/edit.ts";
+import { useField } from "@shivaedev/form/adapters/react.ts";
 import { type ReactNode, useId } from "react";
 import { inputOf, type Offer, offersOf } from "#choices.ts";
 import { ALERT, CELL, TITLE } from "#classes.ts";

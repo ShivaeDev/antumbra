@@ -31,7 +31,6 @@
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",
-		"@antumbra/domain-repos": "workspace:*",
-		"@antumbra/glass-form": "workspace:*"
+		"@antumbra/domain-repos": "workspace:*"
 	}
 }

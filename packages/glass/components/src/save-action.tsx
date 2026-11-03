@@ -1,4 +1,4 @@
-import { useDirty, useSubmit } from "@antumbra/glass-form/react.ts";
+import { useDirty, useSubmit } from "@shivaedev/form/adapters/react.ts";
 import type { Generated } from "#generated.ts";
 import { Button } from "#shadcn/button.tsx";
 

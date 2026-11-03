@@ -82,6 +82,8 @@ jobs:
           restore-keys: |
             electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
+      - name: Install PostgreSQL server binaries for app-owned test instances
+        run: sudo apt-get update && sudo apt-get install --yes postgresql
       - run: pnpm test:desktop
       - run: pnpm test:runner
       - run: pnpm test:app

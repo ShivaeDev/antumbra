@@ -20,12 +20,12 @@
 		"@antumbra/app-testing": "workspace:*",
 		"@antumbra/domain-mail": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
-		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@effect/platform-node": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
@@ -33,6 +33,11 @@
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/sql-sqlite-node": "catalog:",
 		"effect": "catalog:",
-		"@shivaedev/errors": "catalog:"
+		"@shivaedev/errors": "catalog:",
+		"@shivaedev/local-postgres": "catalog:",
+		"@shivaedev/sql": "catalog:",
+		"@shivaedev/changes": "catalog:",
+		"@shivaedev/test-sql": "catalog:",
+		"@effect/sql-pg": "catalog:"
 	}
 }

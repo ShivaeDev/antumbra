@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import type { ErrorsApi } from "#glass.ts";
 
 export const LoopToasts = ({ api, onOpen }: { readonly api: ErrorsApi; readonly onOpen: () => void }) => {
-	const answer = useLive(api.supervision.stoppedLoops, {});
+	const { result: answer } = useLive(api.supervision.stoppedLoops, {});
 	const announced = useRef<Map<string, number>>(undefined);
 	useEffect(() => {
 		if (!AsyncResult.isSuccess(answer)) return;

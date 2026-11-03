@@ -1,8 +1,7 @@
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { type Watching, watching } from "@antumbra/platform-rpc/query.ts";
-import { useAtomValue } from "@effect/atom-react";
+import { type QueryState, useQuery } from "@shivaedev/react/client/resultState.ts";
 import { Stream } from "effect";
-import type * as AsyncResult from "effect/reactivity/AsyncResult";
 import { createContext, useContext } from "react";
 
 export interface Wiring {
@@ -19,10 +18,7 @@ export const wiringOf = (queries: ReadonlyMap<QueryShape, Watching>): Wiring => 
 	watch: (query) => queries.get(query) ?? nothing,
 });
 
-export const useChoices = (
-	query: QueryShape | undefined,
-	input: Readonly<Record<string, unknown>> | undefined,
-): AsyncResult.AsyncResult<unknown, unknown> => {
+export const useChoices = (query: QueryShape | undefined, input: Readonly<Record<string, unknown>> | undefined): QueryState<unknown, unknown> => {
 	const wiring = useContext(WiringContext);
-	return useAtomValue((query === undefined ? nothing : wiring.watch(query)).atom(input ?? {}));
+	return useQuery((query === undefined ? nothing : wiring.watch(query)).atom(input ?? {}));
 };

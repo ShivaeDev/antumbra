@@ -33,7 +33,7 @@ const Chosen = (props: {
 	const list = useId();
 	const input = inputOf(props.choice, props.values);
 	const listed = useChoices(input === undefined ? undefined : props.choice.query, input);
-	const offers = offersOf(props.choice, listed);
+	const offers = offersOf(props.choice, listed.data);
 	if (props.many) {
 		return <Several offers={offers} shown={props.shown} />;
 	}

@@ -1,6 +1,7 @@
 import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { lostConnection, type Watch } from "@antumbra/platform-rpc/query.ts";
+import type { QueryState } from "@shivaedev/react/client/resultState.ts";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { ReactNode } from "react";
@@ -21,15 +22,16 @@ const failed = (
 	</span>
 );
 
-export const lastRead = <A,>(result: AsyncResult.AsyncResult<A, unknown>): Option.Option<A> => {
-	if (AsyncResult.isSuccess(result)) return Option.some(result.value);
-	if (!AsyncResult.isFailure(result) || !lostConnection(result)) return Option.none();
-	return Option.map(result.previousSuccess, (success) => success.value);
-};
-
-export const reading = <A,>(result: AsyncResult.AsyncResult<A, unknown>, words: string, shown: (value: A) => ReactNode): ReactNode => {
-	const last = lastRead(result);
-	if (Option.isSome(last)) return <Holding held={!AsyncResult.isSuccess(result)}>{shown(last.value)}</Holding>;
+export const reading = <A,>(query: QueryState<A, unknown>, words: string, shown: (value: A) => ReactNode): ReactNode => {
+	const { data: last, result } = query;
+	if (Option.isSome(last)) {
+		return (
+			<Holding held={lostConnection(result)}>
+				{shown(last.value)}
+				{AsyncResult.isFailure(result) && !lostConnection(result) ? failed : null}
+			</Holding>
+		);
+	}
 	if (AsyncResult.isFailure(result)) return lostConnection(result) ? reconnecting : failed;
 	return <span className="block text-xs text-muted-foreground">{words}</span>;
 };
@@ -38,9 +40,8 @@ export const useReading = <Query extends QueryShape, Failure>(
 	query: Watch<Query, Failure>,
 	input: Values<Query["input"]>,
 ): Query["output"]["Type"] | undefined => {
-	const result = useLive(query, input);
-	const last = lastRead(result);
-	useHolding(Option.isSome(last) && !AsyncResult.isSuccess(result));
+	const { data: last, result } = useLive(query, input);
+	useHolding(Option.isSome(last) && lostConnection(result));
 	return Option.getOrUndefined(last);
 };
 

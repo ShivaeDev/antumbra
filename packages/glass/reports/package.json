@@ -33,6 +33,7 @@
 		"effect": "catalog:",
 		"react": "catalog:",
 		"@antumbra/domain-reports": "workspace:*",
-		"lucide-react": "catalog:"
+		"lucide-react": "catalog:",
+		"@antumbra/platform-rpc": "workspace:*"
 	}
 }

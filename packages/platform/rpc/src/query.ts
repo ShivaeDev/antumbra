@@ -40,16 +40,7 @@ const reconnecting = (source: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown
 
 export const watching = (fields: Fields, live: (input: Record<string, unknown>) => Stream.Stream<unknown, unknown>): Watching => {
 	const named = Object.keys(fields);
-	const held = new Map<string, Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>>();
-	const atom = (input: Record<string, unknown>): Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> => {
-		const key = JSON.stringify(named.map((name) => input[name]));
-		const known = held.get(key);
-		if (known !== undefined) {
-			return known;
-		}
-		const made = reconnecting(Atom.make(live(input)));
-		held.set(key, made);
-		return made;
-	};
+	const family = Atom.family((input: Record<string, unknown>) => reconnecting(Atom.make(live(input))));
+	const atom = (input: Record<string, unknown>) => family(Object.fromEntries(named.map((name) => [name, input[name]])));
 	return Object.assign((input: Record<string, unknown>) => live(input), { atom });
 };

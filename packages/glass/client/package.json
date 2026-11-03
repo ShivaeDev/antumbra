@@ -22,13 +22,15 @@
 		"@effect/vitest": "catalog:",
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
-		"react": "catalog:"
+		"react": "catalog:",
+		"@shivaedev/react": "catalog:"
 	}
 }

@@ -7,7 +7,7 @@ import { useHolding } from "@antumbra/glass-client/reconnection.tsx";
 import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeDetail, OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
 import { Option } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { FileTextIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import type { ReportsApi } from "#glass.ts";

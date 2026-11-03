@@ -18,7 +18,7 @@ const NO_ARGUMENTS: Record<string, unknown> = { additionalProperties: false, pro
 const inputSchemaOf = <Fields extends Schema.Struct.Fields>(input: Schema.Struct<Fields>): Record<string, unknown> =>
 	Object.keys(input.fields).length === 0
 		? { ...NO_ARGUMENTS }
-		: JsonSchema.toDocumentDraft07(Schema.toJsonSchemaDocument(input, { additionalProperties: false })).schema;
+		: JsonSchema.toDocumentDraft07(Schema.toJsonSchemaDocument(input, { onExcessProperty: "error" })).schema;
 
 export const defineTool = <Fields extends Schema.Struct.Fields>(options: {
 	readonly description: string;

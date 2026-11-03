@@ -1,6 +1,6 @@
 import * as Form from "@antumbra/glass-form/form.ts";
 import { Effect, Layer } from "effect";
-import * as Atom from "effect/unstable/reactivity/Atom";
+import * as Atom from "effect/reactivity/Atom";
 import { useLayoutEffect, useRef, useState } from "react";
 import { type Editable, emptyOf, fedByOf, type Held, schemaOf } from "#fields.ts";
 

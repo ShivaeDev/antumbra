@@ -1,6 +1,6 @@
 import { Schema } from "effect";
 
-export const brand = <Name extends string>(name: Name) => Schema.String.pipe(Schema.brand(name));
+export const brand = <Name extends string>(name: Parameters<typeof Schema.brand<Name>>[0]) => Schema.String.pipe(Schema.brand<Name>(name));
 
 const ALPHABET = "0123456789abcdefghjkmnpqrstvwxyz";
 const LENGTH = 10;

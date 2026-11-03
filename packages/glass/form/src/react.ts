@@ -1,5 +1,5 @@
 import { useAtomRef, useAtomSet, useAtomValue } from "@effect/atom-react";
-import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import type * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useCallback, useMemo } from "react";
 import type { Encoded, FieldFailure, Fields, Form, Invalid, Name } from "#shape.ts";
 

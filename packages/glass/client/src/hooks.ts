@@ -7,8 +7,8 @@ import type { Watch } from "@antumbra/platform-rpc/query.ts";
 import type { Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { type Cause, Effect } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import * as Atom from "effect/unstable/reactivity/Atom";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
+import * as Atom from "effect/reactivity/Atom";
 import { useState } from "react";
 
 export type Live<Query extends QueryShape, Failure> = AsyncResult.AsyncResult<

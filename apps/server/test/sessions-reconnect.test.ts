@@ -6,7 +6,7 @@ import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 
 it.app("an offline hail wakes the existing native conversation after cold runner catchup", function* ({ api, clock }) {

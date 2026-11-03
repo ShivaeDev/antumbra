@@ -5,7 +5,7 @@ import { TranscriptReading, TranscriptRpc } from "@antumbra/domain-sessions/quer
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect, Schema, Stream } from "effect";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 import { stateLabel } from "#transcript/labels.ts";
 

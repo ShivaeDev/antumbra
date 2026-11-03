@@ -32,7 +32,7 @@ export const selectDataDirectory = (input: DataDirectoryInput): string => {
 	return input.devOverride;
 };
 
-const devUserDataOverride = Config.string(DEV_USER_DATA_VARIABLE).pipe(Config.withDefault(""));
+const devUserDataOverride = Config.String(DEV_USER_DATA_VARIABLE).pipe(Config.withDefault(""));
 
 export const configureDataDirectory = (): string => {
 	const directory = selectDataDirectory({

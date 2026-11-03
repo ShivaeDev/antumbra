@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import type { Registry } from "#app.ts";
 import { pendingMigrations, rewriteFacts } from "#migrate.ts";
 import { replay } from "#replay.ts";

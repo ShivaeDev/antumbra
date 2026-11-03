@@ -8,10 +8,10 @@ import { transport } from "@antumbra/server/transport.ts";
 import { NodeHttpServer, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Effect, Fiber, Latch, Layer, Queue, Stream } from "effect";
-import * as HttpRouter from "effect/unstable/http/HttpRouter";
-import * as HttpServer from "effect/unstable/http/HttpServer";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
-import * as RpcClient from "effect/unstable/rpc/RpcClient";
+import * as HttpRouter from "effect/http/HttpRouter";
+import * as HttpServer from "effect/http/HttpServer";
+import { Reactivity } from "effect/reactivity/Reactivity";
+import * as RpcClient from "effect/rpc/RpcClient";
 import { expect } from "vitest";
 import { eventually } from "#answers.ts";
 import { layer } from "#app.ts";
@@ -23,7 +23,7 @@ const server = HttpRouter.serve(transport, { disableListenLog: true }).pipe(
 
 const client = Effect.gen(function* () {
 	const { address } = yield* HttpServer.HttpServer;
-	if (address._tag !== "TcpAddress") return yield* Effect.die(new Error("Expected a TCP listener"));
+	if (address._tag !== "InetAddressV4") return yield* Effect.die(new Error("Expected a TCP listener"));
 	const ready = yield* Latch.make();
 	const services = yield* Layer.build(
 		clientTransport.pipe(

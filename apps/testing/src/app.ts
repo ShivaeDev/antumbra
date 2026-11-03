@@ -2,7 +2,7 @@ import { ClientToken, layerClient, ServerToken } from "@antumbra/platform-rpc/to
 import { application } from "@antumbra/server/application.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
 import { Layer } from "effect";
-import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
+import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { layer as artifacts } from "#artifacts.ts";
 import { layer as files } from "#files.ts";
 import { layer as host } from "#host.ts";

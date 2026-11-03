@@ -6,7 +6,7 @@ import { row } from "@antumbra/platform-feature/row.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { it } from "@effect/vitest";
 import { Effect, Option, Schema } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 import { expect } from "vitest";
 import { app, registryOf } from "#app.ts";
 import { commitService } from "#commit.ts";

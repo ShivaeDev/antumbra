@@ -1,7 +1,7 @@
 import { RegistryProvider } from "@effect/atom-react";
 import { expect, it } from "@effect/vitest";
 import { Context, Data, Deferred, Effect, Layer, Schema } from "effect";
-import * as Atom from "effect/unstable/reactivity/Atom";
+import * as Atom from "effect/reactivity/Atom";
 import { act } from "react";
 import { afterEach, beforeEach, vi } from "vitest";
 import * as Form from "#form.ts";

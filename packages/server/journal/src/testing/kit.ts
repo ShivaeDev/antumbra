@@ -4,9 +4,9 @@ import type { PortServices, PortShape } from "@antumbra/platform-feature/port.ts
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Duration, Effect, Schema, Scope, Stream } from "effect";
+import { Reactivity } from "effect/reactivity/Reactivity";
+import type { SqlClient } from "effect/sql/SqlClient";
 import * as TestClock from "effect/testing/TestClock";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
 import { type AppDefinition, codecOf, type Registry, registryOf } from "#app.ts";
 import { Commit } from "#commit.ts";
 import { Database } from "#database.ts";
@@ -16,7 +16,7 @@ import { commitsOf } from "#testing/commits.ts";
 import type { Emissions, TestKit } from "#testing/surface.ts";
 import { type Watch, watching } from "#testing/watch.ts";
 
-type Reactive = Reactivity["Service"];
+type Reactive = Reactivity;
 
 const readsOf = (registry: Registry, sql: SqlClient): Record<string, unknown> =>
 	Object.fromEntries(registry.rows.map((row) => [row.name, readHandle(sql, codecOf(registry, row))]));

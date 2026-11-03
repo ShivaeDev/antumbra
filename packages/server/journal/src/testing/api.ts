@@ -3,9 +3,9 @@ import { type Api, api } from "@antumbra/platform-rpc/client.ts";
 import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
 import type { Token } from "@antumbra/platform-rpc/token.ts";
 import { Effect, type Scope } from "effect";
-import type * as Rpc from "effect/unstable/rpc/Rpc";
-import type * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import type * as Rpc from "effect/rpc/Rpc";
+import type * as RpcMiddleware from "effect/rpc/RpcMiddleware";
+import * as RpcTest from "effect/rpc/RpcTest";
 import type { AppDefinition } from "#app.ts";
 
 export type Bound<Features extends readonly FeatureShape[]> = Rpc.ToHandler<Rpcs<Features>> | RpcMiddleware.ForClient<Token> | Token;

@@ -4,7 +4,7 @@ import { opencodeFailure } from "@antumbra/runner-backends-opencode/failure.ts";
 import { listeningUrl } from "@antumbra/runner-backends-opencode/listening.ts";
 import { CONSTRAINED_AGENT, TOOL_SERVER_NAME } from "@antumbra/runner-backends-opencode/tool-names.ts";
 import { Deferred, Effect, Fiber, Stream } from "effect";
-import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import { openEventStream } from "#backends/opencode/adapters/event-stream.ts";
 import { httpCalls } from "#backends/opencode/adapters/http.ts";
 import { freeLoopbackPort, LOOPBACK } from "#backends/opencode/adapters/loopback.ts";

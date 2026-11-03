@@ -3,8 +3,8 @@ import { type PortServices, type PortShape, portRecord } from "@antumbra/platfor
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Context, Effect, type Schema, type Stream } from "effect";
-import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { Reactivity } from "effect/reactivity/Reactivity";
+import type { SqlClient } from "effect/sql/SqlClient";
 import { codecOf, type Registry } from "#app.ts";
 import { scopeKey, tableKey } from "#keys.ts";
 import { readHandle } from "#read-handle.ts";
@@ -35,7 +35,7 @@ export interface LiveService {
 export class Live extends Context.Service<Live, LiveService>()("@antumbra/server-journal/Live") {}
 
 export interface LiveContext {
-	readonly reactivity: Reactivity["Service"];
+	readonly reactivity: Reactivity;
 	readonly registry: Registry;
 	readonly sql: SqlClient;
 }

@@ -12,18 +12,18 @@ import { transport } from "@antumbra/platform-rpc/transport.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { NodeServices, NodeSocket } from "@effect/platform-node";
 import { it } from "@effect/vitest";
-import { Config, Deferred, Effect, Layer, Option, Schema, Stream } from "effect";
-import { ChildProcess } from "effect/unstable/process";
-import * as RpcMessage from "effect/unstable/rpc/RpcMessage";
-import * as RpcSerialization from "effect/unstable/rpc/RpcSerialization";
-import * as Socket from "effect/unstable/socket/Socket";
+import { Config, Effect, Layer, Option, Schema, Stream } from "effect";
+import { ChildProcess } from "effect/process";
+import * as RpcMessage from "effect/rpc/RpcMessage";
+import * as RpcSerialization from "effect/rpc/RpcSerialization";
+import * as Socket from "effect/socket/Socket";
 import { beforeEach, expect } from "vitest";
 import { isolatedTemp } from "#test/isolated.ts";
 
 let temp: string;
 
 beforeEach(({ skip }) => {
-	if (Effect.runSync(Config.string("GITHUB_ACTIONS").pipe(Config.withDefault(""))) !== "true") {
+	if (Effect.runSync(Config.String("GITHUB_ACTIONS").pipe(Config.withDefault(""))) !== "true") {
 		skip("This test spawns a real Antumbra server and runs only on a GitHub Actions runner.");
 	}
 	temp = isolatedTemp();
@@ -61,12 +61,11 @@ const pong = Effect.gen(function* () {
 	const socket = yield* Socket.Socket;
 	const format = yield* RpcSerialization.RpcSerialization;
 	const parser = format.makeUnsafe();
-	const answered = yield* Deferred.make<readonly unknown[]>();
-	const write = yield* socket.writer;
-	yield* Effect.forkScoped(socket.runRaw((message) => Deferred.succeed(answered, parser.decode(message))));
+	const reader = yield* socket.reader;
+	const writer = yield* socket.writer;
 	const ping = parser.encode(RpcMessage.constPing);
-	yield* ping === undefined ? Effect.die(RpcMessage.constPing) : write(ping);
-	return yield* Deferred.await(answered);
+	yield* ping === undefined ? Effect.die(RpcMessage.constPing) : writer.write(ping);
+	return (yield* reader.pull).flatMap((message) => parser.decode(message));
 });
 
 it.live("answers the protocol's ping over the websocket it serves on the port it announced", () =>

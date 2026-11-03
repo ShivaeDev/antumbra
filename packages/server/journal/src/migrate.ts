@@ -1,7 +1,7 @@
 import type { StoredFact } from "@antumbra/platform-feature/migration.ts";
 import { Clock, Effect, Schema } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
-import type { Row } from "effect/unstable/sql/SqlConnection";
+import type { SqlClient } from "effect/sql/SqlClient";
+import type { Row } from "effect/sql/SqlConnection";
 import type { Registry, RunnableMigration } from "#app.ts";
 
 const Payload = Schema.fromJsonString(Schema.Record(Schema.String, Schema.Unknown));

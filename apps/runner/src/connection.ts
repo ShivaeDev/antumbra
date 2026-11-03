@@ -3,8 +3,8 @@ import { ClientToken, layerClient } from "@antumbra/platform-rpc/token.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Latch, Layer } from "effect";
-import * as RpcClient from "effect/unstable/rpc/RpcClient";
-import { RpcClientError } from "effect/unstable/rpc/RpcClientError";
+import * as RpcClient from "effect/rpc/RpcClient";
+import { RpcClientError } from "effect/rpc/RpcClientError";
 
 const makeClient = RpcClient.make(RunnerRpc);
 export class RunnerClient extends Context.Service<

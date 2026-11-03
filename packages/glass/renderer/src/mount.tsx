@@ -5,7 +5,7 @@ import { inputsClient } from "@antumbra/glass-inputs/client.ts";
 import { sessionsClient } from "@antumbra/glass-sessions/client.ts";
 import type { ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { Effect, type Scope } from "effect";
-import type * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
+import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { draftsOf, reachOf, shellOf } from "#adapters/shell.ts";

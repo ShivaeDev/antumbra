@@ -1,4 +1,4 @@
-import * as AtomRef from "effect/unstable/reactivity/AtomRef";
+import * as AtomRef from "effect/reactivity/AtomRef";
 import { type FieldMessages, noMessages, withoutField } from "#messages.ts";
 import { fromRef } from "#refs.ts";
 

@@ -2,7 +2,7 @@ import { unaudited } from "@antumbra/domain-sessions/queries/unaudited.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { each } from "@antumbra/server-journal/reconcile.ts";
 import { Effect, Option, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 export const audit = Effect.fn("Sessions.audit")(function* () {
 	const runners = yield* RunnerOperations;
 	const reactivity = yield* Reactivity;

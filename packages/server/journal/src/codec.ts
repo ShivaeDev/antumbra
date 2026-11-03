@@ -1,6 +1,6 @@
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Effect, Schema } from "effect";
-import type { Row } from "effect/unstable/sql/SqlConnection";
+import type { Row } from "effect/sql/SqlConnection";
 import { type Column, columnsOf } from "#column.ts";
 
 export interface RowCodec {

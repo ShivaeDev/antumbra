@@ -3,9 +3,9 @@ import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import type { AlreadyDone, RejectedBy, RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
 import { Schema } from "effect";
-import * as Rpc from "effect/unstable/rpc/Rpc";
-import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
-import type * as RpcSchema from "effect/unstable/rpc/RpcSchema";
+import * as Rpc from "effect/rpc/Rpc";
+import * as RpcGroup from "effect/rpc/RpcGroup";
+import type * as RpcSchema from "effect/rpc/RpcSchema";
 import { Token } from "#token.ts";
 
 export type Tag<Feature extends string, Name extends string> = `${Feature}.${Name}`;

@@ -5,7 +5,7 @@ import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect } from "effect";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 
 const raw = { source: "codex", kind: "event", payload: "{}" };

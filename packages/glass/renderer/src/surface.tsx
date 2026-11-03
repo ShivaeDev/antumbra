@@ -6,7 +6,7 @@ import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { TranscriptView } from "@antumbra/glass-sessions/transcript.tsx";
 import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { useAtomValue } from "@effect/atom-react";
-import { AsyncResult, Atom } from "effect/unstable/reactivity";
+import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";
 import { ConsoleApp } from "#app.tsx";
 import type { RendererProps } from "#props.ts";

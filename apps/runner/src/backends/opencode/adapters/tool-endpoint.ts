@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { NodeHttpServer } from "@effect/platform-node";
 import { Effect, type Scope } from "effect";
-import { HttpServer, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
+import { HttpServer, HttpServerRequest, HttpServerResponse } from "effect/http";
 import { LOOPBACK } from "#backends/opencode/adapters/loopback.ts";
 
 const onlyPosted = HttpServerResponse.empty({ headers: { allow: "POST" }, status: 405 });

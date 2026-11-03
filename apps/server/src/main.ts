@@ -4,8 +4,8 @@ import { DataDirectory } from "@antumbra/server-journal/database.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";
 import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node";
 import { Cause, Console, Effect, Exit, FileSystem, Layer, Logger, Path, type Runtime } from "effect";
-import * as HttpRouter from "effect/unstable/http/HttpRouter";
-import * as HttpServer from "effect/unstable/http/HttpServer";
+import * as HttpRouter from "effect/http/HttpRouter";
+import * as HttpServer from "effect/http/HttpServer";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 import { githubHosts } from "#adapters/github/hosts.ts";
@@ -39,8 +39,8 @@ const listener = (settings: Options) => {
 	);
 };
 
-const announce = (address: HttpServer.Address) =>
-	address._tag === "TcpAddress" ? Console.log(JSON.stringify({ port: address.port })) : Effect.die(address);
+const announce = (address: HttpServer.HttpServer["Service"]["address"]) =>
+	address._tag === "InetAddressV4" ? Console.log(JSON.stringify({ port: address.port })) : Effect.die(address);
 
 const listen = Effect.gen(function* () {
 	const server = yield* HttpServer.HttpServer;

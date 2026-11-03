@@ -4,8 +4,8 @@ import type { Fields } from "@antumbra/platform-feature/fields.ts";
 import { AlreadyDone, type RejectedBy, type RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
 import { Clock, Context, Effect, Schema } from "effect";
-import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { Reactivity } from "effect/reactivity/Reactivity";
+import type { SqlClient } from "effect/sql/SqlClient";
 import { codecOf, type Registry } from "#app.ts";
 import { materialize } from "#materialize.ts";
 import { type Observation, type ObservationMetadata, type ObservedFact, observe, observeBatch, readCursor } from "#observe.ts";
@@ -34,7 +34,7 @@ export class Commit extends Context.Service<Commit, CommitService>()("@antumbra/
 
 export interface CommitContext {
 	readonly backup: Effect.Effect<void>;
-	readonly reactivity: Reactivity["Service"];
+	readonly reactivity: Reactivity;
 	readonly registry: Registry;
 	readonly sql: SqlClient;
 }

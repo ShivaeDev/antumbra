@@ -5,7 +5,7 @@ import { Live } from "@antumbra/glass-client/live.tsx";
 import { HeldReading } from "@antumbra/glass-components/compositions/held-reading.tsx";
 import { messageOf } from "@antumbra/glass-components/refusal.ts";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useId } from "react";
 import type { HoldsApi } from "#glass.ts";
 import { HoldSwitch } from "#hold-switch.tsx";

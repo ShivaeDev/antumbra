@@ -181,7 +181,7 @@ describe("dependency boundary policy", () => {
 		expect(reportedRules.sort()).toEqual(compiledBoundaryPolicy.fixtures.map(({ rule }) => rule).sort());
 	});
 
-	it.each(["node:sqlite", "effect/unstable/sql/SqlClient"])("rejects a domain importing %s directly", (name) => {
+	it.each(["node:sqlite", "effect/sql/SqlClient"])("rejects a domain importing %s directly", (name) => {
 		const result = runBoundaries(seedTree([{ ...firstRule.examples.illegal, to: { kind: "external-module", name } }]));
 		expect(result.status).toBe(1);
 		expect(result.stderr).toContain(`journal-owns-the-db: ${firstRule.examples.illegal.from.path} → ${name}`);

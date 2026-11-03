@@ -5,7 +5,7 @@ import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { group, type Rpcs } from "@antumbra/platform-rpc/group.ts";
 import { layerServer, type ServerToken, type Token } from "@antumbra/platform-rpc/token.ts";
 import { Effect, Layer, type Stream } from "effect";
-import type * as Rpc from "effect/unstable/rpc/Rpc";
+import type * as Rpc from "effect/rpc/Rpc";
 import { Commit, type CommitService } from "#commit.ts";
 import { Live, type LiveService } from "#live.ts";
 

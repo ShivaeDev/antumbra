@@ -1,5 +1,5 @@
 import { useLive } from "@antumbra/glass-client/hooks.ts";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import type { ErrorsApi } from "#glass.ts";

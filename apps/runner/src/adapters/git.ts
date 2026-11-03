@@ -1,7 +1,7 @@
 import { GitTimedOut, GitUnavailable } from "@antumbra/runner-git/errors.ts";
 import { type GitCommand, GitProcess } from "@antumbra/runner-git/process.ts";
 import { Effect, Layer, Stream } from "effect";
-import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 const collectRaw = Effect.fnUntraced(
 	function* (command: GitCommand) {

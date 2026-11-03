@@ -1,6 +1,6 @@
 import { useDirty, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useId } from "react";
 import { ALERT, HEAD, NAME, NOTE, ROW, SAVE, TITLE } from "#classes.ts";
 import { Control } from "#controls.tsx";

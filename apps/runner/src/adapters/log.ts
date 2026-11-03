@@ -1,7 +1,7 @@
 import { LogDatabase, makeLog, RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { Clock, Effect, Layer } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 
 export const file = (options: { readonly filename: string; readonly seed: string }) =>
 	Layer.effect(RunnerLog)(

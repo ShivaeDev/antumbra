@@ -10,7 +10,7 @@ import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Stream } from "effect";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 
 const raw = { source: "claude", kind: "event", payload: "{}" };

@@ -1,7 +1,7 @@
 import { GhUnavailable } from "@antumbra/edge-github/errors.ts";
 import { type GhCommand, GhProcess } from "@antumbra/edge-github/process.ts";
 import { Effect, Layer, Stream } from "effect";
-import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, ChildProcessSpawner } from "effect/process";
 
 const collectRaw = (command: GhCommand) =>
 	Effect.scoped(

@@ -2,7 +2,7 @@ import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { lostConnection, type Watch } from "@antumbra/platform-rpc/query.ts";
 import { Option } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { ReactNode } from "react";
 import { useLive } from "#hooks.ts";
 import { Holding, RECONNECTING, useHolding } from "#reconnection.tsx";

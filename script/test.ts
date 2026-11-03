@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
 import { Config, Effect } from "effect";
-import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import { localTestLockPath, withTestLock } from "#test/lock.ts";
 
 const reporter = fileURLToPath(new URL("./flakes/adapters/reporter.ts", import.meta.url));
@@ -12,7 +12,7 @@ const retried = ["--retry=2", "--reporter=default", "--reporter=github-actions",
 
 const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 	const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
-	const nodeOptions = yield* Config.string("NODE_OPTIONS").pipe(Config.withDefault(""));
+	const nodeOptions = yield* Config.String("NODE_OPTIONS").pipe(Config.withDefault(""));
 	return yield* spawner.exitCode(
 		ChildProcess.make(
 			process.execPath,
@@ -29,7 +29,7 @@ const vitest = Effect.fnUntraced(function* (settings: readonly string[]) {
 });
 
 const program = Effect.fnUntraced(function* () {
-	const ci = yield* Config.string("CI").pipe(Config.withDefault(""));
+	const ci = yield* Config.String("CI").pipe(Config.withDefault(""));
 	const settings = ci ? [...budget, ...retried] : budget;
 	const exitCode = yield* ci ? vitest(settings) : withTestLock(vitest(settings), yield* localTestLockPath());
 	process.exitCode = exitCode;

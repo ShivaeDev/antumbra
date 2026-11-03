@@ -1,6 +1,6 @@
 import { Data, type Duration, type Effect, type Schema } from "effect";
-import type * as Atom from "effect/unstable/reactivity/Atom";
-import type * as AtomRef from "effect/unstable/reactivity/AtomRef";
+import type * as Atom from "effect/reactivity/Atom";
+import type * as AtomRef from "effect/reactivity/AtomRef";
 import type { FieldMessages } from "#messages.ts";
 
 export type Fields = Schema.Struct.Fields;

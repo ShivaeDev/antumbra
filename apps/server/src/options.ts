@@ -15,7 +15,7 @@ const argument = (argv: readonly string[], flag: string): string | undefined => 
 };
 
 export const options = (argv: readonly string[]): Effect.Effect<Options, Config.ConfigError | Schema.SchemaError> =>
-	Effect.flatMap(Config.string("ANTUMBRA_TOKEN"), (token) =>
+	Effect.flatMap(Config.String("ANTUMBRA_TOKEN"), (token) =>
 		Schema.decodeUnknownEffect(Options)({
 			directory: argument(argv, "--data"),
 			files: argument(argv, "--files"),

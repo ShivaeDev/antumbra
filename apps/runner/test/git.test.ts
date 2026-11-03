@@ -2,8 +2,8 @@ import { refreshMirror } from "@antumbra/runner-git/mirrors.ts";
 import { inspectWorktree } from "@antumbra/runner-git/worktrees.ts";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Sink, Stream } from "effect";
+import { ChildProcessSpawner } from "effect/process";
 import { TestClock } from "effect/testing";
-import { ChildProcessSpawner } from "effect/unstable/process";
 import { gitProcess } from "#adapters/git.ts";
 
 interface ScriptedOutput {

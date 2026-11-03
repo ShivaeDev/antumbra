@@ -6,7 +6,7 @@ import { transport } from "@antumbra/platform-rpc/transport.ts";
 import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { NodeSocket } from "@effect/platform-node";
 import { Context, Effect, Layer } from "effect";
-import * as RpcClient from "effect/unstable/rpc/RpcClient";
+import * as RpcClient from "effect/rpc/RpcClient";
 import { ServerProcess } from "#adapters/server-process.ts";
 
 const connecting = RpcClient.make(LifecycleRpc.merge(group([agents])));

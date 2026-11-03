@@ -2,7 +2,7 @@ import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { Loop } from "@antumbra/server-journal/loop.ts";
 import { reconcilers } from "@antumbra/server-journal/reconcilers.ts";
 import { Context, Effect, Layer, type Scope } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 import { watchChanges } from "#changes/watch.ts";
 import { features } from "#features.ts";
 import { reconcile as restarts } from "#lifecycle/reconcile.ts";

@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Option, Schema } from "effect";
-import * as Headers from "effect/unstable/http/Headers";
-import * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";
+import * as Headers from "effect/http/Headers";
+import * as RpcMiddleware from "effect/rpc/RpcMiddleware";
 
 export const header = "x-antumbra-token";
 

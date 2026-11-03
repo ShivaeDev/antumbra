@@ -1,8 +1,8 @@
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect, Stream, SubscriptionRef } from "effect";
-import { RpcClientError } from "effect/unstable/rpc/RpcClientError";
-import { SocketCloseError } from "effect/unstable/socket/Socket";
+import { RpcClientError } from "effect/rpc/RpcClientError";
+import { SocketCloseError } from "effect/socket/Socket";
 
 type Away = SubscriptionRef.SubscriptionRef<boolean>;
 

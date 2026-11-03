@@ -1,8 +1,8 @@
 import { RowNotFound } from "@antumbra/platform-feature/rejection.ts";
 import { Effect, Option } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
-import type { Row } from "effect/unstable/sql/SqlConnection";
-import type { Fragment } from "effect/unstable/sql/Statement";
+import type { SqlClient } from "effect/sql/SqlClient";
+import type { Row } from "effect/sql/SqlConnection";
+import type { Fragment } from "effect/sql/Statement";
 import type { RowCodec } from "#codec.ts";
 
 export interface RuntimeRead {

@@ -1,7 +1,7 @@
 import { RunnerOperations, type StartOrder } from "@antumbra/domain-agents/ports/runner-operations.ts";
 import { RunnerOperations as RunnerDispatch } from "@antumbra/platform-runner/dispatch.ts";
 import { Effect, Layer, Option, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 
 export const runnerOperations = Layer.effect(
 	RunnerOperations,

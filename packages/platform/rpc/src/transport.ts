@@ -1,7 +1,7 @@
 import { Layer } from "effect";
-import * as RpcClient from "effect/unstable/rpc/RpcClient";
-import type * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";
-import type * as Socket from "effect/unstable/socket/Socket";
+import * as RpcClient from "effect/rpc/RpcClient";
+import type * as RpcMiddleware from "effect/rpc/RpcMiddleware";
+import type * as Socket from "effect/socket/Socket";
 import { serialization } from "#serialization.ts";
 import { type ClientToken, layerClient, type Token } from "#token.ts";
 

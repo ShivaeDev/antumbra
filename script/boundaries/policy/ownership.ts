@@ -12,7 +12,7 @@ export const ownershipPolicy = [
 				ruling: "dev trace sink",
 			}),
 		)
-		.to(anyOf(modules.named("node:sqlite"), modules.under("@effect/sql-sqlite-node"), modules.under("effect/unstable/sql")))
+		.to(anyOf(modules.named("node:sqlite"), modules.under("@effect/sql-sqlite-node"), modules.under("effect/sql")))
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("server/domains/pieces", "src/commands/launch.ts")).to(
 				files.module("@effect/sql-sqlite-node/SqliteClient"),

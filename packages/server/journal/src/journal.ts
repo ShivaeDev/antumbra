@@ -1,7 +1,7 @@
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { Clock, Context, Effect, FileSystem, Layer } from "effect";
-import { Reactivity, layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import { Reactivity, layer as reactivityLayer } from "effect/reactivity/Reactivity";
+import type { SqlClient } from "effect/sql/SqlClient";
 import { type AppDefinition, registryOf } from "#app.ts";
 import { Commit, commitService } from "#commit.ts";
 import { type Clients, Database, DataDirectory } from "#database.ts";
@@ -9,7 +9,7 @@ import { Live, liveService } from "#live.ts";
 import { start } from "#startup.ts";
 
 const writer = Effect.fn("journal.writer")(function* (filename: string) {
-	const client = yield* SqliteClient.make({ filename });
+	const client = yield* SqliteClient.make({ filename }).pipe(Effect.orDie);
 	yield* Effect.orDie(client`PRAGMA synchronous = NORMAL`);
 	return client;
 });
@@ -34,7 +34,7 @@ const onDisk = Effect.fn("journal.onDisk")(function* () {
 	const files = yield* FileSystem.FileSystem;
 	const filename = `${directory.path}/journal.db`;
 	const write: SqlClient = yield* writer(filename);
-	const read: SqlClient = yield* SqliteClient.make({ filename, readonly: true });
+	const read: SqlClient = yield* SqliteClient.make({ filename, readonly: true }).pipe(Effect.orDie);
 	const backup = Effect.gen(function* () {
 		const now = yield* Clock.currentTimeMillis;
 		const backups = `${directory.path}/backups`;

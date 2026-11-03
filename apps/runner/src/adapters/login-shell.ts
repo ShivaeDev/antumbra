@@ -39,7 +39,7 @@ const probe = (shell: string): Promise<string> =>
 	});
 
 // Finder inherits launchd's PATH; an interactive login shell loads the user's CLI path. Fences isolate it from shell startup output.
-const loginShellPath: Effect.Effect<Option.Option<string>> = Config.string("SHELL").pipe(
+const loginShellPath: Effect.Effect<Option.Option<string>> = Config.String("SHELL").pipe(
 	Config.withDefault("/bin/sh"),
 	Effect.flatMap((shell) => Effect.tryPromise(() => probe(shell))),
 	Effect.map(betweenFences),

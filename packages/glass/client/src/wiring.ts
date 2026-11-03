@@ -2,7 +2,7 @@ import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { type Watching, watching } from "@antumbra/platform-rpc/query.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { Stream } from "effect";
-import type * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import type * as AsyncResult from "effect/reactivity/AsyncResult";
 import { createContext, useContext } from "react";
 
 export interface Wiring {

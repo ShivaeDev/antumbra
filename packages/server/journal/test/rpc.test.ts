@@ -5,9 +5,9 @@ import { group } from "@antumbra/platform-rpc/group.ts";
 import { ClientToken, Unauthorized } from "@antumbra/platform-rpc/token.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Option, Queue, Stream } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import * as Atom from "effect/unstable/reactivity/Atom";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
+import * as Atom from "effect/reactivity/Atom";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 import { Database } from "#database.ts";
 

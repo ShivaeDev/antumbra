@@ -19,7 +19,7 @@ const withCause = (message: string, cause: Cause.Cause<unknown>): string =>
 	cause.reasons.length === 0 ? message : `${message}\n${Cause.pretty(cause)}`;
 
 export const logRowOf = (options: Logger.Options<unknown>): LogRow => {
-	const span = options.fiber.currentSpan;
+	const span = options.fiber.cache.span;
 	return {
 		annotations: serializeRecord({
 			...options.fiber.getRef(References.CurrentLogAnnotations),

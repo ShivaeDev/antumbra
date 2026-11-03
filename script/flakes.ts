@@ -33,9 +33,9 @@ const recording = Effect.fnUntraced(function* () {
 });
 
 const workflowRun = Effect.fnUntraced(function* () {
-	const repository = yield* Config.string("GITHUB_REPOSITORY").pipe(Config.withDefault(""));
-	const runId = yield* Config.string("GITHUB_RUN_ID").pipe(Config.withDefault(""));
-	const server = yield* Config.string("GITHUB_SERVER_URL").pipe(Config.withDefault("https://github.com"));
+	const repository = yield* Config.String("GITHUB_REPOSITORY").pipe(Config.withDefault(""));
+	const runId = yield* Config.String("GITHUB_RUN_ID").pipe(Config.withDefault(""));
+	const server = yield* Config.String("GITHUB_SERVER_URL").pipe(Config.withDefault("https://github.com"));
 	return repository === "" || runId === "" ? undefined : `${server}/${repository}/actions/runs/${runId}`;
 });
 

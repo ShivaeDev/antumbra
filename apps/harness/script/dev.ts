@@ -5,7 +5,7 @@ import { startHarnessServer } from "#script/adapters/vite-server.ts";
 
 const harnessRoot = dirname(import.meta.dirname);
 const workspaceRoot = dirname(dirname(harnessRoot));
-const HARNESS_PORT = Effect.runSync(Config.int("ANTUMBRA_HARNESS_PORT").pipe(Config.withDefault(5184)));
+const HARNESS_PORT = Effect.runSync(Config.Int("ANTUMBRA_HARNESS_PORT").pipe(Config.withDefault(5184)));
 
 const program = Effect.gen(function* () {
 	yield* startHarnessServer(harnessRoot, workspaceRoot, HARNESS_PORT);

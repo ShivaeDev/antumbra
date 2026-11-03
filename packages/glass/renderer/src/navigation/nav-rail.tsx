@@ -3,7 +3,7 @@ import { Reconnecting } from "@antumbra/glass-client/reconnection.tsx";
 import type { VoyagesApi } from "@antumbra/glass-voyages/glass.ts";
 import type { ConsoleMode } from "@antumbra/platform-shell/windows.ts";
 import { useAtomValue } from "@effect/atom-react";
-import { Atom } from "effect/unstable/reactivity";
+import { Atom } from "effect/reactivity";
 import { useState } from "react";
 import { ModeNav } from "#navigation/mode-nav.tsx";
 import type { Shell } from "#shell.ts";

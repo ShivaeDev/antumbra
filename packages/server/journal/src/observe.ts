@@ -1,7 +1,7 @@
 import type { FactPayload, FactShape } from "@antumbra/platform-feature/fact.ts";
 import type { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Schema } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import type { CommitContext } from "#commit.ts";
 import { materialize } from "#materialize.ts";
 import { repeatOf, subjectOf } from "#repeat.ts";

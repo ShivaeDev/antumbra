@@ -2,7 +2,7 @@ import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { Operation } from "@antumbra/platform-runner/operations.ts";
 import { expect, it } from "@effect/vitest";
 import { Effect, Fiber, Layer, Option, Queue, Stream } from "effect";
-import * as Reactivity from "effect/unstable/reactivity/Reactivity";
+import * as Reactivity from "effect/reactivity/Reactivity";
 import { layer, RunnerConnections } from "#runner/connections.ts";
 
 const registration = { runnerId: "local", logId: "local-log", backends: ["codex"], imageInputBackends: ["codex"] };

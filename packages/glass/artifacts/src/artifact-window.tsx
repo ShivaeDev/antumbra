@@ -1,6 +1,6 @@
 import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { OutcomeMarkdownView } from "@antumbra/glass-components/outcome-markdown.tsx";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useEffect } from "react";
 import type { ReadArtifact } from "#glass.ts";
 import { useArtifact } from "#read.ts";

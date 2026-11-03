@@ -51,7 +51,7 @@ it.live("the CLI a session runs on is started with session state events on and t
 
 		const spawned = decodeSpawn(readFileSync(record, "utf8"));
 		expect(settingsFlag(spawned.argv)).toEqual(["--settings", JSON.stringify({ env: { CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS: "1" } })]);
-		expect(spawned.env.PATH).toBe(yield* Config.string("PATH"));
-		expect(spawned.env.HOME).toBe(yield* Config.string("HOME"));
+		expect(spawned.env.PATH).toBe(yield* Config.String("PATH"));
+		expect(spawned.env.HOME).toBe(yield* Config.String("HOME"));
 	}).pipe(Effect.scoped),
 );

@@ -25,7 +25,7 @@ const program = Effect.gen(function* () {
 		return yield* Effect.forEach(fixtures, (fixture) => Console.log(`${fixture.id}\t${fixture.label}\t${fixture.captureCompletedAt}`));
 	}
 	if (command.name === "capture") {
-		const override = yield* Config.string(overrideVariable).pipe(Config.withDefault(""));
+		const override = yield* Config.String(overrideVariable).pipe(Config.withDefault(""));
 		const directory = yield* sourceDirectory(command.source, appDataDirectory(), override);
 		yield* Console.log(`Capturing ${command.source} as ${command.label}…`);
 		const fixture = yield* captureFixture({

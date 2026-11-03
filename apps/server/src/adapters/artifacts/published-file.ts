@@ -52,7 +52,7 @@ export const installPublished = (destination: string, bytes: Uint8Array, digest:
 			yield* ensureExistingDurable(destination, digest, bytes.length);
 			return;
 		}
-		const temporary = path.join(path.dirname(destination), `.publish-${yield* crypto.randomUUIDv4}`);
+		const temporary = path.join(path.dirname(destination), `.publish-${yield* crypto.randomUUIDv4()}`);
 		const cleanup = fs.remove(temporary, { force: true }).pipe(Effect.catchCause(() => Effect.void));
 		yield* Effect.gen(function* () {
 			yield* writeSynced(temporary, bytes);

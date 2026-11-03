@@ -1,7 +1,7 @@
 import { dirname } from "node:path";
 import { loopback } from "@antumbra/platform-rpc/endpoint.ts";
 import { Context, Effect, Layer, Schedule, ScopedRef } from "effect";
-import { ChildProcess } from "effect/unstable/process";
+import { ChildProcess } from "effect/process";
 import { app } from "electron";
 import { ServerProcess } from "#adapters/server-process.ts";
 import { ShellState } from "#adapters/shell-state.ts";

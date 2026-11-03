@@ -5,7 +5,7 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import { ServerTools } from "@antumbra/runner-fabric/ports.ts";
 import { Effect, Fiber, Latch, Layer } from "effect";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { expect } from "vitest";
 import { file } from "#adapters/log.ts";
 import { RunnerClient } from "#connection.ts";

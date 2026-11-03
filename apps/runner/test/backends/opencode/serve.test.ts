@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Layer, Sink, Stream } from "effect";
+import { type ChildProcess, ChildProcessSpawner } from "effect/process";
 import { TestClock } from "effect/testing";
-import { type ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
 import { afterEach, vi } from "vitest";
 import { serveOpencode } from "#backends/opencode/adapters/serve.ts";
 

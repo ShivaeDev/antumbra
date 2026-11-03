@@ -7,7 +7,7 @@ import { assert } from "vitest";
 const INSTALLED = ["Antumbra", "Antumbra-Dev"];
 const RUNNER = ["CI", "GITHUB_ACTIONS", "GITHUB_RUN_ID", "RUNNER_TEMP"];
 
-const variable = (name: string): string => Effect.runSync(Config.string(name).pipe(Config.withDefault("")));
+const variable = (name: string): string => Effect.runSync(Config.String(name).pipe(Config.withDefault("")));
 
 const refusal = (): string | undefined => {
 	const beside = INSTALLED.filter((name) => existsSync(join(homedir(), "Library", "Application Support", name)));

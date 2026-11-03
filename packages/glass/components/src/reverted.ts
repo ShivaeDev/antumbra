@@ -1,4 +1,4 @@
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useEffect } from "react";
 import type { Generated } from "#generated.ts";
 

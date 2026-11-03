@@ -1,6 +1,6 @@
 import { useField, useSubmit } from "@antumbra/glass-form/react.ts";
 import { useAtomRef } from "@effect/atom-react";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useId } from "react";
 import { drawnAs } from "#controls.tsx";
 import { type Editable, type Held, titleOf } from "#fields.ts";

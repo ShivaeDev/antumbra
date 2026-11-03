@@ -1,6 +1,6 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Layer, Queue, Sink, Stream } from "effect";
-import { type ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { type ChildProcess, ChildProcessSpawner } from "effect/process";
 import { vi } from "vitest";
 import { RunnerProcess, RunnerProcessLayer } from "#adapters/runner-process.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";

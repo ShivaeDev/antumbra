@@ -3,7 +3,7 @@ import { definition } from "@antumbra/app-testing/entry.ts";
 import { NodeFileSystem } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Effect, FileSystem, Layer } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import { expect } from "vitest";
 import { app, registryOf } from "#app.ts";
 import { Database, DataDirectory } from "#database.ts";

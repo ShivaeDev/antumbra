@@ -1,6 +1,6 @@
 import type { StoredFact } from "@antumbra/platform-feature/migration.ts";
 import { Cause, Effect, Schema } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import type { Registry, RunnableMigration } from "#app.ts";
 import { materialize } from "#materialize.ts";
 import { storedFact } from "#migrate.ts";

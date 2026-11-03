@@ -14,7 +14,7 @@ const argument = (argv: ReadonlyArray<string>, flag: string): string | undefined
 	return at < 0 ? undefined : argv[at + 1];
 };
 export const options = (argv: ReadonlyArray<string>) =>
-	Effect.flatMap(Config.string("ANTUMBRA_TOKEN"), (token) =>
+	Effect.flatMap(Config.String("ANTUMBRA_TOKEN"), (token) =>
 		Schema.decodeUnknownEffect(Options)({
 			directory: argument(argv, "--data"),
 			assets: argument(argv, "--assets"),

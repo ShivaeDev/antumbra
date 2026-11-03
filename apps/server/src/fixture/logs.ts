@@ -1,7 +1,7 @@
 import { LogDatabase, makeLog } from "@antumbra/runner-fabric/log.ts";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { Clock, Effect, FileSystem, Layer, Path, Schema } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { TranscriptLog } from "#transcript/read-log.ts";
 
 const manifest = Schema.Struct({ runnerLogs: Schema.Array(Schema.Struct({ path: Schema.String, seed: Schema.String })) });

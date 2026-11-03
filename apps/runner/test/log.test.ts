@@ -5,7 +5,7 @@ import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { expect, it } from "@effect/vitest";
 import { Effect, Hash } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { file } from "#adapters/log.ts";
 
 const directory = Effect.acquireRelease(

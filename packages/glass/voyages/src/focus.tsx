@@ -3,7 +3,7 @@ import { useCommand } from "@antumbra/glass-client/hooks.ts";
 import { messageOf } from "@antumbra/glass-components/refusal.ts";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@antumbra/glass-components/shadcn/tooltip.tsx";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { PinIcon } from "lucide-react";
 import type { VoyagesApi } from "#glass.ts";
 

@@ -1,6 +1,6 @@
 import { it } from "@effect/vitest";
 import { Effect, Latch } from "effect";
-import { layer, Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { layer, Reactivity } from "effect/reactivity/Reactivity";
 import { expect } from "vitest";
 import { watching } from "#testing/watch.ts";
 

@@ -8,7 +8,7 @@ import { addWorktree, inspectWorktree } from "@antumbra/runner-git/worktrees.ts"
 import { NodeServices } from "@effect/platform-node";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcessSpawner } from "effect/process";
 import { gitProcess } from "#adapters/git.ts";
 
 const BRANCH = "work/ab12cd34/slug";

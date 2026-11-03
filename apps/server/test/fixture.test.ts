@@ -22,7 +22,7 @@ import { NodeServices } from "@effect/platform-node";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { it } from "@effect/vitest";
 import { Clock, Effect, FileSystem, Layer, Path } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { expect } from "vitest";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";

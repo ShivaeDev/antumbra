@@ -1,5 +1,5 @@
-import * as Rpc from "effect/unstable/rpc/Rpc";
-import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
+import * as Rpc from "effect/rpc/Rpc";
+import * as RpcGroup from "effect/rpc/RpcGroup";
 import { InputFailure } from "#commands/errors.ts";
 import { Draft, Image, ImageRequest, Receipt } from "#rows/content.ts";
 export const InputsRpc = RpcGroup.make(

@@ -3,7 +3,7 @@ import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-op
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 import { capacityAvailable } from "#sessions/execution/capacity.ts";
 import { holdOperation } from "#sessions/execution/hold.ts";
 import { runnerOperation } from "#sessions/execution/operation.ts";

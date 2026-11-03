@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import type { RowCodec } from "#codec.ts";
 import { scopeKey, tableKey } from "#keys.ts";
 import { keyed, type RuntimeRead, readHandle } from "#read-handle.ts";

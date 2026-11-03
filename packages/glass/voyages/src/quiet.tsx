@@ -2,7 +2,7 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { useCommand } from "@antumbra/glass-client/hooks.ts";
 import { messageOf } from "@antumbra/glass-components/refusal.ts";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { VoyagesApi } from "#glass.ts";
 
 export const QUIET_CHIP = "quiet by you";

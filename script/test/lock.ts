@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Console, Data, Deferred, Effect, FileSystem, Schedule } from "effect";
-import { ChildProcess, ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import { lock } from "proper-lockfile";
 
 class TestLockError extends Data.TaggedError("TestLockError")<{ readonly cause: unknown }> {}

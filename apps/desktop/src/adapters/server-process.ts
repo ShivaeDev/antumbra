@@ -1,6 +1,6 @@
 import type { Serving } from "@antumbra/platform-shell/bridge.ts";
 import { Context, Effect, Layer, Option, type PlatformError, Schedule, Schema, ScopedRef, Stream } from "effect";
-import { ChildProcess, type ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcess, type ChildProcessSpawner } from "effect/process";
 import { ShellState } from "#adapters/shell-state.ts";
 
 export type { Serving } from "@antumbra/platform-shell/bridge.ts";

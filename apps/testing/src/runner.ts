@@ -5,8 +5,8 @@ import type { OperationResult } from "@antumbra/platform-runner/operations.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import type { ToolCall } from "@antumbra/platform-runner/tools.ts";
 import { Effect, Queue, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
-import * as RpcTest from "effect/unstable/rpc/RpcTest";
+import { Reactivity } from "effect/reactivity/Reactivity";
+import * as RpcTest from "effect/rpc/RpcTest";
 import { eventually } from "#answers.ts";
 import { ScriptedArtifacts } from "#artifacts.ts";
 

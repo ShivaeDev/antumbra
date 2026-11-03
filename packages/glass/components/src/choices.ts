@@ -1,6 +1,6 @@
 import type { Choice } from "@antumbra/platform-feature/edit.ts";
 import { Option } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { Held } from "#fields.ts";
 
 export interface Offer {

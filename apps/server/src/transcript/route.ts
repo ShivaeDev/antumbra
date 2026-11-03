@@ -4,7 +4,7 @@ import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import { keysOf, Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 import { snapshot } from "#transcript/snapshot.ts";
 
 export const transcript = (input: { readonly id: SessionId }) =>

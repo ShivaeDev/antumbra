@@ -4,7 +4,7 @@ import { makeOpencodeServer } from "@antumbra/runner-backends-opencode/server.ts
 import { makeToolSessions } from "@antumbra/runner-backends-opencode/tool-sessions.ts";
 import type { ToolDefinition } from "@antumbra/runner-ports/tools.ts";
 import { Effect } from "effect";
-import { ChildProcessSpawner } from "effect/unstable/process";
+import { ChildProcessSpawner } from "effect/process";
 import { serveOpencode } from "#backends/opencode/adapters/serve.ts";
 import { serveToolRequests } from "#backends/opencode/adapters/tool-endpoint.ts";
 import { answerToolRequest } from "#backends/opencode/adapters/tool-server.ts";

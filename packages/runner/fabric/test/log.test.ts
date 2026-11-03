@@ -1,7 +1,7 @@
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Stream } from "effect";
-import { layer as reactivityLayer } from "effect/unstable/reactivity/Reactivity";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { LogDatabase, makeLog, RunnerLog } from "#log.ts";
 import { recover } from "#recover.ts";
 import { file } from "#test/database.ts";

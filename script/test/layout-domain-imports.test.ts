@@ -23,7 +23,7 @@ const kit = "packages/server/domains/role-settings/test/kit.ts";
 describe("domain-imports rule", () => {
 	it("lets a domain read effect, the kit, the vocabulary and its own subpaths", () => {
 		expect(check(from, "effect")).toEqual([]);
-		expect(check(from, "effect/unstable/schema/Schema")).toEqual([]);
+		expect(check(from, "effect/schema/Schema")).toEqual([]);
 		expect(check(from, "@antumbra/platform-feature/row.ts")).toEqual([]);
 		expect(check(from, "@antumbra/platform-vocabulary/agent-role.ts")).toEqual([]);
 		expect(check(from, "@antumbra/platform-prompts/charter.ts")).toEqual([]);

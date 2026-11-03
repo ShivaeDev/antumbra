@@ -19,7 +19,7 @@ const fail = (message: string) =>
 const program = Effect.gen(function* () {
 	const command = parseCommand(process.argv.slice(2));
 	if (Result.isFailure(command)) return yield* fail(command.failure);
-	const override = yield* Config.string(overrideVariable).pipe(Config.withDefault(""));
+	const override = yield* Config.String(overrideVariable).pipe(Config.withDefault(""));
 	const directory = devDataDirectory(appDataDirectory(), override);
 	if (Result.isFailure(directory)) return yield* fail(directory.failure);
 	const outcome = yield* run(command.success, directory.success, features);

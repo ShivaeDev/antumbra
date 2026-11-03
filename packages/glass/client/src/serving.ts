@@ -2,9 +2,9 @@ import type { Token } from "@antumbra/platform-rpc/token.ts";
 import { ClientToken } from "@antumbra/platform-rpc/token.ts";
 import { transport } from "@antumbra/platform-rpc/transport.ts";
 import { Effect, Layer } from "effect";
-import type * as RpcClient from "effect/unstable/rpc/RpcClient";
-import type * as RpcMiddleware from "effect/unstable/rpc/RpcMiddleware";
-import * as Socket from "effect/unstable/socket/Socket";
+import type * as RpcClient from "effect/rpc/RpcClient";
+import type * as RpcMiddleware from "effect/rpc/RpcMiddleware";
+import * as Socket from "effect/socket/Socket";
 
 export interface Serving {
 	readonly port: number;

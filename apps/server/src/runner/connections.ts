@@ -2,7 +2,7 @@ import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { Registration } from "@antumbra/platform-runner/log.ts";
 import type { Operation, OperationResult, Reply } from "@antumbra/platform-runner/operations.ts";
 import { Context, Deferred, Effect, Layer, Queue, Stream } from "effect";
-import { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import { Reactivity } from "effect/reactivity/Reactivity";
 import { type Observation, type Reported, reported } from "#runner/reported.ts";
 
 export class RunnerConnections extends Context.Service<

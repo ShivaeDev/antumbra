@@ -1,9 +1,9 @@
 import { watching } from "@antumbra/platform-rpc/query.ts";
 import { Schema, Stream } from "effect";
-import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import * as AtomRegistry from "effect/unstable/reactivity/AtomRegistry";
-import { RpcClientDefect, RpcClientError } from "effect/unstable/rpc/RpcClientError";
-import { SocketCloseError } from "effect/unstable/socket/Socket";
+import * as AsyncResult from "effect/reactivity/AsyncResult";
+import * as AtomRegistry from "effect/reactivity/AtomRegistry";
+import { RpcClientDefect, RpcClientError } from "effect/rpc/RpcClientError";
+import { SocketCloseError } from "effect/socket/Socket";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 const fields = { board: Schema.String };

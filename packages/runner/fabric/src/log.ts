@@ -1,6 +1,6 @@
 import { LogEntry, type LogEvent } from "@antumbra/platform-runner/log.ts";
 import { Clock, Context, Effect, PubSub, Schema, Stream } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 
 export interface Log {
 	readonly logId: string;

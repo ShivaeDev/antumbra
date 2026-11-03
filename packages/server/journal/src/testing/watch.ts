@@ -1,5 +1,5 @@
 import { Effect, Latch } from "effect";
-import type { Reactivity } from "effect/unstable/reactivity/Reactivity";
+import type { Reactivity } from "effect/reactivity/Reactivity";
 
 export interface Watch {
 	readonly around: <Value, Failure>(
@@ -10,7 +10,7 @@ export interface Watch {
 	readonly settled: Effect.Effect<void>;
 }
 
-export const watching = (reactivity: Reactivity["Service"], keys: readonly string[]): Watch => {
+export const watching = (reactivity: Reactivity, keys: readonly string[]): Watch => {
 	const latch = Latch.makeUnsafe(false);
 	const state = { completed: 0, generation: 1 };
 	const cancel = reactivity.registerUnsafe(keys, () => {

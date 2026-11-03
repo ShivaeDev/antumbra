@@ -1,6 +1,6 @@
 import type { FactShape } from "@antumbra/platform-feature/fact.ts";
 import { Effect, Schema } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 
 const Fields = Schema.Record(Schema.String, Schema.Unknown);
 

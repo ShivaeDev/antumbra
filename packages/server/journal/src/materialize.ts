@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import type { SqlClient } from "effect/unstable/sql/SqlClient";
+import type { SqlClient } from "effect/sql/SqlClient";
 import { codecOf, type Registry } from "#app.ts";
 import { readHandle } from "#read-handle.ts";
 import { writeHandle } from "#write-handle.ts";

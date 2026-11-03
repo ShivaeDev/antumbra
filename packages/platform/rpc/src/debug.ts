@@ -1,5 +1,6 @@
-import { Schema } from "effect";
-import * as Rpc from "effect/rpc/Rpc";
-import * as RpcGroup from "effect/rpc/RpcGroup";
+import { contract } from "@shivaedev/contract/contract.ts";
+import { command } from "@shivaedev/contract/operation.ts";
 
-export const DebugRpc = RpcGroup.make(Rpc.make("debug.rebuildProjections", { success: Schema.Void }));
+export const DebugRpc = contract("debug", {
+	commands: [command("rebuildProjections", { invalidates: () => [] })],
+}).application;

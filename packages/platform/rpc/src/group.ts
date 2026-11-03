@@ -1,32 +1,27 @@
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
-import type { AlreadyDone, RejectedBy, RejectionSpecs } from "@antumbra/platform-feature/rejection.ts";
+import type { Rejections } from "@antumbra/platform-feature/rejection.ts";
+import { contract, type OperationRpc } from "@shivaedev/contract/contract.ts";
+import { type Command, command, type Streaming, stream } from "@shivaedev/contract/operation.ts";
+import type { TaggedRejection } from "@shivaedev/contract/rejection.ts";
 import { Schema } from "effect";
-import * as Rpc from "effect/rpc/Rpc";
+import type * as Rpc from "effect/rpc/Rpc";
 import * as RpcGroup from "effect/rpc/RpcGroup";
-import type * as RpcSchema from "effect/rpc/RpcSchema";
 import { Token } from "#token.ts";
 
-export type Tag<Feature extends string, Name extends string> = `${Feature}.${Name}`;
+type CommandOperation<C extends CommandShape> = Command<C["name"], C["Input"], typeof Schema.Number, Rejections<C["rejections"]>>;
+type ReadingOperation<Q extends QueryShape> = Streaming<Q["name"], Schema.Struct<Q["input"]>, Q["output"], Record<never, never>>;
 
-export type Rejects<Specs extends RejectionSpecs> = Schema.Codec<AlreadyDone | RejectedBy<Specs>, unknown>;
-
-export type CommandRpc<Feature extends string, Command extends CommandShape> = Command extends CommandShape
-	? Rpc.Rpc<Tag<Feature, Command["name"]>, Command["Input"], typeof Schema.Number, Rejects<Command["rejections"]>, typeof Token>
+type CommandRpc<Feature extends string, C extends CommandShape> = C extends unknown
+	? Rpc.AddMiddleware<OperationRpc<Feature, CommandOperation<C>>, typeof Token>
 	: never;
 
-export type QueryRpc<Feature extends string, Query extends QueryShape> = Query extends QueryShape
-	? Rpc.Rpc<
-			Tag<Feature, Query["name"]>,
-			Schema.Struct<Query["input"]>,
-			RpcSchema.Stream<Query["output"], typeof Schema.Never>,
-			typeof Schema.Never,
-			typeof Token
-		>
+type QueryRpc<Feature extends string, Q extends QueryShape> = Q extends unknown
+	? Rpc.AddMiddleware<OperationRpc<Feature, ReadingOperation<Q>>, typeof Token>
 	: never;
 
-export type FeatureRpcs<Feature extends FeatureShape> = Feature extends FeatureShape
+type FeatureRpcs<Feature extends FeatureShape> = Feature extends unknown
 	? CommandRpc<Feature["name"], Feature["commands"][number]> | QueryRpc<Feature["name"], Feature["queries"][number]>
 	: never;
 
@@ -37,7 +32,7 @@ export const tagOf = (feature: string, name: string): string => `${feature}.${na
 interface Declared {
 	readonly Input: Schema.Top;
 	readonly name: string;
-	readonly Rejection: Record<string, Schema.Top>;
+	readonly Rejection: Record<string, TaggedRejection & { readonly Type: { readonly _tag: string } }>;
 }
 
 function declared(command: CommandShape): Declared;
@@ -45,24 +40,19 @@ function declared(command: unknown): unknown {
 	return command;
 }
 
-const commandRpc = (feature: string, command: CommandShape): Rpc.Any => {
-	const shape = declared(command);
-	return Rpc.make(tagOf(feature, shape.name), {
-		error: Schema.Union(Object.values(shape.Rejection)),
-		payload: shape.Input,
-		success: Schema.Number,
-	});
+const commandOf = (definition: CommandShape) => {
+	const shape = declared(definition);
+	return command(shape.name, { payload: shape.Input, success: Schema.Number, rejections: shape.Rejection, invalidates: () => [] });
 };
 
-const queryRpc = (feature: string, query: QueryShape): Rpc.Any =>
-	Rpc.make(tagOf(feature, query.name), { payload: Schema.Struct(query.input), stream: true, success: query.output });
+const readingOf = (query: QueryShape) => stream(query.name, { payload: query.input, success: query.output, reads: () => [] });
 
-const rpcsOf = (feature: FeatureShape): readonly Rpc.Any[] => [
-	...feature.commands.map((command) => commandRpc(feature.name, command)),
-	...feature.queries.map((query) => queryRpc(feature.name, query)),
-];
+const contractOf = (feature: FeatureShape) =>
+	contract(feature.name, { commands: feature.commands.map(commandOf), streams: feature.queries.map(readingOf) }).application;
 
 export function group<const Features extends readonly FeatureShape[]>(features: Features): RpcGroup.RpcGroup<Rpcs<Features>>;
 export function group(features: readonly FeatureShape[]): unknown {
-	return RpcGroup.make(...features.flatMap(rpcsOf)).middleware(Token);
+	return RpcGroup.make()
+		.merge(...features.map(contractOf))
+		.middleware(Token);
 }

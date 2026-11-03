@@ -3,7 +3,7 @@ import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import type { Send } from "@antumbra/platform-rpc/client.ts";
 import type { Watch } from "@antumbra/platform-rpc/query.ts";
-import type { Unauthorized } from "@antumbra/platform-rpc/token.ts";
+import type { Unauthorized } from "@shivaedev/errors/taxonomy.ts";
 import { type QueryState, useAction, useQuery } from "@shivaedev/react/client/resultState.ts";
 import { type Cause, Layer } from "effect";
 import * as Atom from "effect/reactivity/Atom";

@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@shivaedev/contract": "catalog:"
 	}
 }

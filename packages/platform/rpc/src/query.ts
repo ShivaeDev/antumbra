@@ -1,10 +1,10 @@
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
+import type { Unauthorized } from "@shivaedev/errors/taxonomy.ts";
 import { Cause, Option, type Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { RpcClientError } from "effect/rpc/RpcClientError";
-import type { Unauthorized } from "#token.ts";
 
 const AGAIN_AFTER = 1000;
 

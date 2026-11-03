@@ -55,9 +55,17 @@ export const registerShellBridge = (registry: WindowRegistry, restart: () => Pro
 			owner(event);
 			return run(ShellDrafts.use((source) => source.read(Schema.decodeUnknownSync(DraftRef)(raw))));
 		});
-		ipcMain.handle(Channel.WRITE_DRAFT_CHANNEL, (event, raw: unknown, text: unknown) => {
+		ipcMain.handle(Channel.WRITE_DRAFT_CHANNEL, (event, raw: unknown, text: unknown, expected: unknown) => {
 			owner(event);
-			return run(ShellDrafts.use((source) => source.write(Schema.decodeUnknownSync(DraftRef)(raw), Schema.decodeUnknownSync(Schema.String)(text))));
+			return run(
+				ShellDrafts.use((source) =>
+					source.write(
+						Schema.decodeUnknownSync(DraftRef)(raw),
+						Schema.decodeUnknownSync(Schema.String)(text),
+						Schema.decodeUnknownSync(Schema.UndefinedOr(Schema.String))(expected),
+					),
+				),
+			);
 		});
 		ipcMain.handle(Channel.CLEAR_DRAFT_CHANNEL, (event, raw: unknown, revision: unknown) => {
 			owner(event);

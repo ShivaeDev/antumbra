@@ -12,8 +12,6 @@ export const Serving = Schema.Struct({ port: Schema.Int, token: Schema.String })
 export type Serving = typeof Serving.Type;
 export const DraftRef = Schema.Struct({ sessionId: Schema.String, slot: Schema.String });
 export type DraftRef = typeof DraftRef.Type;
-export const DraftSnapshot = Schema.Struct({ text: Schema.String, revision: Schema.String });
-export type DraftSnapshot = typeof DraftSnapshot.Type;
 
 export interface ShellBridge {
 	readonly server: () => Promise<Serving>;
@@ -24,10 +22,10 @@ export interface ShellBridge {
 	readonly restartServer: () => Promise<void>;
 	readonly appInfo: () => Promise<AppInfo>;
 	readonly openExternal: (url: string) => void;
-	readonly readDraft: (ref: DraftRef) => Promise<DraftSnapshot>;
-	readonly writeDraft: (ref: DraftRef, text: string) => Promise<DraftSnapshot>;
+	readonly readDraft: (ref: DraftRef) => Promise<string | null>;
+	readonly writeDraft: (ref: DraftRef, value: string, expected?: string) => Promise<void>;
 	readonly clearDraft: (ref: DraftRef, revision: string) => Promise<void>;
-	readonly subscribeDraft: (ref: DraftRef, listener: (snapshot: DraftSnapshot) => void) => () => void;
+	readonly subscribeDraft: (ref: DraftRef, listener: (value: string | null) => void) => () => void;
 }
 
 declare global {

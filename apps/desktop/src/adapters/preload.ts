@@ -1,4 +1,4 @@
-import type { DraftRef, DraftSnapshot, ShellBridge } from "@antumbra/platform-shell/bridge.ts";
+import type { DraftRef, ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import * as Channel from "@antumbra/platform-shell/channels.ts";
 import { contextBridge, ipcRenderer } from "electron";
 
@@ -15,11 +15,11 @@ export const installShellBridge = () =>
 			ipcRenderer.send(Channel.OPEN_EXTERNAL_CHANNEL, url);
 		},
 		readDraft: (ref) => ipcRenderer.invoke(Channel.READ_DRAFT_CHANNEL, ref),
-		writeDraft: (ref, text) => ipcRenderer.invoke(Channel.WRITE_DRAFT_CHANNEL, ref, text),
+		writeDraft: (ref, text, expected) => ipcRenderer.invoke(Channel.WRITE_DRAFT_CHANNEL, ref, text, expected),
 		clearDraft: (ref, revision) => ipcRenderer.invoke(Channel.CLEAR_DRAFT_CHANNEL, ref, revision),
 		subscribeDraft: (ref, listener) => {
-			const receive = (_event: unknown, changed: DraftRef, snapshot: DraftSnapshot) => {
-				if (changed.sessionId === ref.sessionId && changed.slot === ref.slot) listener(snapshot);
+			const receive = (_event: unknown, changed: DraftRef, value: string | null) => {
+				if (changed.sessionId === ref.sessionId && changed.slot === ref.slot) listener(value);
 			};
 			ipcRenderer.on(Channel.DRAFT_CHANGED_CHANNEL, receive);
 			return () => {

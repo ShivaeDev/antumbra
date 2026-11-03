@@ -1,11 +1,10 @@
+import { memoryDrafts } from "@antumbra/app-testing/drafts.ts";
 import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
-import type { DraftSnapshot, Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect, SubscriptionRef } from "effect";
 import { expect } from "vitest";
 import { FleetPanel } from "#fleet.tsx";
 import { SessionComposer } from "#session-composer.tsx";
@@ -54,12 +53,7 @@ it.glass("the act on a working session reads Stop and leaves the session held", 
 	yield* until(() => [...fleet.querySelectorAll("h2")].some((heading) => heading.textContent === "Stopped"), "the fleet to group the held agent");
 
 	const inputs = yield* run(inputApi);
-	const shell = yield* SubscriptionRef.make<DraftSnapshot>({ text: "", revision: "initial" });
-	const drafts: Drafts = {
-		watch: () => SubscriptionRef.changes(shell),
-		write: (_ref, text) => SubscriptionRef.set(shell, { text, revision: "held" }).pipe(Effect.as({ text, revision: "held" })),
-		clear: () => Effect.void,
-	};
+	const drafts = memoryDrafts();
 	const composer = yield* render(
 		<SessionComposer api={api} drafts={drafts} inputs={inputs.client} onError={() => undefined} sessionId={sessionId} />,
 	);

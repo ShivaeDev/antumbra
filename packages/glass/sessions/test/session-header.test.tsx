@@ -1,11 +1,10 @@
+import { memoryDrafts } from "@antumbra/app-testing/drafts.ts";
 import { until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
 import type { TranscriptReading } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import type { DraftSnapshot, Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Effect, SubscriptionRef } from "effect";
 import { expect } from "vitest";
 import { SessionComposer } from "#session-composer.tsx";
 import { SessionHeader } from "#session-header.tsx";
@@ -52,12 +51,7 @@ it.glass("the header names the session once and carries what it has spent", func
 
 it.glass("a transcript no agent answers for is read only", function* ({ api, render, run }) {
 	const inputs = yield* run(inputApi);
-	const shell = yield* SubscriptionRef.make<DraftSnapshot>({ text: "", revision: "initial" });
-	const drafts: Drafts = {
-		watch: () => SubscriptionRef.changes(shell),
-		write: (_ref, text) => SubscriptionRef.set(shell, { text, revision: "shell" }).pipe(Effect.as({ text, revision: "shell" })),
-		clear: () => Effect.void,
-	};
+	const drafts = memoryDrafts();
 	const container = yield* render(
 		<SessionComposer api={api} drafts={drafts} inputs={inputs.client} onError={() => undefined} sessionId="session:forgotten" />,
 	);

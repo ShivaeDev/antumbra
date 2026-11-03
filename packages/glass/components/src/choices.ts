@@ -1,6 +1,5 @@
 import type { Choice } from "@antumbra/platform-feature/edit.ts";
 import { Option } from "effect";
-import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { Held } from "#fields.ts";
 
 export interface Offer {
@@ -44,9 +43,9 @@ function rowsOf(listed: unknown): unknown {
 	return Array.isArray(listed) ? listed : [];
 }
 
-export const offersOf = (choice: Choice, listed: AsyncResult.AsyncResult<unknown, unknown>): readonly Offer[] => {
+export const offersOf = (choice: Choice, listed: Option.Option<unknown>): readonly Offer[] => {
 	const offers: Offer[] = [];
-	for (const row of rowsOf(Option.getOrUndefined(AsyncResult.value(listed)))) {
+	for (const row of rowsOf(Option.getOrUndefined(listed))) {
 		const offer = offerOf(choice, row);
 		if (offer !== undefined) {
 			offers.push(offer);

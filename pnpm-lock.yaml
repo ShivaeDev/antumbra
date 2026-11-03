@@ -209,6 +209,9 @@ catalogs:
     '@shivaedev/form':
       specifier: 0.13.0
       version: 0.13.0
+    '@shivaedev/react':
+      specifier: 0.35.0
+      version: 0.35.0
     '@shivaedev/service':
       specifier: 0.6.1
       version: 0.6.1
@@ -1076,6 +1079,9 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+      '@shivaedev/react':
+        specifier: 'catalog:'
+        version: 0.35.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -1086,6 +1092,9 @@ importers:
       '@antumbra/app-testing':
         specifier: workspace:*
         version: link:../../../apps/testing
+      '@antumbra/domain-voyages':
+        specifier: workspace:*
+        version: link:../../server/domains/voyages
       '@effect/vitest':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(vitest@5.0.5(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
@@ -1521,6 +1530,9 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+      '@shivaedev/react':
+        specifier: 'catalog:'
+        version: 0.35.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -1579,6 +1591,9 @@ importers:
       '@antumbra/glass-components':
         specifier: workspace:*
         version: link:../components
+      '@antumbra/platform-rpc':
+        specifier: workspace:*
+        version: link:../../platform/rpc
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -1832,6 +1847,9 @@ importers:
       '@effect/atom-react':
         specifier: 'catalog:'
         version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+      '@shivaedev/react':
+        specifier: 'catalog:'
+        version: 0.35.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -5090,6 +5108,24 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@shivaedev/access@0.4.0':
+    resolution: {integrity: sha512-O8Q/7wJGIYJb7O471DCGNykPHO2UR+lSPmhTe9F0mJGZUF6G/dSHZXzUEh6j0G53fRVX3+nU2X7jKIkUlHTT8w==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      effect: 4.0.6
+
+  '@shivaedev/changes@0.9.0':
+    resolution: {integrity: sha512-+5j80KZGon0HMqrVw6oxASH6VYhEdClhx/209qhJEsO5skPmESEt2AhovpClkai+4NNer4JSf9ZXTv0ZIiNJvw==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      effect: 4.0.6
+
+  '@shivaedev/contract@0.32.0':
+    resolution: {integrity: sha512-jZbRye3NNly06Ajni/DUZRKbKAHgu37O3qEBQg//rtqlrqV+nLNQoD8FMaJT42KH/jtvh4br2iIPvg4Q4vvgSw==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      effect: 4.0.6
+
   '@shivaedev/errors@0.6.0':
     resolution: {integrity: sha512-G36Xo+SR7VWDJ8rpDqWbI08/NNVWOIBLPMABCmaLiEk7hNZ/RMgS5adQGoTujWTDNT9yIYUqSsxnvZwxCKA1Eg==}
     engines: {node: '>=24'}
@@ -5109,11 +5145,60 @@ packages:
       react:
         optional: true
 
+  '@shivaedev/identity@0.20.0':
+    resolution: {integrity: sha512-kUkDGJMRLXdo51dME4eZ6IJLsZF1hycHs57vwd3Huc5+Oz9exVFpHnEogxBRgI7/DBCoCvMrkm+XRJfB9C6twA==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      '@better-auth/oauth-provider': 1.7.14
+      better-auth: 1.7.14
+      effect: 4.0.6
+    peerDependenciesMeta:
+      '@better-auth/oauth-provider':
+        optional: true
+      better-auth:
+        optional: true
+
+  '@shivaedev/rate-limit@0.3.0':
+    resolution: {integrity: sha512-JuYicOxye/+3malv1CHRJBGmYl1J0A72FABjCxhew3z7zkep0B4ZxjQ3o+0v0uqWlCUtM9HE7E1HtjA0XK7lKw==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      '@shivaedev/sql': 0.34.0
+      effect: 4.0.6
+    peerDependenciesMeta:
+      '@shivaedev/sql':
+        optional: true
+
+  '@shivaedev/react@0.35.0':
+    resolution: {integrity: sha512-F5/xq6wMYWsu2rudjf7svmLIAIki39afdY3o2fX818GBe5mnuejTxypUSplqub8qAfl79zHgRNv3VhErA1FfxA==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      '@effect/atom-react': 4.0.6
+      '@tanstack/react-router': 1.170.46
+      effect: 4.0.6
+      react: 19.3.1
+    peerDependenciesMeta:
+      '@tanstack/react-router':
+        optional: true
+
   '@shivaedev/service@0.6.1':
     resolution: {integrity: sha512-wW7VS2HRvFMpy0d5SFSo5wZXfFcOuCwROAEDKJ290U6DqQziTe2qt7tI2bDtnFBDn8qpTP+R+b6rtNsgxFJw8w==}
     engines: {node: '>=24'}
     peerDependencies:
       effect: 4.0.6
+
+  '@shivaedev/sql@0.34.0':
+    resolution: {integrity: sha512-3IL42oOQY1gGbktCXW1NAehmKxULjdj1upO2SLhsAyYMUDaq1wyzPi7uHLM/6xCiE+M18lz0Van9rlgx2Fqm0w==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      '@effect/sql-pg': 4.0.6
+      effect: 4.0.6
+    peerDependenciesMeta:
+      '@effect/sql-pg':
+        optional: true
+
+  '@shivaedev/types@0.3.0':
+    resolution: {integrity: sha512-gkEsYCvrrFrmP4lFy5wiozBrrLzs6bIsrTRNH2wj1PttsBeUJkmFaqCntF5Z91YED9KU+inAhMzaJl7p0ilb9w==}
+    engines: {node: '>=24'}
 
   '@silvia-odwyer/photon-node@0.3.4':
     resolution: {integrity: sha512-bnly4BKB3KDTFxrUIcgCLbaeVVS8lrAkri1pEzskpmxu9MdfGQTy8b8EgcD83ywD3RPMsIulY8xJH5Awa+t9fA==}
@@ -9832,6 +9917,22 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@shivaedev/access@0.4.0(effect@4.0.6)':
+    dependencies:
+      '@shivaedev/errors': 0.6.0(effect@4.0.6)
+      effect: 4.0.6
+
+  '@shivaedev/changes@0.9.0(effect@4.0.6)':
+    dependencies:
+      effect: 4.0.6
+
+  '@shivaedev/contract@0.32.0(effect@4.0.6)':
+    dependencies:
+      '@shivaedev/changes': 0.9.0(effect@4.0.6)
+      '@shivaedev/service': 0.6.1(effect@4.0.6)
+      '@shivaedev/types': 0.3.0
+      effect: 4.0.6
+
   '@shivaedev/errors@0.6.0(effect@4.0.6)':
     dependencies:
       effect: 4.0.6
@@ -9844,9 +9945,51 @@ snapshots:
       '@effect/atom-react': 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
       react: 19.3.1
 
+  '@shivaedev/identity@0.20.0(effect@4.0.6)':
+    dependencies:
+      '@shivaedev/access': 0.4.0(effect@4.0.6)
+      '@shivaedev/changes': 0.9.0(effect@4.0.6)
+      '@shivaedev/contract': 0.32.0(effect@4.0.6)
+      '@shivaedev/errors': 0.6.0(effect@4.0.6)
+      '@shivaedev/rate-limit': 0.3.0(@shivaedev/sql@0.34.0(effect@4.0.6))(effect@4.0.6)
+      '@shivaedev/sql': 0.34.0(effect@4.0.6)
+      effect: 4.0.6
+    transitivePeerDependencies:
+      - '@effect/sql-pg'
+
+  '@shivaedev/rate-limit@0.3.0(@shivaedev/sql@0.34.0(effect@4.0.6))(effect@4.0.6)':
+    dependencies:
+      '@shivaedev/errors': 0.6.0(effect@4.0.6)
+      effect: 4.0.6
+    optionalDependencies:
+      '@shivaedev/sql': 0.34.0(effect@4.0.6)
+
+  '@shivaedev/react@0.35.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)':
+    dependencies:
+      '@effect/atom-react': 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+      '@shivaedev/access': 0.4.0(effect@4.0.6)
+      '@shivaedev/contract': 0.32.0(effect@4.0.6)
+      '@shivaedev/errors': 0.6.0(effect@4.0.6)
+      '@shivaedev/form': 0.13.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+      '@shivaedev/identity': 0.20.0(effect@4.0.6)
+      effect: 4.0.6
+      react: 19.3.1
+    transitivePeerDependencies:
+      - '@better-auth/oauth-provider'
+      - '@effect/sql-pg'
+      - better-auth
+
   '@shivaedev/service@0.6.1(effect@4.0.6)':
     dependencies:
       effect: 4.0.6
+
+  '@shivaedev/sql@0.34.0(effect@4.0.6)':
+    dependencies:
+      '@shivaedev/changes': 0.9.0(effect@4.0.6)
+      '@shivaedev/service': 0.6.1(effect@4.0.6)
+      effect: 4.0.6
+
+  '@shivaedev/types@0.3.0': {}
 
   '@silvia-odwyer/photon-node@0.3.4': {}
 

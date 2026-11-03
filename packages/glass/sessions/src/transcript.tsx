@@ -5,8 +5,8 @@ import { reading } from "@antumbra/glass-client/live.tsx";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";
 import { ScrollArea } from "@antumbra/glass-components/shadcn/scroll-area.tsx";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
-import { useAtomValue } from "@effect/atom-react";
-import * as AsyncResult from "effect/reactivity/AsyncResult";
+import { type QueryState, useQuery } from "@shivaedev/react/client/resultState.ts";
+import { Option } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { useMemo } from "react";
 import type { SessionsClient } from "#client.ts";
@@ -22,11 +22,10 @@ type Reading = typeof TranscriptReading.Type;
 
 export const useTranscript = (sessions: SessionsClient, sessionId: string) => {
 	const atom = useMemo(() => Atom.make(sessions["sessions.transcript"]({ id: SessionId.make(sessionId) })), [sessions, sessionId]);
-	return useAtomValue(atom);
+	return useQuery(atom);
 };
 
-export const snapshotOf = <Failure,>(result: AsyncResult.AsyncResult<Reading, Failure>): Reading | undefined =>
-	AsyncResult.isSuccess(result) ? result.value : undefined;
+export const snapshotOf = <Failure,>(result: QueryState<Reading, Failure>): Reading | undefined => Option.getOrUndefined(result.data);
 
 interface Shown {
 	readonly inputs: InputsClient;

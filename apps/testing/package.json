@@ -44,6 +44,7 @@
 		"react": "catalog:",
 		"react-dom": "catalog:",
 		"vitest": "catalog:",
-		"happy-dom": "catalog:"
+		"happy-dom": "catalog:",
+		"@shivaedev/test-story": "catalog:"
 	}
 }

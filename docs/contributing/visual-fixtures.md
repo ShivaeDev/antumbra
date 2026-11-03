@@ -35,6 +35,18 @@ Opening and checking use the same storage upgrade paths as production. Neither f
 migration change should also carry a focused assertion that its older data produces the intended reading; successful boot alone does not prove its
 meaning.
 
+Add `--target postgres` to `fixture check` to also start an app-owned PostgreSQL instance, prepare the current migrations with `test-sql`, and check
+an isolated database cloned from that migrated template. `fixture capture <label> --target postgres` captures the same journal archive and immediately
+runs that check. The PostgreSQL database, templates, instance and socket are released when the check ends.
+
+The PostgreSQL composition currently establishes only the storage namespace. Domain data still belongs to the journal; the check validates captured
+domain reads there and PostgreSQL schema readiness separately. Domain storage changes must add their fixture mappings and readout comparisons as they
+move to PostgreSQL. A successful schema check does not prove that archived domain data has moved.
+
+These checks and `pnpm test:app` require PostgreSQL server and client binaries. Set `ANTUMBRA_POSTGRES_BIN_DIRECTORY` to their directory when they are
+outside `PATH` and the directory reported by `pg_config --bindir`. Missing binaries fail the tests; PostgreSQL stories never skip. Application time in
+those stories uses a controlled clock. The desktop dev app continues to use its existing journal.
+
 ## Rebuild explicitly
 
 Settings includes a Debug action to rebuild projections from the journal. It is available in the normal application and fixture viewer. It takes the

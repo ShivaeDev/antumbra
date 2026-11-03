@@ -4,11 +4,31 @@ import { parseCommand } from "#fixture/command.ts";
 
 describe("fixture commands", () => {
 	it("captures dev by default and accepts a named production capture", () => {
-		expect(Result.getOrThrow(parseCommand(["capture", "Long transcript"]))).toEqual({ name: "capture", label: "Long transcript", source: "dev" });
+		expect(Result.getOrThrow(parseCommand(["capture", "Long transcript"]))).toEqual({
+			name: "capture",
+			label: "Long transcript",
+			source: "dev",
+			target: "journal",
+		});
 		expect(Result.getOrThrow(parseCommand(["capture", "release", "--source", "prod"]))).toEqual({
 			name: "capture",
 			label: "release",
 			source: "prod",
+			target: "journal",
+		});
+	});
+
+	it("targets PostgreSQL checks after capture or for an archived fixture", () => {
+		expect(Result.getOrThrow(parseCommand(["capture", "release", "--source", "prod", "--target", "postgres"]))).toEqual({
+			name: "capture",
+			label: "release",
+			source: "prod",
+			target: "postgres",
+		});
+		expect(Result.getOrThrow(parseCommand(["check", "release", "--target", "postgres"]))).toEqual({
+			name: "check",
+			selector: "release",
+			target: "postgres",
 		});
 	});
 

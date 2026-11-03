@@ -1,5 +1,5 @@
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { MessageId } from "#ids.ts";
+import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 
 export const HAND = "agent-hand";
 

@@ -1,4 +1,5 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { ROUTINE_MAIL_MINUTES } from "@antumbra/platform-vocabulary/mail.ts";
 import { Effect, Schema } from "effect";
 import { COUNT_KEYS, type CountDeclaration, CountKey, FLEET } from "#ids.ts";
 import { count } from "#rows/count.ts";
@@ -40,7 +41,7 @@ export const COUNTS: Readonly<Record<CountKey, CountDeclaration>> = {
 	},
 	routineMailMinutes: {
 		description: "Routine mail waits this long before it wakes a resting agent; priority and flash mail wake one at once.",
-		fallback: 5,
+		fallback: ROUTINE_MAIL_MINUTES,
 		max: 1440,
 		min: 1,
 		title: "Routine mail before a wake",

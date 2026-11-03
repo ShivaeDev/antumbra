@@ -1,3 +1,4 @@
+import { journalMail, replayMailFixture } from "@antumbra/server-journal/postgres/mail/fixture.ts";
 import { journalPieces, replayPieceFixture } from "@antumbra/server-journal/postgres/pieces/fixture.ts";
 import { journalVoyages, replayVoyageFixture } from "@antumbra/server-journal/postgres/voyages/fixture.ts";
 import { Effect, FileSystem, Path } from "effect";
@@ -17,5 +18,7 @@ export const replayJournal = Effect.fn("PostgresApp.replayJournal")(function* (j
 	yield* replayVoyageFixture(snapshot);
 	const pieces = yield* journalPieces(filename);
 	yield* replayPieceFixture(pieces);
-	return { ...snapshot, pieceSnapshot: pieces };
+	const mail = yield* journalMail(filename);
+	yield* replayMailFixture(mail);
+	return { ...snapshot, pieceSnapshot: pieces, mailSnapshot: mail };
 });

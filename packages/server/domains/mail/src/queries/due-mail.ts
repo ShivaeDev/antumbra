@@ -1,6 +1,7 @@
 import type { SwitchKey } from "@antumbra/domain-settings/ids.ts";
+import { MessagePrecedence } from "@antumbra/platform-vocabulary/mail.ts";
 import { Schema } from "effect";
-import { MessagePrecedence, type message } from "#rows/message.ts";
+import type { message } from "#rows/message.ts";
 
 export const MailBatch = Schema.Struct({ count: Schema.Number, precedence: MessagePrecedence });
 export type MailBatch = typeof MailBatch.Type;

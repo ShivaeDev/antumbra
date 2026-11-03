@@ -1,7 +1,7 @@
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
 import type { RowValue } from "@antumbra/platform-feature/row.ts";
+import type { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import { Effect, Option } from "effect";
-import type { MessageId } from "#ids.ts";
 import type { message } from "#rows/message.ts";
 
 type Reading = ReadHandles<readonly [typeof message]>;

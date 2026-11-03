@@ -1,8 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import { MessageId, MessagePrecedence } from "@antumbra/platform-vocabulary/mail.ts";
 import { Clock, Effect, Schema } from "effect";
 import { messageSent } from "#facts/message-sent.ts";
-import { MessageId } from "#ids.ts";
-import { MessagePrecedence } from "#rows/message.ts";
 
 const BODY = "body";
 

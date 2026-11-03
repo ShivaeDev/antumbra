@@ -1,14 +1,14 @@
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
+import { memoryDrafts } from "@antumbra/app-testing/drafts.ts";
 import { fill, labelled, press, renderedForm, submit, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { ScriptedHost } from "@antumbra/app-testing/host.ts";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { identity } from "@antumbra/domain-agents/ids.ts";
-import type { DraftSnapshot, Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
-import { Effect, SubscriptionRef } from "effect";
+import { Effect } from "effect";
 import { ChangeOutcomes } from "#change-outcomes.tsx";
 import { QuayPanel } from "#quay-panel.tsx";
 import { SessionSituations } from "#session-situations.tsx";
@@ -167,15 +167,7 @@ it.glass("reads the waiting comments on the button and hands the session's draft
 		observedAt: yield* recorded(0),
 	});
 	const inputs = yield* run(inputApi);
-	const shell = yield* SubscriptionRef.make<DraftSnapshot>({ text: "", revision: "initial" });
-	const drafts: Drafts = {
-		watch: () => SubscriptionRef.changes(shell),
-		write: (_ref, text) => {
-			const snapshot = { text, revision: "written" };
-			return SubscriptionRef.set(shell, snapshot).pipe(Effect.as(snapshot));
-		},
-		clear: () => Effect.void,
-	};
+	const drafts = memoryDrafts();
 	const container = yield* render(
 		<SessionSituations
 			api={api}

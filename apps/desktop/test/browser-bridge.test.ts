@@ -21,6 +21,9 @@ const listeners: ((event: StorageChange) => void)[] = [];
 const browser = () => {
 	vi.stubGlobal("localStorage", {
 		getItem: (key: string) => stored.get(key) ?? null,
+		removeItem: (key: string) => {
+			stored.delete(key);
+		},
 		setItem: (key: string, value: string) => {
 			stored.set(key, value);
 		},
@@ -80,21 +83,21 @@ it.effect("keeps a later draft edit when an earlier send clears the slot it no l
 	Effect.gen(function* () {
 		browser();
 		const bridge = bridgeAt(LINK);
-		expect(yield* Effect.promise(() => bridge.readDraft(REF))).toEqual({ revision: "", text: "" });
-		const first = yield* Effect.promise(() => bridge.writeDraft(REF, "first draft"));
-		const later = yield* Effect.promise(() => bridge.writeDraft(REF, "later edit"));
-		yield* Effect.promise(() => bridge.clearDraft(REF, first.revision));
-		expect(yield* Effect.promise(() => bridge.readDraft(REF))).toEqual(later);
-		yield* Effect.promise(() => bridge.clearDraft(REF, later.revision));
-		expect((yield* Effect.promise(() => bridge.readDraft(REF))).text).toBe("");
+		expect(yield* Effect.promise(() => bridge.readDraft(REF))).toBeNull();
+		yield* Effect.promise(() => bridge.writeDraft(REF, "first draft"));
+		yield* Effect.promise(() => bridge.writeDraft(REF, "later edit"));
+		yield* Effect.promise(() => bridge.clearDraft(REF, "first draft"));
+		expect(yield* Effect.promise(() => bridge.readDraft(REF))).toBe("later edit");
+		yield* Effect.promise(() => bridge.clearDraft(REF, "later edit"));
+		expect(yield* Effect.promise(() => bridge.readDraft(REF))).toBeNull();
 	}),
 );
 
 it("tells a watching tab what another tab wrote to the same slot, and stops when it lets go", () => {
 	browser();
-	const seen: string[] = [];
-	const stop = bridgeAt(LINK).subscribeDraft(REF, (snapshot) => seen.push(snapshot.text));
-	const written = JSON.stringify({ revision: "r-1", text: "from the other tab" });
+	const seen: (string | null)[] = [];
+	const stop = bridgeAt(LINK).subscribeDraft(REF, (value) => seen.push(value));
+	const written = "from the other tab";
 	for (const receive of listeners) {
 		receive({ key: "antumbra/draft/session-1/reply", newValue: written });
 		receive({ key: "antumbra/draft/session-1/message", newValue: written });
@@ -103,3 +106,32 @@ it("tells a watching tab what another tab wrote to the same slot, and stops when
 	stop();
 	expect(listeners).toHaveLength(0);
 });
+
+it.effect("observes writes in the same document and compares conditional replacements", () =>
+	Effect.gen(function* () {
+		browser();
+		const first = bridgeAt(LINK);
+		const second = bridgeAt(LINK);
+		const seen: (string | null)[] = [];
+		const stop = second.subscribeDraft(REF, (value) => seen.push(value));
+		yield* Effect.promise(() => first.writeDraft(REF, "first"));
+		yield* Effect.promise(() => first.writeDraft(REF, "later"));
+		yield* Effect.promise(() => first.writeDraft(REF, "stale", "first"));
+		yield* Effect.promise(() => first.clearDraft(REF, "first"));
+		expect(yield* Effect.promise(() => second.readDraft(REF))).toBe("later");
+		yield* Effect.promise(() => first.clearDraft(REF, "later"));
+		expect(seen).toEqual(["first", "later", null]);
+		stop();
+	}),
+);
+
+it.effect("restores a browser draft saved before form storage was adopted", () =>
+	Effect.gen(function* () {
+		browser();
+		stored.set("antumbra/draft/session-1/message", JSON.stringify({ text: "Existing browser words", revision: "old" }));
+		const raw = yield* Effect.promise(() => bridgeAt(LINK).readDraft(REF));
+		const restored: unknown = JSON.parse(raw ?? "null");
+		expect(restored).toMatchObject({ values: { text: "Existing browser words" } });
+		expect(yield* Effect.promise(() => bridgeAt(LINK).readDraft(REF))).toBe(raw);
+	}),
+);

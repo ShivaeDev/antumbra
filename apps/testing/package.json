@@ -24,6 +24,7 @@
 		"@antumbra/runner-backends-claude": "workspace:*"
 	},
 	"dependencies": {
+		"@antumbra/glass-inputs": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/domain-sessions": "workspace:*",

@@ -3,7 +3,7 @@ import { DraftRef } from "@antumbra/platform-shell/bridge.ts";
 import { Effect, ManagedRuntime, Schema } from "effect";
 import { ShellDrafts, ShellDraftsLayer } from "#adapters/drafts.ts";
 
-const Write = Schema.Struct({ ...DraftRef.fields, text: Schema.String });
+const Write = Schema.Struct({ ...DraftRef.fields, text: Schema.String, expected: Schema.optionalKey(Schema.String) });
 const Clear = Schema.Struct({ ...DraftRef.fields, revision: Schema.String });
 
 export const fixtureDrafts = (directory: string) => {
@@ -22,7 +22,8 @@ export const fixtureDrafts = (directory: string) => {
 					if (operation === "/__fixture/draft/read") return yield* store.read(Schema.decodeUnknownSync(DraftRef)(raw));
 					if (operation === "/__fixture/draft/write") {
 						const value = Schema.decodeUnknownSync(Write)(raw);
-						return yield* store.write(value, value.text);
+						yield* store.write(value, value.text, value.expected);
+						return null;
 					}
 					const value = Schema.decodeUnknownSync(Clear)(raw);
 					yield* store.clear(value, value.revision);

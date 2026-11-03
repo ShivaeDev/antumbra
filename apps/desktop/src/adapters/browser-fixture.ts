@@ -1,8 +1,8 @@
-import { type DraftRef, DraftSnapshot, type ShellBridge } from "@antumbra/platform-shell/bridge.ts";
+import type { DraftRef, ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { Schema } from "effect";
 
 const Metadata = Schema.Struct({ label: Schema.String, captureCompletedAt: Schema.String });
-const snapshot = Schema.decodeUnknownSync(DraftSnapshot);
+const snapshot = Schema.decodeUnknownSync(Schema.NullOr(Schema.String));
 
 export const fixtureBridge = async (bridge: ShellBridge) => {
 	const token = (await bridge.server()).token;
@@ -39,10 +39,9 @@ export const fixtureBridge = async (bridge: ShellBridge) => {
 		...bridge,
 		openExternal: () => {},
 		readDraft: read,
-		writeDraft: async (ref, text) => {
-			const result = snapshot(await request("draft/write", { ...ref, text }));
+		writeDraft: async (ref, text, expected) => {
+			await request("draft/write", { ...ref, text, expected });
 			changes.postMessage(ref);
-			return result;
 		},
 		clearDraft: async (ref, revision) => {
 			await request("draft/clear", { ...ref, revision });

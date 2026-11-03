@@ -21,8 +21,8 @@ catalog:
   "@radix-ui/react-slot": 1.3.3
   "@shivaedev/contract": 0.32.0
   "@shivaedev/errors": 0.6.0
-  "@shivaedev/react": 0.35.0
-  "@shivaedev/form": 0.13.0
+  "@shivaedev/react": 0.37.0
+  "@shivaedev/form": 0.14.0
   "@shivaedev/service": 0.6.1
   "@tailwindcss/vite": 4.3.3
   "@types/node": 24.10.1

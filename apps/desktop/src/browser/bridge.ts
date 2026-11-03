@@ -1,6 +1,7 @@
-import { type DraftRef, DraftSnapshot, type ShellBridge } from "@antumbra/platform-shell/bridge.ts";
+import type { DraftRef, ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { defaultConsole, WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Result, Schema } from "effect";
+import { LegacyDraft, upgradeDraft } from "#adapters/draft-upgrade.ts";
 import { version } from "#package.json";
 
 export const needsTheLink = "Open this page from the browser link the running dev app logs, which carries the port and token it needs.";
@@ -22,12 +23,12 @@ interface StorageChange {
 	readonly newValue: string | null;
 }
 
-const EMPTY: DraftSnapshot = { revision: "", text: "" };
+const draftChanges = new EventTarget();
+const StorageChangeSchema = Schema.Struct({ key: Schema.NullOr(Schema.String), newValue: Schema.NullOr(Schema.String) });
 
 const decodePlace = Schema.decodeUnknownResult(Schema.fromJsonString(WindowPlace));
 const encodePlace = Schema.encodeSync(Schema.fromJsonString(WindowPlace));
-const decodeSnapshot = Schema.decodeUnknownResult(Schema.fromJsonString(DraftSnapshot));
-const encodeSnapshot = Schema.encodeSync(Schema.fromJsonString(DraftSnapshot));
+const decodeSnapshot = Schema.decodeUnknownResult(Schema.fromJsonString(LegacyDraft));
 
 const linkOf = (location: Address): Link | undefined => {
 	const params = new URLSearchParams(location.search);
@@ -56,9 +57,9 @@ const addressOf = (location: Address, link: Link, place: WindowPlace): string =>
 
 const keyOf = (ref: DraftRef): string => `antumbra/draft/${encodeURIComponent(ref.sessionId)}/${encodeURIComponent(ref.slot)}`;
 
-const snapshotOf = (raw: string | null): DraftSnapshot => {
+const draftValue = (raw: string | null): string | null => {
 	const decoded = decodeSnapshot(raw);
-	return Result.isFailure(decoded) ? EMPTY : decoded.success;
+	return Result.isFailure(decoded) ? raw : upgradeDraft(decoded.success);
 };
 
 const chromeOf = (agent: string): string => /Chrome\/([\d.]+)/.exec(agent)?.[1] ?? "";
@@ -68,11 +69,20 @@ export const browserBridge = (location: Address): ShellBridge | undefined => {
 	if (link === undefined) {
 		return undefined;
 	}
-	const read = (ref: DraftRef): DraftSnapshot => snapshotOf(localStorage.getItem(keyOf(ref)));
-	const write = (ref: DraftRef, text: string): DraftSnapshot => {
-		const snapshot = { revision: crypto.randomUUID(), text };
-		localStorage.setItem(keyOf(ref), encodeSnapshot(snapshot));
-		return snapshot;
+	const read = (ref: DraftRef): string | null => {
+		const key = keyOf(ref);
+		const raw = localStorage.getItem(key);
+		const value = draftValue(raw);
+		if (value !== raw) {
+			if (value === null) localStorage.removeItem(key);
+			else localStorage.setItem(key, value);
+		}
+		return value;
+	};
+	const write = (ref: DraftRef, value: string | null): void => {
+		if (value === null) localStorage.removeItem(keyOf(ref));
+		else localStorage.setItem(keyOf(ref), value);
+		draftChanges.dispatchEvent(new CustomEvent("change", { detail: { key: keyOf(ref), newValue: value } }));
 	};
 	return {
 		server: () => Promise.resolve({ port: link.port, token: link.token }),
@@ -89,10 +99,13 @@ export const browserBridge = (location: Address): ShellBridge | undefined => {
 			window.open(url);
 		},
 		readDraft: (ref) => Promise.resolve(read(ref)),
-		writeDraft: (ref, text) => Promise.resolve(write(ref, text)),
-		clearDraft: (ref, revision) => {
-			if (read(ref).revision === revision) {
-				write(ref, "");
+		writeDraft: (ref, value, expected) => {
+			if (expected === undefined || read(ref) === expected) write(ref, value);
+			return Promise.resolve();
+		},
+		clearDraft: (ref, expected) => {
+			if (read(ref) === expected) {
+				write(ref, null);
 			}
 			return Promise.resolve();
 		},
@@ -100,12 +113,17 @@ export const browserBridge = (location: Address): ShellBridge | undefined => {
 			const key = keyOf(ref);
 			const receive = (event: StorageChange) => {
 				if (event.key === key) {
-					listener(snapshotOf(event.newValue));
+					listener(draftValue(event.newValue));
 				}
 			};
+			const local = (event: Event) => {
+				if (event instanceof CustomEvent) receive(Schema.decodeUnknownSync(StorageChangeSchema)(event.detail));
+			};
 			window.addEventListener("storage", receive);
+			draftChanges.addEventListener("change", local);
 			return () => {
 				window.removeEventListener("storage", receive);
+				draftChanges.removeEventListener("change", local);
 			};
 		},
 	} satisfies ShellBridge;

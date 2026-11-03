@@ -7,12 +7,12 @@ import { inputRequest } from "@antumbra/glass-inputs/adapters/request.ts";
 import type { InputsClient } from "@antumbra/glass-inputs/client.ts";
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
 import { inputFailureMessage } from "@antumbra/glass-inputs/failure.ts";
+import { useDraft } from "@antumbra/glass-inputs/use-draft.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import type { ChangesApi } from "#glass.ts";
-import { useSituationDraft } from "#situation-draft.ts";
 
 const slotOf = (situation: typeof sessionSituation.Row.Type): string => {
 	const slot = `situation:${situation.changeId}:${situation.situation}`;
@@ -28,42 +28,31 @@ export const SituationDialog = (props: {
 	readonly onError: (message: string) => void;
 	readonly onClose: () => void;
 }) => {
-	const draft = useSituationDraft(props.drafts, props.sessionId, slotOf(props.situation), props.situation.text);
-	const [sending, setSending] = useState(false);
-	const inFlight = useRef(false);
 	const inputId = useRef<SessionInputId | undefined>(undefined);
-	const send = () => {
-		if (inFlight.current || draft.drafting || draft.text.trim() === "") return;
-		inFlight.current = true;
-		setSending(true);
-		const id = inputId.current ?? SessionInputId.make(Id.make());
-		inputId.current = id;
-		Effect.runFork(
+	const draft = useDraft({
+		drafts: props.drafts,
+		sessionId: props.sessionId,
+		slot: slotOf(props.situation),
+		initial: props.situation.text,
+		send: (text) =>
 			Effect.gen(function* () {
-				const sent = yield* draft.capture();
-				const request = yield* inputRequest(props.sessionId, id, [], sent.text);
+				const id = inputId.current ?? SessionInputId.make(Id.make());
+				inputId.current = id;
+				const request = yield* inputRequest(props.sessionId, id, [], text);
 				yield* props.inputs["inputs.submit"](request);
 				if (props.situation.feedbackIds.length > 0)
 					yield* props.api.changes.forwardFeedback({ changeId: props.situation.changeId, ids: props.situation.feedbackIds });
-				yield* draft.clear(sent);
 				props.onClose();
 			}).pipe(
-				Effect.catch((error) =>
+				Effect.tapError((error) =>
 					Effect.sync(() => {
 						if (error._tag === "InputFileReadFailed") props.onError(error.detail);
 						else if (error._tag === "Unauthorized" || error._tag === "RpcClientError") props.onError(String(error));
 						else props.onError(inputFailureMessage(error));
 					}),
 				),
-				Effect.ensuring(
-					Effect.sync(() => {
-						inFlight.current = false;
-						setSending(false);
-					}),
-				),
 			),
-		);
-	};
+	});
 	return (
 		<Dialog
 			open
@@ -78,7 +67,6 @@ export const SituationDialog = (props: {
 				</DialogHeader>
 				<Textarea
 					aria-label="Words to send"
-					disabled={draft.drafting}
 					rows={8}
 					value={draft.text}
 					onChange={(event) => {
@@ -90,7 +78,7 @@ export const SituationDialog = (props: {
 					<DialogClose asChild>
 						<Button variant="outline">Cancel</Button>
 					</DialogClose>
-					<Button disabled={sending || draft.drafting || draft.text.trim() === ""} onClick={send}>
+					<Button disabled={draft.sending || draft.text.trim() === ""} onClick={draft.send}>
 						Send
 					</Button>
 				</DialogFooter>

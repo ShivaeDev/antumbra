@@ -1,7 +1,7 @@
 import type { Drafts } from "@antumbra/glass-inputs/drafts.ts";
-import { AppInfo, DraftSnapshot, Serving, type ShellBridge } from "@antumbra/platform-shell/bridge.ts";
+import { AppInfo, Serving, type ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { WindowPlace } from "@antumbra/platform-shell/windows.ts";
-import { Effect, Queue, SchemaParser, Stream } from "effect";
+import { Effect, Schema, SchemaParser } from "effect";
 import type { Shell } from "#shell.ts";
 
 export const shellOf = (bridge: ShellBridge): Shell => ({
@@ -17,20 +17,13 @@ export const shellOf = (bridge: ShellBridge): Shell => ({
 export const reachOf = (bridge: ShellBridge) =>
 	Effect.promise(() => bridge.server()).pipe(Effect.flatMap(SchemaParser.decodeUnknownEffect(Serving)), Effect.orDie);
 
-export const draftsOf = (bridge: ShellBridge): Drafts => ({
-	watch: (ref) =>
-		Stream.callback<DraftSnapshot>((queue) =>
-			Effect.gen(function* () {
-				const stop = bridge.subscribeDraft(ref, (snapshot) => Queue.offerUnsafe(queue, SchemaParser.decodeUnknownSync(DraftSnapshot)(snapshot)));
-				yield* Effect.addFinalizer(() => Effect.sync(stop));
-				const snapshot = yield* Effect.promise(() => bridge.readDraft(ref)).pipe(
-					Effect.flatMap(SchemaParser.decodeUnknownEffect(DraftSnapshot)),
-					Effect.orDie,
-				);
-				yield* Queue.offer(queue, snapshot);
-			}),
-		),
-	write: (ref, text) =>
-		Effect.promise(() => bridge.writeDraft(ref, text)).pipe(Effect.flatMap(SchemaParser.decodeUnknownEffect(DraftSnapshot)), Effect.orDie),
-	clear: (ref, revision) => Effect.promise(() => bridge.clearDraft(ref, revision)),
-});
+const draftValue = Schema.NullOr(Schema.String);
+
+export const draftsOf =
+	(bridge: ShellBridge): Drafts =>
+	(ref) => ({
+		getItem: () => Effect.promise(() => bridge.readDraft(ref)).pipe(Effect.flatMap(SchemaParser.decodeUnknownEffect(draftValue)), Effect.orDie),
+		setItem: (_key, value, expected) => Effect.promise(() => bridge.writeDraft(ref, value, expected)),
+		removeItem: (_key, expected) => Effect.promise(() => bridge.clearDraft(ref, expected)),
+		subscribe: (_key, listener) => bridge.subscribeDraft(ref, (value) => listener(SchemaParser.decodeUnknownSync(draftValue)(value))),
+	});

@@ -1,4 +1,4 @@
-import { defineService } from "@antumbra/platform-service-definition/define-service.ts";
+import { defineService } from "@shivaedev/service/defineService.ts";
 import { executing } from "#execute.ts";
 import { RunnerLog } from "#log.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity, ServerTools } from "#ports.ts";

@@ -14,10 +14,6 @@ const COMMANDS = ["ps", "pkill", "killall"];
 const SPAWNING = ["node:child_process", "child_process"];
 const SPAWNERS = ["NodeChildProcessSpawner", "NodeServices"];
 
-const OWNERS: readonly { readonly root: string; readonly specifier: string }[] = [
-	{ root: "packages/platform/service-definition", specifier: "node:child_process" },
-];
-
 interface Reach {
 	readonly line: number;
 	readonly text: string;
@@ -84,13 +80,12 @@ const pidViolations = (file: SourceFile, source: ts.SourceFile, nodes: readonly 
 		}));
 };
 
-const spawning = (owner: WorkspacePackage, specifier: string): boolean =>
-	SPAWNING.some((module) => names(specifier, module)) && !OWNERS.some((owns) => owns.root === owner.root && names(specifier, owns.specifier));
+const spawning = (specifier: string): boolean => SPAWNING.some((module) => names(specifier, module));
 
 const spawnViolations = (file: SourceFile, owner: WorkspacePackage, source: ts.SourceFile, nodes: readonly ts.Node[]): readonly Violation[] => {
 	const reaches: readonly Reach[] = [
 		...specifiersOf(file)
-			.filter((specifier) => spawning(owner, specifier.text))
+			.filter((specifier) => spawning(specifier.text))
 			.map((specifier) => ({ line: specifier.line, text: specifier.text })),
 		...nodes.flatMap((node) => (ts.isIdentifier(node) && SPAWNERS.includes(node.text) ? [{ line: lineOf(source, node), text: node.text }] : [])),
 	];

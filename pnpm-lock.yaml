@@ -206,6 +206,9 @@ catalogs:
     '@radix-ui/react-slot':
       specifier: 1.3.3
       version: 1.3.3
+    '@shivaedev/service':
+      specifier: 0.6.1
+      version: 0.6.1
     '@tailwindcss/vite':
       specifier: 4.3.3
       version: 4.3.3
@@ -2154,28 +2157,6 @@ importers:
         specifier: 'catalog:'
         version: 5.0.5(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
-  packages/platform/service-definition:
-    dependencies:
-      effect:
-        specifier: 'catalog:'
-        version: 4.0.6
-    devDependencies:
-      '@effect/vitest':
-        specifier: 'catalog:'
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0)))
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.10.1
-      '@typescript/native':
-        specifier: 'catalog:'
-        version: typescript@7.0.2
-      typescript:
-        specifier: 'catalog:'
-        version: '@typescript/typescript6@6.0.2'
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.5(@types/node@24.10.1)(happy-dom@20.11.2)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
-
   packages/platform/shell:
     dependencies:
       effect:
@@ -2405,9 +2386,6 @@ importers:
       '@antumbra/platform-runner':
         specifier: workspace:*
         version: link:../../platform/runner
-      '@antumbra/platform-service-definition':
-        specifier: workspace:*
-        version: link:../../platform/service-definition
       '@antumbra/platform-vocabulary':
         specifier: workspace:*
         version: link:../../platform/vocabulary
@@ -2417,6 +2395,9 @@ importers:
       '@antumbra/runner-tools':
         specifier: workspace:*
         version: link:../tools
+      '@shivaedev/service':
+        specifier: 'catalog:'
+        version: 0.6.1(effect@4.0.6)
       effect:
         specifier: 'catalog:'
         version: 4.0.6
@@ -5151,6 +5132,12 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@shivaedev/service@0.6.1':
+    resolution: {integrity: sha512-wW7VS2HRvFMpy0d5SFSo5wZXfFcOuCwROAEDKJ290U6DqQziTe2qt7tI2bDtnFBDn8qpTP+R+b6rtNsgxFJw8w==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      effect: 4.0.6
 
   '@silvia-odwyer/photon-node@0.3.4':
     resolution: {integrity: sha512-bnly4BKB3KDTFxrUIcgCLbaeVVS8lrAkri1pEzskpmxu9MdfGQTy8b8EgcD83ywD3RPMsIulY8xJH5Awa+t9fA==}
@@ -9868,6 +9855,10 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@shivaedev/service@0.6.1(effect@4.0.6)':
+    dependencies:
+      effect: 4.0.6
 
   '@silvia-odwyer/photon-node@0.3.4': {}
 

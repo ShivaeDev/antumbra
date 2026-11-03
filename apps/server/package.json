@@ -58,6 +58,7 @@
 		"@antumbra/domain-holds": "workspace:*",
 		"@antumbra/domain-supervision": "workspace:*",
 		"@antumbra/runner-fabric": "workspace:*",
-		"@effect/sql-sqlite-node": "catalog:"
+		"@effect/sql-sqlite-node": "catalog:",
+		"@shivaedev/errors": "catalog:"
 	}
 }

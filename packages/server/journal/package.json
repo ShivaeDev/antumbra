@@ -32,6 +32,7 @@
 		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@effect/sql-sqlite-node": "catalog:",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@shivaedev/errors": "catalog:"
 	}
 }

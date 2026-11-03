@@ -1,16 +1,18 @@
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
+import { contract } from "@shivaedev/contract/contract.ts";
+import { command, stream } from "@shivaedev/contract/operation.ts";
 import { Schema } from "effect";
-import * as Rpc from "effect/rpc/Rpc";
-import * as RpcGroup from "effect/rpc/RpcGroup";
 import { LogEntry, Registration } from "#log.ts";
 import { Operation, Reply } from "#operations.ts";
 import { ToolCall } from "#tools.ts";
 
-export const RunnerRpc = RpcGroup.make(
-	Rpc.make("runner.operations", { payload: Registration, success: Operation, stream: true }),
-	Rpc.make("runner.reply", { payload: Reply, success: Schema.Void }),
-	Rpc.make("runner.append", { payload: Schema.Struct({ logId: Schema.String, entries: Schema.Array(LogEntry) }), success: Schema.Int }),
-	Rpc.make("runner.cursor", { payload: Schema.Struct({ logId: Schema.String }), success: Schema.Int }),
-	Rpc.make("runner.tool", { payload: ToolCall, success: ToolAnswer }),
-).middleware(Token);
+export const RunnerRpc = contract("runner", {
+	streams: [stream("operations", { payload: Registration, success: Operation, reads: () => [] })],
+	commands: [
+		command("reply", { payload: Reply, success: Schema.Void, invalidates: () => [] }),
+		command("append", { payload: { logId: Schema.String, entries: Schema.Array(LogEntry) }, success: Schema.Int, invalidates: () => [] }),
+		command("cursor", { payload: { logId: Schema.String }, success: Schema.Int, invalidates: () => [] }),
+		command("tool", { payload: ToolCall, success: ToolAnswer, invalidates: () => [] }),
+	],
+}).application.middleware(Token);

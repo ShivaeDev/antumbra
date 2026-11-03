@@ -1,10 +1,9 @@
-import { Context, Effect, Layer, Option, Schema } from "effect";
+import { Unauthorized } from "@shivaedev/errors/taxonomy.ts";
+import { Context, Effect, Layer, Option } from "effect";
 import * as Headers from "effect/http/Headers";
 import * as RpcMiddleware from "effect/rpc/RpcMiddleware";
 
 export const header = "x-antumbra-token";
-
-export class Unauthorized extends Schema.TaggedError<Unauthorized>()("Unauthorized", {}) {}
 
 export class ClientToken extends Context.Service<ClientToken, { readonly token: string }>()("@antumbra/platform-rpc/ClientToken") {}
 
@@ -25,7 +24,7 @@ const presented = (headers: Headers.Headers): string => Option.getOrElse(Headers
 const guard =
 	(expected: string): RpcMiddleware.RpcMiddleware<never, Unauthorized, never> =>
 	(effect, options) =>
-		same(expected, presented(options.headers)) ? effect : Effect.fail(new Unauthorized());
+		same(expected, presented(options.headers)) ? effect : Effect.fail(new Unauthorized({ message: "The RPC token was not accepted" }));
 
 export const layerServer: Layer.Layer<Token, never, ServerToken> = Layer.effect(
 	Token,

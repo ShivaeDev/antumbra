@@ -31,6 +31,7 @@
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",
-		"@shivaedev/react": "catalog:"
+		"@shivaedev/react": "catalog:",
+		"@shivaedev/errors": "catalog:"
 	}
 }

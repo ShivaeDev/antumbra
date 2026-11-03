@@ -1,14 +1,11 @@
 import { Token } from "@antumbra/platform-rpc/token.ts";
+import { contract } from "@shivaedev/contract/contract.ts";
+import { command } from "@shivaedev/contract/operation.ts";
 import { Schema } from "effect";
-import * as Rpc from "effect/rpc/Rpc";
-import * as RpcGroup from "effect/rpc/RpcGroup";
 
 export class LifecycleRefused extends Schema.TaggedError<LifecycleRefused>()("LifecycleRefused", { message: Schema.String }) {}
 
-const request = { payload: Schema.Struct({ requestId: Schema.String }), success: Schema.Void, error: LifecycleRefused };
-export const LifecycleRpc = RpcGroup.make(
-	Rpc.make("lifecycle.drain", request),
-	Rpc.make("lifecycle.recordRestart", request),
-	Rpc.make("lifecycle.honorRestart", request),
-	Rpc.make("lifecycle.abandonRestart", request),
-).middleware(Token);
+const request = { payload: { requestId: Schema.String }, success: Schema.Void, rejections: { LifecycleRefused }, invalidates: () => [] };
+export const LifecycleRpc = contract("lifecycle", {
+	commands: [command("drain", request), command("recordRestart", request), command("honorRestart", request), command("abandonRestart", request)],
+}).application.middleware(Token);

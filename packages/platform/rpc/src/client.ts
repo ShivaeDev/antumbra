@@ -4,13 +4,14 @@ import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
 import { AlreadyDone, type RejectedBy } from "@antumbra/platform-feature/rejection.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import type { Unauthorized } from "@shivaedev/errors/taxonomy.ts";
 import { Effect, type Scope, type Stream } from "effect";
 import * as RpcClient from "effect/rpc/RpcClient";
 import type { RpcClientError } from "effect/rpc/RpcClientError";
 import type * as RpcMiddleware from "effect/rpc/RpcMiddleware";
 import { group, type Rpcs, tagOf } from "#group.ts";
 import { type Watch, watching } from "#query.ts";
-import type { Token, Unauthorized } from "#token.ts";
+import type { Token } from "#token.ts";
 
 export type Sent<Command extends CommandShape> = Values<Command["input"]> & { readonly requestId?: Id.Request };
 

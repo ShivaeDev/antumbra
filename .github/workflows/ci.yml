@@ -48,6 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - name: Install PostgreSQL server binaries for domain stories
+        run: sudo apt-get update && sudo apt-get install --yes postgresql
       - run: pnpm test:packages --shard=${{ matrix.shard }}/8
       - uses: actions/upload-artifact@v4
         if: always()

@@ -1,8 +1,4 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { Schema } from "effect";
-import { VoyageId } from "#ids.ts";
+import { VoyageFocusSet } from "@antumbra/platform-vocabulary/voyage.ts";
 
-export const focusSet = fact("FocusSet", {
-	id: VoyageId,
-	focusedAt: Schema.NullOr(Schema.String),
-});
+export const focusSet = fact("FocusSet", VoyageFocusSet.fields);

@@ -1,8 +1,4 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { Schema } from "effect";
-import { VoyageId } from "#ids.ts";
+import { VoyageQuietSet } from "@antumbra/platform-vocabulary/voyage.ts";
 
-export const quietSet = fact("QuietSet", {
-	id: VoyageId,
-	quietedAt: Schema.NullOr(Schema.String),
-});
+export const quietSet = fact("QuietSet", VoyageQuietSet.fields);

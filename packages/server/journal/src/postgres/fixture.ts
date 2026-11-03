@@ -1,12 +1,15 @@
 import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
-import { Effect, Schema } from "effect";
-import { SqlClient } from "effect/sql";
+import { Effect } from "effect";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { postgresTests } from "#postgres/testing.ts";
+import { journalVoyages, replayVoyageFixture } from "#postgres/voyages/fixture.ts";
+import { VoyageHistory } from "#postgres/voyages/service.ts";
 
-export const checkPostgresFixture = Effect.gen(function* () {
-	const sql = yield* SqlClient.SqlClient;
-	const namespaces = yield* sql`select schema_name as name from information_schema.schemata where schema_name = 'antumbra'`.pipe(
-		Effect.flatMap(Schema.decodeUnknownEffect(Schema.NonEmptyArray(Schema.Struct({ name: Schema.String })))),
-	);
-	return { namespaces };
-}).pipe(withIsolatedDatabase, Effect.provide(postgresTests), Effect.scoped);
+export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
+	function* (filename: string) {
+		const snapshot = yield* journalVoyages(filename);
+		return yield* replayVoyageFixture(snapshot).pipe(Effect.provide(VoyageHistory.layer), withIsolatedDatabase, Effect.provide(postgresTests));
+	},
+	Effect.provide(reactivityLayer),
+	Effect.scoped,
+);

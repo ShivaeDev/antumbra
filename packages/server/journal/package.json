@@ -38,6 +38,8 @@
 		"@shivaedev/sql": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"@shivaedev/test-sql": "catalog:",
-		"@effect/sql-pg": "catalog:"
+		"@effect/sql-pg": "catalog:",
+		"@shivaedev/events": "catalog:",
+		"@shivaedev/service": "catalog:"
 	}
 }

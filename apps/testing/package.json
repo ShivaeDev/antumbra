@@ -45,6 +45,9 @@
 		"react-dom": "catalog:",
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
-		"@shivaedev/test-story": "catalog:"
+		"@shivaedev/test-story": "catalog:",
+		"@shivaedev/sql": "catalog:",
+		"@shivaedev/test-sql": "catalog:",
+		"@antumbra/server-voyages": "workspace:*"
 	}
 }

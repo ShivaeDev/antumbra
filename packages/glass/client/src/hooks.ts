@@ -16,6 +16,6 @@ export const useLive = <Query extends QueryShape, Failure>(query: Watch<Query, F
 const runtime = Atom.runtime(Layer.empty);
 
 export const useCommand = <Command extends CommandShape, Failure>(command: Send<Command, Failure>) => {
-	const action = useAction(runtime, (input: Values<Command["input"]>) => command(input));
+	const action = useAction(runtime, command);
 	return { ...action, run: action.dispatch };
 };

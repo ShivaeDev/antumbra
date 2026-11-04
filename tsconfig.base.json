@@ -1,21 +1,7 @@
 {
+	"extends": "@shivaedev/quality/tsconfig/base.json",
 	"compilerOptions": {
-		"target": "ESNext",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
-		"module": "ESNext",
-		"moduleResolution": "Bundler",
-		"allowImportingTsExtensions": true,
-		"strict": true,
-		"noUncheckedIndexedAccess": true,
-		"exactOptionalPropertyTypes": true,
-		"noImplicitOverride": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"stableTypeOrdering": true,
-		"verbatimModuleSyntax": true,
-		"noEmit": true,
-		"skipLibCheck": true,
 		"types": ["node"]
 	}
 }

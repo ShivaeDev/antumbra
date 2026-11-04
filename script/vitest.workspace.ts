@@ -1,7 +1,8 @@
 import { existsSync, readdirSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+import { testProjects } from "@shivaedev/quality/adapters/testProjects.ts";
+import { defineConfig, type TestUserConfig } from "vitest/config";
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -29,22 +30,24 @@ export const workspacePackages: readonly WorkspacePackage[] = packageDirectories
 
 export const workspacePackageNames: readonly string[] = workspacePackages.map(({ name }) => name);
 
-export default defineConfig({
-	test: {
-		projects: workspacePackages.map(({ name, path }) => {
-			const own = join(repoRoot, path, "vitest.config.ts");
-			let config = existsSync(own) ? own : undefined;
-			if (config === undefined && name.startsWith("glass/")) {
-				config = join(repoRoot, "apps/testing/src/glass/config.ts");
-			}
-			return {
-				root: join(repoRoot, path),
-				...(config === undefined ? {} : { extends: config }),
-				test: {
-					include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
-					name,
-				},
-			};
-		}),
-	},
-});
+const tests: TestUserConfig = {
+	...testProjects(),
+	project: [...workspacePackageNames],
+	projects: workspacePackages.map(({ name, path }) => {
+		const own = join(repoRoot, path, "vitest.config.ts");
+		let config = existsSync(own) ? own : undefined;
+		if (config === undefined && name.startsWith("glass/")) {
+			config = join(repoRoot, "apps/testing/src/glass/config.ts");
+		}
+		return {
+			root: join(repoRoot, path),
+			...(config === undefined ? {} : { extends: config }),
+			test: {
+				include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
+				name,
+			},
+		};
+	}),
+};
+
+export default defineConfig({ test: tests });

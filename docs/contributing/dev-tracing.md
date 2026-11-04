@@ -22,9 +22,7 @@ Annotate a new seam with `Effect.annotateSpans`, not `Effect.annotateCurrentSpan
 what makes the descendants findable by the object they belong to.
 
 ```ts
-dispatchPiece(port, candidate, plan).pipe(
-	Effect.annotateSpans({ pieceId: candidate.piece.id }),
-);
+dispatchPiece(port, candidate, plan).pipe(Effect.annotateSpans({ pieceId: candidate.piece.id }));
 ```
 
 ## Three queries to start from

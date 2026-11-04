@@ -1,6 +1,6 @@
 import { answered } from "@antumbra/app-testing/answers.ts";
 import { postgresApp } from "@antumbra/app-testing/postgres.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { expect } from "vitest";
 import { chartering, opening, pieceOf, reef, request } from "#test/kit.ts";
 

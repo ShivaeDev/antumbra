@@ -63,3 +63,6 @@ export const VoyageRoleSetting = Schema.Struct({
 	scope: VoyageId,
 	role: VoyageAgentRoleSchema,
 });
+
+export const activityId = (sourceKind: "session" | "change", sourceId: string, voyageId: VoyageId): string =>
+	JSON.stringify([sourceKind, sourceId, voyageId]);

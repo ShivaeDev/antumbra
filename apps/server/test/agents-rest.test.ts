@@ -1,6 +1,6 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
 

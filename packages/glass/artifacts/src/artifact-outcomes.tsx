@@ -1,8 +1,8 @@
-import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import type { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { OutcomeChips } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
+import type { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { ArtifactDetail } from "#detail.tsx";

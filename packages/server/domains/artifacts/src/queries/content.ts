@@ -1,8 +1,8 @@
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Schema } from "effect";
 import * as Rpc from "effect/rpc/Rpc";
 import * as RpcGroup from "effect/rpc/RpcGroup";
 import { land } from "#commands/land.ts";
-import { ArtifactId } from "#ids.ts";
 export const ArtifactMarkdown = Schema.Struct({
 	artifactId: ArtifactId,
 	title: Schema.String,

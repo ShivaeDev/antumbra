@@ -1,4 +1,4 @@
-import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
+import type { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { useAtomValue } from "@effect/atom-react";
 import * as Atom from "effect/reactivity/Atom";
 import { useMemo } from "react";

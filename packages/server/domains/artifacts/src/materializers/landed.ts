@@ -1,6 +1,6 @@
-import { outcomeId } from "@antumbra/domain-pieces/ids.ts";
 import { pieceOutcome } from "@antumbra/domain-pieces/rows/piece-outcome.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { outcomeId } from "@antumbra/platform-vocabulary/piece-evidence.ts";
 import { Effect } from "effect";
 import { artifactLanded } from "#facts/landed.ts";
 import { artifact } from "#rows/artifact.ts";

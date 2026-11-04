@@ -1,7 +1,7 @@
 import { answered } from "@antumbra/app-testing/answers.ts";
 import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";

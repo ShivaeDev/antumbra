@@ -1,7 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { ANTUMBRA_TRAILER } from "@antumbra/platform-vocabulary/change-host.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { expect } from "vitest";
-import { ChangeId } from "#ids.ts";
 import { adoption, chartering, comment, inline, opening, registration, repoId, request, review, seen } from "#test/kit.ts";
 
 it.app("records adoption once and preserves terminal host truth against a later open observation", function* (app) {

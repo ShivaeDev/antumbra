@@ -1,5 +1,3 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { FlagKey } from "#ids.ts";
-
-export const flag = row("flag", { key: FlagKey, scope: Schema.String, on: Schema.Boolean }, { key: "key", scope: "scope" });
+import { SettingFlag } from "@antumbra/platform-vocabulary/settings.ts";
+export const flag = row("flag", SettingFlag.fields, { key: "key", scope: "scope" });

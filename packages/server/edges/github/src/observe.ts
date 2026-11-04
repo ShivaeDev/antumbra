@@ -1,45 +1,27 @@
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
+import { GitHub } from "@shivaedev/github/GitHub.ts";
 import { Effect } from "effect";
-import { runGh } from "#command.ts";
-import { type GhCommandFailed, type GhError, GhOutputInvalid } from "#errors.ts";
+import { clientError } from "#client-error.ts";
+import { type GhError, GhOutputInvalid, GhUnavailable } from "#errors.ts";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse } from "#payload.ts";
-import type { GhProcess } from "#process.ts";
 import { buildObservePlan, type LocatedPullRequestRef } from "#query.ts";
 import type { GitHubRepoName } from "#source.ts";
 
-const OBSERVE_TIMEOUT_MILLIS = 60_000;
-
-// GitHub can return a partial GraphQL response with a failing exit code.
-const partial = (failure: GhCommandFailed): Effect.Effect<string, GhError> =>
-	failure.stdout.trim() === ""
-		? Effect.fail(failure)
-		: Effect.logDebug("github answered part of a change batch", {
-				detail: failure.detail,
-			}).pipe(Effect.as(failure.stdout));
-
-export const observeGroup = (
-	executable: string,
-	group: ReadonlyArray<LocatedPullRequestRef>,
-): Effect.Effect<ReadonlyArray<Observation>, GhError, GhProcess> =>
-	Effect.gen(function* () {
-		const plan = buildObservePlan(group);
-		const stdout = yield* runGh({
-			args: ["api", "graphql", "-f", `query=${plan.query}`],
-			executable,
-			operation: "observe-changes",
-			timeoutMillis: OBSERVE_TIMEOUT_MILLIS,
-		}).pipe(Effect.catchTag("GhCommandFailed", partial));
-		return yield* Effect.forEach(yield* decodeObserveResponse("observe-changes", stdout, plan.selections), mapPullRequest);
-	});
-
-export const observeOne = (
-	executable: string,
-	repo: GitHubRepoName,
-	repoId: string,
-	number: number,
-): Effect.Effect<Observation, GhError, GhProcess> =>
-	observeGroup(executable, [{ ...repo, number, repoId }]).pipe(
+export const observeGroup = Effect.fn("GitHub.observeGroup")(function* (group: ReadonlyArray<LocatedPullRequestRef>) {
+	const plan = buildObservePlan(group);
+	const github = yield* GitHub;
+	const response = yield* github.graphql(plan.query, {}, { responseByteLimit: 16 * 1024 * 1024 }).pipe(
+		Effect.mapError(clientError("observe-changes")),
+		Effect.timeoutOrElse({
+			duration: 60_000,
+			orElse: () => Effect.fail(new GhUnavailable({ operation: "observe-changes", detail: "GitHub observation exceeded its deadline of 60000ms" })),
+		}),
+	);
+	return yield* Effect.forEach(yield* decodeObserveResponse("observe-changes", response.body, plan.selections), mapPullRequest);
+});
+export const observeOne = (repo: GitHubRepoName, repoId: string, number: number): Effect.Effect<Observation, GhError, typeof GitHub.Identifier> =>
+	observeGroup([{ ...repo, number, repoId }]).pipe(
 		Effect.flatMap((seen) => {
 			const one = seen[0];
 			return one === undefined

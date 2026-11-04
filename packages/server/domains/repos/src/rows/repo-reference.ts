@@ -1,5 +1,3 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { RepoId } from "#ids.ts";
-
-export const repoReference = row("repoReference", { id: Schema.String, repoId: RepoId }, { key: "id", scope: "repoId" });
+import { RepoReference } from "@antumbra/platform-vocabulary/repos.ts";
+export const repoReference = row("repoReference", RepoReference.fields, { key: "id", scope: "repoId" });

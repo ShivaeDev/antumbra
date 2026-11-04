@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option } from "effect";
 import { countSet } from "#facts/count-set.ts";
-import { FLEET } from "#ids.ts";
 import { count } from "#rows/count.ts";
 
 export const countSetMaterializer = materializer(countSet, {

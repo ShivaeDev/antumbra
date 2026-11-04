@@ -4,8 +4,8 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
 import type { AgentRole } from "@antumbra/platform-vocabulary/agent-role.ts";
+import { AgentId, BirthId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Schema } from "effect";
-import { AgentId, BirthId } from "#ids.ts";
 
 export const birth = row(
 	"birth",

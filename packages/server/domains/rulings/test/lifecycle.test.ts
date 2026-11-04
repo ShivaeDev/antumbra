@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Option } from "effect";
 import { expect } from "vitest";
 import { RulingId } from "#ids.ts";

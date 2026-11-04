@@ -1,7 +1,7 @@
 import { delivery } from "@antumbra/domain-inputs/commands/delivery.ts";
 import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
-import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import type { Draft } from "@antumbra/platform-vocabulary/inputs.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

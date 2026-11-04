@@ -1,5 +1,3 @@
-import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { report } from "#rows/report.ts";
-
-export const reportLanded = fact("ReportLanded", { ...report.fields, pieceId: PieceId });
+import { ReportLandedPayload } from "@antumbra/platform-vocabulary/reports-event.ts";
+export const reportLanded = fact("ReportLanded", ReportLandedPayload.fields);

@@ -1,6 +1,5 @@
 import { Charter } from "@antumbra/domain-agents/ports/charter.ts";
 import { type birth, bornAs } from "@antumbra/domain-agents/rows/birth.ts";
-import { pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { digest } from "@antumbra/domain-boards/queries/digest.ts";
 import { entries } from "@antumbra/domain-boards/queries/entries.ts";
 import { smoothingSessionFor } from "@antumbra/domain-boards/queries/smoothing-session-for.ts";
@@ -15,6 +14,7 @@ import { captainCharter } from "@antumbra/platform-prompts/charter-captain.ts";
 import { crewCharter } from "@antumbra/platform-prompts/charter-crew.ts";
 import { flagshipCharter } from "@antumbra/platform-prompts/charter-flagship.ts";
 import { pieceSmootherWords, smootherWords } from "@antumbra/platform-prompts/smoother.ts";
+import { pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Layer, Option } from "effect";
 import { pieceLines } from "#agents/pieces.ts";

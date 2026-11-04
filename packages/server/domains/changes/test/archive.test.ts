@@ -1,7 +1,7 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { ChangeId } from "#ids.ts";
 import { adoption, chartering, opening, recorded, registration, request, seen } from "#test/kit.ts";
 
 const DAY_MILLIS = 24 * 60 * 60 * 1000;

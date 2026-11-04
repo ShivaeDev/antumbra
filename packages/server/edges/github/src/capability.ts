@@ -35,9 +35,9 @@ const missingBinary = (failure: GhError): boolean => {
 const refusal = (failure: GhError): Capability =>
 	missingBinary(failure) ? { available: false, detail: "gh CLI not found" } : { available: false, detail: failure.detail };
 
-const probe = (executable: string): Effect.Effect<Capability, never, GhProcess> =>
+const probe = (executable: string, hostname: string): Effect.Effect<Capability, never, GhProcess> =>
 	runGh({
-		args: ["auth", "status", "--hostname", "github.com"],
+		args: ["auth", "status", "--hostname", hostname],
 		executable,
 		operation: "auth-status",
 		timeoutMillis: AUTH_TIMEOUT_MILLIS,
@@ -51,7 +51,7 @@ const probe = (executable: string): Effect.Effect<Capability, never, GhProcess> 
 		Effect.catch((failure) => Effect.succeed(refusal(failure))),
 	);
 
-export const makeCachedCapability = (executable: string): Effect.Effect<CachedCapability> =>
+export const makeCachedCapability = (executable: string, hostname = "github.com"): Effect.Effect<CachedCapability> =>
 	Effect.gen(function* () {
 		const cache = yield* Ref.make(Option.none<Held>());
 		const read = Effect.gen(function* () {
@@ -60,7 +60,7 @@ export const makeCachedCapability = (executable: string): Effect.Effect<CachedCa
 			if (Option.isSome(held) && now - held.value.at < CACHE_MILLIS) {
 				return held.value.value;
 			}
-			const value = yield* probe(executable);
+			const value = yield* probe(executable, hostname);
 			yield* Ref.set(cache, Option.some({ at: now, value }));
 			return value;
 		});

@@ -1,8 +1,8 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { ReportId } from "#ids.ts";
 import { ReportReading } from "#queries/by-id.ts";
 import { pieceReport } from "#rows/piece-report.ts";
 import { report } from "#rows/report.ts";

@@ -1,7 +1,7 @@
 import { click, labelled, renderedControl, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { expect } from "vitest";
 import { AgentSession } from "#agent-session.tsx";
 import { FleetPanel } from "#fleet.tsx";

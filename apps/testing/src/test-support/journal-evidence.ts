@@ -1,4 +1,6 @@
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { journalChanges } from "@antumbra/server-journal/postgres/changes/fixture.ts";
+import { ChangesHistory } from "@antumbra/server-journal/postgres/changes/service.ts";
 import { journalPieces } from "@antumbra/server-journal/postgres/pieces/fixture.ts";
 import { Pieces } from "@antumbra/server-pieces/service.ts";
 import { Effect } from "effect";
@@ -9,7 +11,13 @@ export const observeJournal = Effect.fn("PostgresApp.observeJournal")(function* 
 	journal: Effect.Success<ReturnType<typeof journalComparison>>,
 	requestId: Request,
 ) {
-	const snapshot = yield* journalPieces(yield* captureJournal(journal));
+	const filename = yield* captureJournal(journal);
+	const snapshot = yield* journalPieces(filename);
+	const changes = yield* ChangesHistory;
+	const recorded = new Set((yield* changes.read()).map((event) => event.requestId));
+	for (const event of (yield* journalChanges(filename)).events) {
+		if (!recorded.has(event.requestId)) yield* changes.append(event.requestId, [event.value]);
+	}
 	const pieces = yield* Pieces;
 	for (const piece of snapshot.pieces) {
 		yield* pieces.observeProgress(Request.make(`${requestId}/${piece.id}`), {

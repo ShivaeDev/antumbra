@@ -1,6 +1,6 @@
-import type { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
+import type { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Effect } from "effect";
 import * as RpcClient from "effect/rpc/RpcClient";
 

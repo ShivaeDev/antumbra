@@ -1,7 +1,7 @@
 import type { App } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
 import type { LogEvent } from "@antumbra/platform-runner/log.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect } from "effect";
 import { HAND, HAND_REQUEST } from "#test/mail/kit.ts";
 

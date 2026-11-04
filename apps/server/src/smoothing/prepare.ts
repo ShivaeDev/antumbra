@@ -1,6 +1,5 @@
 import { cancel } from "@antumbra/domain-agents/commands/cancel.ts";
 import { smooth } from "@antumbra/domain-agents/commands/smooth.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { birthBySession } from "@antumbra/domain-agents/queries/birth-by-session.ts";
 import { smoother } from "@antumbra/domain-agents/queries/smoother.ts";
 import type { SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
@@ -8,6 +7,7 @@ import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-at
 import { request } from "@antumbra/domain-sessions/commands/request.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

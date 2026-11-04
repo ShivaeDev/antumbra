@@ -1,7 +1,7 @@
 import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Option } from "effect";
 import { expect } from "vitest";

@@ -1,12 +1,4 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
-import { Schema } from "effect";
+import { CapabilityObservedPayload } from "@antumbra/platform-vocabulary/backends-event.ts";
 
-export const capabilityObserved = fact(
-	"CapabilityObserved",
-	{
-		backend: AgentBackendTagSchema,
-		imageInput: Schema.Boolean,
-	},
-	{ subject: "backend" },
-);
+export const capabilityObserved = fact("CapabilityObserved", CapabilityObservedPayload.fields, { subject: "backend" });

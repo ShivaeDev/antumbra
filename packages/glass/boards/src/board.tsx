@@ -1,8 +1,8 @@
-import { pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@antumbra/glass-components/shadcn/collapsible.tsx";
+import { pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { ChevronRightIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BoardNodes } from "#board-nodes.tsx";
@@ -45,7 +45,7 @@ export const BoardPanel = (props: {
 
 const BoardContents = (props: {
 	readonly api: BoardDisplayApi;
-	readonly board: import("@antumbra/domain-boards/ids.ts").BoardId;
+	readonly board: import("@antumbra/platform-vocabulary/board-ids.ts").BoardId;
 	readonly owner: BoardOwner;
 	readonly name: string;
 	readonly onPiece?: ((pieceId: string) => void) | undefined;

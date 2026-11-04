@@ -19,7 +19,13 @@ export const journalPieces = Effect.fn("PieceFixture.readJournal")(function* (fi
 			return { requestId: entry.requestId, value };
 		}),
 	);
-	const pieces = yield* source`select * from piece order by charteredAt, rowid`.pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(Piece))));
+	const pieces = yield* source`select * from piece order by charteredAt, rowid`.pipe(
+		Effect.flatMap(
+			Schema.decodeUnknownEffect(
+				Schema.Array(Schema.Struct({ ...Piece.fields, verdict: Schema.NullOr(Schema.fromJsonString(Piece.fields.verdict)) })),
+			),
+		),
+	);
 	const edges = yield* source`select * from pieceEdge order by id`.pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(PieceEdge))));
 	const progress = yield* source`select * from pieceProgress order by id`.pipe(
 		Effect.flatMap(

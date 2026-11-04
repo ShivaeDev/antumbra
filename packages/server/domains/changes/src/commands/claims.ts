@@ -1,8 +1,8 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { berth } from "@antumbra/domain-reclamation/rows/berth.ts";
 import { moorage } from "@antumbra/domain-reclamation/rows/moorage.ts";
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect, Option } from "effect";
 export const claimRows = [berth, moorage, agent] as const;
 export const ownerAvailable = Effect.fn("changes.ownerAvailable")(function* (rows: ReadHandles<typeof claimRows>, id: string) {

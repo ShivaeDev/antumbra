@@ -2,10 +2,10 @@ import { type App, it } from "@antumbra/app-testing/entry.ts";
 import { ScriptedHost } from "@antumbra/app-testing/host.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Fiber } from "effect";
 import { expect } from "vitest";
 

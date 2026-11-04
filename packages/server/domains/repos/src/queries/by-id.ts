@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { RepoId } from "#ids.ts";
 import { repo } from "#rows/repo.ts";
 
 export const byId = query("byId", {

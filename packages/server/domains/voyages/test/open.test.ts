@@ -1,6 +1,6 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { roleSettingId } from "@antumbra/domain-role-settings/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { FLAGSHIP_REQUEST, VoyageId } from "#ids.ts";

@@ -31,6 +31,7 @@ export const apply = Effect.fn("VoyageHistory.apply")(function* ({
 			scope: value.id,
 		}));
 		yield* sql`insert into antumbra.voyage_roles ${sql.insert(roles)}`;
+		yield* sql`insert into antumbra."roleSetting" ${sql.insert(roles)}`;
 		const progress = VoyageProgress.make({
 			id: row.id,
 			total: 0,
@@ -50,6 +51,7 @@ export const apply = Effect.fn("VoyageHistory.apply")(function* ({
 
 export const reset = Effect.gen(function* () {
 	const sql = yield* SqlClient.SqlClient;
+	yield* sql`delete from antumbra."roleSetting" where scope in (select id from antumbra.voyages)`;
 	yield* sql`delete from antumbra.voyage_roles`;
 	yield* sql`delete from antumbra.voyage_progress`;
 	yield* sql`delete from antumbra.voyages`;

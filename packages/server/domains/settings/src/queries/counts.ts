@@ -1,7 +1,7 @@
 import { query } from "@antumbra/platform-feature/query.ts";
 import { ROUTINE_MAIL_MINUTES } from "@antumbra/platform-vocabulary/mail.ts";
+import { COUNT_KEYS, type CountDeclaration, CountKey, FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
-import { COUNT_KEYS, type CountDeclaration, CountKey, FLEET } from "#ids.ts";
 import { count } from "#rows/count.ts";
 
 const MINUTES = "min";

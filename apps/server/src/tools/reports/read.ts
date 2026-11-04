@@ -1,7 +1,7 @@
-import { ReportId } from "@antumbra/domain-reports/ids.ts";
 import { forVoyage } from "@antumbra/domain-reports/queries/for-voyage.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { bind, defineTool } from "@antumbra/platform-tool-schemas/define.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Schema, Stream } from "effect";
 

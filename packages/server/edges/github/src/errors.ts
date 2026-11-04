@@ -1,6 +1,6 @@
 import { Data } from "effect";
 
-export type GhOperation = "auth-status" | "create-change" | "find-change" | "observe-changes";
+export type GhOperation = "auth-status" | "auth-token" | "create-change" | "find-change" | "observe-changes";
 
 interface GhFailureFields {
 	readonly detail: string;
@@ -19,7 +19,6 @@ export class GhAuthRequired extends Data.TaggedError("GhAuthRequired")<GhFailure
 	}
 }
 
-// Failed GraphQL calls can still carry a partial response on stdout.
 export class GhCommandFailed extends Data.TaggedError("GhCommandFailed")<
 	GhFailureFields & {
 		readonly exitCode: number;

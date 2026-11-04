@@ -1,8 +1,8 @@
 import { removeSupersession } from "@antumbra/domain-artifacts/commands/remove-supersession.ts";
 import { supersede } from "@antumbra/domain-artifacts/commands/supersede.ts";
-import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";

@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { pieceAgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect } from "effect";
 import { birthCancelled } from "#facts/birth-cancelled.ts";
-import { pieceAgentId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 import { pieceAgent } from "#rows/piece-agent.ts";

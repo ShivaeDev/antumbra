@@ -1,6 +1,6 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import type { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import type { ReactNode } from "react";
 import type { SessionsApi } from "#glass.ts";
 import { PaneNote } from "#session-pane.tsx";

@@ -1,9 +1,9 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
+import { BoardEntryId, BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect, Schema } from "effect";
 import { BODY, NEEDS_BODY, nextSequence, owned, standing } from "#commands/board.ts";
 import { noteWritten } from "#facts/note-written.ts";
-import { BoardEntryId, BoardId } from "#ids.ts";
 
 export const write = command("write", {
 	input: {

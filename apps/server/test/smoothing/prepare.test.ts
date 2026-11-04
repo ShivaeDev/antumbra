@@ -1,8 +1,8 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";

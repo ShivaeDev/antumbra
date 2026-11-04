@@ -1,7 +1,7 @@
-import type { FlagKey } from "@antumbra/domain-settings/ids.ts";
 import { useCommand } from "@antumbra/glass-client/hooks.ts";
 import { Label } from "@antumbra/glass-components/shadcn/label.tsx";
 import { Switch } from "@antumbra/glass-components/shadcn/switch.tsx";
+import type { FlagKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Cause } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { useId } from "react";

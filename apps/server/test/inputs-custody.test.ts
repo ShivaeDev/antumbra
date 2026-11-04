@@ -2,13 +2,14 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { MAX_SESSION_IMAGE_SOURCE_BYTES, SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
+import { imagePath } from "@antumbra/server-inputs/adapters/custody.ts";
+import { digestRequest } from "@antumbra/server-inputs/adapters/digest.ts";
+import { prepare } from "@antumbra/server-inputs/adapters/prepare.ts";
+import { transcriptThumbnail } from "@antumbra/server-inputs/adapters/thumbnail.ts";
+import { NodeServices } from "@effect/platform-node";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { imagePath } from "#adapters/inputs/custody.ts";
-import { digestRequest } from "#adapters/inputs/digest.ts";
-import { prepare } from "#adapters/inputs/prepare.ts";
-import { transcriptThumbnail } from "#adapters/inputs/thumbnail.ts";
 
 const bytes = new Uint8Array(
 	Buffer.from(
@@ -41,7 +42,7 @@ it.effect("publishes normalized image bytes before returning ordered metadata an
 		expect(new TextDecoder().decode(thumbnail.slice(8, 12))).toBe("WEBP");
 		const repeated = yield* prepare(root, { ...draft, id: SessionInputId.make("00000000-0000-4000-8000-000000000042") });
 		expect(repeated.parts[0]).toEqual(first);
-	}),
+	}).pipe(Effect.provide(NodeServices.layer)),
 );
 
 it.effect("rejects unreadable, excessive, and incorrectly ordered uploads", () =>
@@ -55,7 +56,7 @@ it.effect("rejects unreadable, excessive, and incorrectly ordered uploads", () =
 		expect(excessive).toMatchObject({ _tag: "InvalidInput", reason: "image_too_large" });
 		const order = yield* Effect.flip(prepare(root, { ...draft, parts: [{ type: "text", text: "words" }, image] }));
 		expect(order).toMatchObject({ _tag: "InvalidInput", reason: "invalid_order" });
-	}),
+	}).pipe(Effect.provide(NodeServices.layer)),
 );
 
 it.effect("retains original request identity separately from normalized image identity", () =>
@@ -65,5 +66,5 @@ it.effect("retains original request identity separately from normalized image id
 		expect(digestRequest("another-root", draft.parts)).not.toBe(same);
 		expect(digestRequest(draft.sessionId, [{ ...image, name: "renamed.png" }, draft.parts[1]])).not.toBe(same);
 		expect(digestRequest(draft.sessionId, [{ ...image, declaredMediaType: "image/png" }, draft.parts[1]])).not.toBe(same);
-	}),
+	}).pipe(Effect.provide(NodeServices.layer)),
 );

@@ -20,11 +20,14 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:"
+		"vitest": "catalog:",
+		"@antumbra/app-testing": "workspace:*",
+		"@shivaedev/test-story": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/platform-change-host": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@shivaedev/github": "catalog:"
 	}
 }

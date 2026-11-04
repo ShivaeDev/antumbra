@@ -1,7 +1,7 @@
-import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
 import { sessionOperation } from "#rows/session-operation.ts";
 export const pending = query("pending", {

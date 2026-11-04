@@ -16,3 +16,6 @@ export const PieceProgressObserved = Schema.Struct({
 	assignments: Schema.Array(PieceAssignmentWork),
 	gates: Schema.Array(PieceRulingGate),
 });
+
+export const outcomeId = (sourceKind: "report" | "artifact" | "change", sourceId: string, pieceId: PieceId): string =>
+	JSON.stringify([sourceKind, sourceId, pieceId]);

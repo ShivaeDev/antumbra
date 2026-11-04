@@ -1,5 +1,5 @@
-import type { SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import { MessagePrecedence } from "@antumbra/platform-vocabulary/mail.ts";
+import type { SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Schema } from "effect";
 import type { message } from "#rows/message.ts";
 

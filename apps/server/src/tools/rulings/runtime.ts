@@ -1,10 +1,10 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import type { RulingId } from "@antumbra/domain-rulings/ids.ts";
 import { authority } from "@antumbra/domain-rulings/queries/authority.ts";
 import { byId } from "@antumbra/domain-rulings/queries/by-id.ts";
 import type { Ruling } from "@antumbra/domain-rulings/rows/ruling.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
 

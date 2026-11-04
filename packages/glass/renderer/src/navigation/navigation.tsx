@@ -1,10 +1,10 @@
-import { SWITCH_KEYS } from "@antumbra/domain-settings/ids.ts";
 import { allows, type FlagReading } from "@antumbra/domain-settings/queries/flags.ts";
 import type { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { useReading } from "@antumbra/glass-client/live.tsx";
 import type { SettingsApi } from "@antumbra/glass-settings/glass.ts";
 import type { VoyagesApi } from "@antumbra/glass-voyages/glass.ts";
 import type { ConsolePlace } from "@antumbra/platform-shell/windows.ts";
+import { SWITCH_KEYS } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Cause, Effect } from "effect";
 import { type ReactNode, useEffect, useState } from "react";
 import { openedVoyages, rememberOpenedVoyage } from "#adapters/opened-voyages.ts";

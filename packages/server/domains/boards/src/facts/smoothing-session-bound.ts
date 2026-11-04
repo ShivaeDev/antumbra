@@ -1,5 +1,3 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { smoothingSession } from "#rows/smoothing-session.ts";
-
-const { status: _status, ...binding } = smoothingSession.fields;
-export const smoothingSessionBound = fact("SmoothingSessionBound", binding);
+import { SmoothingSessionBoundPayload } from "@antumbra/platform-vocabulary/boards-event.ts";
+export const smoothingSessionBound = fact("SmoothingSessionBound", SmoothingSessionBoundPayload.fields);

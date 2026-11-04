@@ -1,10 +1,11 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { SummaryLevelSchema } from "@antumbra/platform-vocabulary/board.ts";
+import { BoardEntryId, BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
+import { Sequence } from "@antumbra/platform-vocabulary/boards.ts";
 import { Effect, Schema } from "effect";
 import { BODY, nextSequence, SPAN, SUMMARY_NEEDS_BODY, SUMMARY_NEEDS_SPAN } from "#commands/board.ts";
 import { summaryWritten } from "#facts/summary-written.ts";
-import { BoardEntryId, BoardId } from "#ids.ts";
-import { boardEntry, Sequence } from "#rows/board-entry.ts";
+import { boardEntry } from "#rows/board-entry.ts";
 
 export const summarize = command("summarize", {
 	input: {

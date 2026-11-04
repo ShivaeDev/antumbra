@@ -1,23 +1,18 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
-import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { allows } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { quietIds, voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
+import { SmoothingTargetFields } from "@antumbra/platform-vocabulary/boards.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
-import { BoardId, pieceBoard, voyageBoard } from "#ids.ts";
-import { days, localDay, Span, span } from "#queries/smoothing-span.ts";
+import { days, localDay, span } from "#queries/smoothing-span.ts";
 import { boardEntry } from "#rows/board-entry.ts";
 import { smoothingAttempt } from "#rows/smoothing-attempt.ts";
 
-export const SmoothingTarget = Schema.Struct({
-	...Span.fields,
-	board: BoardId,
-	pieceId: smoothingAttempt.fields.pieceId,
-	title: Schema.String,
-	level: Schema.Literals(["piece", "day"]),
-});
+export const SmoothingTarget = Schema.Struct({ ...SmoothingTargetFields.fields, entries: Schema.Array(boardEntry.Row) });
 
 export const smoothingTargets = query("smoothingTargets", {
 	input: { id: Schema.String, now: Schema.String },

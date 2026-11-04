@@ -1,6 +1,6 @@
-import { ChangeId } from "@antumbra/domain-changes/ids.ts";
 import type { browse } from "@antumbra/domain-changes/queries/browse.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { useState } from "react";
 import type { ChangesApi } from "#glass.ts";
 import { QuayDetail } from "#quay-detail.tsx";

@@ -1,7 +1,7 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { ReportId } from "#ids.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 
 export const reef = VoyageId.make("voyage:reef");
 export const soundings = PieceId.make("piece:soundings");

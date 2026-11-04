@@ -1,7 +1,7 @@
 import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { identity } from "@antumbra/domain-agents/ids.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";

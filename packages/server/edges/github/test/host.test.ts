@@ -1,219 +1,59 @@
-import type { HostRepo } from "@antumbra/platform-vocabulary/change-host.ts";
-import { describe, expect, it } from "@effect/vitest";
+import { githubStory } from "@antumbra/app-testing/github.ts";
 import { Effect } from "effect";
-import { makeGitHubHost } from "#host.ts";
-import recorded from "#test/fixtures/observe-response.json";
-import { AUTHENTICATED, LOGGED_OUT, type ScriptedGh, scriptedGh } from "#test/scripted-gh.ts";
+import { expect } from "vitest";
+import { allAnswered, node, repo } from "#test/kit.ts";
 
-const RECORDED = JSON.stringify(recorded);
-
-const FUTURE_STATE = RECORDED.replace('"state":"MERGED"', '"state":"SOMETHING_NEW"');
-
-const REPO: HostRepo = {
-	defaultRef: "main",
-	id: "repo-antumbra",
-	name: "antumbra",
-	source: "https://github.com/ShivaeDev/antumbra.git",
-};
-
-const pullNode = (number: number, slug: string) => ({
-	baseRefName: "main",
-	comments: { nodes: [] },
-	commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
-	headRefName: `work/${slug}`,
-	headRefOid: `sha-${slug}`,
-	isDraft: false,
-	mergeStateStatus: "CLEAN",
-	number,
-	reviewDecision: null,
-	reviews: { nodes: [] },
-	state: "OPEN",
-	title: `change in ${slug}`,
-	updatedAt: "2026-08-15T20:24:25Z",
-	url: `https://github.com/${slug}/pull/${number}`,
+githubStory.it("reads full and partial GraphQL answers through the shared authenticated client", [], function* ({ host, reply, http }) {
+	yield* reply({ data: { r_0: { pr_0: node(23, "MERGED"), pr_1: null } }, errors: [{ message: "not found", path: ["r_0", "pr_1"] }] });
+	const seen = yield* host.observe([
+		{ repo, externalId: "23" },
+		{ repo, externalId: "9999" },
+	]);
+	expect(seen.map((value) => [value.externalId, value.stage])).toEqual([["23", "landed"]]);
+	expect(http.requests[0]).toMatchObject({ method: "POST", path: "/graphql", headers: { authorization: "Bearer loopback-token" } });
+	yield* reply({ data: { r_0: { pr_0: node(23) } } });
+	expect((yield* host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", repo)).stage).toBe("open");
 });
 
-const PARTIAL_CROSS_REPO = JSON.stringify({
-	data: {
-		r_0: { pr_0: pullNode(7, "ShivaeDev/antumbra") },
-		r_1: {
-			pr_1: pullNode(7, "ShivaeDev/other"),
-			pr_2: null,
-		},
+githubStory.it("leaves selections with failed feedback unobserved even when GitHub includes empty fields", [], function* ({ host, reply }) {
+	yield* reply({ data: { r_0: { pr_0: node(23), pr_1: node(24) } }, errors: [{ message: "reviews unavailable", path: ["r_0", "pr_1", "reviews"] }] });
+	expect(
+		(yield* host.observe([
+			{ repo, externalId: "23" },
+			{ repo, externalId: "24" },
+		])).map((value) => value.externalId),
+	).toEqual(["23"]);
+});
+
+githubStory.it(
+	"invalidates the entire pass and its cached capability after an authentication failure",
+	[],
+	function* ({ host, replyWith, authenticated }) {
+		expect((yield* host.capability).available).toBe(true);
+		yield* replyWith((request) =>
+			request.body.includes("number: 26") ? { status: 401, body: { message: "Bad credentials" } } : allAnswered(request),
+		);
+		const refs = Array.from({ length: 26 }, (_, index) => ({ repo, externalId: String(index + 1) }));
+		expect(yield* Effect.flip(host.observe(refs))).toMatchObject({
+			_tag: "ChangeHostUnavailable",
+			detail: expect.stringContaining("authentication"),
+		});
+		yield* authenticated(false);
+		expect((yield* host.capability).available).toBe(false);
 	},
-	errors: [{ message: "pull request 9999 was not found" }],
+);
+
+githubStory.it("uses the Enterprise GraphQL endpoint and the Enterprise CLI credential", [], function* ({ enterprise, reply, http }) {
+	const remote = { ...repo, source: "https://git.corp.test/ShivaeDev/antumbra.git" };
+	yield* reply({ data: { r_0: { pr_0: node(23, "OPEN", "git.corp.test") } } });
+	expect(enterprise.supports(remote)).toBe(true);
+	expect((yield* enterprise.adopt("https://git.corp.test/ShivaeDev/antumbra/pull/23", remote)).url).toBe(
+		"https://git.corp.test/ShivaeDev/antumbra/pull/23",
+	);
+	expect(http.requests[0]).toMatchObject({ path: "/api/graphql", headers: { authorization: "Bearer loopback-token" } });
 });
 
-const withGh = <A, E, R>(body: (gh: ScriptedGh) => Effect.Effect<A, E, R>): Effect.Effect<A, E, R> => Effect.scoped(Effect.flatMap(scriptedGh, body));
-
-const hostOf = (gh: ScriptedGh) => makeGitHubHost({ executable: gh.executable }).pipe(Effect.provide(gh.layer));
-
-describe("what the GitHub host can do right now", () => {
-	it.effect("reports the login it inherits from gh", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("auth", AUTHENTICATED);
-				const host = yield* hostOf(gh);
-				expect(yield* host.capability).toEqual({
-					available: true,
-					detail: "Logged in to github.com account skipper (keyring)",
-				});
-				yield* host.capability;
-				expect(gh.received().filter((arg) => arg === "status")).toHaveLength(1);
-			}),
-		),
-	);
-
-	it.effect("hands on gh's own remedy when there is no login", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("auth", LOGGED_OUT);
-				const host = yield* hostOf(gh);
-				const capability = yield* host.capability;
-				expect(capability.available).toBe(false);
-				expect(capability.detail).toContain("gh auth login");
-			}),
-		),
-	);
-
-	it.effect("claims the repos it can address and no others", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				const host = yield* hostOf(gh);
-				expect(host.tag).toBe("github");
-				expect(host.supports(REPO)).toBe(true);
-				expect(host.supports({ ...REPO, source: "/somewhere/reef" })).toBe(false);
-			}),
-		),
-	);
-});
-
-describe("observing changes through gh", () => {
-	it.effect("keeps repository identity through a partial cross-repo batch", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				const other = {
-					...REPO,
-					id: "repo-other",
-					name: "other",
-					source: "https://github.com/ShivaeDev/other.git",
-				};
-				gh.answer("graphql", {
-					code: 1,
-					err: "gh: Could not resolve",
-					out: PARTIAL_CROSS_REPO,
-				});
-				const host = yield* hostOf(gh);
-				const seen = yield* host.observe([
-					{ externalId: "7", repo: REPO },
-					{ externalId: "7", repo: other },
-					{ externalId: "9999", repo: { ...other, id: "repo-missing" } },
-				]);
-
-				expect(
-					seen.map((one) => ({
-						externalId: one.externalId,
-						repoId: one.repoId,
-					})),
-				).toEqual([
-					{ externalId: "7", repoId: REPO.id },
-					{ externalId: "7", repoId: other.id },
-				]);
-			}),
-		),
-	);
-
-	it.effect("maps every answered pull request and drops the missing one", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("graphql", {
-					code: 1,
-					err: "gh: Could not resolve",
-					out: RECORDED,
-				});
-				const host = yield* hostOf(gh);
-				const seen = yield* host.observe([
-					{ externalId: "23", repo: REPO },
-					{ externalId: "24", repo: REPO },
-					{ externalId: "27", repo: REPO },
-					{ externalId: "32", repo: REPO },
-					{ externalId: "9999", repo: REPO },
-					{ externalId: "77", repo: { ...REPO, source: "/somewhere/reef" } },
-				]);
-
-				expect(seen.map((one) => one.externalId)).toEqual(["23", "24", "27", "32"]);
-				const asked = gh.received().find((arg) => arg.startsWith("query="));
-				expect(asked).toContain("pullRequest(number: 23)");
-				expect(asked).toContain("pullRequest(number: 9999)");
-				expect(asked).not.toContain("somewhere/reef");
-			}),
-		),
-	);
-
-	it.effect("leaves a batch unobserved when GitHub adds an unsupported word", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("graphql", { out: FUTURE_STATE });
-				const host = yield* hostOf(gh);
-				const seen = yield* host.observe([{ externalId: "23", repo: REPO }]);
-				expect(seen).toEqual([]);
-			}),
-		),
-	);
-
-	it.effect("fails the whole pass when the login stopped working", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("auth", AUTHENTICATED);
-				gh.answer("graphql", LOGGED_OUT);
-				const host = yield* hostOf(gh);
-				expect((yield* host.capability).available).toBe(true);
-
-				const failure = yield* Effect.flip(host.observe([{ externalId: "23", repo: REPO }]));
-				expect(failure._tag).toBe("ChangeHostUnavailable");
-				expect(failure.detail).toContain("gh auth login");
-
-				gh.answer("auth", LOGGED_OUT);
-				expect((yield* host.capability).available).toBe(false);
-			}),
-		),
-	);
-});
-
-describe("adopting a change by its address", () => {
-	it.effect("refuses a pull request belonging to another repository", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				const host = yield* hostOf(gh);
-				const failure = yield* Effect.flip(host.adopt("https://github.com/someone/elsewhere/pull/5", REPO));
-				expect(failure._tag).toBe("ChangeHostRefused");
-				expect(failure.detail).toContain("someone/elsewhere");
-				expect(gh.received()).toEqual([]);
-			}),
-		),
-	);
-
-	it.effect("observes the pull request an address points at", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("graphql", { out: RECORDED });
-				const host = yield* hostOf(gh);
-				const adopted = yield* host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO);
-				expect(adopted.externalId).toBe("23");
-				expect(adopted.stage).toBe("landed");
-			}),
-		),
-	);
-
-	it.effect("surfaces the exact unsupported word when one pull is read directly", () =>
-		withGh((gh) =>
-			Effect.gen(function* () {
-				gh.answer("graphql", { out: FUTURE_STATE });
-				const host = yield* hostOf(gh);
-				const failure = yield* Effect.flip(host.adopt("https://github.com/ShivaeDev/antumbra/pull/23", REPO));
-				expect(failure._tag).toBe("ChangeHostUnavailable");
-				expect(failure.detail).toContain('state answered unsupported word "SOMETHING_NEW"');
-			}),
-		),
-	);
+githubStory.it("refuses an address belonging to another repository before making a request", [], function* ({ host, http }) {
+	expect(yield* Effect.flip(host.adopt("https://github.com/someone/elsewhere/pull/5", repo))).toMatchObject({ _tag: "ChangeHostRefused" });
+	expect(http.requests).toEqual([]);
 });

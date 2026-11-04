@@ -1,0 +1,16 @@
+export const pullRequest = (number: number, state = "OPEN", host = "github.com") => ({
+	baseRefName: "main",
+	comments: { nodes: [] },
+	commits: { nodes: [{ commit: { statusCheckRollup: null } }] },
+	headRefName: `work/pull-${number}`,
+	headRefOid: `sha-${number}`,
+	isDraft: false,
+	mergeStateStatus: "CLEAN",
+	number,
+	reviewDecision: null,
+	reviews: { nodes: [] },
+	state,
+	title: "Soundings",
+	updatedAt: "2026-11-04T12:00:00Z",
+	url: `https://${host}/ShivaeDev/antumbra/pull/${number}`,
+});

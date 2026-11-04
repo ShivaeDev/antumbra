@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { ReportId } from "#ids.ts";
 import { byPiece } from "#queries/by-piece.ts";
 import { chartering, landing, opening, reportId, soundings } from "#test/kit.ts";
 

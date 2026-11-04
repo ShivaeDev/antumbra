@@ -1,4 +1,4 @@
-import { type CountKey, type FlagKey, SWITCH_KEYS } from "@antumbra/domain-settings/ids.ts";
+import { type CountKey, type FlagKey, SWITCH_KEYS } from "@antumbra/platform-vocabulary/settings-ids.ts";
 
 export interface Group {
 	readonly description: string;

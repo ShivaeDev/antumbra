@@ -1,6 +1,6 @@
 import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
-import type { Draft, ImageRequest } from "@antumbra/domain-inputs/rows/content.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
+import type { Draft, ImageRequest } from "@antumbra/platform-vocabulary/inputs.ts";
 import { Effect } from "effect";
 import * as RpcTest from "effect/rpc/RpcTest";
 

@@ -1,6 +1,6 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { SWITCH_KEYS } from "@antumbra/domain-settings/ids.ts";
 import { allows } from "@antumbra/domain-settings/queries/flags.ts";
+import { SWITCH_KEYS } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { expect } from "vitest";
 
 const SWITCHES_ON = SWITCH_KEYS.map((key) => ({ key, on: true }));

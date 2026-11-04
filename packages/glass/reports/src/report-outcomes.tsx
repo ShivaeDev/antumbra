@@ -1,5 +1,4 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { ReportId } from "@antumbra/domain-reports/ids.ts";
 import type { ReportReading } from "@antumbra/domain-reports/queries/by-id.ts";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
@@ -7,6 +6,7 @@ import { useHolding } from "@antumbra/glass-client/reconnection.tsx";
 import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeDetail, OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
 import { lostConnection } from "@antumbra/platform-rpc/query.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { FileTextIcon } from "lucide-react";

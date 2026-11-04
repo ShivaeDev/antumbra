@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { SessionInputId } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect } from "effect";

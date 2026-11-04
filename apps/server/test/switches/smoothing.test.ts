@@ -1,6 +1,6 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import type { Commit } from "@antumbra/server-journal/commit.ts";
 import type { Live } from "@antumbra/server-journal/live.ts";

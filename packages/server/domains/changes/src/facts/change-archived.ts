@@ -1,3 +1,3 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { ChangeId } from "#ids.ts";
-export const changeArchived = fact("ChangeArchived", { changeId: ChangeId });
+import { ChangeArchivedPayload } from "@antumbra/platform-vocabulary/changes-event.ts";
+export const changeArchived = fact("ChangeArchived", ChangeArchivedPayload.fields);

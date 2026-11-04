@@ -1,7 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Effect, Schema } from "effect";
 import { changeArchived } from "#facts/change-archived.ts";
-import { ChangeId } from "#ids.ts";
 import { change } from "#rows/change.ts";
 export const archive = command("archive", {
 	input: { changeId: ChangeId },

@@ -1,9 +1,9 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Clock, Effect, Schema } from "effect";
 import { reportLanded } from "#facts/report-landed.ts";
-import { ReportId } from "#ids.ts";
 import { report } from "#rows/report.ts";
 
 export const land = command("land", {

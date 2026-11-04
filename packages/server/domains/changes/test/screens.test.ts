@@ -1,9 +1,9 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
-import { ChangeId } from "#ids.ts";
 import { browse } from "#queries/browse.ts";
 import { adoption, chartering, comment, inline, opening, pieceId, registration, repoId, request, review, seen } from "#test/kit.ts";
 

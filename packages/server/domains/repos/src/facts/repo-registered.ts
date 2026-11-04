@@ -1,4 +1,3 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
-import { repo } from "#rows/repo.ts";
-
-export const repoRegistered = fact("RepoRegistered", repo.fields);
+import { RepoRegisteredPayload } from "@antumbra/platform-vocabulary/repos-event.ts";
+export const repoRegistered = fact("RepoRegistered", RepoRegisteredPayload.fields);

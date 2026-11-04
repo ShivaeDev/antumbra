@@ -1,10 +1,10 @@
 import { it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";

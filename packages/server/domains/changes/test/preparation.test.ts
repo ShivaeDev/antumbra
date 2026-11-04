@@ -1,7 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { expect } from "vitest";
-import { ChangeId } from "#ids.ts";
 import { chartering, opening, pieceId, registration, repoId, request, seen } from "#test/kit.ts";
 
 const asking = { requestId: request("agent:reef"), role: "hand", backend: "claude", model: null, effort: null } as const;

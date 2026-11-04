@@ -1,9 +1,9 @@
 import { prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
 import { readArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { ArtifactId } from "#ids.ts";
 import { chartering, landing, opening, pieceId } from "#test/kit.ts";
 
 it.app("landed bytes survive losing their source", function* (app) {

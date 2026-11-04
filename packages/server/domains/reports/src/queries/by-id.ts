@@ -1,7 +1,7 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { ReportId } from "#ids.ts";
 import { pieceReport } from "#rows/piece-report.ts";
 import { report } from "#rows/report.ts";
 

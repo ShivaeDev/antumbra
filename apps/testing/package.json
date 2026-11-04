@@ -50,6 +50,16 @@
 		"@shivaedev/test-sql": "catalog:",
 		"@antumbra/server-voyages": "workspace:*",
 		"@antumbra/server-pieces": "workspace:*",
-		"@antumbra/server-mail": "workspace:*"
+		"@antumbra/server-mail": "workspace:*",
+		"@antumbra/server-settings": "workspace:*",
+		"@antumbra/server-role-settings": "workspace:*",
+		"@antumbra/server-backends": "workspace:*",
+		"@antumbra/server-boards": "workspace:*",
+		"@antumbra/server-repos": "workspace:*",
+		"@antumbra/server-artifacts": "workspace:*",
+		"@antumbra/server-reports": "workspace:*",
+		"@antumbra/server-inputs": "workspace:*",
+		"@antumbra/server-changes": "workspace:*",
+		"@antumbra/edge-github": "workspace:*"
 	}
 }

@@ -1,7 +1,7 @@
 import { answered } from "@antumbra/app-testing/answers.ts";
 import { postgresApp } from "@antumbra/app-testing/postgres.ts";
 import { captureJournal } from "@antumbra/app-testing/test-support/journal-replay.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { checkPostgresFixture } from "@antumbra/server-journal/postgres/fixture.ts";
 import { expect } from "vitest";
 import { messageOf, request, sending } from "#test/kit.ts";

@@ -1,8 +1,8 @@
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Schema } from "effect";
-import { ChangeId } from "#ids.ts";
 import { quayChange } from "#rows/quay-change.ts";
 
 export const QuayStatus = Schema.Literals(["all", "alongside", "archived", "checksRunning", "draft", "landed", "needsAttention"]);

@@ -1,7 +1,7 @@
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
+import { AgentId, VoyageAgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Schema } from "effect";
-import { AgentId, VoyageAgentId } from "#ids.ts";
 
 export const voyageAgent = row(
 	"voyageAgent",

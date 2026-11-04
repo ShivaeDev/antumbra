@@ -1,9 +1,10 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { migration } from "@antumbra/platform-feature/migration.ts";
+import { FlagSetPayload } from "@antumbra/platform-vocabulary/settings-event.ts";
+import type { SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { FlagKey, type SwitchKey } from "#ids.ts";
 
-export const flagSet = fact("FlagSet", { keys: Schema.Array(FlagKey), on: Schema.Boolean });
+export const flagSet = fact("FlagSet", FlagSetPayload.fields);
 
 const FOLDED: Readonly<Record<string, readonly SwitchKey[]>> = {
 	holdPieceDispatch: ["resumePieces", "spawnForPiece"],

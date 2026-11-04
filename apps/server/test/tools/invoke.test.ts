@@ -1,7 +1,7 @@
 import { type App, answered, it } from "@antumbra/app-testing/entry.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
-import { agentBoard } from "@antumbra/domain-boards/ids.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { agentBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";

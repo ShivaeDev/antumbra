@@ -1,5 +1,7 @@
 import { resolve } from "node:path";
+import { definition } from "@antumbra/server/application.ts";
 import { checkPostgresFixture } from "@antumbra/server-journal/postgres/fixture.ts";
+import { validateFixture } from "@antumbra/server-journal/testing/validate-fixture.ts";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
 import { Cause, Config, Console, Effect, Result } from "effect";
 import { captureFixture, extractFixture, listFixtures } from "#fixture/adapters/archive.ts";
@@ -22,6 +24,7 @@ const check = Effect.fn("Fixture.check")(function* (selector: string, target: Ta
 		Effect.gen(function* () {
 			const extracted = yield* extractFixture({ archiveRoot: paths.archiveRoot, selector, destination: paths.check });
 			yield* checkViewer(checkout);
+			yield* validateFixture(resolve(paths.check, "server", "journal.db"), definition);
 			if (target === "postgres") {
 				const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db"));
 				yield* Console.log(JSON.stringify({ postgres }));
@@ -30,7 +33,7 @@ const check = Effect.fn("Fixture.check")(function* (selector: string, target: Ta
 		}),
 	);
 	yield* Console.log(
-		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL Voyage and Piece histories and rows match" : ""}.`,
+		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL domain histories and rows match" : ""}.`,
 	);
 });
 

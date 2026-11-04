@@ -1,6 +1,6 @@
 import type { browse } from "@antumbra/domain-changes/queries/browse.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { CONTROL, TEXT_CONTROL } from "@antumbra/glass-components/classes.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { groupTitle, QUAY_GROUPS } from "#groups.ts";
 export type Filters = { readonly query: string; readonly repositoryId: RepoId | null; readonly status: "all" | keyof typeof groupTitle };
 export const INITIAL: Filters = { query: "", repositoryId: null, status: "all" };

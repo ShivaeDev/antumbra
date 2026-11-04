@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Effect, Schema } from "effect";
-import { ChangeId } from "#ids.ts";
 import { change } from "#rows/change.ts";
 
 const Archivable = Schema.Struct({ id: ChangeId, landedAt: Schema.String });

@@ -1,8 +1,8 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
+import { RepoId, repoName, repoSlug } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Clock, Effect, Schema } from "effect";
 import { repoRegistered } from "#facts/repo-registered.ts";
-import { RepoId, repoName, repoSlug } from "#ids.ts";
 import { repo } from "#rows/repo.ts";
 
 export const register = command("register", {

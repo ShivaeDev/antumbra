@@ -1,5 +1,7 @@
+const body = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Unknown));
+
 import { describe, expect, it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse, type ObservedNode, type PullRequestNode } from "#payload.ts";
 import { buildObservePlan } from "#query.ts";
@@ -21,7 +23,7 @@ const FEEDBACK_PLAN = buildObservePlan(
 	})),
 );
 
-const withFeedback = Effect.runSync(decodeObserveResponse("observe-changes", FEEDBACK, FEEDBACK_PLAN.selections));
+const withFeedback = Effect.runSync(decodeObserveResponse("observe-changes", body(FEEDBACK), FEEDBACK_PLAN.selections));
 
 const feedbackOf = (index: number) => {
 	const node = withFeedback[index];
@@ -37,7 +39,7 @@ const PLAN = buildObservePlan(
 	})),
 );
 
-const observed = Effect.runSync(decodeObserveResponse("observe-changes", RECORDED, PLAN.selections));
+const observed = Effect.runSync(decodeObserveResponse("observe-changes", body(RECORDED), PLAN.selections));
 
 const withNode = (fields: Partial<PullRequestNode>): ObservedNode => {
 	const base = observed[0];
@@ -125,7 +127,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 	it.effect("preserves an unknown GitHub word as provider evidence", () =>
 		Effect.gen(function* () {
 			const future = RECORDED.replace('"mergeStateStatus":"UNKNOWN"', '"mergeStateStatus":"FUTURE_MERGE"');
-			const [unsupported] = yield* decodeObserveResponse("observe-changes", future, PLAN.selections);
+			const [unsupported] = yield* decodeObserveResponse("observe-changes", body(future), PLAN.selections);
 			if (unsupported === undefined) {
 				return expect.unreachable("the fixture lost its first node");
 			}
@@ -192,7 +194,7 @@ describe("reading GitHub's answer as the neutral vocabulary", () => {
 	it.effect("refuses a review state GitHub has not taught this mapping", () =>
 		Effect.gen(function* () {
 			const future = FEEDBACK.replace('"state":"COMMENTED"', '"state":"FUTURE_REVIEW"');
-			const [, unsupported] = yield* decodeObserveResponse("observe-changes", future, FEEDBACK_PLAN.selections);
+			const [, unsupported] = yield* decodeObserveResponse("observe-changes", body(future), FEEDBACK_PLAN.selections);
 			if (unsupported === undefined) {
 				return expect.unreachable("the feedback fixture lost its review");
 			}

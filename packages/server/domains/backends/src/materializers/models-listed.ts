@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { type BackendModelId, backendModelId } from "@antumbra/platform-vocabulary/backends-ids.ts";
 import { Effect, Option } from "effect";
 import { modelsListed } from "#facts/models-listed.ts";
-import { type BackendModelId, backendModelId } from "#ids.ts";
 import { backendCatalog } from "#rows/backend-catalog.ts";
 import { backendModel } from "#rows/backend-model.ts";
 

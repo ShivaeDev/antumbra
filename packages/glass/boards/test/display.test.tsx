@@ -1,7 +1,7 @@
 import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { BoardPanel } from "#board.tsx";

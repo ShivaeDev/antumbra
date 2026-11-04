@@ -5,7 +5,7 @@ import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { ScriptedHost } from "@antumbra/app-testing/host.ts";
 import { inputApi } from "@antumbra/app-testing/inputs.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { Effect } from "effect";

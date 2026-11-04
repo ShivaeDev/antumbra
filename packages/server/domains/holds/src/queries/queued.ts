@@ -5,8 +5,8 @@ import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
 import type { DueWake } from "@antumbra/domain-mail/queries/due-wakes.ts";
 import type { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
-import type { SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import type { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
+import type { SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { type Crew, crewVoyage, voyageName, type Waiting, waitingSession } from "#queries/waiting.ts";
 
 const DAILY_BOARD = "The day's board";

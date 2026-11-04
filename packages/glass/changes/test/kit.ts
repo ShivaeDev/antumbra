@@ -1,9 +1,9 @@
 import type { Api } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { Feedback } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Clock, Effect } from "effect";
 export const pieceId = PieceId.make("piece:reef");
 export const repoId = RepoId.make("repo:reef");

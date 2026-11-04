@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { RepoId } from "#ids.ts";
 import { all } from "#queries/all.ts";
 
 const reef = RepoId.make("repo:reef");

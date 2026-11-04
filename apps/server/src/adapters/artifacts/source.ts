@@ -1,9 +1,9 @@
+import { ArtifactPublicationFailed, ArtifactSourceNotOwned } from "@antumbra/domain-artifacts/ports/errors.ts";
+import { ArtifactSource } from "@antumbra/domain-artifacts/ports/files.ts";
 import { current } from "@antumbra/domain-reclamation/queries/moorage.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Layer, Option, Stream } from "effect";
-import { ArtifactPublicationFailed, ArtifactSourceNotOwned } from "#adapters/artifacts/errors.ts";
-import { ArtifactSource } from "#adapters/artifacts/ports.ts";
 
 export const artifactSource = Layer.effect(
 	ArtifactSource,

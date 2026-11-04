@@ -1,5 +1,4 @@
 import { write } from "@antumbra/domain-boards/commands/write.ts";
-import { agentBoard, type BoardId, pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import type { Entry } from "@antumbra/domain-boards/queries/covered.ts";
 import { digest } from "@antumbra/domain-boards/queries/digest.ts";
 import { under } from "@antumbra/domain-boards/queries/under.ts";
@@ -10,6 +9,7 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { answered, refused } from "@antumbra/platform-tool-schemas/answers.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
+import { agentBoard, type BoardId, pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";

@@ -1,7 +1,7 @@
-import { roleSettingId } from "@antumbra/domain-role-settings/ids.ts";
 import { roleSetting } from "@antumbra/domain-role-settings/rows/role-setting.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
 import { VOYAGE_AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
+import { roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { Effect } from "effect";
 import { voyageOpened } from "#facts/voyage-opened.ts";
 import { voyage } from "#rows/voyage.ts";

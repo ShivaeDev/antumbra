@@ -1,7 +1,7 @@
-import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { operationRequested } from "#facts/operation-requested.ts";
 import { SessionId, SessionOperationId } from "#ids.ts";

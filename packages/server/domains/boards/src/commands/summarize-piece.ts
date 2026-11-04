@@ -1,9 +1,9 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { BoardEntryId, BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect, Schema } from "effect";
 import { BODY, nextSequence, SUMMARY_NEEDS_BODY } from "#commands/board.ts";
 import { pieceSummaryWritten } from "#facts/piece-summary-written.ts";
-import { BoardEntryId, BoardId } from "#ids.ts";
 import { boardEntry } from "#rows/board-entry.ts";
 
 export const summarizePiece = command("summarizePiece", {

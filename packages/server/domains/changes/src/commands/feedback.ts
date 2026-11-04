@@ -1,6 +1,6 @@
 import type { ChangeReview } from "@antumbra/platform-vocabulary/change.ts";
 import { type Feedback, type Observation, postedByAntumbra } from "@antumbra/platform-vocabulary/change-host.ts";
-import type { ChangeId } from "#ids.ts";
+import type { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import type { ChangeFeedbackRow } from "#rows/change-feedback.ts";
 
 const worthKeeping = (item: Feedback): boolean => item.body.trim() !== "" && !postedByAntumbra(item.body);

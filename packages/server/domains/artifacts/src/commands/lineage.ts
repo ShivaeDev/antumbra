@@ -1,7 +1,7 @@
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
 import type { Reject } from "@antumbra/platform-feature/rejection.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { ArtifactId } from "#ids.ts";
 import type { artifact } from "#rows/artifact.ts";
 export const lineageInput = { supersededArtifactId: ArtifactId, successorArtifactId: ArtifactId, actorAgentId: Schema.NullOr(Schema.String) };
 export const lineageRejections = {

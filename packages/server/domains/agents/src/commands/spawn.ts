@@ -1,9 +1,9 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { optional, titled } from "@antumbra/platform-feature/edit.ts";
 import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect, Schema } from "effect";
 import { birthRequested } from "#facts/birth-requested.ts";
-import { identity } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 
 export const spawn = command("spawn", {

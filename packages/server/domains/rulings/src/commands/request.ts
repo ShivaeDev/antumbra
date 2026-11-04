@@ -1,13 +1,13 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Schema } from "effect";
 import { askedInput } from "#commands/inputs.ts";
 import { rulingRequested } from "#facts/ruling-requested.ts";

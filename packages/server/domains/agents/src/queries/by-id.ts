@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect, Option, Schema } from "effect";
-import { AgentId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 export const byId = query("byId", {
 	input: { id: AgentId },

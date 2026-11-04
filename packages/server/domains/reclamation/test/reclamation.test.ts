@@ -1,9 +1,9 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import { berthId, reclaimRequestId } from "@antumbra/platform-vocabulary/reclamation-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { berthId, reclaimRequestId } from "#ids.ts";
 
 it.app("reclaims retired resources without removing the Agent", function* (app) {
 	const requestId = Id.Request.make(Id.make());

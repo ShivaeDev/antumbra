@@ -1,11 +1,11 @@
 import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { identity } from "#ids.ts";
 
 const raw = { kind: "provider", payload: "{}", source: "claude" };
 const { agentId, sessionId } = identity(Id.Request.make("one"));

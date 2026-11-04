@@ -2,6 +2,7 @@ import { Effect, Schema } from "effect";
 import { GitHubCheckState, GitHubMergeState, GitHubPullState, GitHubReviewDecision, GitHubReviewState } from "#dialect.ts";
 import { type GhOperation, GhOutputInvalid } from "#errors.ts";
 import type { ObserveSelection } from "#query.ts";
+import { responseSelections } from "#response-selections.ts";
 
 const CheckRollup = Schema.Struct({ state: GitHubCheckState });
 
@@ -60,10 +61,6 @@ export const PullRequestNode = Schema.Struct({
 
 export type PullRequestNode = typeof PullRequestNode.Type;
 
-const ObserveEnvelope = Schema.Struct({
-	data: Schema.Record(Schema.String, Schema.NullOr(Schema.Record(Schema.String, Schema.Unknown))),
-});
-
 export interface ObservedNode {
 	readonly node: PullRequestNode;
 	readonly raw: unknown;
@@ -87,24 +84,7 @@ const decodeNode = (operation: GhOperation, selection: ObserveSelection, raw: un
 		),
 	);
 
-// GitHub returns null for a pull request this login cannot see.
-const aliasedNodes = (
-	data: Readonly<Record<string, Readonly<Record<string, unknown>> | null>>,
-	selections: ReadonlyArray<ObserveSelection>,
-): ReadonlyArray<readonly [ObserveSelection, unknown]> =>
-	selections.flatMap((selection) => {
-		const node = data[selection.repoAlias]?.[selection.pullAlias];
-		return node === null || node === undefined ? [] : [[selection, node]];
-	});
-
-export const decodeObserveResponse = (
-	operation: GhOperation,
-	stdout: string,
-	selections: ReadonlyArray<ObserveSelection>,
-): Effect.Effect<ReadonlyArray<ObservedNode>, GhOutputInvalid> =>
-	Schema.decodeUnknownEffect(Schema.fromJsonString(ObserveEnvelope))(stdout).pipe(
-		Effect.mapError(invalid(operation)),
-		Effect.flatMap((envelope) =>
-			Effect.forEach(aliasedNodes(envelope.data, selections), ([selection, raw]) => decodeNode(operation, selection, raw)),
-		),
+export const decodeObserveResponse = (operation: GhOperation, body: unknown, selections: ReadonlyArray<ObserveSelection>) =>
+	responseSelections(operation, body, selections).pipe(
+		Effect.flatMap((nodes) => Effect.forEach(nodes, ([selection, raw]) => decodeNode(operation, selection, raw))),
 	);

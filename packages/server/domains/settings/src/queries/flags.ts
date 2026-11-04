@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { FLAG_KEYS, FLEET, type FlagDeclaration, FlagKey, type SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
-import { FLAG_KEYS, FLEET, type FlagDeclaration, FlagKey, type SwitchKey } from "#ids.ts";
 import { flag } from "#rows/flag.ts";
 
 export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {

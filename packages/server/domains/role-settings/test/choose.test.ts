@@ -1,6 +1,6 @@
 import { it } from "@antumbra/app-testing/entry.ts";
+import { FLEET, roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { expect } from "vitest";
-import { FLEET, roleSettingId } from "#ids.ts";
 
 it.app("replaces an existing choice", function* (app) {
 	const roles = app.api.roleSettings;

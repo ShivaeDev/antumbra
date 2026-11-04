@@ -1,9 +1,10 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { ChangeAdoptionFailedPayload } from "@antumbra/platform-vocabulary/changes-event.ts";
 import { Effect, Schema } from "effect";
 import { adoptionRequest } from "#rows/adoption-request.ts";
-export const adoptionFailed = fact("ChangeAdoptionFailed", { id: Schema.NullOr(Schema.String), message: Schema.String });
+export const adoptionFailed = fact("ChangeAdoptionFailed", ChangeAdoptionFailedPayload.fields);
 export const failAdoption = command("failAdoption", {
 	input: { id: Schema.String, url: Schema.String, message: Schema.String },
 	reads: [adoptionRequest],

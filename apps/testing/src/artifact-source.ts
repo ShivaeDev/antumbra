@@ -1,4 +1,4 @@
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { apiOf } from "@antumbra/server-journal/testing/api.ts";
 import { Effect } from "effect";

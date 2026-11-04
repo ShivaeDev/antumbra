@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { reclaimRequestId } from "@antumbra/platform-vocabulary/reclamation-ids.ts";
 import { Effect } from "effect";
 import { resourcesClaimed } from "#facts/resources-claimed.ts";
-import { reclaimRequestId } from "#ids.ts";
 import { berth } from "#rows/berth.ts";
 import { moorage } from "#rows/moorage.ts";
 

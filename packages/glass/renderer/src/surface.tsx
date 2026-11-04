@@ -1,10 +1,10 @@
-import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { ArtifactWindow } from "@antumbra/glass-artifacts/artifact-window.tsx";
 import { useReading } from "@antumbra/glass-client/live.tsx";
 import { ExternalLinkContext } from "@antumbra/glass-components/external-link.tsx";
 import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { TranscriptView } from "@antumbra/glass-sessions/transcript.tsx";
 import type { WindowPlace } from "@antumbra/platform-shell/windows.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { useAtomValue } from "@effect/atom-react";
 import { AsyncResult, Atom } from "effect/reactivity";
 import { useState } from "react";

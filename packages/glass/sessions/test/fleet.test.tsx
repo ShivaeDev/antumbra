@@ -1,7 +1,7 @@
 import { eventually } from "@antumbra/app-testing/answers.ts";
 import { settle, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { identity } from "@antumbra/domain-agents/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { expect } from "vitest";
 import { FleetPanel } from "#fleet.tsx";
 import { CREW, crewed, openGroup, smoothing, VOYAGE_NAME } from "#test/kit.ts";

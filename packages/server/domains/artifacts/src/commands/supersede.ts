@@ -1,8 +1,8 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import type { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Effect } from "effect";
 import { endpoints, lineageInput, lineageRejections } from "#commands/lineage.ts";
 import { artifactSuperseded } from "#facts/superseded.ts";
-import type { ArtifactId } from "#ids.ts";
 import { artifact } from "#rows/artifact.ts";
 export const supersede = command("supersede", {
 	input: lineageInput,

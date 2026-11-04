@@ -1,8 +1,8 @@
 import { it } from "@antumbra/app-testing/entry.ts";
-import { FLEET } from "@antumbra/domain-role-settings/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { expect } from "vitest";
 import { readFleet } from "#tools/voyages/fleet.ts";
 

@@ -1,10 +1,11 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { ChangePublicationFailedPayload } from "@antumbra/platform-vocabulary/changes-event.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Effect, Schema } from "effect";
-import { ChangeId } from "#ids.ts";
 import { change } from "#rows/change.ts";
-export const publicationFailed = fact("ChangePublicationFailed", { change: Schema.NullOr(change.Row) });
+export const publicationFailed = fact("ChangePublicationFailed", ChangePublicationFailedPayload.fields);
 export const failPublication = command("failPublication", {
 	input: { changeId: ChangeId, attemptId: Schema.String, message: Schema.String },
 	reads: [change],

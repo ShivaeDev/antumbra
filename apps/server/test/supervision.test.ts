@@ -1,7 +1,7 @@
 import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { ScriptedHost } from "@antumbra/app-testing/host.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Exit, Stream } from "effect";
 import { expect } from "vitest";
 import { forgetRunning } from "#supervision/forget.ts";

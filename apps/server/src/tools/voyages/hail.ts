@@ -1,11 +1,11 @@
 import { hail } from "@antumbra/domain-agents/commands/hail.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
 import { captain } from "@antumbra/domain-agents/queries/captain.ts";
 import { send } from "@antumbra/domain-mail/commands/send.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { hailWords } from "@antumbra/platform-prompts/hail.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";

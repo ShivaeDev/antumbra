@@ -1,8 +1,8 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
+import { CountKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
 import { countSet } from "#facts/count-set.ts";
-import { CountKey } from "#ids.ts";
 import { COUNTS } from "#queries/counts.ts";
 
 export const setCount = command("setCount", {

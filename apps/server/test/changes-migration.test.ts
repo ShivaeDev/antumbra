@@ -1,7 +1,7 @@
-import { ChangeId } from "@antumbra/domain-changes/ids.ts";
 import { type ChangeRow, change } from "@antumbra/domain-changes/rows/change.ts";
 import type { ChangeFeedbackRow } from "@antumbra/domain-changes/rows/change-feedback.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { app, registryOf } from "@antumbra/server-journal/app.ts";
 import { Database } from "@antumbra/server-journal/database.ts";
 import * as Journal from "@antumbra/server-journal/journal.ts";

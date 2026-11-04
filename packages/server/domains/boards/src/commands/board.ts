@@ -1,8 +1,8 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
+import { type BoardId, ownerOf } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect } from "effect";
-import { type BoardId, ownerOf } from "#ids.ts";
 import { boardEntry } from "#rows/board-entry.ts";
 
 export const BODY = "body";

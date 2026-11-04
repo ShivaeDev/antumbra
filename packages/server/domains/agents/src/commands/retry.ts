@@ -1,7 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
+import { BirthId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { birthRetried } from "#facts/birth-retried.ts";
-import { BirthId } from "#ids.ts";
 import { birth } from "#rows/birth.ts";
 export const retry = command("retry", {
 	input: { id: BirthId },

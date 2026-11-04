@@ -1,8 +1,8 @@
 import { backendModel } from "@antumbra/domain-backends/rows/backend-model.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { VOYAGE_AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
+import { FLEET, roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { Effect, Schema } from "effect";
-import { FLEET, roleSettingId } from "#ids.ts";
 import { RoleDefault } from "#queries/defaults.ts";
 import { resolution, UNCHOSEN } from "#queries/resolve.ts";
 import { roleSetting } from "#rows/role-setting.ts";

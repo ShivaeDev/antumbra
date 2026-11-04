@@ -1,5 +1,5 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import type { agentReading } from "@antumbra/domain-agents/rows/agent-reading.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { expect, it } from "@effect/vitest";
 import { crewing } from "#piece-session.tsx";
 

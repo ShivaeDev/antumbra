@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { Effect, Option } from "effect";
 import { roleSettingChosen } from "#facts/role-setting-chosen.ts";
-import { roleSettingId } from "#ids.ts";
 import { roleSetting } from "#rows/role-setting.ts";
 
 export const roleSettingChosenMaterializer = materializer(roleSettingChosen, {

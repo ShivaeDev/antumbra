@@ -1,14 +1,4 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { VoyageId } from "#ids.ts";
+import { VoyageCaptainWork } from "@antumbra/platform-vocabulary/change-evidence.ts";
 
-export const voyageCaptainWork = row(
-	"voyageCaptainWork",
-	{
-		id: Schema.String,
-		voyageId: VoyageId,
-		agentId: Schema.String,
-		working: Schema.Boolean,
-	},
-	{ key: "id", scope: "voyageId" },
-);
+export const voyageCaptainWork = row("voyageCaptainWork", VoyageCaptainWork.fields, { key: "id", scope: "voyageId" });

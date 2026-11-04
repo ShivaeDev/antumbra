@@ -1,7 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { pendingSmoothing, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Clock, Deferred, Effect, Fiber } from "effect";

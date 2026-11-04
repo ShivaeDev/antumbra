@@ -1,13 +1,13 @@
-import type { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { BirthHeld, Provisioning } from "@antumbra/domain-agents/ports/provisioning.ts";
 import { plan as recordPlan } from "@antumbra/domain-reclamation/commands/plan.ts";
 import { ready } from "@antumbra/domain-reclamation/commands/ready.ts";
 import { berths } from "@antumbra/domain-reclamation/queries/berths.ts";
 import { current } from "@antumbra/domain-reclamation/queries/moorage.ts";
-import { repoSlug } from "@antumbra/domain-repos/ids.ts";
 import { all as repos } from "@antumbra/domain-repos/queries/all.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
+import type { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { repoSlug } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import type { Moorage } from "@antumbra/platform-vocabulary/resources.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";

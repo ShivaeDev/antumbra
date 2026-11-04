@@ -1,6 +1,6 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
+import { BirthId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Schema } from "effect";
-import { BirthId } from "#ids.ts";
 import { birth } from "#rows/birth.ts";
 
 export const birthAdmitted = fact("BirthAdmitted", {

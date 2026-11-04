@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { voyageAgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect } from "effect";
 import { smoothingRequested } from "#facts/smoothing-requested.ts";
-import { voyageAgentId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";

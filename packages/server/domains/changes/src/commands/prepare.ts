@@ -1,12 +1,12 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { ChangeId, pieceChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect, Schema } from "effect";
 import { claimed, claimRows, ownerAvailable } from "#commands/claims.ts";
 import { changePrepared } from "#facts/change-prepared.ts";
-import { ChangeId, pieceChangeId } from "#ids.ts";
 import { type ChangeRow, change } from "#rows/change.ts";
 export const submissionKey = (agentId: string, repoId: string): string => JSON.stringify([agentId, repoId]);
 interface CapturedWork {

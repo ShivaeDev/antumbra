@@ -1,9 +1,9 @@
 import { repo } from "@antumbra/domain-repos/rows/repo.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Effect, Schema } from "effect";
 import { claimed, claimRows, ownerAvailable } from "#commands/claims.ts";
 import { proposalFrozen } from "#facts/proposal-frozen.ts";
-import { ChangeId } from "#ids.ts";
 import { change } from "#rows/change.ts";
 export const freeze = command("freeze", {
 	input: {

@@ -1,11 +1,11 @@
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
-import { FLEET } from "@antumbra/domain-settings/ids.ts";
 import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { allows, FLAGS } from "@antumbra/domain-settings/queries/flags.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { agentReading } from "#rows/agent-reading.ts";
 

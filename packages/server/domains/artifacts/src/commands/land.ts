@@ -1,9 +1,9 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { artifactLanded } from "#facts/landed.ts";
-import { ArtifactId } from "#ids.ts";
 import { artifact } from "#rows/artifact.ts";
 export const land = command("land", {
 	input: {

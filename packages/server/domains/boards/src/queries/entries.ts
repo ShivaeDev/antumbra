@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
+import { BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect, Schema } from "effect";
-import { BoardId } from "#ids.ts";
 import { inOrder } from "#queries/covered.ts";
 import { boardEntry } from "#rows/board-entry.ts";
 

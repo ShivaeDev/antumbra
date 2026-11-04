@@ -4,7 +4,22 @@ import { hasStoredEntry, postgres, postgresInstance } from "#test-support/postgr
 
 postgresInstance.it("starts on a Unix socket and applies Antumbra migrations", [], function* ({ connection, migrations }) {
 	expect(new URL(connection()).searchParams.get("host")).toMatch(/^\//);
-	expect(yield* migrations()).toEqual([{ name: "storage_namespace" }, { name: "events" }, { name: "voyages" }, { name: "pieces" }, { name: "mail" }]);
+	expect(yield* migrations()).toEqual([
+		{ name: "storage_namespace" },
+		{ name: "events" },
+		{ name: "voyages" },
+		{ name: "pieces" },
+		{ name: "mail" },
+		{ name: "settings" },
+		{ name: "backends" },
+		{ name: "role_settings" },
+		{ name: "boards" },
+		{ name: "repos" },
+		{ name: "artifacts" },
+		{ name: "reports" },
+		{ name: "inputs" },
+		{ name: "changes" },
+	]);
 });
 
 postgresInstance.it("retains stored data after a restart", [hasStoredEntry("before restart")], function* ({ storedEntries, restart }) {

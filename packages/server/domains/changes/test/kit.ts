@@ -1,8 +1,8 @@
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
-import { RepoId } from "@antumbra/domain-repos/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { Feedback, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Clock, Effect } from "effect";
 export const request = (name: string) => Request.make(name);
 export const recorded = (agoMillis: number): Effect.Effect<string> =>

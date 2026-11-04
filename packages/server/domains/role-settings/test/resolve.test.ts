@@ -1,7 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { expect } from "vitest";
-import { FLEET } from "#ids.ts";
 import { reef, shallows } from "#test/kit.ts";
 
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;

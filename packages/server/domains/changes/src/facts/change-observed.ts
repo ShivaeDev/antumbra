@@ -1,14 +1,8 @@
 import { fact } from "@antumbra/platform-feature/fact.ts";
 import { migration } from "@antumbra/platform-feature/migration.ts";
-import { Effect, Schema } from "effect";
-import { change } from "#rows/change.ts";
-import { changeFeedback } from "#rows/change-feedback.ts";
-import { changeTransition } from "#rows/change-transition.ts";
-export const changeObserved = fact("ChangeObserved", {
-	change: Schema.NullOr(change.Row),
-	transition: Schema.NullOr(changeTransition.Row),
-	feedback: Schema.Array(changeFeedback.Row),
-});
+import { ChangeObservedPayload } from "@antumbra/platform-vocabulary/changes-event.ts";
+import { Effect } from "effect";
+export const changeObserved = fact("ChangeObserved", ChangeObservedPayload.fields);
 
 export const observedFeedback = migration(1, {
 	fact: changeObserved.name,

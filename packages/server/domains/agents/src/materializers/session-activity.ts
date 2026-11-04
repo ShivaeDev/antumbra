@@ -1,8 +1,8 @@
 import { piece } from "@antumbra/domain-pieces/rows/piece.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
-import { activityId } from "@antumbra/domain-voyages/ids.ts";
 import { voyageActivity } from "@antumbra/domain-voyages/rows/voyage-activity.ts";
 import { projection } from "@antumbra/platform-feature/projection.ts";
+import { activityId } from "@antumbra/platform-vocabulary/voyage.ts";
 import { Effect } from "effect";
 import { pieceAgent } from "#rows/piece-agent.ts";
 import { voyageAgent } from "#rows/voyage-agent.ts";

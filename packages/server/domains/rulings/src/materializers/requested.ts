@@ -1,9 +1,9 @@
 import { rulingGateId } from "@antumbra/domain-pieces/ids.ts";
 import { pieceRulingGate } from "@antumbra/domain-pieces/rows/piece-ruling-gate.ts";
-import { RepoId, repoReferenceId } from "@antumbra/domain-repos/ids.ts";
 import { repoReference } from "@antumbra/domain-repos/rows/repo-reference.ts";
 import type { FactValue } from "@antumbra/platform-feature/fact.ts";
 import type { WriteHandles } from "@antumbra/platform-feature/handles.ts";
+import { RepoId, repoReferenceId } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import { Effect } from "effect";
 import type { rulingRequested } from "#facts/ruling-requested.ts";
 import { choiceId } from "#ids.ts";

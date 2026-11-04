@@ -2,10 +2,10 @@ import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { Prepared } from "@antumbra/platform-vocabulary/inputs.ts";
 import { MAX_SESSION_IMAGES, MAX_SESSION_INPUT_IMAGE_BYTES } from "@antumbra/platform-vocabulary/session-input.ts";
 import { Effect, Option, Schema } from "effect";
 import { inputRecorded } from "#facts/recorded.ts";
-import { Prepared } from "#rows/content.ts";
 import { sessionInput } from "#rows/input.ts";
 export const record = command("record", {
 	input: Prepared.fields,

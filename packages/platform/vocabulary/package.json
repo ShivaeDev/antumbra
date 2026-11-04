@@ -23,6 +23,7 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/platform-vocabulary": "workspace:*"
 	}
 }

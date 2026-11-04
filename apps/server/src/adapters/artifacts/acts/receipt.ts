@@ -1,6 +1,6 @@
-import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { byId } from "@antumbra/domain-artifacts/queries/by-id.ts";
 import { byPiece } from "@antumbra/domain-artifacts/queries/by-piece.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
 import type { ArtifactLandingInput } from "#adapters/artifacts/acts/land.ts";

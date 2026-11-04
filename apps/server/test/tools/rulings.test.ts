@@ -1,12 +1,12 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { hail } from "@antumbra/domain-agents/commands/hail.ts";
 import { spawn } from "@antumbra/domain-agents/commands/spawn.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
 import { RulingId } from "@antumbra/domain-rulings/ids.ts";
 import { answerTool } from "@antumbra/domain-sessions/commands/answer-tool.ts";
 import { callTool } from "@antumbra/domain-sessions/commands/call-tool.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";

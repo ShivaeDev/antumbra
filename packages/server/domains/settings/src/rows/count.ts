@@ -1,5 +1,3 @@
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { CountKey } from "#ids.ts";
-
-export const count = row("count", { key: CountKey, scope: Schema.String, count: Schema.Number }, { key: "key", scope: "scope" });
+import { SettingCount } from "@antumbra/platform-vocabulary/settings.ts";
+export const count = row("count", SettingCount.fields, { key: "key", scope: "scope" });

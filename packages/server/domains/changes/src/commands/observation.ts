@@ -1,8 +1,8 @@
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
+import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { Schema } from "effect";
 import { observedReview } from "#commands/feedback.ts";
 import { submissionKey } from "#commands/prepare.ts";
-import { ChangeId } from "#ids.ts";
 import type { ChangeRow } from "#rows/change.ts";
 export const Attachment = Schema.Union([
 	Schema.Struct({ _tag: Schema.Literal("Observed") }),

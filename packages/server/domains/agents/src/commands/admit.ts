@@ -1,16 +1,16 @@
 import { capacity } from "@antumbra/domain-capacity/rows/capacity.ts";
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
-import { FLEET, type SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { allows, type Switched } from "@antumbra/domain-settings/queries/flags.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { quietIds, voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { BirthId } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { FLEET, type SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { birthAdmitted } from "#facts/birth-admitted.ts";
-import { BirthId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 

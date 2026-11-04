@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
-import { agentBoard, pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
+import { agentBoard, pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "vitest";
 import { writeSummaryTool } from "#tools/boards/summary.ts";

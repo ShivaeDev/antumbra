@@ -1,8 +1,8 @@
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { command } from "@antumbra/platform-feature/command.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Effect, Option, Schema } from "effect";
 import { agentRetired } from "#facts/agent-retired.ts";
-import { AgentId } from "#ids.ts";
 import { agent } from "#rows/agent.ts";
 export const retire = command("retire", {
 	input: { id: AgentId },

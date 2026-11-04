@@ -1,7 +1,7 @@
-import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
 import { Button } from "@antumbra/glass-components/ui/button.tsx";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 import type { ReadArtifact } from "#glass.ts";

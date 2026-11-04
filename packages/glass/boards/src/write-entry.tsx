@@ -1,7 +1,7 @@
-import { pieceBoard, voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { CommandForm } from "@antumbra/glass-components/form.tsx";
+import { pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import type { ReactNode } from "react";
 import type { BoardsApi } from "#glass.ts";
 

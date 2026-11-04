@@ -1,7 +1,7 @@
 import { materializer } from "@antumbra/platform-feature/materializer.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Option } from "effect";
 import { flagSet } from "#facts/flag-set.ts";
-import { FLEET } from "#ids.ts";
 import { flag } from "#rows/flag.ts";
 
 export const flagSetMaterializer = materializer(flagSet, {

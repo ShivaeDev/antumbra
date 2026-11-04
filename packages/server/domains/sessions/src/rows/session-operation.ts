@@ -1,21 +1,4 @@
-import { SwitchKey } from "@antumbra/domain-settings/ids.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Schema } from "effect";
-import { SessionId, SessionOperationId } from "#ids.ts";
-
-export const operationFields = {
-	id: SessionOperationId,
-	sessionId: SessionId,
-	kind: Schema.Literals(["wake", "sleep", "stop", "interrupt", "steer"]),
-	inputId: Schema.NullOr(Schema.String),
-	reason: Schema.String,
-	status: Schema.Literals(["requested", "accepted", "waiting", "ambiguous", "cancelled"]),
-	detail: Schema.NullOr(Schema.String),
-	requestedAt: Schema.String,
-};
-
-export const sessionOperation = row(
-	"sessionOperation",
-	{ ...operationFields, sequence: Schema.Number, gatedBy: Schema.NullOr(SwitchKey) },
-	{ key: "id", scope: "sessionId" },
-);
+import { SessionOperation, SessionOperationFields } from "@antumbra/platform-vocabulary/session-operation.ts";
+export const operationFields = SessionOperationFields.fields;
+export const sessionOperation = row("sessionOperation", SessionOperation.fields, { key: "id", scope: "sessionId" });

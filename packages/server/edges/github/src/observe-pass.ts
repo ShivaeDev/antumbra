@@ -1,14 +1,14 @@
 import type { ChangeRef, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
+import type { GitHub } from "@shivaedev/github/GitHub.ts";
 import { Effect, Option } from "effect";
 import type { GhError } from "#errors.ts";
 import { observeGroup } from "#observe.ts";
-import type { GhProcess } from "#process.ts";
 import { chunked, type LocatedPullRequestRef, OBSERVE_CHUNK_SIZE } from "#query.ts";
 import { parseGitHubSource } from "#source.ts";
 
-export const pullRefsOf = (refs: ReadonlyArray<ChangeRef>): ReadonlyArray<LocatedPullRequestRef> =>
+export const pullRefsOf = (refs: ReadonlyArray<ChangeRef>, hostname = "github.com"): ReadonlyArray<LocatedPullRequestRef> =>
 	refs.flatMap((ref) => {
-		const repo = parseGitHubSource(ref.repo.source);
+		const repo = parseGitHubSource(ref.repo.source, hostname);
 		const number = Number(ref.externalId);
 		return Option.isNone(repo) || !Number.isSafeInteger(number) || number <= 0
 			? []
@@ -28,11 +28,11 @@ interface GroupAnswer {
 }
 
 // Authentication invalidates the pass; other failures leave one batch unobserved.
-const observedOrSkipped = (executable: string, group: ReadonlyArray<LocatedPullRequestRef>): Effect.Effect<GroupAnswer, GhError, GhProcess> =>
-	observeGroup(executable, group).pipe(
+const observedOrSkipped = (group: ReadonlyArray<LocatedPullRequestRef>): Effect.Effect<GroupAnswer, GhError, typeof GitHub.Identifier> =>
+	observeGroup(group).pipe(
 		Effect.map((seen): GroupAnswer => ({ seen, unheard: null })),
 		Effect.catch(
-			(failure): Effect.Effect<GroupAnswer, GhError, GhProcess> =>
+			(failure): Effect.Effect<GroupAnswer, GhError, typeof GitHub.Identifier> =>
 				failure._tag === "GhAuthRequired" ? Effect.fail(failure) : Effect.succeed({ seen: [], unheard: failure }),
 		),
 	);
@@ -40,7 +40,7 @@ const observedOrSkipped = (executable: string, group: ReadonlyArray<LocatedPullR
 const outOfReach = (answers: ReadonlyArray<GroupAnswer>, unheard: ReadonlyArray<GhError>): GhError | undefined =>
 	unheard.length === answers.length ? unheard.find((failure) => failure._tag === "GhUnavailable") : undefined;
 
-const gathered = (answers: ReadonlyArray<GroupAnswer>): Effect.Effect<ReadonlyArray<Observation>, GhError, GhProcess> => {
+const gathered = (answers: ReadonlyArray<GroupAnswer>): Effect.Effect<ReadonlyArray<Observation>, GhError, typeof GitHub.Identifier> => {
 	const unheard = answers.flatMap((answer) => (answer.unheard === null ? [] : [answer.unheard]));
 	const silence = outOfReach(answers, unheard);
 	if (silence !== undefined) {
@@ -57,9 +57,8 @@ const gathered = (answers: ReadonlyArray<GroupAnswer>): Effect.Effect<ReadonlyAr
 };
 
 export const observePulls = (
-	executable: string,
 	refs: ReadonlyArray<LocatedPullRequestRef>,
-): Effect.Effect<ReadonlyArray<Observation>, GhError, GhProcess> =>
+): Effect.Effect<ReadonlyArray<Observation>, GhError, typeof GitHub.Identifier> =>
 	refs.length === 0
 		? Effect.succeed([])
-		: Effect.forEach(chunked(refs, OBSERVE_CHUNK_SIZE), (group) => observedOrSkipped(executable, group)).pipe(Effect.flatMap(gathered));
+		: Effect.forEach(chunked(refs, OBSERVE_CHUNK_SIZE), (group) => observedOrSkipped(group)).pipe(Effect.flatMap(gathered));

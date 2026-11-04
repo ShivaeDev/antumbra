@@ -1,10 +1,10 @@
 import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { lifecycleClient } from "@antumbra/app-testing/lifecycle.ts";
-import { identity } from "@antumbra/domain-agents/ids.ts";
-import { voyageBoard } from "@antumbra/domain-boards/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import type { Live } from "@antumbra/server-journal/live.ts";

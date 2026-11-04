@@ -1,8 +1,8 @@
-import { AgentId } from "@antumbra/domain-agents/ids.ts";
 import { byId } from "@antumbra/domain-agents/queries/by-id.ts";
 import { localDay } from "@antumbra/domain-boards/queries/smoothing-span.ts";
 import type { SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { entriesToSmooth, pieceToSmooth } from "@antumbra/platform-prompts/smoother.ts";
+import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect } from "effect";
 

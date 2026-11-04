@@ -1,8 +1,8 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { voyageBoard } from "#ids.ts";
 import { chartering, noting, opening, reefBoard, soundingsBoard } from "#test/kit.ts";
 
 it.app("gives every entry the next number its board has open", function* (app) {

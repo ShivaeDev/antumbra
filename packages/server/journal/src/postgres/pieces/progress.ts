@@ -1,3 +1,4 @@
+import { VoyageActivity, VoyageCaptainWork } from "@antumbra/platform-vocabulary/change-evidence.ts";
 import { PieceProgress, VoyagePieceProgress } from "@antumbra/platform-vocabulary/piece.ts";
 import { progressOf } from "@antumbra/platform-vocabulary/piece-progress.ts";
 import { VoyageProgress } from "@antumbra/platform-vocabulary/voyage.ts";
@@ -39,16 +40,28 @@ const projectVoyageProgress = Effect.fn("PieceHistory.projectVoyageProgress")(fu
 	const sql = yield* SqlClient.SqlClient;
 	const standing = yield* sql`select * from antumbra.voyage_progress`.pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageProgress))));
 	const contributions = yield* members();
+	const activities = yield* sql`select * from antumbra."change_context_voyageActivity"`.pipe(
+		Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageActivity))),
+	);
+	const captains = yield* sql`select * from antumbra.change_captain_work`.pipe(
+		Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageCaptainWork))),
+	);
 	for (const current of standing) {
 		const pieces = contributions.filter((piece) => piece.voyageId === current.id);
 		const counts = { abandoned: 0, active: 0, blocked: 0, done: 0, held: 0, landing: 0, parked: 0, ready: 0 };
 		for (const piece of pieces) counts[piece.state] += 1;
-		const moments = pieces.flatMap((piece) => (piece.lastStirredAt === null ? [] : [piece.lastStirredAt]));
+		const moments = [
+			...pieces.flatMap((piece) => (piece.lastStirredAt === null ? [] : [piece.lastStirredAt])),
+			...activities.filter((activity) => activity.voyageId === current.id).map((activity) => activity.at),
+		];
 		const row = {
 			id: current.id,
 			total: pieces.length,
 			counts,
-			state: counts.active > 0 ? ("underWay" as const) : ("quiet" as const),
+			state:
+				counts.active > 0 || captains.some((captain) => captain.voyageId === current.id && captain.working)
+					? ("underWay" as const)
+					: ("quiet" as const),
 			lastStirredAt: moments.toSorted().at(-1) ?? null,
 			concluded: pieces.length > 0 && pieces.every((piece) => piece.concluded),
 		};

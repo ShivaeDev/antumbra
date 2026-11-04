@@ -3,8 +3,8 @@ import { query } from "@antumbra/platform-feature/query.ts";
 import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { type Inherited, InheritedSchema, type RoleSettingSource, RoleSettingSourceSchema } from "@antumbra/platform-vocabulary/role-setting.ts";
+import { FLEET } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
 import { Effect, Schema } from "effect";
-import { FLEET } from "#ids.ts";
 import { roleSetting } from "#rows/role-setting.ts";
 
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;

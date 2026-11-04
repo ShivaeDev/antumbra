@@ -1,8 +1,8 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
+import { FlagKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
 import { Effect, Schema } from "effect";
 import { flagSet } from "#facts/flag-set.ts";
-import { FlagKey } from "#ids.ts";
 
 export const setFlag = command("setFlag", {
 	input: { key: FlagKey, on: titled(Schema.Boolean, { title: "On" }) },

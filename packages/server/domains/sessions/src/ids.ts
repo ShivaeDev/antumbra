@@ -1,6 +1,5 @@
-import * as Id from "@antumbra/platform-vocabulary/id.ts";
-
-export const SessionId = Id.brand("SessionId");
+import { SessionId as Identity, SessionOperationId as OperationIdentity } from "@antumbra/platform-vocabulary/session-ids.ts";
+export const SessionId = Identity;
 export type SessionId = typeof SessionId.Type;
-export const SessionOperationId = Id.brand("SessionOperationId");
+export const SessionOperationId = OperationIdentity;
 export type SessionOperationId = typeof SessionOperationId.Type;

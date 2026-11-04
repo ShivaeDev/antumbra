@@ -4,16 +4,16 @@ import { record } from "@antumbra/domain-inputs/commands/record.ts";
 import { retry } from "@antumbra/domain-inputs/commands/retry.ts";
 import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { reading } from "@antumbra/domain-inputs/queries/reading.ts";
-import type { Draft, ImageRequest, Receipt } from "@antumbra/domain-inputs/rows/content.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
+import type { Draft, ImageRequest, Receipt } from "@antumbra/platform-vocabulary/inputs.ts";
+import { readImage } from "@antumbra/server-inputs/adapters/custody.ts";
+import { digestRequest } from "@antumbra/server-inputs/adapters/digest.ts";
+import { prepare } from "@antumbra/server-inputs/adapters/prepare.ts";
+import { transcriptThumbnail } from "@antumbra/server-inputs/adapters/thumbnail.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect, Option, Stream } from "effect";
-import { readImage } from "#adapters/inputs/custody.ts";
-import { digestRequest } from "#adapters/inputs/digest.ts";
-import { prepare } from "#adapters/inputs/prepare.ts";
-import { transcriptThumbnail } from "#adapters/inputs/thumbnail.ts";
 
 export const handlers = Effect.fn("inputs.handlers")(function* (root: string) {
 	const commit = yield* Commit;

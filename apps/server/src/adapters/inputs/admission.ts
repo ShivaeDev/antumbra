@@ -1,8 +1,8 @@
 import { InputRefused } from "@antumbra/domain-inputs/commands/errors.ts";
 import { support } from "@antumbra/domain-inputs/queries/support.ts";
-import type { Draft } from "@antumbra/domain-inputs/rows/content.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
+import type { Draft } from "@antumbra/platform-vocabulary/inputs.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
 import { Effect } from "effect";
 

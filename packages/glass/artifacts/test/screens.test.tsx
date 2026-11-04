@@ -2,9 +2,9 @@ import { artifactAuthor, prepareArtifactSource } from "@antumbra/app-testing/art
 import { landArtifact, readArtifact } from "@antumbra/app-testing/artifacts.ts";
 import { click, press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
-import { ArtifactId } from "@antumbra/domain-artifacts/ids.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { assert, expect } from "vitest";
 import { ArtifactOutcomes } from "#artifact-outcomes.tsx";

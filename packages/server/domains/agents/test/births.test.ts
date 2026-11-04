@@ -3,11 +3,11 @@ import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
-import { identity } from "#ids.ts";
 
 const READABLE = /^[0-9abcdefghjkmnpqrstvwxyz]{10}$/;
 const asking = (id: string) => ({ requestId: Id.Request.make(id), role: "hand", backend: "claude" as const, model: null, effort: null });

@@ -1,8 +1,8 @@
 import { pieceProgress } from "@antumbra/domain-pieces/rows/piece-progress.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
+import { pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Effect, Schema } from "effect";
-import { pieceBoard, voyageBoard } from "#ids.ts";
 import { uncovered } from "#queries/smoothing-span.ts";
 import { boardEntry } from "#rows/board-entry.ts";
 import { smoothingAttempt } from "#rows/smoothing-attempt.ts";

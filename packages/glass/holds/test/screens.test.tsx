@@ -72,10 +72,11 @@ it.glass("keeps a held switch on the page before anything is waiting", function*
 });
 
 it.glass("lists a quieted voyage with what it holds and resumes it from the section", function* ({ api, render }) {
+	yield* api.settings.setFlag({ key: "spawnSmoother", on: false });
 	yield* api.voyages.open(opening);
 	yield* api.pieces.charter(chartering);
-	yield* api.pieces.launch({ id: PieceId.make("piece") });
 	yield* api.voyages.quiet({ id: VoyageId.make("voyage") });
+	yield* api.pieces.launch({ id: PieceId.make("piece") });
 	const container = yield* render(<HoldsPanel api={api} />);
 	yield* until(() => container.textContent?.includes("Reef") === true, "the quieted voyage's section");
 	expect(container.textContent).toContain("Nothing is sent to this voyage until you resume it, and what it is holding goes out then.");

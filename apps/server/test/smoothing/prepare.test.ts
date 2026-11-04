@@ -1,5 +1,6 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
+import { nextSessionOperation } from "@antumbra/app-testing/test-support/next-session-operation.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
@@ -7,22 +8,7 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
-type Runner = Effect.Success<ReturnType<typeof connectRunner>>;
 const registration = { runnerId: "smoother-runner", logId: "smoother-log", backends: ["claude"], imageInputBackends: [] };
-
-const nextSessionOperation = Effect.fnUntraced(function* (runner: Runner, entries: readonly LogEntry[]) {
-	while (true) {
-		const operation = yield* runner.next;
-		if (operation.type === "Start" || operation.type === "Stop") return operation;
-		if (operation.type === "Plan") {
-			yield* runner.reply(operation.requestId, { type: "MooragePlanned", plan: { root: `/smoother/${operation.agentId}`, berths: [] } });
-		} else if (operation.type === "ReadLog") {
-			yield* runner.reply(operation.requestId, { type: "LogRead", entries: entries.filter((entry) => entry.cursor > operation.after) });
-		} else {
-			yield* runner.reply(operation.requestId, { type: "Accepted" });
-		}
-	}
-});
 
 it.app("prepares an actual constrained birth, waits for logged acceptance, and closes before reusing its smoother", function* (app) {
 	const runner = yield* connectRunner(registration);

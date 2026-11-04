@@ -7,9 +7,11 @@ import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-at
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
-import * as Reconcile from "@antumbra/server-journal/reconcile.ts";
-import { Clock, Effect, Fiber } from "effect";
+import { each } from "@shivaedev/reconciler/each.ts";
+import { run } from "@shivaedev/reconciler/run.ts";
+import { Clock, Effect, Fiber, Semaphore } from "effect";
 import { type PreparedSmoother, runSmoothingSession } from "#smoothing/session.ts";
+import { watchKeys } from "#supervision/keys.ts";
 
 type Attempt = typeof smoothingAttempt.Row.Type;
 export type PrepareSmoother<R> = (attempt: Attempt, target: typeof SmoothingTarget.Type) => Effect.Effect<PreparedSmoother<R>, string, R>;
@@ -55,20 +57,24 @@ const requestDue = Effect.fn("Smoothing.requestDue")(function* (now: Date, deman
 
 const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
 	const now = new Date(yield* Clock.currentTimeMillis);
-	const due = yield* Reconcile.run(dueSmoothing, { now: now.toISOString() }, (demands) => requestDue(now, demands));
+	const due = yield* run({
+		keys: watchKeys(dueSmoothing.reads, dueSmoothing.scope?.({ now: now.toISOString() })),
+		read: Live.use((live) => live.read(dueSmoothing, { now: now.toISOString() })),
+		act: (demands) => requestDue(now, demands),
+	});
 	const tomorrow = new Date(now);
 	tomorrow.setHours(24, 0, 0, 0);
 	yield* Effect.raceAllFirst([due.await, Effect.sleep(tomorrow.getTime() - now.getTime())]);
 });
 
 export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
-	const pending = yield* Reconcile.run(pendingSmoothing, {}, (attempts) =>
-		Effect.forEach(
-			attempts.filter((attempt) => !attempt.held),
-			(attempt) => smoothAttempt(attempt, prepare),
-			{ discard: true },
-		),
-	);
+	const serial = yield* Semaphore.make(1);
+	const pending = yield* each({
+		keys: watchKeys(pendingSmoothing.reads, pendingSmoothing.scope?.({})),
+		read: Live.use((live) => live.read(pendingSmoothing, {})).pipe(Effect.map((attempts) => attempts.filter((attempt) => !attempt.held))),
+		key: (attempt) => attempt.id,
+		act: (attempt) => smoothAttempt(attempt, prepare).pipe(serial.withPermit),
+	});
 	const day = yield* Effect.forkScoped(Effect.forever(Effect.scoped(watchDay())));
 	return { refresh: pending.refresh, await: Effect.raceAllFirst([pending.await, Effect.asVoid(Fiber.join(day))]) };
 });

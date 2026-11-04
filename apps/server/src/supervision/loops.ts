@@ -1,10 +1,10 @@
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import type { Live } from "@antumbra/server-journal/live.ts";
-import type { Loop } from "@antumbra/server-journal/loop.ts";
-import type { Reconciler } from "@antumbra/server-journal/reconcile.ts";
 import { Cause, Effect, Exit, Fiber, Scope, Stream } from "effect";
+import type { Reactivity } from "effect/reactivity/Reactivity";
 import { forgetRunning } from "#supervision/forget.ts";
 import type { Loops } from "#supervision/handle.ts";
+import type { Loop, Work } from "#supervision/loop.ts";
 import { recordDefect, recordEnd } from "#supervision/record.ts";
 import { resuming } from "#supervision/resuming.ts";
 
@@ -36,8 +36,8 @@ export const supervise = Effect.fn("Supervision.supervise")(function* <R>(loops:
 	if (twice !== undefined) return yield* Effect.die(new Error(`two server loops are named ${twice}`));
 	const commit = yield* Commit;
 	const lifetime = yield* Effect.scope;
-	const context = yield* Effect.context<Commit | Live | R>();
-	type Opening = Effect.Effect<Reconciler, never, Commit | Live | R | Scope.Scope>;
+	const context = yield* Effect.context<Commit | Live | Reactivity | R>();
+	type Opening = Effect.Effect<Work, never, Commit | Live | Reactivity | R | Scope.Scope>;
 	const declared = new Map<string, Opening>(loops.map((loop) => [loop.name, loop.open] as const));
 	const running = new Map<string, Running>();
 	const settling = new Set<string>();
@@ -47,7 +47,7 @@ export const supervise = Effect.fn("Supervision.supervise")(function* <R>(loops:
 		return true;
 	};
 	const release = (name: string) => Effect.sync(() => settling.delete(name));
-	const stopped = Effect.fn("Supervision.stopped")(function* (name: string, scope: Scope.Closeable, awaiting: Effect.Effect<void>) {
+	const stopped = Effect.fn("Supervision.stopped")(function* (name: string, scope: Scope.Closeable, awaiting: Effect.Effect<void, unknown>) {
 		const exit = yield* Effect.exit(awaiting);
 		settling.add(name);
 		running.delete(name);
@@ -56,7 +56,7 @@ export const supervise = Effect.fn("Supervision.supervise")(function* <R>(loops:
 		if (Cause.hasInterruptsOnly(exit.cause)) return;
 		yield* recordDefect(commit, name, exit.cause);
 	});
-	const watching = (name: string, scope: Scope.Closeable, awaiting: Effect.Effect<void>) =>
+	const watching = (name: string, scope: Scope.Closeable, awaiting: Effect.Effect<void, unknown>) =>
 		stopped(name, scope, awaiting).pipe(
 			Effect.ensuring(release(name)),
 			Effect.catchCause((cause) => Effect.logError(`the ${name} loop record was lost`, cause)),

@@ -68,6 +68,9 @@
 		"@antumbra/server-reclamation": "workspace:*",
 		"@antumbra/server-rulings": "workspace:*",
 		"@antumbra/server-lifecycle": "workspace:*",
-		"@antumbra/server-supervision": "workspace:*"
+		"@antumbra/server-supervision": "workspace:*",
+		"@shivaedev/reconciler": "catalog:",
+		"@shivaedev/changes": "catalog:",
+		"@antumbra/server-changes": "workspace:*"
 	}
 }

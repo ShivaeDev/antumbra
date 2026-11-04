@@ -4,8 +4,10 @@ import { markDelivered } from "@antumbra/domain-rulings/commands/mark-delivered.
 import { delivery, type RulingDelivery } from "@antumbra/domain-rulings/queries/delivery.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
-import { run } from "@antumbra/server-journal/reconcile.ts";
+import { Live } from "@antumbra/server-journal/live.ts";
+import { run } from "@shivaedev/reconciler/run.ts";
 import { Effect } from "effect";
+import { watchKeys } from "#supervision/keys.ts";
 import { replayed } from "#tools/rulings/runtime.ts";
 
 const deliver = Effect.fn("rulings.deliver")(function* (notice: RulingDelivery) {
@@ -30,6 +32,8 @@ const deliver = Effect.fn("rulings.deliver")(function* (notice: RulingDelivery) 
 			}),
 		);
 });
-export const rulingReconciliation = run(delivery, {}, (notices) =>
-	Effect.forEach(notices, (notice) => deliver(notice).pipe(Effect.orDie), { discard: true }),
-);
+export const rulingReconciliation = run({
+	keys: watchKeys(delivery.reads, delivery.scope?.({})),
+	read: Live.use((live) => live.read(delivery, {})),
+	act: (notices) => Effect.forEach(notices, (notice) => deliver(notice).pipe(Effect.orDie), { discard: true }),
+});

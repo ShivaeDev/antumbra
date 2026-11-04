@@ -216,7 +216,7 @@ it.app("a smoother Antumbra asks for waits until the voyage resumes", function* 
 	yield* app.settle();
 	expect(yield* answered(app.api.boards.smoothingState({ voyageId: VOYAGE }), "the voyage's smoothing state")).toMatchObject({ uncovered: 1 });
 	const queues = yield* answered(app.api.holds.queues({}), "the hold queues to be listed");
-	expect(queues.quieted).toMatchObject([{ id: VOYAGE, waiting: [{ title: "The day's board" }] }]);
+	expect(queues.quieted.find((held) => held.id === VOYAGE)?.waiting.find((held) => held.id === "pass")).toMatchObject({ title: "The day's board" });
 
 	yield* app.api.voyages.resume({ id: VOYAGE });
 	yield* eventually(

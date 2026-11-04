@@ -1,4 +1,4 @@
-import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { pendingSmoothing, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
@@ -47,7 +47,10 @@ it.app("runs a constrained summary pass through its bound domain tool and closes
 		}),
 	);
 	expect(stopped).toBe(true);
-	expect(yield* answered(app.api.boards.smoothingState({ voyageId }), "the smoothing state to be read")).toEqual({ state: "idle", uncovered: 0 });
+	expect(yield* eventually(app.api.boards.smoothingState({ voyageId }), (state) => state.state === "idle", "the smoothing to finish")).toEqual({
+		state: "idle",
+		uncovered: 0,
+	});
 	expect(yield* answered(app.api.boards.digest({ board: voyageBoard(voyageId) }), "the board's digest to be read")).toMatchObject([
 		{ kind: "summary", body: "The approach changed with the tide" },
 	]);
@@ -67,7 +70,10 @@ it.app("records an empty answer as a failed pass and leaves source notes standin
 			stop: Effect.void,
 		}),
 	);
-	expect(yield* answered(app.api.boards.smoothingState({ voyageId }), "the smoothing state to be read")).toEqual({ state: "failed", uncovered: 1 });
+	expect(yield* eventually(app.api.boards.smoothingState({ voyageId }), (state) => state.state === "failed", "the failed pass to settle")).toEqual({
+		state: "failed",
+		uncovered: 1,
+	});
 });
 
 it.app("stops a silent smoother after the existing ten-minute patience", function* (app) {

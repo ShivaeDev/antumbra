@@ -1,6 +1,4 @@
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
-import type { Loop } from "@antumbra/server-journal/loop.ts";
-import { reconcilers } from "@antumbra/server-journal/reconcilers.ts";
 import { Context, Effect, Layer, type Scope } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
 import { watchChanges } from "#changes/watch.ts";
@@ -13,6 +11,8 @@ import { resumeCapacity } from "#sessions/capacity.ts";
 import { reconcile as sessions } from "#sessions/reconcile.ts";
 import { prepareSmoother } from "#smoothing/prepare.ts";
 import { smoothing } from "#smoothing/run.ts";
+import { reconcilers } from "#supervision/declarations.ts";
+import type { Loop } from "#supervision/loop.ts";
 import { supervise } from "#supervision/loops.ts";
 import { rulingReconciliation } from "#tools/rulings/reconciliation.ts";
 import { openFlagship } from "#voyages/flagship.ts";

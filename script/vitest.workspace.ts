@@ -30,8 +30,10 @@ export const workspacePackages: readonly WorkspacePackage[] = packageDirectories
 
 export const workspacePackageNames: readonly string[] = workspacePackages.map(({ name }) => name);
 
+const shared = testProjects();
+
 const tests: TestUserConfig = {
-	...testProjects(),
+	...shared,
 	project: [...workspacePackageNames],
 	projects: workspacePackages.map(({ name, path }) => {
 		const own = join(repoRoot, path, "vitest.config.ts");
@@ -44,6 +46,7 @@ const tests: TestUserConfig = {
 			...(config === undefined ? {} : { extends: config }),
 			test: {
 				include: ["test/**/*.test.ts", "test/**/*.test.tsx"],
+				...(shared.maxWorkers === undefined ? {} : { maxWorkers: shared.maxWorkers }),
 				name,
 			},
 		};

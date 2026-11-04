@@ -63,7 +63,9 @@ export const rowsOf = Effect.fn("Postgres.rowsOf")(function* <
 		update: (id, patch) =>
 			Effect.gen(function* () {
 				const before = yield* reads.get(id);
-				yield* sql`update ${sql(`antumbra.${table}`)} set ${sql.update(Object.fromEntries(Object.entries(patch).map(([key, value]) => [key, encode(value)])))} where ${sql(row.key)} = ${id}`.pipe(
+				const fields = Object.entries(patch).map(([key, value]) => [key, encode(value)] as const);
+				const changed = fields.map(([key, value]) => sql`${sql(key)} is distinct from ${value}`);
+				yield* sql`update ${sql(`antumbra.${table}`)} set ${sql.update(Object.fromEntries(fields))} where ${sql(row.key)} = ${id} and ${sql.or(changed)}`.pipe(
 					Effect.orDie,
 				);
 				yield* mark(before).pipe(Effect.orDie);

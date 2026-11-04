@@ -1,13 +1,10 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
+import { smoothingRunner } from "@antumbra/app-testing/test-support/smoothing-runner.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import type { Commit } from "@antumbra/server-journal/commit.ts";
-import type { Live } from "@antumbra/server-journal/live.ts";
-import { Effect } from "effect";
+import { Clock } from "effect";
 import { expect } from "vitest";
-import { type PrepareSmoother, smoothing } from "#smoothing/run.ts";
-import { writeSummaryTool } from "#tools/boards/summary.ts";
 
 const PRESSED = VoyageId.make("pressed-voyage");
 const DAILY = VoyageId.make("daily-voyage");
@@ -27,23 +24,22 @@ const opening = (id: VoyageId) =>
 		requestId: Request.make(id),
 	}) as const;
 
-const prepare: PrepareSmoother<Commit | Live> = (attempt) => {
-	const context = { agentId: `smoother-${attempt.id}`, sessionId: `session-${attempt.id}`, callId: `call-${attempt.id}` };
-	return Effect.succeed({
-		agentId: context.agentId,
-		sessionId: context.sessionId,
-		start: writeSummaryTool.invoke(context, { text: "The approach changed with the tide" }).pipe(Effect.asVoid),
-		stop: Effect.void,
-	});
-};
-
 it.app("a smoother Antumbra asks for waits on its spawn switch while one the admiral presses runs", function* (app) {
+	const now = new Date(yield* Clock.currentTimeMillis).toISOString();
 	for (const id of [PRESSED, DAILY]) {
 		yield* app.api.voyages.open(opening(id));
-		yield* app.api.boards.write({ board: voyageBoard(id), body: "The tide turned", register: "rough", author: null });
+		yield* eventually(
+			app.api.boards.dueSmoothing({ now }),
+			(demands) => !demands.some((demand) => demand.voyageId === id),
+			"the initial daily smoothing request to be recorded",
+		);
+		yield* eventually(app.api.boards.smoothingState({ voyageId: id }), (state) => state.state === "idle", "the empty initial pass to finish");
 	}
 	yield* app.api.settings.setFlag({ key: "spawnSmoother", on: false });
-	yield* smoothing(prepare);
+	const runner = yield* smoothingRunner();
+	for (const id of [PRESSED, DAILY]) {
+		yield* app.api.boards.write({ board: voyageBoard(id), body: "The tide turned", register: "rough", author: null });
+	}
 	yield* app.api.boards.requestSmoothing({
 		voyageId: DAILY,
 		pieceId: null,
@@ -58,6 +54,7 @@ it.app("a smoother Antumbra asks for waits on its spawn switch while one the adm
 		by: "admiral",
 		requestId: Request.make("pressed-pass"),
 	});
+	yield* runner.summarizeNext("The approach changed with the tide");
 	yield* eventually(
 		app.api.boards.smoothingState({ voyageId: PRESSED }),
 		(state) => state.state === "idle" && state.uncovered === 0,
@@ -70,6 +67,7 @@ it.app("a smoother Antumbra asks for waits on its spawn switch while one the adm
 		{ setting: "spawnSmoother", held: true },
 	]);
 	yield* app.api.settings.setFlag({ key: "spawnSmoother", on: true });
+	yield* runner.summarizeNext("The daily course is charted");
 	yield* eventually(
 		app.api.boards.smoothingState({ voyageId: DAILY }),
 		(state) => state.state === "idle" && state.uncovered === 0,

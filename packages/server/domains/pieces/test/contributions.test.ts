@@ -7,6 +7,7 @@ import { expect } from "vitest";
 import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 it.app("a pending Change keeps a reported Piece landing until the host lands it", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("soundings"));
 	const pieceId = pieceOf("soundings");
@@ -63,6 +64,7 @@ it.app("a pending Change keeps a reported Piece landing until the host lands it"
 });
 
 it.app("working evidence stays active while settled outcomes release dependents", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("soundings"));
 	yield* app.api.pieces.charter(chartering("charts", [pieceOf("soundings")]));

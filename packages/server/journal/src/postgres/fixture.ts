@@ -9,6 +9,8 @@ import { journalBoards, replayBoardsFixture } from "#postgres/boards/fixture.ts"
 import { BoardsHistory } from "#postgres/boards/service.ts";
 import { journalChanges, replayChangesFixture } from "#postgres/changes/fixture.ts";
 import { ChangesHistory } from "#postgres/changes/service.ts";
+import { journalExecution, replayExecutionFixture } from "#postgres/execution/fixture.ts";
+import { ExecutionHistory } from "#postgres/execution/service.ts";
 import { journalInputs, replayInputsFixture } from "#postgres/inputs/fixture.ts";
 import { InputsHistory } from "#postgres/inputs/service.ts";
 import { journalMail, replayMailFixture } from "#postgres/mail/fixture.ts";
@@ -29,6 +31,7 @@ import { VoyageHistory } from "#postgres/voyages/service.ts";
 
 export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
 	function* (filename: string) {
+		const execution = yield* journalExecution(filename);
 		const settings = yield* journalSettings(filename);
 		const backends = yield* journalBackends(filename);
 		const rolesettings = yield* journalRoleSettings(filename);
@@ -50,11 +53,13 @@ export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
 			const replayed = yield* replayPieceFixture(pieces);
 			const mailed = yield* replayMailFixture(mail);
 			const changesResult = yield* replayChangesFixture(changes);
-			const inputsResult = yield* replayInputsFixture(inputs);
 			const reportsResult = yield* replayReportsFixture(reports);
 			const artifactsResult = yield* replayArtifactsFixture(artifacts);
 			const boardsResult = yield* replayBoardsFixture(boards);
+			const executionResult = yield* replayExecutionFixture(execution);
+			const inputsResult = yield* replayInputsFixture(inputs);
 			const results = [
+				executionResult,
 				voyages,
 				replayed,
 				mailed,
@@ -69,6 +74,7 @@ export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
 				boardsResult,
 			];
 			return {
+				...executionResult,
 				...voyages,
 				...replayed,
 				...mailed,
@@ -86,6 +92,7 @@ export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
 		}).pipe(
 			Effect.provide(
 				Layer.mergeAll(
+					ExecutionHistory.layer,
 					BackendsHistory.layer,
 					RoleSettingsHistory.layer,
 					SettingsHistory.layer,
@@ -93,7 +100,7 @@ export const checkPostgresFixture = Effect.fn("Postgres.checkFixture")(
 					ReposHistory.layer,
 					ArtifactsHistory.layer,
 					ReportsHistory.layer,
-					InputsHistory.layer,
+					InputsHistory.layer.pipe(Layer.provide(ExecutionHistory.layer)),
 					ChangesHistory.layer,
 					VoyageHistory.layer,
 					PieceHistory.layer,

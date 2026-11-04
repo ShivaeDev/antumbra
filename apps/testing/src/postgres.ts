@@ -1,3 +1,4 @@
+import { postgresDefinition } from "@antumbra/server/postgres-definition.ts";
 import { postgresTests } from "@antumbra/server-journal/postgres/testing.ts";
 import { NodeServices } from "@effect/platform-node";
 import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
@@ -8,7 +9,7 @@ import { create } from "#postgres-engine.ts";
 export const postgresApp = storyKit({
 	name: "Antumbra PostgreSQL application",
 	clock: "test",
-	layer: postgresTests.pipe(Layer.provideMerge(NodeServices.layer)),
+	layer: postgresTests.pipe(Layer.provideMerge(NodeServices.layer), Layer.provideMerge(postgresDefinition)),
 	stages: ["facts"],
 	around: withIsolatedDatabase,
 	create,

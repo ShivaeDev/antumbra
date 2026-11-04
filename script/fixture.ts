@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { definition } from "@antumbra/server/application.ts";
+import { postgresDefinition } from "@antumbra/server/postgres-definition.ts";
 import { checkPostgresFixture } from "@antumbra/server-journal/postgres/fixture.ts";
 import { validateFixture } from "@antumbra/server-journal/testing/validate-fixture.ts";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
@@ -26,7 +27,7 @@ const check = Effect.fn("Fixture.check")(function* (selector: string, target: Ta
 			yield* checkViewer(checkout);
 			yield* validateFixture(resolve(paths.check, "server", "journal.db"), definition);
 			if (target === "postgres") {
-				const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db"));
+				const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db")).pipe(Effect.provide(postgresDefinition));
 				yield* Console.log(JSON.stringify({ postgres }));
 			}
 			return extracted;

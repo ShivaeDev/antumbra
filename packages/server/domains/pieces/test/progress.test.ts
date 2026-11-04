@@ -7,6 +7,7 @@ import { progress } from "#queries/progress.ts";
 import { chartering, opening, pieceOf, reef } from "#test/kit.ts";
 
 it.app("posture and outcome evidence update Piece and Voyage progress together", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	yield* app.api.voyages.open(opening);
 	expect(yield* answered(app.api.voyages.progress({ id: reef }), "the voyage's progress to be read")).toMatchObject({
 		concluded: false,
@@ -34,6 +35,7 @@ it.app("posture and outcome evidence update Piece and Voyage progress together",
 });
 
 it.app("abandoning a prerequisite releases a Piece in another Voyage", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	const other = VoyageId.make("voyage:harbour");
 	yield* app.api.voyages.open(opening);
 	yield* app.api.voyages.open({ ...opening, name: "Harbour", requestId: Id.Request.make(other) });
@@ -60,6 +62,7 @@ it.app("abandoning a prerequisite releases a Piece in another Voyage", function*
 });
 
 it.app("landing a Report updates live Piece and Voyage progress", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("soundings"));
 	const id = pieceOf("soundings");
@@ -80,6 +83,7 @@ it.app("landing a Report updates live Piece and Voyage progress", function* (app
 });
 
 it.app("display order and prerequisite names are server readings", function* (app) {
+	yield* app.api.settings.setFlag({ key: "spawnForPiece", on: false });
 	yield* app.api.voyages.open(opening);
 	yield* app.api.pieces.charter(chartering("Zulu"));
 	yield* app.api.pieces.charter(chartering("Alpha", [pieceOf("Zulu")]));

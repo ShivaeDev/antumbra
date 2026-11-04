@@ -171,23 +171,23 @@ catalogs:
       specifier: 0.84.4
       version: 0.84.4
     "@effect/atom-react":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@effect/platform-node":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@effect/platform-node-shared":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@effect/sql-pg":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@effect/sql-sqlite-node":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@effect/vitest":
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     "@electron/asar":
       specifier: 3.4.1
       version: 3.4.1
@@ -210,35 +210,35 @@ catalogs:
       specifier: 1.3.3
       version: 1.3.3
     "@shivaedev/changes":
-      specifier: 0.10.0
-      version: 0.10.0
+      specifier: 0.10.1
+      version: 0.10.1
     "@shivaedev/contract":
-      specifier: 0.36.0
-      version: 0.36.0
+      specifier: 0.36.1
+      version: 0.36.1
     "@shivaedev/errors":
-      specifier: 0.9.0
-      version: 0.9.0
+      specifier: 0.9.1
+      version: 0.9.1
     "@shivaedev/events":
-      specifier: 0.3.1
-      version: 0.3.1
+      specifier: 0.3.2
+      version: 0.3.2
     "@shivaedev/form":
-      specifier: 0.16.0
-      version: 0.16.0
+      specifier: 0.17.1
+      version: 0.17.1
     "@shivaedev/github":
-      specifier: 0.12.0
-      version: 0.12.0
+      specifier: 0.12.1
+      version: 0.12.1
     "@shivaedev/local-postgres":
-      specifier: 0.13.0
-      version: 0.13.0
+      specifier: 0.14.1
+      version: 0.14.1
     "@shivaedev/quality":
-      specifier: 0.60.0
-      version: 0.60.0
+      specifier: 0.61.1
+      version: 0.61.1
     "@shivaedev/react":
-      specifier: 0.40.0
-      version: 0.40.0
+      specifier: 0.41.1
+      version: 0.41.1
     "@shivaedev/service":
-      specifier: 0.7.0
-      version: 0.7.0
+      specifier: 0.7.1
+      version: 0.7.1
     "@tailwindcss/vite":
       specifier: 4.3.3
       version: 4.3.3
@@ -270,8 +270,8 @@ catalogs:
       specifier: 18.1.1
       version: 18.1.1
     effect:
-      specifier: 4.0.6
-      version: 4.0.6
+      specifier: 4.0.7
+      version: 4.0.7
     electron:
       specifier: 43.3.0
       version: 43.3.0
@@ -337,9 +337,9 @@ catalogs:
       version: 5.0.5
 
 overrides:
-  "@shivaedev/sql": 0.38.0
-  "@shivaedev/test-sql": 0.21.0
-  "@shivaedev/test-story": 0.39.0
+  "@shivaedev/sql": 0.39.0
+  "@shivaedev/test-sql": 0.21.1
+  "@shivaedev/test-story": 0.39.1
   "@mermaid-js/parser": 0.3.0
   cytoscape: 3.33.1
   langium: 3.0.0
@@ -363,16 +363,16 @@ importers:
         version: 2.6.3
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/platform-node-shared":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@shivaedev/quality":
         specifier: "catalog:"
-        version: 0.60.0(@effect/platform-node-shared@4.0.6(effect@4.0.6))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@shivaedev/test-story@0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5))(effect@4.0.6)(vitest@5.0.5)
+        version: 0.61.1(@effect/platform-node-shared@4.0.7(effect@4.0.7))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@shivaedev/test-story@0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5))(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -387,7 +387,7 @@ importers:
         version: 18.1.1
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       happy-dom:
         specifier: "catalog:"
         version: 21.0.4
@@ -417,7 +417,7 @@ importers:
         version: 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.6.7))(supports-color@7.2.0)(ws@8.21.3)(zod@4.6.7)
       "@shivaedev/form":
         specifier: "catalog:"
-        version: 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+        version: 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
       sharp:
         specifier: "catalog:"
         version: 0.35.3(@types/node@24.10.1)
@@ -484,10 +484,10 @@ importers:
         version: link:../../packages/server/journal
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@electron/asar":
         specifier: "catalog:"
         version: 3.4.1
@@ -511,7 +511,7 @@ importers:
         version: 6.0.5(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       electron:
         specifier: "catalog:"
         version: 43.3.0(supports-color@7.2.0)
@@ -559,7 +559,7 @@ importers:
         version: link:../server
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@tailwindcss/vite":
         specifier: "catalog:"
@@ -629,16 +629,16 @@ importers:
         version: 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.6.7))(supports-color@7.2.0)(ws@8.21.3)(zod@4.6.7)
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/sql-sqlite-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@modelcontextprotocol/sdk":
         specifier: "catalog:"
         version: 1.30.0(supports-color@7.2.0)(zod@4.6.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -651,7 +651,7 @@ importers:
         version: link:../../packages/server/domains/sessions
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -757,27 +757,48 @@ importers:
       "@antumbra/runner-fabric":
         specifier: workspace:*
         version: link:../../packages/runner/fabric
+      "@antumbra/server-agents":
+        specifier: workspace:*
+        version: link:../../packages/server/agents
+      "@antumbra/server-capacity":
+        specifier: workspace:*
+        version: link:../../packages/server/capacity
       "@antumbra/server-inputs":
         specifier: workspace:*
         version: link:../../packages/server/inputs
       "@antumbra/server-journal":
         specifier: workspace:*
         version: link:../../packages/server/journal
+      "@antumbra/server-lifecycle":
+        specifier: workspace:*
+        version: link:../../packages/server/lifecycle
+      "@antumbra/server-reclamation":
+        specifier: workspace:*
+        version: link:../../packages/server/reclamation
+      "@antumbra/server-rulings":
+        specifier: workspace:*
+        version: link:../../packages/server/rulings
+      "@antumbra/server-sessions":
+        specifier: workspace:*
+        version: link:../../packages/server/sessions
+      "@antumbra/server-supervision":
+        specifier: workspace:*
+        version: link:../../packages/server/supervision
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/sql-sqlite-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@shivaedev/errors":
         specifier: "catalog:"
-        version: 0.9.0(effect@4.0.6)
+        version: 0.9.1(effect@4.0.7)
       "@shivaedev/github":
         specifier: "catalog:"
-        version: 0.12.0(effect@4.0.6)
+        version: 0.12.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       sharp:
         specifier: "catalog:"
         version: 0.35.3(@types/node@24.10.1)
@@ -787,7 +808,7 @@ importers:
         version: link:../testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -845,6 +866,9 @@ importers:
       "@antumbra/server":
         specifier: workspace:*
         version: link:../server
+      "@antumbra/server-agents":
+        specifier: workspace:*
+        version: link:../../packages/server/agents
       "@antumbra/server-artifacts":
         specifier: workspace:*
         version: link:../../packages/server/artifacts
@@ -854,21 +878,36 @@ importers:
       "@antumbra/server-boards":
         specifier: workspace:*
         version: link:../../packages/server/boards
+      "@antumbra/server-capacity":
+        specifier: workspace:*
+        version: link:../../packages/server/capacity
       "@antumbra/server-changes":
         specifier: workspace:*
         version: link:../../packages/server/changes
+      "@antumbra/server-costs":
+        specifier: workspace:*
+        version: link:../../packages/server/costs
+      "@antumbra/server-holds":
+        specifier: workspace:*
+        version: link:../../packages/server/holds
       "@antumbra/server-inputs":
         specifier: workspace:*
         version: link:../../packages/server/inputs
       "@antumbra/server-journal":
         specifier: workspace:*
         version: link:../../packages/server/journal
+      "@antumbra/server-lifecycle":
+        specifier: workspace:*
+        version: link:../../packages/server/lifecycle
       "@antumbra/server-mail":
         specifier: workspace:*
         version: link:../../packages/server/mail
       "@antumbra/server-pieces":
         specifier: workspace:*
         version: link:../../packages/server/pieces
+      "@antumbra/server-reclamation":
+        specifier: workspace:*
+        version: link:../../packages/server/reclamation
       "@antumbra/server-reports":
         specifier: workspace:*
         version: link:../../packages/server/reports
@@ -878,30 +917,39 @@ importers:
       "@antumbra/server-role-settings":
         specifier: workspace:*
         version: link:../../packages/server/role-settings
+      "@antumbra/server-rulings":
+        specifier: workspace:*
+        version: link:../../packages/server/rulings
+      "@antumbra/server-sessions":
+        specifier: workspace:*
+        version: link:../../packages/server/sessions
       "@antumbra/server-settings":
         specifier: workspace:*
         version: link:../../packages/server/settings
+      "@antumbra/server-supervision":
+        specifier: workspace:*
+        version: link:../../packages/server/supervision
       "@antumbra/server-voyages":
         specifier: workspace:*
         version: link:../../packages/server/voyages
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@shivaedev/sql":
-        specifier: 0.38.0
-        version: 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      "@shivaedev/test-sql":
-        specifier: 0.21.0
-        version: 0.21.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      "@shivaedev/test-story":
         specifier: 0.39.0
-        version: 0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
+        version: 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      "@shivaedev/test-sql":
+        specifier: 0.21.1
+        version: 0.21.1(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      "@shivaedev/test-story":
+        specifier: 0.39.1
+        version: 0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       happy-dom:
         specifier: "catalog:"
         version: 21.0.4
@@ -956,10 +1004,10 @@ importers:
         version: link:../../platform/rpc
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -978,7 +1026,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1017,7 +1065,7 @@ importers:
         version: link:../components
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1033,7 +1081,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1066,10 +1114,10 @@ importers:
         version: link:../components
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1079,7 +1127,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1127,10 +1175,10 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1149,7 +1197,7 @@ importers:
         version: link:../../server/domains/voyages
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1179,16 +1227,16 @@ importers:
         version: link:../../platform/rpc
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@shivaedev/errors":
         specifier: "catalog:"
-        version: 0.9.0(effect@4.0.6)
+        version: 0.9.1(effect@4.0.7)
       "@shivaedev/react":
         specifier: "catalog:"
-        version: 0.40.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)(react@19.3.1)
+        version: 0.41.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1201,7 +1249,7 @@ importers:
         version: link:../../server/domains/voyages
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1234,7 +1282,7 @@ importers:
         version: link:../../platform/rpc
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@fontsource-variable/inter":
         specifier: "catalog:"
         version: 5.3.0
@@ -1252,7 +1300,7 @@ importers:
         version: 1.3.3(@types/react@19.2.18)(react@19.3.1)
       "@shivaedev/form":
         specifier: "catalog:"
-        version: 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+        version: 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
       class-variance-authority:
         specifier: "catalog:"
         version: 0.7.1
@@ -1261,7 +1309,7 @@ importers:
         version: 2.1.1
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1298,7 +1346,7 @@ importers:
         version: link:../../server/domains/backends
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1331,7 +1379,7 @@ importers:
         version: link:../components
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1347,7 +1395,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1377,7 +1425,7 @@ importers:
         version: link:../../platform/shell
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@types/node":
         specifier: "catalog:"
@@ -1408,10 +1456,10 @@ importers:
         version: link:../components
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1427,7 +1475,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1466,13 +1514,13 @@ importers:
         version: link:../../platform/vocabulary
       "@shivaedev/form":
         specifier: "catalog:"
-        version: 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+        version: 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
       "@shivaedev/react":
         specifier: "catalog:"
-        version: 0.40.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)(react@19.3.1)
+        version: 0.41.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1485,10 +1533,10 @@ importers:
         version: link:../../../apps/testing
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1542,10 +1590,10 @@ importers:
         version: link:../reports
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1561,7 +1609,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1642,13 +1690,13 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@shivaedev/react":
         specifier: "catalog:"
-        version: 0.40.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)(react@19.3.1)
+        version: 0.41.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1664,7 +1712,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1709,7 +1757,7 @@ importers:
         version: link:../../platform/rpc
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1725,7 +1773,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1758,10 +1806,10 @@ importers:
         version: link:../components
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1774,7 +1822,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1813,13 +1861,13 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@shivaedev/form":
         specifier: "catalog:"
-        version: 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+        version: 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1829,7 +1877,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1865,10 +1913,10 @@ importers:
         version: link:../components
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -1881,7 +1929,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -1959,13 +2007,13 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@shivaedev/react":
         specifier: "catalog:"
-        version: 0.40.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)(react@19.3.1)
+        version: 0.41.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -1978,7 +2026,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2014,13 +2062,13 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       "@shivaedev/form":
         specifier: "catalog:"
-        version: 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
+        version: 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       react:
         specifier: "catalog:"
         version: 19.3.1
@@ -2030,7 +2078,7 @@ importers:
         version: link:../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2078,10 +2126,10 @@ importers:
         version: link:../role-settings
       "@effect/atom-react":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+        version: 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       lucide-react:
         specifier: "catalog:"
         version: 1.31.0(react@19.3.1)
@@ -2100,7 +2148,7 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2127,7 +2175,7 @@ importers:
         version: link:../vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@types/node":
         specifier: "catalog:"
@@ -2149,11 +2197,11 @@ importers:
         version: link:../vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2174,11 +2222,11 @@ importers:
         version: link:../vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2202,17 +2250,17 @@ importers:
         version: link:../vocabulary
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/errors":
         specifier: "catalog:"
-        version: 0.9.0(effect@4.0.6)
+        version: 0.9.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2236,14 +2284,14 @@ importers:
         version: link:../vocabulary
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2261,11 +2309,11 @@ importers:
     dependencies:
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2283,7 +2331,7 @@ importers:
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2304,11 +2352,11 @@ importers:
         version: link:../vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@typescript/native":
         specifier: "catalog:"
         version: typescript@7.0.2
@@ -2323,11 +2371,11 @@ importers:
     dependencies:
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2348,11 +2396,11 @@ importers:
         version: "link:"
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2379,11 +2427,11 @@ importers:
         version: link:../../ports
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2407,11 +2455,11 @@ importers:
         version: link:../../ports
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2435,11 +2483,11 @@ importers:
         version: link:../../ports
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2466,11 +2514,11 @@ importers:
         version: 0.84.4(@modelcontextprotocol/sdk@1.30.0(supports-color@7.2.0)(zod@4.4.3))(supports-color@7.2.0)(ws@8.21.3)(zod@4.4.3)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2500,17 +2548,17 @@ importers:
         version: link:../tools
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/sql-sqlite-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2531,11 +2579,11 @@ importers:
         version: link:../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2559,11 +2607,11 @@ importers:
         version: link:../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2590,11 +2638,54 @@ importers:
         version: link:../ports
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/agents:
+    dependencies:
+      "@antumbra/domain-agents":
+        specifier: workspace:*
+        version: link:../domains/agents
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2621,16 +2712,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2664,16 +2755,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2707,16 +2798,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2724,6 +2815,49 @@ importers:
       "@antumbra/domain-agents":
         specifier: workspace:*
         version: link:../domains/agents
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/capacity:
+    dependencies:
+      "@antumbra/domain-capacity":
+        specifier: workspace:*
+        version: link:../domains/capacity
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2753,16 +2887,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2770,6 +2904,43 @@ importers:
       "@antumbra/domain-agents":
         specifier: workspace:*
         version: link:../domains/agents
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/costs:
+    dependencies:
+      "@antumbra/domain-costs":
+        specifier: workspace:*
+        version: link:../domains/costs
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -2817,7 +2988,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2848,7 +3019,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2879,7 +3050,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2916,7 +3087,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2947,7 +3118,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -2993,7 +3164,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3030,7 +3201,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3079,7 +3250,7 @@ importers:
         version: link:../../../platform/feature
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3119,7 +3290,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3153,7 +3324,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3190,7 +3361,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3221,7 +3392,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3258,7 +3429,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3298,7 +3469,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3326,7 +3497,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3357,7 +3528,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3403,7 +3574,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3438,12 +3609,9 @@ importers:
       "@antumbra/platform-vocabulary":
         specifier: workspace:*
         version: link:../../../platform/vocabulary
-      "@antumbra/server-journal":
-        specifier: workspace:*
-        version: link:../../journal
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3471,7 +3639,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3496,7 +3664,7 @@ importers:
         version: link:../../../platform/feature
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@types/node":
         specifier: "catalog:"
@@ -3527,7 +3695,7 @@ importers:
         version: link:../../../platform/vocabulary
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3555,20 +3723,60 @@ importers:
         version: link:../../../platform/vocabulary
       "@shivaedev/github":
         specifier: "catalog:"
-        version: 0.12.0(effect@4.0.6)
+        version: 0.12.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
         version: link:../../../../apps/testing
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
       "@shivaedev/test-story":
-        specifier: 0.39.0
-        version: 0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
+        specifier: 0.39.1
+        version: 0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/holds:
+    dependencies:
+      "@antumbra/domain-holds":
+        specifier: workspace:*
+        version: link:../domains/holds
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -3595,16 +3803,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
       sharp:
         specifier: "catalog:"
         version: 0.35.3(@types/node@24.10.1)
@@ -3641,34 +3849,34 @@ importers:
         version: link:../../platform/vocabulary
       "@effect/sql-pg":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@effect/sql-sqlite-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)
+        version: 4.0.7(effect@4.0.7)
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/errors":
         specifier: "catalog:"
-        version: 0.9.0(effect@4.0.6)
+        version: 0.9.1(effect@4.0.7)
       "@shivaedev/events":
         specifier: "catalog:"
-        version: 0.3.1(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
+        version: 0.3.2(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
       "@shivaedev/local-postgres":
         specifier: "catalog:"
-        version: 0.13.0(effect@4.0.6)
+        version: 0.14.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       "@shivaedev/sql":
-        specifier: 0.38.0
-        version: 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
+        specifier: 0.39.0
+        version: 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
       "@shivaedev/test-sql":
-        specifier: 0.21.0
-        version: 0.21.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
+        specifier: 0.21.1
+        version: 0.21.1(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3681,10 +3889,56 @@ importers:
         version: link:../domains/settings
       "@effect/platform-node":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(redis@6.2.1)
+        version: 4.0.7(effect@4.0.7)(redis@6.2.1)
       "@effect/vitest":
         specifier: "catalog:"
-        version: 4.0.6(effect@4.0.6)(vitest@5.0.5)
+        version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/lifecycle:
+    dependencies:
+      "@antumbra/domain-lifecycle":
+        specifier: workspace:*
+        version: link:../domains/lifecycle
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/domain-sessions":
+        specifier: workspace:*
+        version: link:../domains/sessions
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -3711,16 +3965,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3757,16 +4011,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3777,6 +4031,49 @@ importers:
       "@antumbra/domain-rulings":
         specifier: workspace:*
         version: link:../domains/rulings
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/reclamation:
+    dependencies:
+      "@antumbra/domain-reclamation":
+        specifier: workspace:*
+        version: link:../domains/reclamation
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -3803,16 +4100,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3846,16 +4143,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3889,16 +4186,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3906,6 +4203,95 @@ importers:
       "@antumbra/domain-agents":
         specifier: workspace:*
         version: link:../domains/agents
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/rulings:
+    dependencies:
+      "@antumbra/domain-rulings":
+        specifier: workspace:*
+        version: link:../domains/rulings
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/sessions:
+    dependencies:
+      "@antumbra/domain-sessions":
+        specifier: workspace:*
+        version: link:../domains/sessions
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-runner":
+        specifier: workspace:*
+        version: link:../../platform/runner
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -3932,16 +4318,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -3949,6 +4335,49 @@ importers:
       "@antumbra/domain-agents":
         specifier: workspace:*
         version: link:../domains/agents
+      "@types/node":
+        specifier: "catalog:"
+        version: 24.10.1
+      "@typescript/native":
+        specifier: "catalog:"
+        version: typescript@7.0.2
+      typescript:
+        specifier: "catalog:"
+        version: "@typescript/typescript6@6.0.2"
+      vitest:
+        specifier: "catalog:"
+        version: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
+
+  packages/server/supervision:
+    dependencies:
+      "@antumbra/domain-supervision":
+        specifier: workspace:*
+        version: link:../domains/supervision
+      "@antumbra/platform-feature":
+        specifier: workspace:*
+        version: link:../../platform/feature
+      "@antumbra/server-journal":
+        specifier: workspace:*
+        version: link:../journal
+      "@shivaedev/changes":
+        specifier: "catalog:"
+        version: 0.10.1(effect@4.0.7)
+      "@shivaedev/contract":
+        specifier: "catalog:"
+        version: 0.36.1(effect@4.0.7)
+      "@shivaedev/service":
+        specifier: "catalog:"
+        version: 0.7.1(effect@4.0.7)
+      effect:
+        specifier: "catalog:"
+        version: 4.0.7
+    devDependencies:
+      "@antumbra/app-testing":
+        specifier: workspace:*
+        version: link:../../../apps/testing
+      "@antumbra/platform-vocabulary":
+        specifier: workspace:*
+        version: link:../../platform/vocabulary
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1
@@ -3975,16 +4404,16 @@ importers:
         version: link:../journal
       "@shivaedev/changes":
         specifier: "catalog:"
-        version: 0.10.0(effect@4.0.6)
+        version: 0.10.1(effect@4.0.7)
       "@shivaedev/contract":
         specifier: "catalog:"
-        version: 0.36.0(effect@4.0.6)
+        version: 0.36.1(effect@4.0.7)
       "@shivaedev/service":
         specifier: "catalog:"
-        version: 0.7.0(effect@4.0.6)
+        version: 0.7.1(effect@4.0.7)
       effect:
         specifier: "catalog:"
-        version: 4.0.6
+        version: 4.0.7
     devDependencies:
       "@antumbra/app-testing":
         specifier: workspace:*
@@ -4318,40 +4747,40 @@ packages:
     resolution: { integrity: sha512-nPUnwDkLtupPXnZQYrCwPFcuTydCDqTY6ZbFqhsL4S4kVq0AT418kPa/6uXwtaCD+MjBNBltb7ScTYX65yeE1w== }
     engines: { node: ">=22.19.0" }
 
-  "@effect/atom-react@4.0.6":
-    resolution: { integrity: sha512-DpbuEdaJl+2/GW4KkrKtRD8YVPT+I29bh/TFE7JCGkB4YNiHWNE5q69EagDeK/QXi4RlSb+iR+rNGkORJ9qB/A== }
+  "@effect/atom-react@4.0.7":
+    resolution: { integrity: sha512-9jQFhzl4lL79XmhTr4uHHZtDU2/Z9sBe7YpKZwc9/a6bGuO2DbmynJ4i+M97OIgOAqYjZVsiiNAXj2aeVbCSJg== }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
       react: ">=19.0.0 <20.0.0"
       scheduler: ">=0.25.0 <0.29.0"
 
-  "@effect/platform-node-shared@4.0.6":
-    resolution: { integrity: sha512-0PhyC4uG30xGtsajnxjkcBWfTjNRzUh4ZKl1Kvo/MNyCTb+W2O+fBzf7wCRCoqt+nLudiq4V7vX40Q8XIBuMaQ== }
+  "@effect/platform-node-shared@4.0.7":
+    resolution: { integrity: sha512-uCeBJ00hliKQsb7gMfvyEXUL1XmUKQcRzKi1X8ISG0UxTDMAdPRigOyKDnKxUTxE5PoT4kxLHQvOxo6U405FGg== }
     engines: { node: ">=18.0.0" }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
 
-  "@effect/platform-node@4.0.6":
-    resolution: { integrity: sha512-gXvGHAy0/8PZbWvMMguloDUyeSP+rzYEo3FSEqUuGduxo9ORcGioDxPI+GOLCIFfam7VuNkmSUxBOiRMIrMrBw== }
+  "@effect/platform-node@4.0.7":
+    resolution: { integrity: sha512-YXUh0A4ZjuPAONt/yXb5zBM7zPR6eUPYUBtyj1374zq0P5SUpdcz8Lf54JSavXb8mdrc1glsXWHFVINpJyrlWA== }
     engines: { node: ">=18.0.0" }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
       redis: ">=5.0.0 <7.0.0"
 
-  "@effect/sql-pg@4.0.6":
-    resolution: { integrity: sha512-mh2Z+Hi1/AWtkoGuzub2PPCHN7ZsMAbY8dlv/YbdJ6PoXVdrVAGsr+FeeoeD6f0rdnln4DQm7PvFjv1htAjY9w== }
+  "@effect/sql-pg@4.0.7":
+    resolution: { integrity: sha512-KANrOvBKm3KUvOAgTQz9cWKOwKJW1oHdkJ0rsIldDeO5zot9S4qzOtsQrhafNelbxY9S/F9k4Z+7oiw//oO6bg== }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
 
-  "@effect/sql-sqlite-node@4.0.6":
-    resolution: { integrity: sha512-mYWr1Ppoz3/XrY+ZBnYfdvZvdcAYJTO6VcWoNetBX5n2c0VKHqg9S8WO6EpgtV5WiR8/yHHmu3qkfAGHJmalcA== }
+  "@effect/sql-sqlite-node@4.0.7":
+    resolution: { integrity: sha512-VMtKDPpYkb6/dt3j4kZ0gw51bY4hbFS6I0vuzxikWBb7pQmaEmV5Tiax9ZrOXxU0fwcuJhLCZm9VhxNUg2cD0w== }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
 
-  "@effect/vitest@4.0.6":
-    resolution: { integrity: sha512-oKNbtyUHK5+0o730CXwojULEu7f3+c235pYFD4U5T//o+hHrJbYbZU4bRkcv936tPr5IOnmujeyQiC/LuJJjHw== }
+  "@effect/vitest@4.0.7":
+    resolution: { integrity: sha512-WdF1w9K65ZyjeDAUfUxDOCBSEgVjUtJfM+G83KAE3mKoZcO6aGgrRoKgwiDKsACAmVWT3zG5hDhwNH3GQg++FQ== }
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.0.7
       vitest: ">=5.0.0 <6.0.0"
 
   "@electron-internal/extract-zip@1.0.5":
@@ -5982,42 +6411,42 @@ packages:
   "@rolldown/pluginutils@1.0.1":
     resolution: { integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw== }
 
-  "@shivaedev/access@0.5.0":
-    resolution: { integrity: sha512-ZMshZHfyzIGMNn3OiTKcFy418ku7N3ONDWWc1RcXcaK2zpOO5ZWtum1kiyT9sp6UqFUlZQk7pReXAjc8OvBB+Q== }
+  "@shivaedev/access@0.5.1":
+    resolution: { integrity: sha512-q8cdiQny6FBVxm7zHdqMaR2vSSiD0AXhnpH2XB6BEmfRPkinn6VfiFVovXrzFb7D4OCixDehbKrn15uDrg98KQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/changes@0.10.0":
-    resolution: { integrity: sha512-tufvLXbzKc1D5ecLhJ78/tuKIo16IxIURcHAFnMpfTc+ihQGaizwBQU9Q8gNgYv9208BYzfL8P+9fSRJlPMP8w== }
+  "@shivaedev/changes@0.10.1":
+    resolution: { integrity: sha512-QJf4zOK8jGaR1YWVbWWPkfhHM+M4LiQo8ACgEKoIZ2T5XIW2jILBHiUvY8WZ2i3kkrCYc55mwP8HuJ6vwAARKw== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/contract@0.36.0":
-    resolution: { integrity: sha512-LVBb//i4/+5xJ7/rXnOs4RJ6tB9Cjt1esV0KxN/2nV5ojvt96XliohKiXiOO1/VgET1FDIJm1HbXj/YMgNGm0Q== }
+  "@shivaedev/contract@0.36.1":
+    resolution: { integrity: sha512-oKgZci4upsRV0SyFJGV+GmBTLQ4gBqVTJyoJ46c8DpPtjONcUGx7kSvbINrjb6ykod07osCYEl7zkp/RxIUk9Q== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/errors@0.9.0":
-    resolution: { integrity: sha512-Ia2DivwoaGWlB20S1d+ni6253c9mj9U760L7WRIHNqaQtYgP4OkFpyQp4ejLcLvOM3ZGallMHZfBg5XPKZLuIQ== }
+  "@shivaedev/errors@0.9.1":
+    resolution: { integrity: sha512-zIjcyeUxXhwVXfX5cBgV5Tcsafh7WM4nspVdeZhaTdcBUOQF37hPowtOY4FCGYDsWQKhhiV43uyH2apS34QKqQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/events@0.3.1":
-    resolution: { integrity: sha512-BBzuHI2vM6xRaCa+HVsBGS1qsQHgaiGQgB5GMwv/jk5XYz3l40F38GRbIENGBsUOXeKKUcKz/5VTDDgKa8okHg== }
+  "@shivaedev/events@0.3.2":
+    resolution: { integrity: sha512-FAASal93NPTUtcGUNeM0P2pdZErFSqMzDXPTufSxzXqFR38TjJ8bYoZuro8EavLCnydUhpGvQDurwWDWDQQCZQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/form@0.16.0":
-    resolution: { integrity: sha512-WpgeNrS2/cnPCHAwsnQmF+INXipjSEN+S466UFYF33kn0aVznyiZYRrbtAYyY0El0/1SNGvTs2nLCigmetB0bQ== }
+  "@shivaedev/form@0.17.1":
+    resolution: { integrity: sha512-o8Xwdy8euO1wUBm77Z7QxV+KdRaDYm1e/+JG3NemG9jWKD019nFk4Oq4M2FPx5+uILY5wI4EmMJUSQVblqLETg== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/atom-react": 4.0.6
-      effect: 4.0.6
+      "@effect/atom-react": 4.0.7
+      effect: 4.0.7
       react: 19.3.1
     peerDependenciesMeta:
       "@effect/atom-react":
@@ -6025,59 +6454,59 @@ packages:
       react:
         optional: true
 
-  "@shivaedev/github@0.12.0":
-    resolution: { integrity: sha512-u2cZioTLiZm/sRyb5sQTyMaG/K2V86b95g2pAomMBBayc0Wz54HgmrozYFIcmBW5I2SyPfClqxvK8TC8VUXFfQ== }
+  "@shivaedev/github@0.12.1":
+    resolution: { integrity: sha512-byr+wJrx5V4FU01kwZmFq4lv3ZlncsBPI105f3djCoLEtC1DhLUGCx+GsDo9zGBwsx/A8CB9co28IillO21fxA== }
     engines: { node: ">=24" }
     peerDependencies:
       "@zip.js/zip.js": 2.24.0
-      effect: 4.0.6
+      effect: 4.0.7
     peerDependenciesMeta:
       "@zip.js/zip.js":
         optional: true
 
-  "@shivaedev/heavy-lock@0.10.0":
-    resolution: { integrity: sha512-KWyqg3y612+tUqR5tX1MKBuX/9aLHckFHMGxhTEDz/3bmi24LTcs+/wSRMqqVbxexXH6a+NRcBn8LZeuttC/mQ== }
+  "@shivaedev/heavy-lock@0.10.1":
+    resolution: { integrity: sha512-rqYeQApgqxbCGmCeFQnsqHVF7P9lasa1VNjrkAqP2CvEsqsDrlSbH7ObNMvtBbv+ro0v1GtwyxYc4vp4T3ozsw== }
     engines: { node: ">=24" }
     hasBin: true
     peerDependencies:
-      "@effect/platform-node": 4.0.6
-      "@effect/platform-node-shared": 4.0.6
-      effect: 4.0.6
+      "@effect/platform-node": 4.0.7
+      "@effect/platform-node-shared": 4.0.7
+      effect: 4.0.7
 
-  "@shivaedev/http@0.6.0":
-    resolution: { integrity: sha512-wHvGxs4qNINzdKTBjfahA1duoOMcMV2x1rCc8kyLHmYC1xG/dHVoSWWlAqMHuROAf6yX+/nrJ/OKvSHe31BoZQ== }
+  "@shivaedev/http@0.6.1":
+    resolution: { integrity: sha512-LZcOLeYdf6711YSAUm8aJd6WE4dXADTf8WHbjC8VMogbxlWyvhkmIOefzVKD0Vx2hd3SrafPX2tAwUgCK7VxPw== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/identity@0.24.0":
-    resolution: { integrity: sha512-9cuKH4fdyiGyNgkhUJF5FPwbAi1aehweM/tjBTFWW3Y1qm5TRfFIFXA1rcyCaDXXcietIuqQ7O2pYWk8Zw9EhQ== }
+  "@shivaedev/identity@0.26.0":
+    resolution: { integrity: sha512-2UXhNV3BV1ita4WLOFhrG9VugT53RnoCd8/bvZhRn2iyHwtmXQisisC24BX4W1385G1fKjOW6VZXTzN4VuTGDg== }
     engines: { node: ">=24" }
     peerDependencies:
       "@better-auth/oauth-provider": 1.7.14
       better-auth: 1.7.14
-      effect: 4.0.6
+      effect: 4.0.7
     peerDependenciesMeta:
       "@better-auth/oauth-provider":
         optional: true
       better-auth:
         optional: true
 
-  "@shivaedev/local-postgres@0.13.0":
-    resolution: { integrity: sha512-HmoBtRasMwOwGddIASyMSBhPhnKHdMN98o3LQ1NSuHN5qkdWDtQ4N/TVXVuELmydSW4xcYgNhB6vdxXEK/Hiug== }
+  "@shivaedev/local-postgres@0.14.1":
+    resolution: { integrity: sha512-uaa2SAehOamBt9Cn1yhP2RJdtbG+E8v3ebm94Bm49GXAd9lWUTFpGvLYPMrMr316rDlCiATXjGUxhOqWb4lMpQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/quality@0.60.0":
-    resolution: { integrity: sha512-eu5h2TV5hkgRDZiDSwGh9oz4owxskvm+RpTgwOQ8CAYd4J4JiDSV2KAvktRqhWVKUs8VUajMvjYSN+LBSI3rCw== }
+  "@shivaedev/quality@0.61.1":
+    resolution: { integrity: sha512-uIwAmwHrE8lrItqHvfRiwRoMR9UZgdtpyARPDadKjUVMhzpCbEWNd1pGmTOdfuAob5GGIoEnnHUuAEmaYA+1Kg== }
     engines: { node: ">=24" }
     hasBin: true
     peerDependencies:
-      "@effect/platform-node": 4.0.6
-      "@effect/platform-node-shared": 4.0.6
-      "@shivaedev/test-story": 0.39.0
-      effect: 4.0.6
+      "@effect/platform-node": 4.0.7
+      "@effect/platform-node-shared": 4.0.7
+      "@shivaedev/test-story": 0.39.1
+      effect: 4.0.7
       vitest: 5.0.5
     peerDependenciesMeta:
       "@shivaedev/test-story":
@@ -6085,60 +6514,60 @@ packages:
       vitest:
         optional: true
 
-  "@shivaedev/rate-limit@0.4.0":
-    resolution: { integrity: sha512-qfnqi+RppiwFtN0BxLhFJ6VkUct89pL+u6qofJor/u2zNagsOjmFk4PBByak2fMl2wDGR70VJn5xczelzb54Zg== }
+  "@shivaedev/rate-limit@0.5.1":
+    resolution: { integrity: sha512-lnXvOeEzbVoMUi8sEZCJNRB9CsiB5Yn51TtS6MtmBtlLjKH6/epPwLda/vYhsbiB6UF90D5q7kFX/KEMY8c9hw== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@shivaedev/sql": 0.38.0
-      effect: 4.0.6
+      "@shivaedev/sql": 0.39.0
+      effect: 4.0.7
     peerDependenciesMeta:
       "@shivaedev/sql":
         optional: true
 
-  "@shivaedev/react@0.40.0":
-    resolution: { integrity: sha512-1IRSXtpMhq9K1ts7wJN4pHOXSsdMa8hL+ExGud3pfot6ysXlxmw8+NyvpqtA/qEWPYqZjrOiJQgAK4j0bGZGiQ== }
+  "@shivaedev/react@0.41.1":
+    resolution: { integrity: sha512-ITVqD1ta/amzRQySPn84frZ+zCD7kRneoDlznUWs0WIVylW602JBvdWxUxZa+ab0Kmz5Uec6UyKTcSgOoJRZpA== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/atom-react": 4.0.6
+      "@effect/atom-react": 4.0.7
       "@tanstack/react-router": 1.170.46
-      effect: 4.0.6
+      effect: 4.0.7
       react: 19.3.1
     peerDependenciesMeta:
       "@tanstack/react-router":
         optional: true
 
-  "@shivaedev/service@0.7.0":
-    resolution: { integrity: sha512-b9I4iysUENcTFGnU2+OMO5m+AirUf5TeBb3sKFDaLVE8OPlIVmd6rz70mXtQmxVDOuMttnkcjFuyj6t43du3lg== }
+  "@shivaedev/service@0.7.1":
+    resolution: { integrity: sha512-Jiib5JrNdL6dcRiTpOGNXZiKemAjjyXJsIAuenm0TxzND3ovdBwbnf/e+wmpeNmj+NutTlwgzJjwKSrk+rVwpQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/sql@0.38.0":
-    resolution: { integrity: sha512-FThHqrigtkd+EyZ+lsS/LD6G3Vrt4jZ5fZwbAMDvaAPZ5/whG5aa6aIHOSyfwKhUFyStTPuUSeUWnx2Sn8GLLQ== }
+  "@shivaedev/sql@0.39.0":
+    resolution: { integrity: sha512-wfBCeL3Ky0sKhf4AeeI75QTWSVl2J8eHfzlr4V5/JzGfaA9fUbQN5Lx7hoVlWHGnC1UCE8GzDGTq7DzuXmXkpw== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/sql-pg": 4.0.6
-      effect: 4.0.6
+      "@effect/sql-pg": 4.0.7
+      effect: 4.0.7
     peerDependenciesMeta:
       "@effect/sql-pg":
         optional: true
 
-  "@shivaedev/test-sql@0.21.0":
-    resolution: { integrity: sha512-3mD5o/VZEYq4vW+xsYc4KNQdkaifF0YVKL9CJS6/IvgDRGcKf8JSe19LzuIQ/x2B07k3Gr0352Ttvg4CzLM+6Q== }
+  "@shivaedev/test-sql@0.21.1":
+    resolution: { integrity: sha512-aZiDiHw8770Wrjo1zYyvcvZR8y57I8bD458tIt7G+0tXDEEdM0LWtJyaWhNTLKsoMNUNeEgH1eMF805kyiW9cQ== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/sql-pg": 4.0.6
-      effect: 4.0.6
+      "@effect/sql-pg": 4.0.7
+      effect: 4.0.7
 
-  "@shivaedev/test-story@0.39.0":
-    resolution: { integrity: sha512-UP5kSPYJxkHWZ3k5qpUMMWlXhKX2/Hpz9I+9y8y5xLzcfvJXEYtvPhqW8s4kzUiU0phX3wVqKpYmoGReN71gjA== }
+  "@shivaedev/test-story@0.39.1":
+    resolution: { integrity: sha512-dp7dXrxiJQY0tpRbNvkS75fM6alOd4KlmPTdbAlTXeHG0g9iSAIKprvvNDxi2Lq+99YaLG674baoPke/ImskSw== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/atom-react": 4.0.6
-      "@effect/platform-node": 4.0.6
-      "@effect/sql-pg": 4.0.6
-      "@effect/vitest": 4.0.6
-      effect: 4.0.6
+      "@effect/atom-react": 4.0.7
+      "@effect/platform-node": 4.0.7
+      "@effect/sql-pg": 4.0.7
+      "@effect/vitest": 4.0.7
+      effect: 4.0.7
       happy-dom: 21.0.4
       react: 19.3.1
       react-dom: 19.3.1
@@ -6155,12 +6584,12 @@ packages:
       react-dom:
         optional: true
 
-  "@shivaedev/test@0.15.0":
-    resolution: { integrity: sha512-aytDxLdShzDYV0DRluyETiXA7Z5WNcbw0XrneNU2wcZ/a7TNb6fEJA/qU7Gxj+S/8MjfkZstIgrxPxIiUdr8pA== }
+  "@shivaedev/test@0.15.1":
+    resolution: { integrity: sha512-PpYO7xH/iznYPk1qMk1vjUFZABKtT+g/EwfkLEe+H+TkHd9gOCSEAM/yk/DzAyRIHRNzqmcPTg5dI3m0sem3Qw== }
     engines: { node: ">=24" }
     peerDependencies:
-      "@effect/vitest": 4.0.6
-      effect: 4.0.6
+      "@effect/vitest": 4.0.7
+      effect: 4.0.7
     peerDependenciesMeta:
       "@effect/vitest":
         optional: true
@@ -7166,8 +7595,8 @@ packages:
   ee-first@1.1.1:
     resolution: { integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow== }
 
-  effect@4.0.6:
-    resolution: { integrity: sha512-Tc3mkzuLR6t6P9dhLt0D2GrxYtmU5td4XEJEiXCmILz53IRIfJyHsKZWjTA3xEjiwpNTtXBgI4iqYPxMztBDrw== }
+  effect@4.0.7:
+    resolution: { integrity: sha512-47CiUzNAmeLr40pDT9vKMxxtB8o3bdpZEKU4IUM3fVxsK2GYzPsV7fQoZP0I41A308BZd71nMxqJ0KRh3s9u2g== }
 
   ejs@3.1.10:
     resolution: { integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA== }
@@ -9694,42 +10123,42 @@ snapshots:
       get-east-asian-width: 1.6.0
       marked: 18.0.5
 
-  "@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)":
+  "@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
       react: 19.3.1
       scheduler: 0.28.0
 
-  "@effect/platform-node-shared@4.0.6(effect@4.0.6)":
+  "@effect/platform-node-shared@4.0.7(effect@4.0.7)":
     dependencies:
       "@types/ws": 8.18.2
-      effect: 4.0.6
+      effect: 4.0.7
       ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  "@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1)":
+  "@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1)":
     dependencies:
-      "@effect/platform-node-shared": 4.0.6(effect@4.0.6)
-      effect: 4.0.6
+      "@effect/platform-node-shared": 4.0.7(effect@4.0.7)
+      effect: 4.0.7
       redis: 6.2.1
       undici: 8.12.3
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  "@effect/sql-pg@4.0.6(effect@4.0.6)":
+  "@effect/sql-pg@4.0.7(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@effect/sql-sqlite-node@4.0.6(effect@4.0.6)":
+  "@effect/sql-sqlite-node@4.0.7(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5)":
+  "@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
       vitest: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
 
   "@electron-internal/extract-zip@1.0.5": {}
@@ -11210,157 +11639,157 @@ snapshots:
 
   "@rolldown/pluginutils@1.0.1": {}
 
-  "@shivaedev/access@0.5.0(effect@4.0.6)":
+  "@shivaedev/access@0.5.1(effect@4.0.7)":
     dependencies:
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      effect: 4.0.7
 
-  "@shivaedev/changes@0.10.0(effect@4.0.6)":
+  "@shivaedev/changes@0.10.1(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/contract@0.36.0(effect@4.0.6)":
+  "@shivaedev/contract@0.36.1(effect@4.0.7)":
     dependencies:
-      "@shivaedev/changes": 0.10.0(effect@4.0.6)
-      "@shivaedev/service": 0.7.0(effect@4.0.6)
+      "@shivaedev/changes": 0.10.1(effect@4.0.7)
+      "@shivaedev/service": 0.7.1(effect@4.0.7)
       "@shivaedev/types": 0.4.0
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/errors@0.9.0(effect@4.0.6)":
+  "@shivaedev/errors@0.9.1(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/events@0.3.1(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)":
+  "@shivaedev/events@0.3.2(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)":
     dependencies:
-      "@shivaedev/sql": 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/sql": 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      effect: 4.0.7
     transitivePeerDependencies:
       - "@effect/sql-pg"
 
-  "@shivaedev/form@0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)":
+  "@shivaedev/form@0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)":
     dependencies:
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      effect: 4.0.7
     optionalDependencies:
-      "@effect/atom-react": 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
+      "@effect/atom-react": 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       react: 19.3.1
 
-  "@shivaedev/github@0.12.0(effect@4.0.6)":
+  "@shivaedev/github@0.12.1(effect@4.0.7)":
     dependencies:
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      "@shivaedev/http": 0.6.0(effect@4.0.6)
-      "@shivaedev/service": 0.7.0(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      "@shivaedev/http": 0.6.1(effect@4.0.7)
+      "@shivaedev/service": 0.7.1(effect@4.0.7)
+      effect: 4.0.7
 
-  "@shivaedev/heavy-lock@0.10.0(@effect/platform-node-shared@4.0.6(effect@4.0.6))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(effect@4.0.6)":
+  "@shivaedev/heavy-lock@0.10.1(@effect/platform-node-shared@4.0.7(effect@4.0.7))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(effect@4.0.7)":
     dependencies:
-      "@effect/platform-node": 4.0.6(effect@4.0.6)(redis@6.2.1)
-      "@effect/platform-node-shared": 4.0.6(effect@4.0.6)
-      effect: 4.0.6
+      "@effect/platform-node": 4.0.7(effect@4.0.7)(redis@6.2.1)
+      "@effect/platform-node-shared": 4.0.7(effect@4.0.7)
+      effect: 4.0.7
 
-  "@shivaedev/http@0.6.0(effect@4.0.6)":
+  "@shivaedev/http@0.6.1(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/identity@0.24.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)":
+  "@shivaedev/identity@0.26.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)":
     dependencies:
-      "@shivaedev/access": 0.5.0(effect@4.0.6)
-      "@shivaedev/changes": 0.10.0(effect@4.0.6)
-      "@shivaedev/contract": 0.36.0(effect@4.0.6)
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      "@shivaedev/rate-limit": 0.4.0(@shivaedev/sql@0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6))(effect@4.0.6)
-      "@shivaedev/service": 0.7.0(effect@4.0.6)
-      "@shivaedev/sql": 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/access": 0.5.1(effect@4.0.7)
+      "@shivaedev/changes": 0.10.1(effect@4.0.7)
+      "@shivaedev/contract": 0.36.1(effect@4.0.7)
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      "@shivaedev/rate-limit": 0.5.1(@shivaedev/sql@0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7))(effect@4.0.7)
+      "@shivaedev/service": 0.7.1(effect@4.0.7)
+      "@shivaedev/sql": 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      effect: 4.0.7
     transitivePeerDependencies:
       - "@effect/sql-pg"
 
-  "@shivaedev/local-postgres@0.13.0(effect@4.0.6)":
+  "@shivaedev/local-postgres@0.14.1(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/quality@0.60.0(@effect/platform-node-shared@4.0.6(effect@4.0.6))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@shivaedev/test-story@0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5))(effect@4.0.6)(vitest@5.0.5)":
+  "@shivaedev/quality@0.61.1(@effect/platform-node-shared@4.0.7(effect@4.0.7))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@shivaedev/test-story@0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5))(effect@4.0.7)(vitest@5.0.5)":
     dependencies:
       "@biomejs/biome": 2.6.3
-      "@effect/platform-node": 4.0.6(effect@4.0.6)(redis@6.2.1)
-      "@effect/platform-node-shared": 4.0.6(effect@4.0.6)
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      "@shivaedev/heavy-lock": 0.10.0(@effect/platform-node-shared@4.0.6(effect@4.0.6))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(effect@4.0.6)
-      "@shivaedev/service": 0.7.0(effect@4.0.6)
+      "@effect/platform-node": 4.0.7(effect@4.0.7)(redis@6.2.1)
+      "@effect/platform-node-shared": 4.0.7(effect@4.0.7)
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      "@shivaedev/heavy-lock": 0.10.1(@effect/platform-node-shared@4.0.7(effect@4.0.7))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(effect@4.0.7)
+      "@shivaedev/service": 0.7.1(effect@4.0.7)
       "@vitest/coverage-v8": 5.0.5(vitest@5.0.5)
-      effect: 4.0.6
+      effect: 4.0.7
       ignore: 7.0.14
       knip: 6.43.0
       sort-package-json: 4.1.0
       typescript: "@typescript/typescript6@6.0.2"
     optionalDependencies:
-      "@shivaedev/test-story": 0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
+      "@shivaedev/test-story": 0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
       vitest: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
     transitivePeerDependencies:
       - "@vitest/browser"
 
-  "@shivaedev/rate-limit@0.4.0(@shivaedev/sql@0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6))(effect@4.0.6)":
+  "@shivaedev/rate-limit@0.5.1(@shivaedev/sql@0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7))(effect@4.0.7)":
     dependencies:
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      effect: 4.0.7
     optionalDependencies:
-      "@shivaedev/sql": 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
+      "@shivaedev/sql": 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
 
-  "@shivaedev/react@0.40.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)(react@19.3.1)":
+  "@shivaedev/react@0.41.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)(react@19.3.1)":
     dependencies:
-      "@effect/atom-react": 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
-      "@shivaedev/access": 0.5.0(effect@4.0.6)
-      "@shivaedev/contract": 0.36.0(effect@4.0.6)
-      "@shivaedev/errors": 0.9.0(effect@4.0.6)
-      "@shivaedev/form": 0.16.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.6)(react@19.3.1)
-      "@shivaedev/identity": 0.24.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      effect: 4.0.6
+      "@effect/atom-react": 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
+      "@shivaedev/access": 0.5.1(effect@4.0.7)
+      "@shivaedev/contract": 0.36.1(effect@4.0.7)
+      "@shivaedev/errors": 0.9.1(effect@4.0.7)
+      "@shivaedev/form": 0.17.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(effect@4.0.7)(react@19.3.1)
+      "@shivaedev/identity": 0.26.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      effect: 4.0.7
       react: 19.3.1
     transitivePeerDependencies:
       - "@better-auth/oauth-provider"
       - "@effect/sql-pg"
       - better-auth
 
-  "@shivaedev/service@0.7.0(effect@4.0.6)":
+  "@shivaedev/service@0.7.1(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
 
-  "@shivaedev/sql@0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)":
+  "@shivaedev/sql@0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)":
     dependencies:
-      "@shivaedev/changes": 0.10.0(effect@4.0.6)
-      "@shivaedev/service": 0.7.0(effect@4.0.6)
-      effect: 4.0.6
+      "@shivaedev/changes": 0.10.1(effect@4.0.7)
+      "@shivaedev/service": 0.7.1(effect@4.0.7)
+      effect: 4.0.7
     optionalDependencies:
-      "@effect/sql-pg": 4.0.6(effect@4.0.6)
+      "@effect/sql-pg": 4.0.7(effect@4.0.7)
 
-  "@shivaedev/test-sql@0.21.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)":
+  "@shivaedev/test-sql@0.21.1(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)":
     dependencies:
-      "@effect/sql-pg": 4.0.6(effect@4.0.6)
-      "@shivaedev/sql": 0.38.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
-      effect: 4.0.6
+      "@effect/sql-pg": 4.0.7(effect@4.0.7)
+      "@shivaedev/sql": 0.39.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      effect: 4.0.7
 
-  "@shivaedev/test-story@0.39.0(@effect/atom-react@4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.2.1))(@effect/sql-pg@4.0.6(effect@4.0.6))(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)":
+  "@shivaedev/test-story@0.39.1(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)":
     dependencies:
-      "@effect/platform-node": 4.0.6(effect@4.0.6)(redis@6.2.1)
-      "@effect/vitest": 4.0.6(effect@4.0.6)(vitest@5.0.5)
-      "@shivaedev/contract": 0.36.0(effect@4.0.6)
-      "@shivaedev/test": 0.15.0(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)
-      "@shivaedev/test-sql": 0.21.0(@effect/sql-pg@4.0.6(effect@4.0.6))(effect@4.0.6)
+      "@effect/platform-node": 4.0.7(effect@4.0.7)(redis@6.2.1)
+      "@effect/vitest": 4.0.7(effect@4.0.7)(vitest@5.0.5)
+      "@shivaedev/contract": 0.36.1(effect@4.0.7)
+      "@shivaedev/test": 0.15.1(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)
+      "@shivaedev/test-sql": 0.21.1(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
       dom-accessibility-api: 0.7.1
-      effect: 4.0.6
+      effect: 4.0.7
       vitest: 5.0.5(@types/node@24.10.1)(@vitest/coverage-v8@5.0.5)(happy-dom@21.0.4)(vite@8.2.0(@types/node@24.10.1)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.0))
     optionalDependencies:
-      "@effect/atom-react": 4.0.6(effect@4.0.6)(react@19.3.1)(scheduler@0.28.0)
-      "@effect/sql-pg": 4.0.6(effect@4.0.6)
+      "@effect/atom-react": 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
+      "@effect/sql-pg": 4.0.7(effect@4.0.7)
       happy-dom: 21.0.4
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
 
-  "@shivaedev/test@0.15.0(@effect/vitest@4.0.6(effect@4.0.6)(vitest@5.0.5))(effect@4.0.6)":
+  "@shivaedev/test@0.15.1(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)":
     dependencies:
-      effect: 4.0.6
+      effect: 4.0.7
     optionalDependencies:
-      "@effect/vitest": 4.0.6(effect@4.0.6)(vitest@5.0.5)
+      "@effect/vitest": 4.0.7(effect@4.0.7)(vitest@5.0.5)
 
   "@shivaedev/types@0.4.0": {}
 
@@ -12337,7 +12766,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  effect@4.0.6: {}
+  effect@4.0.7: {}
 
   ejs@3.1.10:
     dependencies:

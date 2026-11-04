@@ -76,22 +76,14 @@ export const reset = Effect.gen(function* () {
 	yield* sql`delete from antumbra."sessionSituation"`;
 	yield* sql`delete from antumbra."changeRefresh"`;
 	yield* sql`delete from antumbra."changeAdoptionRequest"`;
-	yield* sql`delete from antumbra."change_context_session"`;
 	yield* sql`delete from antumbra."quayChange"`;
 	yield* sql`delete from antumbra."change"`;
 	yield* sql`delete from antumbra."pieceChange"`;
 	yield* sql`delete from antumbra."changeTransition"`;
 	yield* sql`delete from antumbra."changeVerdict"`;
 	yield* sql`delete from antumbra."changeFeedback"`;
-	yield* sql`delete from antumbra."change_context_berth"`;
-	yield* sql`delete from antumbra."change_context_moorage"`;
-	yield* sql`delete from antumbra."change_context_agent"`;
 	yield* sql`delete from antumbra."heldResource"`;
-	yield* sql`delete from antumbra."change_context_voyageActivity"`;
-	yield* sql`delete from antumbra."change_context_pieceAgent"`;
 	yield* sql`delete from antumbra.piece_outcomes where "sourceKind" = 'change'`;
-	yield* sql`delete from antumbra.change_captain_work`;
-	yield* sql`delete from antumbra.change_resource_owners`;
 	yield* invalidateOnCommit([
 		"pieceChangeView",
 		"changeHostCapability",

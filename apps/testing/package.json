@@ -60,6 +60,15 @@
 		"@antumbra/server-reports": "workspace:*",
 		"@antumbra/server-inputs": "workspace:*",
 		"@antumbra/server-changes": "workspace:*",
-		"@antumbra/edge-github": "workspace:*"
+		"@antumbra/edge-github": "workspace:*",
+		"@antumbra/server-sessions": "workspace:*",
+		"@antumbra/server-agents": "workspace:*",
+		"@antumbra/server-capacity": "workspace:*",
+		"@antumbra/server-reclamation": "workspace:*",
+		"@antumbra/server-rulings": "workspace:*",
+		"@antumbra/server-lifecycle": "workspace:*",
+		"@antumbra/server-supervision": "workspace:*",
+		"@antumbra/server-costs": "workspace:*",
+		"@antumbra/server-holds": "workspace:*"
 	}
 }

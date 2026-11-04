@@ -1,4 +1,5 @@
 import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
+import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
 import { InputsHistory } from "@antumbra/server-journal/postgres/inputs/service.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { FileSystem } from "effect";
@@ -15,7 +16,7 @@ import { InputStorage } from "#storage.ts";
 import { submit } from "#submit.ts";
 export const Inputs = defineService({
 	id: "@antumbra/server-inputs/Inputs",
-	requires: [InputsHistory, InputDelivery, InputStorage, FileSystem.FileSystem],
+	requires: [ExecutionHistory, InputsHistory, InputDelivery, InputStorage, FileSystem.FileSystem],
 	initialize: initialize,
 	methods: (serial) => ({
 		submit: submit(serial),

@@ -54,6 +54,8 @@
 		"proper-lockfile": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"happy-dom": "catalog:"
+		"happy-dom": "catalog:",
+		"@shivaedev/quality": "catalog:",
+		"@effect/platform-node-shared": "catalog:"
 	}
 }

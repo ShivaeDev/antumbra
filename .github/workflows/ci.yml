@@ -178,7 +178,7 @@ jobs:
             electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
         with:
-          filter: '@antumbra/desktop...'
+          filter: "@antumbra/desktop..."
       - run: pnpm --filter @antumbra/desktop package
       - uses: actions/upload-artifact@v4
         with:

@@ -48,10 +48,10 @@ answer.
 A request declares two axes, and the two answer different questions.
 
 <!-- prettier-ignore -->
-| Axis | Values | Asks | Decides |
-| --- | --- | --- | --- |
-| **Radius** | `piece` · `voyage` · `fleet` | How widely will the answer apply once ruled? | Which authority level may answer. Above that level a captain may only add context. |
-| **Urgency** | `blocking` · `pressing` · `eventual` | How badly does the asker need the answer before continuing? | Whether the asker holds or keeps working. |
+| Axis        | Values                               | Asks                                                        | Decides                                                                            |
+| ----------- | ------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Radius**  | `piece` · `voyage` · `fleet`         | How widely will the answer apply once ruled?                | Which authority level may answer. Above that level a captain may only add context. |
+| **Urgency** | `blocking` · `pressing` · `eventual` | How badly does the asker need the answer before continuing? | Whether the asker holds or keeps working.                                          |
 
 `blocking` means the asker holds until ruled. `pressing` means the asker continues, and the Pieces the ruling gates wait for it. `eventual` means
 nothing waits; the decision is wanted someday. The two are independent: a ruling with the smallest radius may still block one agent from starting at

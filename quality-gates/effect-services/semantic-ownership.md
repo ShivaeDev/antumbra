@@ -33,17 +33,13 @@ claiming that every named relation exists in the current schema:
 ```ts
 // Good: Changes owns its storage and the meaning derived from it.
 export interface ChangeRead {
-	readonly heldResources: (
-		resources: ReadonlyArray<ResourceIdentity>,
-	) => Effect.Effect<ReadonlySet<string>, ChangeReadError>;
+	readonly heldResources: (resources: ReadonlyArray<ResourceIdentity>) => Effect.Effect<ReadonlySet<string>, ChangeReadError>;
 }
 
 const heldResources = (resources: ReadonlyArray<ResourceIdentity>) =>
 	Effect.gen(function* () {
 		const db = yield* Database;
-		const current = yield* db.Change
-			.where({ stage: "open", resourceId: { in: resources.map((resource) => resource.id) } })
-			.include("repo");
+		const current = yield* db.Change.where({ stage: "open", resourceId: { in: resources.map((resource) => resource.id) } }).include("repo");
 		return inferHeldResources(current, resources);
 	});
 

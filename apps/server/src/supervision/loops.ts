@@ -66,7 +66,8 @@ export const supervise = Effect.fn("Supervision.supervise")(function* <R>(loops:
 		const exit = yield* Effect.exit(open.pipe(Scope.provide(scope)));
 		if (Exit.isSuccess(exit)) {
 			running.set(name, { refresh: exit.value.refresh, scope });
-			return yield* Effect.forkIn(watching(name, scope, exit.value.await), lifetime);
+			yield* Effect.forkIn(watching(name, scope, exit.value.await), lifetime);
+			return;
 		}
 		yield* Scope.close(scope, Exit.void);
 		if (Cause.hasInterruptsOnly(exit.cause)) return;

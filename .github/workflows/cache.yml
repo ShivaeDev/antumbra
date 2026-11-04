@@ -27,7 +27,7 @@ jobs:
             filter: ""
             electron-paths: ~/.cache/electron
           - os: macos-latest
-            filter: '@antumbra/desktop...'
+            filter: "@antumbra/desktop..."
             electron-paths: |
               ~/Library/Caches/electron
               ~/Library/Caches/electron-builder

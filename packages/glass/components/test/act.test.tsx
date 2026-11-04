@@ -20,7 +20,7 @@ const INPUT = { id: "the-reef" };
 
 const acting = (answer: (input: Record<string, unknown>) => Effect.Effect<number, unknown>) => Object.assign(answer, { command: launch });
 
-describe.skip("command replacement awaiting the Platform action-state fix", () => {
+describe("command replacement awaiting the Platform action-state fix", () => {
 	it.glass("keeps a replaced action pending until completion", function* ({ render }) {
 		const answered = yield* Deferred.make<number, InstanceType<typeof launch.Rejection.Refused>>();
 		const sent: Record<string, unknown>[] = [];

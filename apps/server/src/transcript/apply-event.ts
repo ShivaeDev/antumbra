@@ -133,6 +133,7 @@ export const applyKnownEvent = (state: Derivation, event: AgentEvent, seq: numbe
 		case "raw":
 			showRaw(state, event, seq);
 			return;
+		default:
+			event satisfies never;
 	}
-	event satisfies never;
 };

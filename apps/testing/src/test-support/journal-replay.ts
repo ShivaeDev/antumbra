@@ -3,6 +3,7 @@ import { journalArtifacts, replayArtifactsFixture } from "@antumbra/server-journ
 import { journalBackends, replayBackendsFixture } from "@antumbra/server-journal/postgres/backends/fixture.ts";
 import { journalBoards, replayBoardsFixture } from "@antumbra/server-journal/postgres/boards/fixture.ts";
 import { journalChanges, replayChangesFixture } from "@antumbra/server-journal/postgres/changes/fixture.ts";
+import { journalExecution, replayExecutionFixture } from "@antumbra/server-journal/postgres/execution/fixture.ts";
 import { journalInputs, replayInputsFixture } from "@antumbra/server-journal/postgres/inputs/fixture.ts";
 import { journalMail, replayMailFixture } from "@antumbra/server-journal/postgres/mail/fixture.ts";
 import { journalPieces, replayPieceFixture } from "@antumbra/server-journal/postgres/pieces/fixture.ts";
@@ -43,7 +44,9 @@ export const replayJournal = Effect.fn("PostgresApp.replayJournal")(function* (j
 		yield* files.publish({ basename: artifact.basename, bytes: new TextEncoder().encode(content.markdown) });
 	}
 	yield* replayReportsFixture(yield* journalReports(filename));
-	yield* replayInputsFixture(yield* journalInputs(filename));
 	yield* replayChangesFixture(yield* journalChanges(filename));
-	return { ...snapshot, pieceSnapshot: pieces, mailSnapshot: mail };
+	const executionSnapshot = yield* journalExecution(filename);
+	yield* replayExecutionFixture(executionSnapshot);
+	yield* replayInputsFixture(yield* journalInputs(filename));
+	return { executionSnapshot, ...snapshot, pieceSnapshot: pieces, mailSnapshot: mail };
 });

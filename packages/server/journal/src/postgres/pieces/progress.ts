@@ -40,10 +40,10 @@ const projectVoyageProgress = Effect.fn("PieceHistory.projectVoyageProgress")(fu
 	const sql = yield* SqlClient.SqlClient;
 	const standing = yield* sql`select * from antumbra.voyage_progress`.pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageProgress))));
 	const contributions = yield* members();
-	const activities = yield* sql`select * from antumbra."change_context_voyageActivity"`.pipe(
+	const activities = yield* sql`select * from antumbra."voyageActivity"`.pipe(
 		Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageActivity))),
 	);
-	const captains = yield* sql`select * from antumbra.change_captain_work`.pipe(
+	const captains = yield* sql`select * from antumbra."voyageCaptainWork"`.pipe(
 		Effect.flatMap(Schema.decodeUnknownEffect(Schema.Array(VoyageCaptainWork))),
 	);
 	for (const current of standing) {

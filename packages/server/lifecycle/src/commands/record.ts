@@ -1,0 +1,6 @@
+import { record as command } from "@antumbra/domain-lifecycle/commands/record.ts";
+import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import { Effect } from "effect";
+export const record = Effect.fn("Lifecycle.record")(function* (input: typeof command.Input.Type) {
+	return yield* (yield* ExecutionHistory).commit(command, input);
+});

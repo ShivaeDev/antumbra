@@ -1,0 +1,33 @@
+{
+	"name": "@antumbra/server-holds",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"scripts": {
+		"test": "node ../../../script/test.ts",
+		"typecheck": "tsc --noEmit",
+		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"dependencies": {
+		"@antumbra/domain-holds": "workspace:*",
+		"@antumbra/server-journal": "workspace:*",
+		"@shivaedev/service": "catalog:",
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/changes": "catalog:",
+		"effect": "catalog:"
+	},
+	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"typescript": "catalog:",
+		"@antumbra/platform-vocabulary": "workspace:*"
+	}
+}

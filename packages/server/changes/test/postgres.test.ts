@@ -43,6 +43,7 @@ postgresApp.it(
 			"voyagePieceProgress",
 			`voyagePieceProgress:${voyageId}`,
 			"voyageProgress",
+			"captainReading",
 		]);
 		const observed = {
 			host: "github",

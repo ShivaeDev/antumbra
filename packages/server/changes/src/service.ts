@@ -1,4 +1,5 @@
 import { ChangesHistory } from "@antumbra/server-journal/postgres/changes/service.ts";
+import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { adopt } from "#commands/adopt.ts";
 import { archive } from "#commands/archive.ts";
@@ -30,7 +31,7 @@ import { watchable } from "#queries/watchable.ts";
 import { world } from "#queries/world.ts";
 export const Changes = defineService({
 	id: "@antumbra/server-changes/Changes",
-	requires: [ChangesHistory],
+	requires: [ChangesHistory, ExecutionHistory],
 	initialize: initialize,
 	methods: (serial) => ({
 		cleanupCandidates,

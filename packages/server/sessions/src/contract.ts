@@ -1,0 +1,97 @@
+import { charter as sourceCharter } from "@antumbra/domain-sessions/commands/charter.ts";
+import { request as sourceRequest } from "@antumbra/domain-sessions/commands/request.ts";
+import { retry as sourceRetry } from "@antumbra/domain-sessions/commands/retry.ts";
+import { stop as sourceStop } from "@antumbra/domain-sessions/commands/stop.ts";
+import { opening as sourceOpening } from "@antumbra/domain-sessions/queries/opening.ts";
+import { operations as sourceOperations } from "@antumbra/domain-sessions/queries/operations.ts";
+import { pending as sourcePending } from "@antumbra/domain-sessions/queries/pending.ts";
+import { forAgent as sourceForAgent, reading as sourceReading } from "@antumbra/domain-sessions/queries/reading.ts";
+import { toolCall as sourceToolCall } from "@antumbra/domain-sessions/queries/tool-call.ts";
+import { transcriptSources as sourceTranscriptSources } from "@antumbra/domain-sessions/queries/transcript.ts";
+import { tree as sourceTree } from "@antumbra/domain-sessions/queries/tree.ts";
+import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
+import { collection } from "@shivaedev/changes/keys.ts";
+import { contract } from "@shivaedev/contract/contract.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { Effect, Schema } from "effect";
+export const Request = command("request", {
+	payload: sourceRequest.Input,
+	success: Schema.Number,
+	rejections: { ...sourceRequest.Rejection, AlreadyDone },
+	invalidates: () => [],
+});
+export const Retry = command("retry", {
+	payload: sourceRetry.Input,
+	success: Schema.Number,
+	rejections: { ...sourceRetry.Rejection, AlreadyDone },
+	invalidates: () => [],
+});
+export const Charter = command("charter", {
+	payload: sourceCharter.Input,
+	success: Schema.Number,
+	rejections: { ...sourceCharter.Rejection, AlreadyDone },
+	invalidates: () => [],
+});
+export const Stop = command("stop", {
+	payload: sourceStop.Input,
+	success: Schema.Number,
+	rejections: { ...sourceStop.Rejection, AlreadyDone },
+	invalidates: () => [],
+});
+export const Operations = query("operations", {
+	payload: sourceOperations.input,
+	success: sourceOperations.output,
+	reads: () => [collection("sessionOperation", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const Opening = query("opening", {
+	payload: sourceOpening.input,
+	success: sourceOpening.output,
+	reads: () => [collection("sessionOpening", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const TranscriptSources = query("transcriptSources", {
+	payload: sourceTranscriptSources.input,
+	success: sourceTranscriptSources.output,
+	reads: () => [
+		collection("sessionEvent", Schema.String).list,
+		collection("session", Schema.String).list,
+		collection("sessionOpening", Schema.String).list,
+		collection("sessionOperation", Schema.String).list,
+	],
+	readPolicy: () => Effect.succeed(true),
+});
+export const ToolCall = query("toolCall", {
+	payload: sourceToolCall.input,
+	success: sourceToolCall.output,
+	reads: () => [collection("sessionToolCall", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const Reading = query("reading", {
+	payload: sourceReading.input,
+	success: sourceReading.output,
+	reads: () => [collection("session", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const Tree = query("tree", {
+	payload: sourceTree.input,
+	success: sourceTree.output,
+	reads: () => [collection("session", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const ForAgent = query("forAgent", {
+	payload: sourceForAgent.input,
+	success: sourceForAgent.output,
+	reads: () => [collection("session", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const Pending = query("pending", {
+	payload: sourcePending.input,
+	success: sourcePending.output,
+	reads: () => [collection("sessionOperation", Schema.String).list, collection("flag", Schema.String).list],
+	readPolicy: () => Effect.succeed(true),
+});
+export const SessionsContract = contract("sessions", {
+	commands: [Request, Retry, Charter, Stop],
+	queries: [Operations, Opening, TranscriptSources, ToolCall, Reading, Tree, ForAgent, Pending],
+});

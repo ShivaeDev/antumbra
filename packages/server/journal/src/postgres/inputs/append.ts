@@ -1,32 +1,36 @@
-import type { ReadHandles } from "@antumbra/platform-feature/handles.ts";
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import type { Request } from "@antumbra/platform-vocabulary/id.ts";
-import type { InputsEvent } from "@antumbra/platform-vocabulary/inputs-event.ts";
-import { Effect } from "effect";
-import type { backendCatalog } from "#postgres/backends/rows.ts";
-import type { History } from "#postgres/inputs/initialize.ts";
-import type { capacity, session, sessionInput, sessionOperation } from "#postgres/inputs/rows.ts";
-import { checkRequest as receipt } from "#postgres/receipt.ts";
-export const append = (history: History) =>
-	Effect.fn("InputsHistory.append")(function* (requestId: Request, events: readonly (typeof InputsEvent.Type)[]) {
-		const current = yield* history.store.read("inputs");
-		return yield* history.store
-			.append({ stream: "inputs", requestId, expectedVersion: current.at(-1)?.streamVersion ?? 0, events })
-			.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.fail(new AlreadyDone({ requestId: done.requestId, seq: done.streamVersion }))));
-	});
-export const read = (history: History) =>
-	Effect.fn("InputsHistory.read")(function* () {
-		return yield* history.store.read("inputs");
-	});
-export const rebuild = (history: History) =>
-	Effect.fn("InputsHistory.rebuild")(function* () {
-		yield* history.store.rebuild;
-	});
+import { InputsEvent } from "@antumbra/platform-vocabulary/inputs-event.ts";
+import { Effect, Schema } from "effect";
+import { backendCatalog } from "#postgres/backends/rows.ts";
+import { ExecutionHistory } from "#postgres/execution/service.ts";
+import { capacity, session, sessionInput, sessionOperation } from "#postgres/inputs/rows.ts";
 
-export const readRows = (history: History) =>
-	Effect.fn("InputsHistory.rows")(() =>
-		Effect.succeed<ReadHandles<readonly [typeof sessionInput, typeof session, typeof sessionOperation, typeof capacity, typeof backendCatalog]>>(
-			history.rows,
-		),
+export const append = Effect.fn("InputsHistory.append")(function* (requestId: Request, events: readonly (typeof InputsEvent.Type)[]) {
+	const history = yield* ExecutionHistory;
+	const current = yield* history.read();
+	let sequence = current.at(-1)?.value.sequence ?? 0;
+	const stamped = events.map((event) => ({ ...event, sequence: ++sequence }));
+	yield* history.append(requestId, stamped);
+	return sequence;
+});
+export const read = Effect.fn("InputsHistory.read")(function* () {
+	const history = yield* ExecutionHistory;
+	const events = (yield* history.read()).filter((event) =>
+		["InputRecorded", "InputDeliveryChanged", "InputDeliveryObserved", "InputRetried"].includes(event.value._tag),
 	);
-export const checkRequest = receipt("inputs");
+	return yield* Effect.forEach(events, (event) =>
+		Schema.decodeUnknownEffect(InputsEvent)(event.value).pipe(Effect.map((value) => ({ ...event, value }))),
+	);
+});
+export const checkRequest = Effect.fn("InputsHistory.checkRequest")(function* (requestId: Request) {
+	const history = yield* ExecutionHistory;
+	const done = (yield* history.read()).findLast((event) => event.requestId === requestId);
+	if (done !== undefined) return yield* Effect.fail(new AlreadyDone({ requestId, seq: done.value.sequence }));
+});
+export const readRows = Effect.fn("InputsHistory.rows")(function* () {
+	return yield* (yield* ExecutionHistory).rowsFor([sessionInput, session, sessionOperation, capacity, backendCatalog]);
+});
+export const rebuild = Effect.fn("InputsHistory.rebuild")(function* () {
+	yield* (yield* ExecutionHistory).rebuild();
+});

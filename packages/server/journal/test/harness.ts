@@ -1,4 +1,4 @@
-import { it as test } from "@effect/vitest";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { Effect, Latch, Layer, Queue, type Scope } from "effect";
 import { app } from "#app.ts";
 import { pieces } from "#example/feature.ts";
@@ -65,17 +65,23 @@ const layerOf = (roster: Roster["Service"]) =>
 
 type Services = Layer.Success<ReturnType<typeof layerOf>>;
 
+const create = Effect.fn("JournalStory.create")(function* () {
+	const double = yield* scripted;
+	const services = yield* Layer.build(layerOf(double.port));
+	const parts = yield* kit(definition).pipe(Effect.provideContext(services));
+	return { app: { ...parts, roster: double.roster }, services };
+});
+
+const journalStory = storyKit({
+	name: "Antumbra journal",
+	clock: "test",
+	stages: ["journal"],
+	create,
+	after: { journal: (engine) => engine.services },
+	verbs: (engine) => engine.app,
+});
+
 export const example = <Done>(
 	name: string,
 	body: (app: Example) => Generator<Effect.Effect<unknown, unknown, Services | Scope.Scope>, Done, never>,
-): void =>
-	test.effect(name, () =>
-		Effect.gen(function* () {
-			const double = yield* scripted;
-			const services = yield* Layer.build(layerOf(double.port));
-			return yield* Effect.gen(function* () {
-				const parts = yield* kit(definition);
-				return yield* Effect.gen(() => body({ ...parts, roster: double.roster }));
-			}).pipe(Effect.provide(services));
-		}).pipe(Effect.orDie),
-	);
+): void => journalStory.it(name, [], body);

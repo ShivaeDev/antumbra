@@ -3908,6 +3908,9 @@ importers:
       "@effect/vitest":
         specifier: "catalog:"
         version: 4.0.7(effect@4.0.7)(vitest@5.0.5)
+      "@shivaedev/test-story":
+        specifier: 0.39.2
+        version: 0.39.2(@effect/atom-react@4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(@effect/sql-pg@4.0.7(effect@4.0.7))(@effect/vitest@4.0.7(effect@4.0.7)(vitest@5.0.5))(effect@4.0.7)(happy-dom@21.0.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
       "@types/node":
         specifier: "catalog:"
         version: 24.10.1

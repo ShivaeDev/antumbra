@@ -25,7 +25,8 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@effect/platform-node": "catalog:"
+		"@effect/platform-node": "catalog:",
+		"@shivaedev/test-story": "catalog:"
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",

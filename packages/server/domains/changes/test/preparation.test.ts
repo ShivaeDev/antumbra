@@ -1,4 +1,5 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { postgresApp } from "@antumbra/app-testing/postgres.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { expect } from "vitest";
@@ -50,12 +51,12 @@ it.app("attaches host evidence only to the exact prepared branch and head", func
 	expect(yield* app.rows.change.count({})).toBe(1);
 });
 
-it.app("keeps a publication failure actionable and retries the same frozen proposal", function* (app) {
-	yield* app.api.voyages.open(opening);
-	yield* app.api.pieces.charter(chartering);
-	yield* app.api.repos.register(registration);
-	yield* app.api.agents.spawn(asking);
-	yield* app.api.changes.prepare(preparation);
+postgresApp.it("keeps a publication failure actionable and retries the same frozen proposal", [], function* ({ api }) {
+	yield* api["voyages.open"](opening);
+	yield* api["pieces.charter"](chartering);
+	yield* api["repos.register"](registration);
+	yield* api["agents.spawn"](asking);
+	yield* api["changes.prepare"](preparation);
 	const changeId = ChangeId.make(preparation.requestId);
 	const proposal = {
 		requestId: request("publish:first"),
@@ -66,29 +67,29 @@ it.app("keeps a publication failure actionable and retries the same frozen propo
 		draft: false,
 		at: new Date(2000).toISOString(),
 	};
-	yield* app.api.changes.freeze(proposal);
-	yield* app.api.changes.failPublication({
+	yield* api["changes.freeze"](proposal);
+	yield* api["changes.failPublication"]({
 		requestId: request("publication:failure"),
 		changeId,
 		attemptId: proposal.requestId,
 		message: "GitHub login required",
 	});
-	expect(yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed")).toEqual([]);
-	expect((yield* answered(app.api.changes.quay({}), "the quay to be listed"))[0]?.publicationError).toBe("GitHub login required");
-	yield* app.api.changes.freeze({ ...proposal, requestId: request("publish:retry"), title: "Later title", body: "Later body" });
-	expect((yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed"))[0]).toMatchObject({
+	expect(yield* api["changes.publishing"]({})).toEqual([]);
+	expect((yield* api["changes.quay"]({}))[0]?.publicationError).toBe("GitHub login required");
+	yield* api["changes.freeze"]({ ...proposal, requestId: request("publish:retry"), title: "Later title", body: "Later body" });
+	expect((yield* api["changes.publishing"]({}))[0]).toMatchObject({
 		title: "Frozen title",
 		body: "Frozen body",
 		publicationError: null,
 		preparedHeadSha: "sha-1",
 	});
-	yield* app.api.changes.failPublication({
+	yield* api["changes.failPublication"]({
 		requestId: request("publication:old-failure"),
 		changeId,
 		attemptId: proposal.requestId,
 		message: "Old attempt failed",
 	});
-	expect((yield* answered(app.api.changes.publishing({}), "the publishing queue to be listed"))[0]?.publicationError).toBeNull();
+	expect((yield* api["changes.publishing"]({}))[0]?.publicationError).toBeNull();
 });
 
 it.app("shows an adoption refusal and allows correcting its URL without losing the request", function* (app) {

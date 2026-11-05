@@ -7,13 +7,18 @@ import { watch } from "rolldown";
 import { fixtureBundle } from "#script/adapters/fixture/build.ts";
 import { fixtureEnvironment } from "#script/adapters/fixture/environment.ts";
 
-const Ready = Schema.fromJsonString(Schema.Struct({ port: Schema.Int }));
+const Ready = Schema.fromJsonString(Schema.Struct({ port: Schema.Int, token: Schema.String }));
 
-export const watchFixtureServer = async (directory: string, token: string) => {
+export const watchFixtureServer = async (directory: string) => {
 	const bundle = await fixtureBundle(directory);
 	const output = bundle.output.file;
+	let acceptOrigin: ((origin: string) => void) | undefined;
+	const rendererOrigin = new Promise<string>((resolve) => {
+		acceptOrigin = resolve;
+	});
 	let child: ChildProcess | undefined;
 	let port = 0;
+	let ownerToken = "";
 	let failure: string | undefined;
 	const observers = new Set<(failure: string | undefined) => void>();
 	const report = (message: string | undefined) => {
@@ -35,7 +40,7 @@ export const watchFixtureServer = async (directory: string, token: string) => {
 			process.execPath,
 			[output, "--data", join(directory, "server"), "--files", directory, "--logs", directory, "--port", String(port)],
 			{
-				env: fixtureEnvironment(token),
+				env: { ...fixtureEnvironment(), ANTUMBRA_RENDERER_ORIGIN: await rendererOrigin },
 				stdio: ["ignore", "pipe", "inherit"],
 			},
 		);
@@ -48,10 +53,10 @@ export const watchFixtureServer = async (directory: string, token: string) => {
 			});
 			if (running.stdout !== null) {
 				createInterface({ input: running.stdout }).on("line", (line) => {
-					process.stdout.write(`${line}\n`);
 					const ready = Schema.decodeUnknownResult(Ready)(line);
 					if (Result.isSuccess(ready)) {
 						port = ready.success.port;
+						ownerToken = ready.success.token;
 						report(undefined);
 						resolve();
 					}
@@ -84,7 +89,11 @@ export const watchFixtureServer = async (directory: string, token: string) => {
 		});
 	});
 	return {
+		setOrigin: (origin: string) => acceptOrigin?.(origin),
 		ready,
+		get token() {
+			return ownerToken;
+		},
 		get port() {
 			return port;
 		},

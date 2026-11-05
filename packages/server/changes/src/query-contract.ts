@@ -12,34 +12,41 @@ import { watchable } from "@antumbra/domain-changes/queries/watchable.ts";
 import { world } from "@antumbra/domain-changes/queries/world.ts";
 import { candidates } from "@antumbra/domain-reclamation/queries/candidates.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const ByPiece = stream("byPiece", {
+export const ByPiece = query("byPiece", {
+	readPolicy: signedIn,
 	payload: byPiece.input,
 	success: byPiece.output,
 	reads: () => [collection("pieceChangeView", Schema.String).list],
 });
-export const HostCapabilities = stream("hostCapabilities", {
+export const HostCapabilities = query("hostCapabilities", {
+	readPolicy: signedIn,
 	payload: hostCapabilities.input,
 	success: hostCapabilities.output,
 	reads: () => [collection("changeHostCapability", Schema.String).list],
 });
-export const Browse = stream("browse", {
+export const Browse = query("browse", {
+	readPolicy: signedIn,
 	payload: browse.input,
 	success: browse.output,
 	reads: () => [collection("quayChange", Schema.String).list, collection("repo", Schema.String).list],
 });
-export const SessionSituations = stream("sessionSituations", {
+export const SessionSituations = query("sessionSituations", {
+	readPolicy: signedIn,
 	payload: sessionSituations.input,
 	success: sessionSituations.output,
 	reads: () => [collection("sessionSituation", Schema.String).list],
 });
-export const Adoptions = stream("adoptions", {
+export const Adoptions = query("adoptions", {
+	readPolicy: signedIn,
 	payload: adoptions.input,
 	success: adoptions.output,
 	reads: () => [collection("changeAdoptionRequest", Schema.String).list],
 });
-export const World = stream("world", {
+export const World = query("world", {
+	readPolicy: signedIn,
 	payload: world.input,
 	success: world.output,
 	reads: () => [
@@ -49,37 +56,44 @@ export const World = stream("world", {
 		collection("berth", Schema.String).list,
 	],
 });
-export const Quay = stream("quay", {
+export const Quay = query("quay", {
+	readPolicy: signedIn,
 	payload: quay.input,
 	success: quay.output,
 	reads: () => [collection("quayChange", Schema.String).list],
 });
-export const All = stream("all", {
+export const All = query("all", {
+	readPolicy: signedIn,
 	payload: all.input,
 	success: all.output,
 	reads: () => [collection("change", Schema.String).list],
 });
-export const Links = stream("links", {
+export const Links = query("links", {
+	readPolicy: signedIn,
 	payload: links.input,
 	success: links.output,
 	reads: () => [collection("pieceChange", Schema.String).list],
 });
-export const Watchable = stream("watchable", {
+export const Watchable = query("watchable", {
+	readPolicy: signedIn,
 	payload: watchable.input,
 	success: watchable.output,
 	reads: () => [collection("change", Schema.String).list],
 });
-export const Publishing = stream("publishing", {
+export const Publishing = query("publishing", {
+	readPolicy: signedIn,
 	payload: publishing.input,
 	success: publishing.output,
 	reads: () => [collection("change", Schema.String).list],
 });
-export const Archivable = stream("archivable", {
+export const Archivable = query("archivable", {
+	readPolicy: signedIn,
 	payload: archivable.input,
 	success: archivable.output,
 	reads: () => [collection("change", Schema.String).list],
 });
-export const CleanupCandidates = stream("cleanupCandidates", {
+export const CleanupCandidates = query("cleanupCandidates", {
+	readPolicy: signedIn,
 	payload: candidates.input,
 	success: candidates.output,
 	reads: () => ["resourceOwner", "moorage", "berth", "heldResource"].map((name) => collection(name, Schema.String).list),

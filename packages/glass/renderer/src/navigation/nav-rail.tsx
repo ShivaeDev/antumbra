@@ -1,5 +1,5 @@
+import { Reconnecting } from "@antumbra/glass-client/connection.ts";
 import { reading } from "@antumbra/glass-client/live.tsx";
-import { Reconnecting } from "@antumbra/glass-client/reconnection.tsx";
 import type { VoyagesApi } from "@antumbra/glass-voyages/glass.ts";
 import type { ConsoleMode } from "@antumbra/platform-shell/windows.ts";
 import { useQuery } from "@shivaedev/react/client/resultState.ts";

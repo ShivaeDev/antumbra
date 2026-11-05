@@ -1,7 +1,8 @@
 import { expect, it } from "@effect/vitest";
-import { Deferred, Effect, Layer, Queue, Sink, Stream } from "effect";
+import { Deferred, Effect, Layer, Queue, Redacted, Sink, Stream } from "effect";
 import { type ChildProcess, ChildProcessSpawner } from "effect/process";
 import { vi } from "vitest";
+import { Postgres } from "#adapters/postgres.ts";
 import { RunnerProcess, RunnerProcessLayer } from "#adapters/runner-process.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import { ShellState } from "#adapters/shell-state.ts";
@@ -41,7 +42,9 @@ const spawns = Effect.gen(function* () {
 						pid: ChildProcessSpawner.ProcessId(1),
 						stderr: Stream.empty,
 						stdin: Sink.drain,
-						stdout: Stream.make(new TextEncoder().encode('{"port":49123}\n')),
+						stdout: Stream.make(
+							new TextEncoder().encode('{"port":49123,"token":"owner-token","runnerToken":"runner-token","socketPath":"/data/server/host.sock"}\n'),
+						),
 						unref: Effect.succeed(Effect.void),
 					}),
 				};
@@ -57,15 +60,16 @@ const spawns = Effect.gen(function* () {
 
 const siblings = (spawner: ChildProcessSpawner.ChildProcessSpawner["Service"], remembered: number[]) => {
 	const state = Layer.succeed(ShellState, {
-		identity: { port: 0, token: "token", runnerId: "runner-id", logId: "log-id" },
+		identity: { port: 0, runnerId: "runner-id", logId: "log-id" },
 		rememberPort: (port) =>
 			Effect.sync(() => {
 				remembered.push(port);
 			}),
 	});
-	const server = ServerProcessLive("/server.js", "/data/server", "/data");
+	const server = ServerProcessLive("/server.js", "/data/server", "/data", "antumbra://localhost");
 	return Layer.merge(server, RunnerProcessLayer("/runner.js", "/data").pipe(Layer.provide(server))).pipe(
 		Layer.provide(state),
+		Layer.provide(Layer.succeed(Postgres, { url: Redacted.make("postgres://localhost/antumbra") })),
 		Layer.provide(Layer.succeed(ChildProcessSpawner.ChildProcessSpawner, spawner)),
 	);
 };
@@ -89,7 +93,7 @@ it.effect("restarts the server on its chosen endpoint without replacing its sibl
 						"--assets",
 						"/",
 						"--server",
-						"ws://127.0.0.1:49123/rpc",
+						"ws+unix:///data/server/host.sock:/rpc",
 						"--runner-id",
 						"runner-id",
 						"--log-id",

@@ -1,7 +1,7 @@
+import type { Send } from "@antumbra/glass-client/api.ts";
 import { useCommand } from "@antumbra/glass-client/hooks.ts";
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
 import type { Values } from "@antumbra/platform-feature/fields.ts";
-import type { Send } from "@antumbra/platform-rpc/client.ts";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { ReactNode } from "react";
 import { ACT, ALERT, ROW } from "#classes.ts";

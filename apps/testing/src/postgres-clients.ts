@@ -34,6 +34,7 @@ import { SupervisionContract } from "@antumbra/server-supervision/contract.ts";
 import { VoyagesContract } from "@antumbra/server-voyages/contract.ts";
 import { Effect } from "effect";
 import { RpcTest } from "effect/rpc";
+
 export const postgresClients = Effect.fn("PostgresApp.clients")(function* () {
 	const api = yield* RpcTest.makeClient(VoyagesContract.application);
 	const history = yield* VoyageHistory;

@@ -1,26 +1,13 @@
-import { DevTraceLive } from "@antumbra/platform-trace-sink/layer.ts";
-import { Layer } from "effect";
+import { join } from "node:path";
+import { localTracing } from "@shivaedev/server/localTracing.ts";
+import { type Clock, Layer } from "effect";
 import { app } from "electron";
 import { configureDataDirectory } from "#adapters/shell.ts";
-import { version } from "#package.json";
 
-interface DevTracingInput {
-	readonly appVersion: string;
-	readonly dataDirectory: string;
-	readonly isPackaged: boolean;
-}
-
-export const selectDevTracing = (input: DevTracingInput): Layer.Layer<never> =>
+export const indexedAttributes = ["sessionId", "agentId", "intentId", "pieceId"];
+export const selectDevTracing = (input: { readonly dataDirectory: string; readonly isPackaged: boolean; readonly clock?: Clock.Clock }) =>
 	input.isPackaged
 		? Layer.empty
-		: DevTraceLive({
-				appVersion: input.appVersion,
-				dataDirectory: input.dataDirectory,
-			});
+		: localTracing({ path: join(input.dataDirectory, "traces.db"), indexedAttributes, ...(input.clock === undefined ? {} : { clock: input.clock }) });
 
-export const devTracing = (): Layer.Layer<never> =>
-	selectDevTracing({
-		appVersion: version,
-		dataDirectory: configureDataDirectory(),
-		isPackaged: app.isPackaged,
-	});
+export const devTracing = () => selectDevTracing({ dataDirectory: configureDataDirectory(), isPackaged: app.isPackaged });

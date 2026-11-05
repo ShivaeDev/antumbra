@@ -27,11 +27,13 @@
 	},
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",
 		"@shivaedev/react": "catalog:",
-		"@shivaedev/errors": "catalog:"
+		"@shivaedev/errors": "catalog:",
+		"@antumbra/platform-access": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@shivaedev/contract": "catalog:"
 	}
 }

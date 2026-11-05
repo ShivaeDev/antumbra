@@ -7,7 +7,8 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { voyageProgress } from "@antumbra/domain-voyages/rows/voyage-progress.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 
 const rows = collection("voyage", VoyageId);
@@ -33,16 +34,13 @@ export const Resume = command("resume", {
 	rejections: resume.Rejection,
 	invalidates: () => [rows.list],
 });
-export const ById = stream("byId", {
-	payload: { id: VoyageId },
-	success: Schema.NullOr(voyage.Row),
-	reads: () => [rows.list],
-});
-export const List = stream("list", { payload: {}, success: Schema.Array(voyage.Row), reads: () => [rows.list] });
-export const Progress = stream("progress", {
+export const ById = query("byId", { readPolicy: signedIn, payload: { id: VoyageId }, success: Schema.NullOr(voyage.Row), reads: () => [rows.list] });
+export const List = query("list", { readPolicy: signedIn, payload: {}, success: Schema.Array(voyage.Row), reads: () => [rows.list] });
+export const Progress = query("progress", {
+	readPolicy: signedIn,
 	payload: { id: VoyageId },
 	success: Schema.NullOr(voyageProgress.Row),
 	reads: () => [progressRows.list],
 });
 
-export const VoyagesContract = contract("voyages", { commands: [Open, SetFocus, Quiet, Resume], streams: [ById, List, Progress] });
+export const VoyagesContract = contract("voyages", { commands: [Open, SetFocus, Quiet, Resume], queries: [ById, List, Progress] });

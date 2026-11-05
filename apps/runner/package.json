@@ -24,7 +24,8 @@
 		"vitest": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
 		"@antumbra/domain-agents": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*",
+		"@shivaedev/test-story": "catalog:"
 	},
 	"dependencies": {
 		"effect": "catalog:",
@@ -34,7 +35,6 @@
 		"@antumbra/runner-ports": "workspace:*",
 		"@antumbra/runner-fabric": "workspace:*",
 		"@antumbra/runner-tools": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-skills": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/runner-backends-claude": "workspace:*",
@@ -44,6 +44,8 @@
 		"@anthropic-ai/claude-agent-sdk": "catalog:",
 		"@modelcontextprotocol/sdk": "catalog:",
 		"@earendil-works/pi-coding-agent": "catalog:",
-		"@effect/sql-sqlite-node": "catalog:"
+		"@effect/sql-sqlite-node": "catalog:",
+		"@shivaedev/contract": "catalog:",
+		"@antumbra/platform-access": "workspace:*"
 	}
 }

@@ -4,14 +4,7 @@ import type { BoundaryRule } from "#boundaries/model.ts";
 export const ownershipPolicy = [
 	fence("storage-owns-the-db")
 		.because("Database access exists only behind the server storage services. No feature code ever holds a raw DB handle.")
-		.forbidsImportsFrom(
-			workspaceExcept("server-storage").sanctioning({
-				package: "platform-trace-sink",
-				rationale:
-					"The dev trace sink records finished spans and log entries into a file of its own in the dev data directory, pruned to the most recent runs. What it writes is a debugging aid rather than durable truth, so it must never enter the app's schema, its migrations, or the write path domain work contends for, and a packaged run provides it no tracer at all. Its own file is the reason it holds its own handle.",
-				ruling: "dev trace sink",
-			}),
-		)
+		.forbidsImportsFrom(workspaceExcept("server-storage"))
 		.to(anyOf(modules.named("node:sqlite"), modules.under("@effect/sql-sqlite-node"), modules.under("effect/sql")))
 		.demonstratedBy({
 			illegal: importFrom(files.inPackage("server/domains/pieces", "src/commands/launch.ts")).to(

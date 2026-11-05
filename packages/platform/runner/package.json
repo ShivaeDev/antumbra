@@ -23,9 +23,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@shivaedev/contract": "catalog:"
+		"@shivaedev/contract": "catalog:",
+		"@antumbra/platform-access": "workspace:*"
 	}
 }

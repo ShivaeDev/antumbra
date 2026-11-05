@@ -4,22 +4,26 @@ import { forVoyage } from "@antumbra/domain-role-settings/queries/for-voyage.ts"
 import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Choose = command("choose", { payload: choose.Input, success: Schema.Number, rejections: choose.Rejection, invalidates: () => [] });
-export const Defaults = stream("defaults", {
+export const Defaults = query("defaults", {
+	readPolicy: signedIn,
 	payload: defaults.input,
 	success: defaults.output,
 	reads: () => [collection("roleSetting", Schema.String).list, collection("backendModel", Schema.String).list],
 });
-export const ForVoyage = stream("forVoyage", {
+export const ForVoyage = query("forVoyage", {
+	readPolicy: signedIn,
 	payload: forVoyage.input,
 	success: forVoyage.output,
 	reads: () => [collection("roleSetting", Schema.String).list, collection("backendModel", Schema.String).list],
 });
-export const Resolve = stream("resolve", {
+export const Resolve = query("resolve", {
+	readPolicy: signedIn,
 	payload: resolve.input,
 	success: resolve.output,
 	reads: () => [collection("roleSetting", Schema.String).list, collection("backendModel", Schema.String).list],
 });
-export const RoleSettingsContract = contract("roleSettings", { commands: [Choose], streams: [Defaults, ForVoyage, Resolve] });
+export const RoleSettingsContract = contract("roleSettings", { commands: [Choose], queries: [Defaults, ForVoyage, Resolve] });

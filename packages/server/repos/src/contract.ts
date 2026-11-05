@@ -5,7 +5,8 @@ import { byId } from "@antumbra/domain-repos/queries/by-id.ts";
 import { byIds } from "@antumbra/domain-repos/queries/by-ids.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Register = command("register", {
 	payload: register.Input,
@@ -14,19 +15,22 @@ export const Register = command("register", {
 	invalidates: () => [],
 });
 export const Forget = command("forget", { payload: forget.Input, success: Schema.Number, rejections: forget.Rejection, invalidates: () => [] });
-export const All = stream("all", {
+export const All = query("all", {
+	readPolicy: signedIn,
 	payload: all.input,
 	success: all.output,
 	reads: () => [collection("repo", Schema.String).list],
 });
-export const ById = stream("byId", {
+export const ById = query("byId", {
+	readPolicy: signedIn,
 	payload: byId.input,
 	success: byId.output,
 	reads: () => [collection("repo", Schema.String).list],
 });
-export const ByIds = stream("byIds", {
+export const ByIds = query("byIds", {
+	readPolicy: signedIn,
 	payload: byIds.input,
 	success: byIds.output,
 	reads: () => [collection("repo", Schema.String).list],
 });
-export const ReposContract = contract("repos", { commands: [Register, Forget], streams: [All, ById, ByIds] });
+export const ReposContract = contract("repos", { commands: [Register, Forget], queries: [All, ById, ByIds] });

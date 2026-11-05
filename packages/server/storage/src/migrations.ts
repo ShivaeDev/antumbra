@@ -1,4 +1,5 @@
 import { postgresMigration } from "@shivaedev/events/postgresMigration.ts";
+import { machineTokenMigration } from "@shivaedev/identity/server/adapters/machineTokenMigration.ts";
 import type { PostgresMigrationOptions } from "@shivaedev/sql/migrations.ts";
 import { Effect } from "effect";
 import { Migrator, SqlClient } from "effect/sql";
@@ -50,6 +51,7 @@ export const migrations = {
 		"20_lifecycle": lifecycle,
 		"21_supervision": supervision,
 		"22_execution": execution,
+		"23_machine_tokens": machineTokenMigration,
 	}),
 	lockTimeout: "5 seconds",
 } satisfies PostgresMigrationOptions<never>;

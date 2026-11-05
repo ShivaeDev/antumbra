@@ -1,9 +1,9 @@
+import type { Api } from "@antumbra/glass-client/api.ts";
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { AlreadyDone, RejectedBy } from "@antumbra/platform-feature/rejection.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
-import type { Api } from "@antumbra/platform-rpc/client.ts";
 import type { Request } from "@antumbra/platform-vocabulary/id.ts";
 import type { Records } from "@antumbra/server-storage/records.ts";
 import type { Effect, Schema } from "effect";

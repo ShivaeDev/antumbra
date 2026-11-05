@@ -1,15 +1,18 @@
-import { ClientToken, layerClient, ServerToken } from "@antumbra/platform-rpc/token.ts";
+import { Credential } from "@antumbra/platform-access/credential.ts";
 import { application } from "@antumbra/server/application.ts";
-import { Layer } from "effect";
+import { CurrentViewer } from "@shivaedev/contract/readPolicy.ts";
+import { Layer, Option } from "effect";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { layer as artifacts } from "#artifacts.ts";
 import { layer as files } from "#files.ts";
 import { layer as host } from "#host.ts";
+import { sessions } from "#identity.ts";
 
 export { definition } from "@antumbra/server/application.ts";
 
-const tokens = Layer.merge(Layer.succeed(ClientToken, { token: "test-token" }), Layer.succeed(ServerToken, { token: "test-token" }));
-
-export const layer = Layer.mergeAll(Layer.provideMerge(application, Layer.mergeAll(artifacts, files, host)), layerClient, AtomRegistry.layer).pipe(
-	Layer.provideMerge(tokens),
+export const ports = Layer.mergeAll(artifacts, files, host);
+export const layer = Layer.mergeAll(Layer.provideMerge(application, ports), AtomRegistry.layer).pipe(
+	Layer.provideMerge(sessions),
+	Layer.provideMerge(Layer.succeed(CurrentViewer, Option.some({ id: "admiral" }))),
+	Layer.provideMerge(Layer.succeed(Credential, { token: "test-token" })),
 );

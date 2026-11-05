@@ -12,7 +12,8 @@ import { tree as sourceTree } from "@antumbra/domain-sessions/queries/tree.ts";
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Request = command("request", {
 	payload: sourceRequest.Input,
@@ -38,17 +39,20 @@ export const Stop = command("stop", {
 	rejections: { ...sourceStop.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const Operations = stream("operations", {
+export const Operations = query("operations", {
+	readPolicy: signedIn,
 	payload: sourceOperations.input,
 	success: sourceOperations.output,
 	reads: () => [collection("sessionOperation", Schema.String).list],
 });
-export const Opening = stream("opening", {
+export const Opening = query("opening", {
+	readPolicy: signedIn,
 	payload: sourceOpening.input,
 	success: sourceOpening.output,
 	reads: () => [collection("sessionOpening", Schema.String).list],
 });
-export const TranscriptSources = stream("transcriptSources", {
+export const TranscriptSources = query("transcriptSources", {
+	readPolicy: signedIn,
 	payload: sourceTranscriptSources.input,
 	success: sourceTranscriptSources.output,
 	reads: () => [
@@ -58,32 +62,37 @@ export const TranscriptSources = stream("transcriptSources", {
 		collection("sessionOperation", Schema.String).list,
 	],
 });
-export const ToolCall = stream("toolCall", {
+export const ToolCall = query("toolCall", {
+	readPolicy: signedIn,
 	payload: sourceToolCall.input,
 	success: sourceToolCall.output,
 	reads: () => [collection("sessionToolCall", Schema.String).list],
 });
-export const Reading = stream("reading", {
+export const Reading = query("reading", {
+	readPolicy: signedIn,
 	payload: sourceReading.input,
 	success: sourceReading.output,
 	reads: () => [collection("session", Schema.String).list],
 });
-export const Tree = stream("tree", {
+export const Tree = query("tree", {
+	readPolicy: signedIn,
 	payload: sourceTree.input,
 	success: sourceTree.output,
 	reads: () => [collection("session", Schema.String).list],
 });
-export const ForAgent = stream("forAgent", {
+export const ForAgent = query("forAgent", {
+	readPolicy: signedIn,
 	payload: sourceForAgent.input,
 	success: sourceForAgent.output,
 	reads: () => [collection("session", Schema.String).list],
 });
-export const Pending = stream("pending", {
+export const Pending = query("pending", {
+	readPolicy: signedIn,
 	payload: sourcePending.input,
 	success: sourcePending.output,
 	reads: () => [collection("sessionOperation", Schema.String).list, collection("flag", Schema.String).list],
 });
 export const SessionsContract = contract("sessions", {
 	commands: [Request, Retry, Charter, Stop],
-	streams: [Operations, Opening, TranscriptSources, ToolCall, Reading, Tree, ForAgent, Pending],
+	queries: [Operations, Opening, TranscriptSources, ToolCall, Reading, Tree, ForAgent, Pending],
 });

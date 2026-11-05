@@ -1,36 +1,29 @@
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { expect, it } from "@effect/vitest";
-import { Effect } from "effect";
-import { selectDevTracing } from "#adapters/tracing.ts";
+import { expect } from "vitest";
+import { secret, tracing } from "#test/tracing-kit.ts";
 
-const TRACE_DATABASE = "traces.db";
+const correlatedLog = (traceId: string) =>
+	new RegExp(`"name":"effect.log","parentSpanId":"[^"]+","spanId":"[^"]+","startedAtMillis":\\d+,"status":"[^"]+","traceId":"${traceId}"`);
 
-const composed = (isPackaged: boolean) => {
-	const dataDirectory = mkdtempSync(join(tmpdir(), "antumbra-desktop-trace-"));
-	const traced = Effect.succeed("worked").pipe(Effect.withSpan("desktop.startOwner"));
-	const answer = Effect.runSync(
-		Effect.scoped(
-			Effect.provide(
-				traced,
-				selectDevTracing({
-					appVersion: "0.0.0-test",
-					dataDirectory,
-					isPackaged,
-				}),
-			),
-		),
-	);
-	const wrote = existsSync(join(dataDirectory, TRACE_DATABASE));
-	rmSync(dataDirectory, { force: true, recursive: true });
-	return { answer, wrote };
-};
-
-it("gives a packaged run no tracer and no trace database", () => {
-	expect(composed(true)).toEqual({ answer: "worked", wrote: false });
+tracing.it("flushes a real shell action and a server request with redacted correlated logs", [], function* ({ recordShell, host, story }) {
+	story.tell("remember the renderer endpoint in a traced shell scope");
+	const shell = yield* recordShell(false);
+	expect(shell.stored).toContain("ShellState.rememberPort");
+	expect(shell.stored).toContain("effect.log");
+	expect(shell.stored).toMatch(correlatedLog(shell.traceId));
+	expect(shell.stored).toContain("<redacted>");
+	expect(shell.stored).not.toContain(secret);
+	story.tell("record and close the server request scope");
+	const server = yield* host();
+	const traceId = yield* server.traceRequest;
+	yield* server.stop;
+	const stored = yield* server.traces;
+	expect(stored).toContain("settings.setCount");
+	expect(stored).toContain("effect.log");
+	expect(stored).toMatch(correlatedLog(traceId));
+	expect(stored).not.toContain(server.machineToken);
+	expect(stored).not.toContain(server.options.bearerToken);
 });
 
-it("gives a dev run a tracer that records into its data directory", () => {
-	expect(composed(false)).toEqual({ answer: "worked", wrote: true });
+tracing.it("does not create a trace store in a packaged shell", [], function* ({ recordShell }) {
+	expect((yield* recordShell(true)).stored).toBeUndefined();
 });

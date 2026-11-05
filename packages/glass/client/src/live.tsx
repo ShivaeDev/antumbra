@@ -1,12 +1,12 @@
+import { lostConnection, type Watch } from "@antumbra/glass-client/query.ts";
 import type { Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
-import { lostConnection, type Watch } from "@antumbra/platform-rpc/query.ts";
 import type { QueryState } from "@shivaedev/react/client/resultState.ts";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { ReactNode } from "react";
+import { RECONNECTING } from "#connection.ts";
 import { useLive } from "#hooks.ts";
-import { Holding, RECONNECTING, useHolding } from "#reconnection.tsx";
 
 const WAITING = "Reading…";
 
@@ -26,10 +26,10 @@ export const reading = <A,>(query: QueryState<A, unknown>, words: string, shown:
 	const { data: last, result } = query;
 	if (Option.isSome(last)) {
 		return (
-			<Holding held={lostConnection(result)}>
+			<>
 				{shown(last.value)}
 				{AsyncResult.isFailure(result) && !lostConnection(result) ? failed : null}
-			</Holding>
+			</>
 		);
 	}
 	if (AsyncResult.isFailure(result)) return lostConnection(result) ? reconnecting : failed;
@@ -40,8 +40,7 @@ export const useReading = <Query extends QueryShape, Failure>(
 	query: Watch<Query, Failure>,
 	input: Values<Query["input"]>,
 ): Query["output"]["Type"] | undefined => {
-	const { data: last, result } = useLive(query, input);
-	useHolding(Option.isSome(last) && lostConnection(result));
+	const { data: last } = useLive(query, input);
 	return Option.getOrUndefined(last);
 };
 

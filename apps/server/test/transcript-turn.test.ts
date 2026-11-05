@@ -2,7 +2,7 @@ import { eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect } from "effect";
 import * as RpcTest from "effect/rpc/RpcTest";
@@ -64,7 +64,7 @@ it.app("a turn's numbers stand once, beside the turn, and an allowed rate limit 
 		),
 	);
 	yield* runner.append(entries);
-	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Owner), { flatten: true });
 	const reading = yield* eventually(
 		rpc("sessions.transcript", { id: turnId }),
 		(held) => held.standing.rateLimit !== undefined,

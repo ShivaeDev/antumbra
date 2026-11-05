@@ -28,7 +28,6 @@
 	"dependencies": {
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@effect/atom-react": "catalog:",
 		"effect": "catalog:",
 		"react": "catalog:",

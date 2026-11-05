@@ -32,8 +32,8 @@ describe("tests-own-their-processes rule", () => {
 	});
 
 	it("keeps the spawner out of a nested test", () => {
-		expect(check("packages/platform/rpc/test/group.test.ts", importing("node:child_process"))).toEqual([
-			"@antumbra/platform-rpc tests may not spawn: node:child_process; only a package under apps/ runs children.",
+		expect(check("packages/platform/access/test/group.test.ts", importing("node:child_process"))).toEqual([
+			"@antumbra/platform-access tests may not spawn: node:child_process; only a package under apps/ runs children.",
 		]);
 	});
 

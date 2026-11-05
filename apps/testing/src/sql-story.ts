@@ -5,7 +5,7 @@ import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { Fields, Values } from "@antumbra/platform-feature/fields.ts";
 import type { QueryDefinition } from "@antumbra/platform-feature/query.ts";
 import type { RowShape } from "@antumbra/platform-feature/row.ts";
-import { group, tagOf } from "@antumbra/platform-rpc/group.ts";
+import { group, tagOf } from "@antumbra/platform-feature/rpc.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { keysOf } from "@antumbra/server/keys.ts";
 import { Records } from "@antumbra/server-storage/records.ts";

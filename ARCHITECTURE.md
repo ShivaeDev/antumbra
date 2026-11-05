@@ -6,25 +6,35 @@ binding product axioms, and [intended work](docs/design/intended.md) records con
 
 ## Process model
 
-The shell in `apps/desktop` selects the data directory, takes Electron's single-instance lock, starts and supervises the server and runner, and owns
-native menus, tray, windows, links, and requested restart. Repeat launches reach the existing shell for that directory. Window roles, arrangement, and
-drafts are shell state; losing a window does not lose domain work. Preload exposes the narrow shell bridge from `packages/platform/shell`.
+The shell in `apps/desktop` selects the data directory, takes Electron's single-instance lock, starts PostgreSQL and applies numbered migrations
+before it starts and supervises the server and runner, and owns native menus, tray, windows, links, and requested restart. Repeat launches reach the
+existing shell for that directory. Window roles, arrangement, and drafts are shell state; losing a window does not lose domain work. Preload exposes
+the narrow shell bridge from `packages/platform/shell`.
 
-The server in `apps/server` owns app-managed PostgreSQL, command execution, projected rows, live queries, and reconciliation. Its application
-definition assembles domain services and projection stages; its runtime supervises domain reconcilers, Session operations, capacity release, resource
-reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. Each runs as a named loop in its own scope: a defect stops that
-one loop, records it as a `LoopFailed` fact, and leaves the process, the RPC surface, and every other loop running. App Layers supply filesystem
-custody, GitHub processes, and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner
-transport.
+The server in `apps/server` connects to the shell-owned PostgreSQL and owns command execution, projected rows, live queries, and reconciliation. Its
+application definition assembles domain services and projection stages; its runtime supervises domain reconcilers, Session operations, capacity
+release, resource reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. Each runs as a named loop in its own scope: a
+defect stops that one loop, records it as a `LoopFailed` fact, and leaves the process, the RPC surface, and every other loop running. App Layers
+supply filesystem custody, GitHub processes, and runner connections. Platform's `appHost` serves native Effect RPC over a Unix socket under
+`server/host.sock` and an explicit loopback TCP port. Both listeners share the application services, Reactivity, LiveServer and one PostgreSQL pool.
+The readiness handshake gives the shell the socket, renderer port and local credentials. The runner and shell use the socket; the renderer uses TCP.
+
+Identity's `localOwner` supplies the admiral. The application declares its Origin policy with `trustedOrigins`; the host enforces local transport
+admission. The renderer uses its dev HTTP origin or the packaged `antumbra://localhost` origin. Owner permission protects application operations. The
+runner receives a separate PostgreSQL-backed machine credential whose role grants runner execution only. Its plaintext credential remains in the
+application data directory with owner-only file permissions; identity stores only its digest. The numbered machine-token migration and stable owner
+preserve this credential across host restart. The shell reloads windows and rebinds its tray reading when a restarted host announces its new owner
+credential.
 
 The runner in `apps/runner` owns provider processes, live attachments, tool forwarding, Git work, and its durable event log. Its entry assembles the
 Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuration remain adapter concerns. Restarting a server does not transfer
 provider ownership into it: the runner reconnects and sends entries after the server's committed log cursor.
 
 Glass packages provide the web UI. They read server projections through live RPC queries and invoke declared commands; they do not reconstruct domain
-truth from independent client caches. A screen is a narrow live query that the server re-pushes when a fact changes what that screen shows, which is
-why the glass holds no truth of its own and a window that dies costs nothing. Transcript reads are sequenced. Native actions go through the shell
-bridge. Reloading a window has no effect on an Agent or its runner attachment.
+truth from independent client caches. Ordinary readings are contract queries. Their declared collection keys connect committed SQL changes to the
+host's live delivery, including every dependency of a multi-table read. Glass uses the published contract binding and React connection status;
+resubscription rereads current values without retained event history. The glass holds no truth of its own and a window that dies costs nothing.
+Transcript reads are sequenced. Native actions go through the shell bridge. Reloading a window has no effect on an Agent or its runner attachment.
 
 ## Ownership
 
@@ -59,8 +69,8 @@ use runner ports and platform. App composition roots supply machine services and
 
 Every package exports explicit source subpaths through `{ "./*": "./src/*" }`; imports name the real file and extension. Runtime code uses Effect
 services and Layers, typed failures, and Schema decoding at boundaries. A package does not hide a forbidden dependency behind an alias or a wrapper.
-Node, network, filesystem, and child-process implementations live in apps, apart from the runner log and dev trace sink. Legacy SQLite access belongs
-to fixture-only app adapters.
+Node, network, filesystem, and child-process implementations live in apps, apart from the runner log. Legacy SQLite access belongs to fixture-only app
+adapters.
 
 A feature declares its rows, facts, commands, and queries with the platform feature vocabulary. App assembly registers those declarations and the
 ordered derived projection stages. Neighbor-owned contribution rows express the evidence a feature needs without a reverse service dependency; for
@@ -71,8 +81,8 @@ exercise production composition; production code never imports it.
 
 ## Durable truth and committed changes
 
-The server starts an app-owned PostgreSQL cluster under `server/postgres` in its application data directory. The cluster listens on a private Unix
-socket and has no TCP listener. `PostgresBinaries` supplies installed binaries through `hostPostgresBinaries`; `ANTUMBRA_POSTGRES_BIN_DIRECTORY`
+The shell starts an app-owned PostgreSQL cluster under `server/postgres` in its application data directory. The database cluster listens on a private
+Unix socket and has no TCP listener. `PostgresBinaries` supplies installed binaries through `hostPostgresBinaries`; `ANTUMBRA_POSTGRES_BIN_DIRECTORY`
 selects an installed binary directory. PostgreSQL 18 or later is required. Missing or incompatible binaries stop startup with a typed error.
 `migrateAppPostgres` takes a backup before applying current SQL migrations and keeps three backups.
 
@@ -134,3 +144,9 @@ tests own process, filesystem, provider, and transport integration. Pure schema 
 
 Run `pnpm ready` for the repository gates. The [quality routes](quality-gates/README.md) cover judgments that an import graph or passing test cannot
 make.
+
+## Local development traces
+
+The shell composes `localTracing` from `@shivaedev/server`, and the host records locally in development without an OTLP endpoint. Their stores are
+`traces.db` and `server-traces.db` in the app data directory. Both index `sessionId`, `agentId`, `intentId` and `pieceId`, use Platform's diagnostic
+redaction and flush when their scopes close. Server recording also uses the host's schema sensitivity policy. The runner has no recording layer.

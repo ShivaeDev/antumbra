@@ -30,7 +30,7 @@ import { Admitted, BirthBySession, Births, Dispatch, Pending, PendingOperations,
 import { contract } from "@shivaedev/contract/contract.ts";
 export const AgentsContract = contract("agents", {
 	commands: [RetireCrew, Retire, Spawn, Hail, WorkNow, Request, Admit, Hold, Delay, Cancel, Retry, Smooth],
-	streams: [
+	queries: [
 		CanRetireCrew,
 		Smoother,
 		CaptainReading,

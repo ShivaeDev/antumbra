@@ -11,9 +11,11 @@ import { reading as sourceReading } from "@antumbra/domain-agents/queries/readin
 import { roster as sourceRoster } from "@antumbra/domain-agents/queries/roster.ts";
 import { smoother as sourceSmoother } from "@antumbra/domain-agents/queries/smoother.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const CanRetireCrew = stream("canRetireCrew", {
+export const CanRetireCrew = query("canRetireCrew", {
+	readPolicy: signedIn,
 	payload: sourceCanRetireCrew.input,
 	success: sourceCanRetireCrew.output,
 	reads: () => [
@@ -23,52 +25,62 @@ export const CanRetireCrew = stream("canRetireCrew", {
 		collection("session", Schema.String).list,
 	],
 });
-export const Smoother = stream("smoother", {
+export const Smoother = query("smoother", {
+	readPolicy: signedIn,
 	payload: sourceSmoother.input,
 	success: sourceSmoother.output,
 	reads: () => [collection("agent", Schema.String).list, collection("voyageAgent", Schema.String).list],
 });
-export const CaptainReading = stream("captainReading", {
+export const CaptainReading = query("captainReading", {
+	readPolicy: signedIn,
 	payload: sourceCaptainReading.input,
 	success: sourceCaptainReading.output,
 	reads: () => [collection("captainReading", Schema.String).list],
 });
-export const ByVoyage = stream("byVoyage", {
+export const ByVoyage = query("byVoyage", {
+	readPolicy: signedIn,
 	payload: sourceByVoyage.input,
 	success: sourceByVoyage.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const ByPiece = stream("byPiece", {
+export const ByPiece = query("byPiece", {
+	readPolicy: signedIn,
 	payload: sourceByPiece.input,
 	success: sourceByPiece.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const Roster = stream("roster", {
+export const Roster = query("roster", {
+	readPolicy: signedIn,
 	payload: sourceRoster.input,
 	success: sourceRoster.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const Reading = stream("reading", {
+export const Reading = query("reading", {
+	readPolicy: signedIn,
 	payload: sourceReading.input,
 	success: sourceReading.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const BySession = stream("bySession", {
+export const BySession = query("bySession", {
+	readPolicy: signedIn,
 	payload: sourceBySession.input,
 	success: sourceBySession.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const All = stream("all", {
+export const All = query("all", {
+	readPolicy: signedIn,
 	payload: sourceAll.input,
 	success: sourceAll.output,
 	reads: () => [collection("agent", Schema.String).list],
 });
-export const ById = stream("byId", {
+export const ById = query("byId", {
+	readPolicy: signedIn,
 	payload: sourceById.input,
 	success: sourceById.output,
 	reads: () => [collection("agent", Schema.String).list],
 });
-export const Captain = stream("captain", {
+export const Captain = query("captain", {
+	readPolicy: signedIn,
 	payload: sourceCaptain.input,
 	success: sourceCaptain.output,
 	reads: () => [
@@ -78,7 +90,8 @@ export const Captain = stream("captain", {
 		collection("session", Schema.String).list,
 	],
 });
-export const Authority = stream("authority", {
+export const Authority = query("authority", {
+	readPolicy: signedIn,
 	payload: sourceAuthority.input,
 	success: sourceAuthority.output,
 	reads: () => [collection("voyageAgent", Schema.String).list, collection("voyage", Schema.String).list],

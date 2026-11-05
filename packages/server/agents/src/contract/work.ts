@@ -7,9 +7,11 @@ import { pendingOperations as sourcePendingOperations } from "@antumbra/domain-a
 import { rest as sourceRest } from "@antumbra/domain-agents/queries/rest.ts";
 import { workingCount as sourceWorkingCount } from "@antumbra/domain-agents/queries/working-count.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const Rest = stream("rest", {
+export const Rest = query("rest", {
+	readPolicy: signedIn,
 	payload: sourceRest.input,
 	success: sourceRest.output,
 	reads: () => [
@@ -20,22 +22,26 @@ export const Rest = stream("rest", {
 		collection("flag", Schema.String).list,
 	],
 });
-export const WorkingCount = stream("workingCount", {
+export const WorkingCount = query("workingCount", {
+	readPolicy: signedIn,
 	payload: sourceWorkingCount.input,
 	success: sourceWorkingCount.output,
 	reads: () => [collection("agentReading", Schema.String).list],
 });
-export const Births = stream("births", {
+export const Births = query("births", {
+	readPolicy: signedIn,
 	payload: sourceBirths.input,
 	success: sourceBirths.output,
 	reads: () => [collection("birth", Schema.String).list],
 });
-export const BirthBySession = stream("birthBySession", {
+export const BirthBySession = query("birthBySession", {
+	readPolicy: signedIn,
 	payload: sourceBirthBySession.input,
 	success: sourceBirthBySession.output,
 	reads: () => [collection("birth", Schema.String).list],
 });
-export const Dispatch = stream("dispatch", {
+export const Dispatch = query("dispatch", {
+	readPolicy: signedIn,
 	payload: sourceDispatch.input,
 	success: sourceDispatch.output,
 	reads: () => [
@@ -50,7 +56,8 @@ export const Dispatch = stream("dispatch", {
 		collection("flag", Schema.String).list,
 	],
 });
-export const Pending = stream("pending", {
+export const Pending = query("pending", {
+	readPolicy: signedIn,
 	payload: sourcePending.input,
 	success: sourcePending.output,
 	reads: () => [
@@ -67,7 +74,8 @@ export const Pending = stream("pending", {
 		collection("voyage", Schema.String).list,
 	],
 });
-export const PendingOperations = stream("pendingOperations", {
+export const PendingOperations = query("pendingOperations", {
+	readPolicy: signedIn,
 	payload: sourcePendingOperations.input,
 	success: sourcePendingOperations.output,
 	reads: () => [
@@ -78,7 +86,8 @@ export const PendingOperations = stream("pendingOperations", {
 		collection("voyage", Schema.String).list,
 	],
 });
-export const Admitted = stream("admitted", {
+export const Admitted = query("admitted", {
+	readPolicy: signedIn,
 	payload: sourceAdmitted.input,
 	success: sourceAdmitted.output,
 	reads: () => [collection("birth", Schema.String).list, collection("sessionOpening", Schema.String).list, collection("voyage", Schema.String).list],

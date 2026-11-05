@@ -1,6 +1,6 @@
-import { DebugRpc } from "@antumbra/platform-rpc/debug.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
+import { DebugRpc } from "@antumbra/platform-feature/debug.ts";
 import { Effect } from "effect";
 import * as RpcClient from "effect/rpc/RpcClient";
 
-export const debugClient = Effect.map(RpcClient.make(DebugRpc.middleware(Token)), (client) => client["debug.rebuildProjections"]());
+export const debugClient = Effect.map(RpcClient.make(DebugRpc.middleware(Owner)), (client) => client["debug.rebuildProjections"]());

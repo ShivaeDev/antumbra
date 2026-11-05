@@ -16,7 +16,8 @@ import { support } from "@antumbra/domain-inputs/queries/support.ts";
 import { Draft, Image, ImageRequest, Receipt } from "@antumbra/platform-vocabulary/inputs.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Effect, Schema } from "effect";
 export const Record = command("record", { payload: record.Input, success: Schema.Number, rejections: record.Rejection, invalidates: () => [] });
 export const Delivery = command("delivery", {
@@ -26,22 +27,26 @@ export const Delivery = command("delivery", {
 	invalidates: () => [],
 });
 export const Retry = command("retry", { payload: retry.Input, success: Schema.Number, rejections: retry.Rejection, invalidates: () => [] });
-export const Reading = stream("reading", {
+export const Reading = query("reading", {
+	readPolicy: signedIn,
 	payload: reading.input,
 	success: reading.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "sessionInput", field: "sessionId", value: input.sessionId }],
 });
-export const Pending = stream("pending", {
+export const Pending = query("pending", {
+	readPolicy: signedIn,
 	payload: pending.input,
 	success: pending.output,
 	reads: () => [collection("sessionInput", Schema.String).list],
 });
-export const DeliveryReading = stream("deliveryReading", {
+export const DeliveryReading = query("deliveryReading", {
+	readPolicy: signedIn,
 	payload: deliveryReading.input,
 	success: deliveryReading.output,
 	reads: () => [collection("sessionInput", Schema.String).list, collection("sessionOperation", Schema.String).list],
 });
-export const Support = stream("support", {
+export const Support = query("support", {
+	readPolicy: signedIn,
 	payload: support.input,
 	success: support.output,
 	reads: () => [collection("session", Schema.String).list, collection("backendCatalog", Schema.String).list],
@@ -61,6 +66,5 @@ export const ReadImage = query("image", {
 });
 export const InputsContract = contract("inputs", {
 	commands: [Record, Delivery, Retry, Submit],
-	streams: [Reading, Pending, DeliveryReading, Support],
-	queries: [ReadImage],
+	queries: [Reading, Pending, DeliveryReading, Support, ReadImage],
 });

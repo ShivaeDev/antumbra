@@ -49,7 +49,8 @@
 		"react-dom": "catalog:",
 		"@antumbra/runner": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@electron/asar": "catalog:"
+		"@electron/asar": "catalog:",
+		"@shivaedev/test-story": "catalog:"
 	},
 	"dependencies": {
 		"@shivaedev/form": "catalog:",
@@ -59,12 +60,16 @@
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-renderer": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/platform-shell": "workspace:*",
-		"@antumbra/platform-trace-sink": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/server": "workspace:*",
-		"@effect/platform-node": "catalog:"
+		"@effect/platform-node": "catalog:",
+		"@shivaedev/server": "catalog:",
+		"@antumbra/platform-access": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server-agents": "workspace:*",
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/react": "catalog:"
 	}
 }

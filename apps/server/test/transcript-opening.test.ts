@@ -4,8 +4,8 @@ import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
 import { smootherWords } from "@antumbra/platform-prompts/smoother.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
 import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
@@ -87,7 +87,7 @@ const smoothing = Effect.fn("transcript.smoothing")(function* (api: App["api"], 
 });
 
 const reading = Effect.fn("transcript.reading")(function* () {
-	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Owner), { flatten: true });
 	return yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
 });
 

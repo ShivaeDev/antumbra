@@ -47,8 +47,8 @@
 		"@antumbra/domain-changes": "workspace:*",
 		"@antumbra/domain-inputs": "workspace:*",
 		"@antumbra/glass-changes": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",
-		"@shivaedev/react": "catalog:"
+		"@shivaedev/react": "catalog:",
+		"@antumbra/platform-access": "workspace:*"
 	}
 }

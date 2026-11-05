@@ -1,4 +1,4 @@
-import { storage } from "@antumbra/server/storage.ts";
+import { ownedStorage } from "@antumbra/server/storage.ts";
 import { NodeServices } from "@effect/platform-node";
 import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { ConfigProvider, Effect, Exit, FileSystem, Layer, Path, Scope } from "effect";
@@ -14,7 +14,7 @@ const create = Effect.fn("RuntimeStory.create")(function* () {
 	const boot = (binaries?: string) =>
 		Effect.gen(function* () {
 			const scope = yield* Scope.fork(lifetime);
-			const database = storage(directory);
+			const database = ownedStorage(directory);
 			const configured =
 				binaries === undefined
 					? database

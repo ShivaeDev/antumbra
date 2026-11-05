@@ -1,10 +1,11 @@
 import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
 import { InputsRpc } from "@antumbra/domain-inputs/commands/submit.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { DebugRpc } from "@antumbra/platform-rpc/debug.ts";
-import { group } from "@antumbra/platform-rpc/group.ts";
-import { layerServer, Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
+import { DebugRpc } from "@antumbra/platform-feature/debug.ts";
+import { group } from "@antumbra/platform-feature/rpc.ts";
 import { InputStorage } from "@antumbra/server-inputs/storage.ts";
+import { permissionLayer } from "@shivaedev/identity/server/permissions.ts";
 import { Effect, Layer, Path } from "effect";
 import { artifactContentHandlers } from "#adapters/artifacts/content-layer.ts";
 import { localInputDelivery } from "#adapters/inputs/local-delivery.ts";
@@ -16,10 +17,10 @@ import { services } from "#services.ts";
 import { transcriptLayer } from "#transcript/route.ts";
 
 export const fixtureRpc = group(features).merge(
-	DebugRpc.middleware(Token),
-	artifactContent.middleware(Token),
-	InputsRpc.middleware(Token),
-	TranscriptRpc.middleware(Token),
+	DebugRpc.middleware(Owner),
+	artifactContent.middleware(Owner),
+	InputsRpc.middleware(Owner),
+	TranscriptRpc.middleware(Owner),
 );
 
 const inputs = Layer.unwrap(
@@ -30,6 +31,6 @@ const inputs = Layer.unwrap(
 	}),
 );
 
-export const fixtureApplication = Layer.mergeAll(layerServer, debugHandlers, handlers, artifactContentHandlers, transcriptLayer).pipe(
+export const fixtureApplication = Layer.mergeAll(permissionLayer(Owner), debugHandlers, handlers, artifactContentHandlers, transcriptLayer).pipe(
 	Layer.provideMerge(localInputDelivery.pipe(Layer.provideMerge(services.pipe(Layer.provideMerge(inputs))))),
 );

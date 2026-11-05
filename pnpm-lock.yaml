@@ -2499,9 +2499,6 @@ importers:
 
   packages/platform/vocabulary:
     dependencies:
-      "@antumbra/platform-vocabulary":
-        specifier: workspace:*
-        version: "link:"
       effect:
         specifier: "catalog:"
         version: 4.0.7

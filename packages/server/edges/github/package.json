@@ -25,6 +25,7 @@
 		"@shivaedev/test-story": "catalog:"
 	},
 	"dependencies": {
+		"@zip.js/zip.js": "catalog:",
 		"@antumbra/platform-change-host": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",

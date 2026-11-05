@@ -9,29 +9,15 @@ A place to stand for the long view.
 
 ## Status
 
-Early development; there are no releases yet. The desktop app runs from source: `pnpm setup`, then `pnpm --filter @antumbra/desktop dev`. The Electron
-shell starts a separate server and runner; its windows read the server over Effect RPC. In development it also logs a `browser:` line; open that
-address in an ordinary browser tab to run the same window against the running server. CI packages a macOS build with
-`pnpm --filter @antumbra/desktop package`.
+Early development; there are no releases yet. The desktop app runs from source: `pnpm setup` is the idempotent frozen install. It prepares
+dependencies without build, lint, typecheck or test gates and preserves local settings and data. Assets, main/preload bundles, and the
+installed-version Electron binary are prepared by the development command. Electron 43 installs its binary on demand; dependency installation alone
+does not download it.
 
-## Development setup
-
-Use Node 26.10.0 and pnpm 12.8.1. The root `packageManager` includes the registry integrity hash, and `.node-version` records the runtime. CI uses
-these same pins.
-
-The package Node requirement is `>=24`, so deployment hosts such as Vercel can use Node 24. Local development and CI use the pinned Node 26.10.0
-runtime.
-
-```sh
-corepack enable
-pnpm install --frozen-lockfile
-pnpm --filter @antumbra/desktop dev
-```
-
-`pnpm setup` is the idempotent frozen install. It prepares dependencies without build, lint, typecheck or test gates and preserves local settings and
-journals. Assets, main/preload bundles, and the installed-version Electron binary are prepared by the development command. Electron 43 installs its
-binary on demand; dependency installation alone does not download it. Antumbra persists its journals in SQLite; local setup needs no PostgreSQL
-database.
+Install PostgreSQL 18 or later server and client binaries before starting the app. Set `ANTUMBRA_POSTGRES_BIN_DIRECTORY` to their directory when it is
+outside `PATH` and the directory reported by `pg_config --bindir`. Antumbra owns its PostgreSQL cluster and listens on a private Unix socket. No
+shared PostgreSQL service is needed. Development starts empty under `Antumbra-SQL-Dev`; an `ANTUMBRA_DEV_USER_DATA` override names its parent
+directory. The packaged app uses `Antumbra-SQL`. Legacy journal data is used only by fixture tooling.
 
 The renderer uses `ANTUMBRA_RENDERER_PORT` (5183). The optional UI harness uses `ANTUMBRA_HARNESS_PORT` (5184): `pnpm --filter @antumbra/harness dev`.
 Both Vite servers require their configured port instead of falling back to another project’s server. The desktop launches its server on a dynamically
@@ -60,7 +46,8 @@ tests use its installed Vitest environment.
 - [Design guides](docs/design/README.md) — the relationships, acts, and rationale behind that language.
 - [Branding](docs/branding.md) — the wordmark, the dark palette, the type scale, and the copy register.
 
-- [Dev journal](docs/contributing/dev-journal.md) — the durable fact store, its commands, and when a reset is the right move.
+- [PostgreSQL storage](ARCHITECTURE.md#durable-truth-and-committed-changes) — the durable fact store, its commands, and when a reset is the right
+  move.
 - [Dev tracing](docs/contributing/dev-tracing.md) — the trace database, what it records, and the queries to start from.
 - [Running tests](docs/contributing/tests.md) — test commands and local worktree coordination.
 

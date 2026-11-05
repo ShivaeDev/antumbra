@@ -4,8 +4,8 @@ import { pending as sourcePending } from "@antumbra/domain-lifecycle/queries/pen
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Record = command("record", {
 	payload: sourceRecord.Input,
 	success: Schema.Number,
@@ -18,10 +18,9 @@ export const Clear = command("clear", {
 	rejections: { ...sourceClear.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const Pending = query("pending", {
+export const Pending = stream("pending", {
 	payload: sourcePending.input,
 	success: sourcePending.output,
 	reads: () => [collection("restart", Schema.String).list, collection("flag", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const LifecycleContract = contract("lifecycle", { commands: [Record, Clear], queries: [Pending] });
+export const LifecycleContract = contract("lifecycle", { commands: [Record, Clear], streams: [Pending] });

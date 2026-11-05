@@ -1,6 +1,7 @@
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { Effect, Exit, Fiber } from "effect";
 import { expect } from "vitest";
+import { answered } from "#answers.ts";
 import { postgresApp } from "#postgres.ts";
 import { entry, provider, raw, started } from "#test-support/execution-data.ts";
 
@@ -15,7 +16,7 @@ postgresApp.it(
 		const repeat = yield* appendRunner(log, entries).pipe(Effect.forkScoped);
 		expect(yield* first.blocked()).not.toHaveLength(0);
 		expect(yield* executionHistory.cursor(log)).toBe(-1);
-		expect(yield* api["sessions.reading"]({ id: SessionId.make("root") })).toBeNull();
+		expect(yield* answered(api["sessions.reading"]({ id: SessionId.make("root") }), "sessions.reading")).toBeNull();
 		expect(yield* published()).toEqual([]);
 		yield* first.commit();
 		expect(yield* Fiber.join(repeat)).toBe(0);
@@ -26,7 +27,7 @@ postgresApp.it(
 		expect(yield* published()).toEqual([]);
 		yield* rebuild();
 		expect(yield* executionHistory.cursor(log)).toBe(0);
-		expect(yield* api["sessions.reading"]({ id: SessionId.make("root") })).toMatchObject({ status: "open" });
+		expect(yield* answered(api["sessions.reading"]({ id: SessionId.make("root") }), "sessions.reading")).toMatchObject({ status: "open" });
 	},
 );
 
@@ -40,17 +41,19 @@ postgresApp.it(
 		const rejected = yield* Effect.exit(appendRunner(log, [started(log, 0, "same"), started(log, 1, "same", "other")]));
 		expect(Exit.isFailure(rejected)).toBe(true);
 		expect(yield* executionHistory.cursor(log)).toBe(-1);
-		expect(yield* api["sessions.reading"]({ id: SessionId.make("same") })).toBeNull();
+		expect(yield* answered(api["sessions.reading"]({ id: SessionId.make("same") }), "sessions.reading")).toBeNull();
 		expect(yield* executionHistory.read()).toEqual(before);
 		expect(yield* published()).toEqual([]);
 		const entries = [started(log, 0, "same"), provider(log, 1, "same", { type: "message", role: "agent", text: "Sounding", raw })];
 		yield* rollback(appendRunner(log, entries));
 		expect(yield* executionHistory.cursor(log)).toBe(-1);
-		expect(yield* api["sessions.reading"]({ id: SessionId.make("same") })).toBeNull();
+		expect(yield* answered(api["sessions.reading"]({ id: SessionId.make("same") }), "sessions.reading")).toBeNull();
 		expect(yield* executionHistory.read()).toEqual(before);
 		expect(yield* published()).toEqual([]);
 		expect(yield* appendRunner(log, entries)).toBe(1);
-		expect(yield* api["sessions.transcriptSources"]({ id: SessionId.make("same") })).toMatchObject({ references: [{ cursor: 1, logId: log }] });
+		expect(yield* answered(api["sessions.transcriptSources"]({ id: SessionId.make("same") }), "sessions.transcriptSources")).toMatchObject({
+			references: [{ cursor: 1, logId: log }],
+		});
 	},
 );
 
@@ -65,9 +68,11 @@ postgresApp.it(
 			provider(log, 2, "quiet", { type: "message", role: "agent", text: "Second", raw }),
 		]);
 		expect((yield* executionHistory.read()).filter((event) => event.value._tag === "SessionObserved")).toHaveLength(2);
-		expect((yield* api["sessions.transcriptSources"]({ id: SessionId.make("quiet") })).references.map((reference) => reference.sequence)).toEqual([
-			3, 4,
-		]);
+		expect(
+			(yield* answered(api["sessions.transcriptSources"]({ id: SessionId.make("quiet") }), "sessions.transcriptSources")).references.map(
+				(reference) => reference.sequence,
+			),
+		).toEqual([3, 4]);
 		yield* clearPublished();
 		expect(yield* appendRunner(log, [entry(log, 3, { type: "ResourceFailed", requestId: "failed", reason: "No process" })])).toBe(3);
 		expect(yield* published()).toEqual([]);

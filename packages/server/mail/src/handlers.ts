@@ -1,5 +1,7 @@
+import { DueWakes, Mailbox, MailContract, Unread } from "@antumbra/server-mail/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { MailContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { Mail } from "#service.ts";
 
 export const handlers = MailContract.application.toLayer(
@@ -11,9 +13,9 @@ export const handlers = MailContract.application.toLayer(
 				mail.markDelivered(input).pipe(Effect.catchIf((error) => error._tag !== "NotAddressed" && error._tag !== "AlreadyDone", Effect.die)),
 			"mail.markRead": (input) =>
 				mail.markRead(input).pipe(Effect.catchIf((error) => error._tag !== "NotAddressed" && error._tag !== "AlreadyDone", Effect.die)),
-			"mail.mailbox": (input) => mail.mailbox(input).pipe(Effect.orDie),
-			"mail.unread": (input) => mail.unread(input).pipe(Effect.orDie),
-			"mail.dueWakes": () => mail.dueWakes().pipe(Effect.orDie),
+			"mail.mailbox": (input) => stream(readKeys(Mailbox.reads(input)))(mail.mailbox(input).pipe(Effect.orDie)),
+			"mail.unread": (input) => stream(readKeys(Unread.reads(input)))(mail.unread(input).pipe(Effect.orDie)),
+			"mail.dueWakes": () => stream(readKeys(DueWakes.reads({})))(mail.dueWakes().pipe(Effect.orDie)),
 		});
 	}),
 );

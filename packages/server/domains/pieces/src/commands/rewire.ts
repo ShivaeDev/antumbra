@@ -1,7 +1,6 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { choice, many, titled } from "@antumbra/platform-feature/edit.ts";
-import { Effect, Schema } from "effect";
-import { DEPENDS_ON, WOULD_CYCLE, wiring } from "#commands/wiring.ts";
+import { Schema } from "effect";
 import { pieceRewired } from "#facts/piece-rewired.ts";
 import { PieceId } from "#ids.ts";
 import { others } from "#queries/others.ts";
@@ -20,17 +19,4 @@ export const rewire = command("rewire", {
 		UnknownDependency: { pieceId: Schema.String },
 		WouldCycle: { field: Schema.String, from: Schema.String, message: Schema.String, to: Schema.String },
 	},
-	run: Effect.fn("pieces.rewire")(function* (input, rows, reject) {
-		if (!(yield* rows.piece.exists(input.id))) {
-			return yield* reject.Unknown({ id: input.id });
-		}
-		const wired = yield* wiring(rows, input.id, input.dependsOn);
-		if (wired._tag === "Unknown") {
-			return yield* reject.UnknownDependency({ pieceId: wired.pieceId });
-		}
-		if (wired._tag === "Cycle") {
-			return yield* reject.WouldCycle({ field: DEPENDS_ON, from: wired.from, message: WOULD_CYCLE, to: wired.to });
-		}
-		return { dependsOn: wired.dependsOn, id: input.id };
-	}),
 });

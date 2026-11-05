@@ -2,17 +2,27 @@ import { ArtifactPublicationFailed, ArtifactSourceNotOwned } from "@antumbra/dom
 import { ArtifactSource } from "@antumbra/domain-artifacts/ports/files.ts";
 import { current } from "@antumbra/domain-reclamation/queries/moorage.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Reclamation } from "@antumbra/server-reclamation/service.ts";
 import { Effect, Layer, Option, Stream } from "effect";
+import { Reactivity } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 
 export const artifactSource = Layer.effect(
 	ArtifactSource,
 	Effect.gen(function* () {
-		const live = yield* Live;
 		const runners = yield* RunnerOperations;
+		const reactivity = yield* Reactivity;
+		const reclamation = yield* Reclamation;
 		return ArtifactSource.of({
 			read: Effect.fn("Artifacts.readSource")(function* (input) {
-				const found = Option.getOrThrow(yield* Stream.runHead(live.live(current, { agentId: input.authorAgentId })));
+				const found = Option.getOrThrow(
+					yield* Stream.runHead(
+						reactivity.stream(
+							keysOf(current.reads, current.scope?.({ agentId: input.authorAgentId })),
+							reclamation.current({ agentId: input.authorAgentId }).pipe(Effect.orDie),
+						),
+					),
+				);
 				if (Option.isNone(found) || found.value.status !== "ready")
 					return yield* new ArtifactSourceNotOwned({ agentId: input.authorAgentId, path: input.path });
 				const result = yield* runners.execute(found.value.runner, {

@@ -1,9 +1,9 @@
-import { prepare, submissionKey } from "@antumbra/domain-changes/commands/prepare.ts";
+import { submissionKey } from "@antumbra/domain-changes/commands/prepare.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
 import { Clock, Effect } from "effect";
 import { supportingHost } from "#changes/host.ts";
 import { namedRepo, readWorld } from "#changes/read.ts";
@@ -19,6 +19,8 @@ export interface LocalChangeInput {
 	readonly repo: string;
 }
 export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: LocalChangeInput) {
+	const changesService = yield* Changes;
+
 	const prior = (yield* readWorld).changes.find((row) => row.id === `${input.callId}:prepare`);
 	if (prior !== undefined) return prior;
 	const repository = yield* namedRepo(input.repo);
@@ -41,9 +43,9 @@ export const prepareLocal = Effect.fn("changes.prepareLocal")(function* (input: 
 		});
 	if (captured.evidence.branch !== berth.branch)
 		return yield* new ChangeHostRefused({ host: host.tag, detail: offBranch(captured.evidence.branch, berth.branch) });
-	const commit = yield* Commit;
-	yield* commit
-		.commit(prepare, {
+
+	yield* changesService
+		.prepare({
 			requestId: Request.make(`${input.callId}:prepare`),
 			pieceId: PieceId.make(input.pieceId),
 			repoId: repository.id,

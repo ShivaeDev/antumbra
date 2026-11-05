@@ -8,28 +8,16 @@ describe("fixture commands", () => {
 			name: "capture",
 			label: "Long transcript",
 			source: "dev",
-			target: "journal",
 		});
 		expect(Result.getOrThrow(parseCommand(["capture", "release", "--source", "prod"]))).toEqual({
 			name: "capture",
 			label: "release",
 			source: "prod",
-			target: "journal",
 		});
 	});
 
-	it("targets PostgreSQL checks after capture or for an archived fixture", () => {
-		expect(Result.getOrThrow(parseCommand(["capture", "release", "--source", "prod", "--target", "postgres"]))).toEqual({
-			name: "capture",
-			label: "release",
-			source: "prod",
-			target: "postgres",
-		});
-		expect(Result.getOrThrow(parseCommand(["check", "release", "--target", "postgres"]))).toEqual({
-			name: "check",
-			selector: "release",
-			target: "postgres",
-		});
+	it("checks archived fixtures in PostgreSQL", () => {
+		expect(Result.getOrThrow(parseCommand(["check", "release"]))).toEqual({ name: "check", selector: "release" });
 	});
 
 	it("requires capture labels and rejects unknown source options", () => {

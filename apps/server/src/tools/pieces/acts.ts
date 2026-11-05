@@ -1,11 +1,8 @@
-import { launch } from "@antumbra/domain-pieces/commands/launch.ts";
-import { park } from "@antumbra/domain-pieces/commands/park.ts";
-import { unpark } from "@antumbra/domain-pieces/commands/unpark.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Pieces } from "@antumbra/server-pieces/service.ts";
 import { Effect } from "effect";
 import { onMembers } from "#tools/pieces/reach.ts";
 import { launchPieceSpec, parkPieceSpec, unparkPieceSpec } from "#tools/pieces/specs.ts";
@@ -17,9 +14,10 @@ export const launchPiece = bind(launchPieceSpec, (context, input) =>
 			context,
 			launchPieceSpec.name,
 			Effect.gen(function* () {
-				const commit = yield* Commit;
-				yield* commit
-					.commit(launch, { id: PieceId.make(input.pieceId), requestId: requestId(context) })
+				const piecesService = yield* Pieces;
+
+				yield* piecesService
+					.launch({ id: PieceId.make(input.pieceId), requestId: requestId(context) })
 					.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
 				return yield* pace(voyageId);
 			}),
@@ -34,9 +32,10 @@ export const parkPiece = bind(parkPieceSpec, (context, input) =>
 			context,
 			parkPieceSpec.name,
 			Effect.gen(function* () {
-				const commit = yield* Commit;
-				return yield* commit
-					.commit(park, { id: PieceId.make(input.pieceId), requestId: requestId(context) })
+				const piecesService = yield* Pieces;
+
+				return yield* piecesService
+					.park({ id: PieceId.make(input.pieceId), requestId: requestId(context) })
 					.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
 			}),
 			() => "parked",
@@ -50,9 +49,10 @@ export const unparkPiece = bind(unparkPieceSpec, (context, input) =>
 			context,
 			unparkPieceSpec.name,
 			Effect.gen(function* () {
-				const commit = yield* Commit;
-				return yield* commit
-					.commit(unpark, { id: PieceId.make(input.pieceId), requestId: requestId(context) })
+				const piecesService = yield* Pieces;
+
+				return yield* piecesService
+					.unpark({ id: PieceId.make(input.pieceId), requestId: requestId(context) })
 					.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
 			}),
 			() => "unparked",

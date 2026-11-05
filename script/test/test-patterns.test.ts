@@ -12,9 +12,9 @@ describe("shared application test patterns", () => {
 	it("requires shared mounting and application setup", () => {
 		const found = check(`
 import { createRoot as mount } from "react-dom/client";
-import { app as build } from "@antumbra/server-journal/app.ts";
-import { apiOf } from "@antumbra/server-journal/testing/api.ts";
-import { kit } from "@antumbra/server-journal/testing/kit.ts";
+import { app as build } from "@antumbra/server/services.ts";
+import { apiOf } from "@antumbra/app-testing/api.ts";
+import { kit } from "@antumbra/app-testing/postgres-engine.ts";
 import { application } from "@antumbra/server/application.ts";
 import { layer } from "@antumbra/app-testing/app.ts";
 `);
@@ -111,7 +111,7 @@ Option.getOrThrow(result);
 		expect(
 			messages(`${ENTRY}
 import type { Root } from "react-dom/client";
-import { type AppDefinition } from "@antumbra/server-journal/app.ts";
+import { type AppDefinition } from "@antumbra/server/services.ts";
 import { expect } from "vitest";
 import { fill } from "@antumbra/app-testing/glass/dom.ts";
 import { answered, eventually } from "@antumbra/app-testing/answers.ts";
@@ -124,10 +124,10 @@ eventually(query, matches, "a matching answer");
 
 	it("leaves primitive tests and fixture internals alone", () => {
 		const content = `import { it } from "@effect/vitest";
-import { app } from "@antumbra/server-journal/app.ts";
+import { app } from "@antumbra/server/services.ts";
 import { Option, Stream } from "effect";
 Option.getOrThrow(Stream.runHead(source));`;
-		for (const path of ["packages/server/journal/test/app.test.ts", "packages/glass/form/test/form.test.ts", "apps/testing/test/answers.test.ts"]) {
+		for (const path of ["packages/server/storage/test/app.test.ts", "packages/glass/form/test/form.test.ts", "apps/testing/test/answers.test.ts"]) {
 			expect(messages(content, path)).toEqual([]);
 		}
 	});

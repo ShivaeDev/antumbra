@@ -1,10 +1,10 @@
+import { holdWrite } from "@antumbra/app-testing/test-support/execution-write.ts";
+import { validateFixtureFacts } from "@antumbra/app-testing/test-support/fixture-facts.ts";
 import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
 import { artifactFiles } from "@antumbra/server/adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "@antumbra/server/adapters/artifacts/storage.ts";
 import { InputStorage } from "@antumbra/server-inputs/storage.ts";
-import { rebuild } from "@antumbra/server-journal/postgres/rebuild.ts";
-import { holdWrite } from "@antumbra/server-journal/test-support/execution-concurrency.ts";
-import { validateFixtureFacts } from "@antumbra/server-journal/testing/fixture-facts.ts";
+import { rebuild } from "@antumbra/server-storage/rebuild.ts";
 import { CommittedSink, transact } from "@shivaedev/sql/transact.ts";
 import { Data, Effect, FileSystem, Layer, Ref } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
@@ -14,12 +14,10 @@ import { postgresApplication } from "#postgres-application.ts";
 import { postgresClients } from "#postgres-clients.ts";
 import { executionProof } from "#test-support/execution-proof.ts";
 import { recordGitHubObservations } from "#test-support/github-observations.ts";
-import { legacyInputSession } from "#test-support/input-fixture.ts";
-import { journalComparison } from "#test-support/journal-comparison.ts";
-import { observeJournal } from "#test-support/journal-evidence.ts";
-import { replayJournal } from "#test-support/journal-replay.ts";
-import { observeMailJournal } from "#test-support/mail-evidence.ts";
+import { inputSession } from "#test-support/input-fixture.ts";
+import { mailSession } from "#test-support/mail-session.ts";
 import { reconciliation } from "#test-support/reconciliation.ts";
+import { retiredBerth } from "#test-support/retired-berth.ts";
 import { scriptedTranscriptLog } from "#test-support/transcript-log.ts";
 
 class Rejected extends Data.TaggedError("VoyageStoryRejected") {}
@@ -70,19 +68,15 @@ export const create = Effect.fn("PostgresApp.create")(function* () {
 		holdWrite: <A, E, R>(effect: Effect.Effect<A, E, R>) => holdWrite(effect).pipe(Effect.provideContext(services)),
 		validateFixtureFacts: (facts: Parameters<typeof validateFixtureFacts>[1]) => validateFixtureFacts(definition, facts),
 
-		observeMailJournal: (journal: Effect.Success<ReturnType<typeof journalComparison>>, requestId: Parameters<typeof observeMailJournal>[1]) =>
-			observeMailJournal(journal, requestId).pipe(Effect.provideContext(services)),
 		rebuild: () => rebuild().pipe(Effect.provideContext(services)),
 		transaction: <A, E, R>(effect: Effect.Effect<A, E, R>) =>
 			transact(effect, { onSqlError: (error) => error }).pipe(Effect.provideContext(services)),
-		journal: journalComparison,
 		github: createGitHubFixture,
 		recordGitHub: (requestId: string, observations: Parameters<typeof recordGitHubObservations>[1]) =>
 			recordGitHubObservations(requestId, observations).pipe(Effect.provideContext(services)),
-		legacyInputSession,
-		replayJournal: (journal: Effect.Success<ReturnType<typeof journalComparison>>) => replayJournal(journal).pipe(Effect.provideContext(services)),
-		observeJournal: (journal: Effect.Success<ReturnType<typeof journalComparison>>, requestId: Parameters<typeof observeJournal>[1]) =>
-			observeJournal(journal, requestId).pipe(Effect.provideContext(services)),
+		retiredBerth: (source: string, branch: string) => retiredBerth(source, branch).pipe(Effect.provideContext(services)),
+		mailSession: () => mailSession().pipe(Effect.provideContext(services)),
+		inputSession: () => inputSession().pipe(Effect.provideContext(services)),
 		published: () => Ref.get(published),
 		clearPublished: () => Ref.set(published, []),
 		rollback: <A, E, R>(effect: Effect.Effect<A, E, R>) =>

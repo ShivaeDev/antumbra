@@ -1,5 +1,6 @@
-import { ChangesHistory } from "@antumbra/server-journal/postgres/changes/service.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import { ChangesHistory } from "@antumbra/server-storage/changes/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { adopt } from "#commands/adopt.ts";
 import { archive } from "#commands/archive.ts";
@@ -16,7 +17,6 @@ import { refresh } from "#commands/refresh.ts";
 import { requestAdoption } from "#commands/request-adoption.ts";
 import { retryAdoption } from "#commands/retry-adoption.ts";
 import { initialize } from "#initialize.ts";
-import { observeEvidence } from "#observe-evidence.ts";
 import { adoptions } from "#queries/adoptions.ts";
 import { all } from "#queries/all.ts";
 import { archivable } from "#queries/archivable.ts";
@@ -24,6 +24,7 @@ import { browse } from "#queries/browse.ts";
 import { byPiece } from "#queries/by-piece.ts";
 import { cleanupCandidates } from "#queries/cleanup-candidates.ts";
 import { links } from "#queries/links.ts";
+import { pendingAdoptions } from "#queries/pending-adoptions.ts";
 import { publishing } from "#queries/publishing.ts";
 import { quay } from "#queries/quay.ts";
 import { sessionSituations } from "#queries/session-situations.ts";
@@ -31,11 +32,11 @@ import { watchable } from "#queries/watchable.ts";
 import { world } from "#queries/world.ts";
 export const Changes = defineService({
 	id: "@antumbra/server-changes/Changes",
-	requires: [ChangesHistory, ExecutionHistory],
+	requires: [Records, ChangesHistory, ExecutionHistory],
 	initialize: initialize,
 	methods: (serial) => ({
+		pendingAdoptions,
 		cleanupCandidates,
-		observeEvidence: observeEvidence(serial),
 		failAdoption: failAdoption(serial),
 		retryAdoption: retryAdoption(serial),
 		observeHostCapability: observeHostCapability(serial),

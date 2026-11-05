@@ -1,5 +1,7 @@
 import { answered, it } from "@antumbra/app-testing/entry.ts";
+import { roleSetting as roleSettingRecordSchema } from "@antumbra/domain-role-settings/rows/role-setting.ts";
 import { FLEET, roleSettingId } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
+import { Effect, Schema } from "effect";
 import { expect } from "vitest";
 
 it.app("includes unchosen roles in fleet defaults and says what each resolves to", function* (app) {
@@ -37,7 +39,11 @@ it.app("stores an empty choice", function* (app) {
 	const roles = app.api.roleSettings;
 	yield* roles.choose({ backend: null, effort: null, model: null, role: "crew", scope: FLEET });
 
-	expect(yield* app.rows.roleSetting.get(roleSettingId(FLEET, "crew"))).toEqual({
+	expect(
+		yield* app.rows.roleSetting
+			.findById(roleSettingId(FLEET, "crew"))
+			.pipe(Effect.flatMap(Schema.decodeUnknownEffect(roleSettingRecordSchema.Row)), Effect.orDie),
+	).toEqual({
 		backend: null,
 		effort: null,
 		id: `${FLEET}/crew`,

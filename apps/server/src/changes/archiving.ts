@@ -1,5 +1,5 @@
+import { ARCHIVE_AFTER_MILLIS, nextArchive } from "@antumbra/domain-changes/commands/archive-due.ts";
 import { archivable } from "@antumbra/domain-changes/queries/archivable.ts";
-import { ARCHIVE_AFTER_MILLIS, nextArchive } from "@antumbra/domain-changes/reconcilers/archiving.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Changes } from "@antumbra/server-changes/service.ts";
 import { run } from "@shivaedev/reconciler/run.ts";

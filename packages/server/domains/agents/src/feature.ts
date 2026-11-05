@@ -37,19 +37,6 @@ import { birthRequested } from "#facts/birth-requested.ts";
 import { birthRetried } from "#facts/birth-retried.ts";
 import { crewRetired } from "#facts/crew-retired.ts";
 import { smoothingRequested } from "#facts/smoothing-requested.ts";
-import { agentRetiredMaterializer } from "#materializers/agent-retired.ts";
-import { birthAdmittedMaterializer } from "#materializers/birth-admitted.ts";
-import { birthCancelledMaterializer } from "#materializers/birth-cancelled.ts";
-import { birthDelayedMaterializer } from "#materializers/birth-delayed.ts";
-import { birthHeldMaterializer } from "#materializers/birth-held.ts";
-import { birthRequestedMaterializer } from "#materializers/birth-requested.ts";
-import { birthRetriedMaterializer } from "#materializers/birth-retried.ts";
-import { crewRetiredMaterializer } from "#materializers/crew-retired.ts";
-import { smoothingRequestedMaterializer } from "#materializers/smoothing-requested.ts";
-import { Charter } from "#ports/charter.ts";
-import { Provisioning } from "#ports/provisioning.ts";
-import { RunnerOperations } from "#ports/runner-operations.ts";
-import { ToolCatalog } from "#ports/tool-catalog.ts";
 import { admitted } from "#queries/admitted.ts";
 import { all } from "#queries/all.ts";
 import { authority } from "#queries/authority.ts";
@@ -70,10 +57,6 @@ import { rest } from "#queries/rest.ts";
 import { roster } from "#queries/roster.ts";
 import { smoother } from "#queries/smoother.ts";
 import { workingCount } from "#queries/working-count.ts";
-import { admitting } from "#reconcilers/admitting.ts";
-import { dispatching } from "#reconcilers/dispatching.ts";
-import { executing } from "#reconcilers/executing.ts";
-import { resting } from "#reconcilers/resting.ts";
 import { agent } from "#rows/agent.ts";
 import { agentReading } from "#rows/agent-reading.ts";
 import { birth } from "#rows/birth.ts";
@@ -108,17 +91,6 @@ export const agents = feature("agents", {
 	],
 	facts: [crewRetired, agentRetired, smoothingRequested, birthRequested, birthAdmitted, birthHeld, birthDelayed, birthCancelled, birthRetried],
 	commands: [retireCrew, retire, spawn, hail, workNow, request, admit, hold, delay, cancel, retry, smooth],
-	materializers: [
-		crewRetiredMaterializer,
-		agentRetiredMaterializer,
-		smoothingRequestedMaterializer,
-		birthRequestedMaterializer,
-		birthAdmittedMaterializer,
-		birthHeldMaterializer,
-		birthDelayedMaterializer,
-		birthCancelledMaterializer,
-		birthRetriedMaterializer,
-	],
 	queries: [
 		canRetireCrew,
 		smoother,
@@ -141,6 +113,4 @@ export const agents = feature("agents", {
 		pendingOperations,
 		admitted,
 	],
-	ports: [Charter, Provisioning, RunnerOperations, ToolCatalog],
-	reconcilers: [dispatching, admitting, executing, resting],
 });

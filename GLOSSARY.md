@@ -107,16 +107,16 @@ Owner: [Agent identity, resources, and recovery](docs/design/agent-recovery.md)
 
 Owner: [Architecture](ARCHITECTURE.md)
 
-- [**Journal**](ARCHITECTURE.md#durable-truth-and-the-commit) — the append-only record of domain facts; the product surface.
-- [**Projection**](ARCHITECTURE.md#durable-truth-and-the-commit) — rows derived from the journal that guards, reconcilers, and the glass read; rebuilt
-  from the journal, never migrated.
-- [**Commit**](ARCHITECTURE.md#durable-truth-and-the-commit) — the one path a fact takes into the journal and the rows: guard, append, apply, one
-  transaction, keys marked dirty as it commits.
+- [**Journal**](ARCHITECTURE.md#durable-truth-and-committed-changes) — the append-only record of domain facts; the product surface.
+- [**Projection**](ARCHITECTURE.md#durable-truth-and-committed-changes) — rows derived from the journal that guards, reconcilers, and the glass read;
+  rebuilt from the journal, never migrated.
+- [**Commit**](ARCHITECTURE.md#durable-truth-and-committed-changes) — the one path a fact takes into the journal and the rows: guard, append, apply,
+  one transaction, keys marked dirty as it commits.
 - [**Reconciler**](ARCHITECTURE.md#requests-and-reconciliation) — a live query and one function that reads rows, writes nothing, and calls commands or
   the edge.
 - [**Request**](ARCHITECTURE.md#requests-and-reconciliation) — a row asking for one operation that reconcilers carry out.
 - [**Runner**](ARCHITECTURE.md#process-model) — the process that holds the SDK sessions and writes its own log; replaceable without touching an agent.
-- [**Runner log**](ARCHITECTURE.md#durable-truth-and-the-commit) — the runner's append-only record of what happened to its sessions; the server's only
-  truth about them.
-- [**Cursor**](ARCHITECTURE.md#durable-truth-and-the-commit) — how far the server has read a runner's log; the only watermark in the system.
+- [**Runner log**](ARCHITECTURE.md#durable-truth-and-committed-changes) — the runner's append-only record of what happened to its sessions; the
+  server's only truth about them.
+- [**Cursor**](ARCHITECTURE.md#durable-truth-and-committed-changes) — how far the server has read a runner's log; the only watermark in the system.
 - [**Tool set**](ARCHITECTURE.md#sessions-tools-and-recovery) — the versioned set of tools a session receives when it opens and keeps until it closes.

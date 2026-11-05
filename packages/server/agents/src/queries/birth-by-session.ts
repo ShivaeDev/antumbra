@@ -1,6 +1,7 @@
-import { birthBySession as query } from "@antumbra/domain-agents/queries/birth-by-session.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { birthBySession as query } from "@antumbra/domain-agents/queries/birth-by-session.ts";
+import { birthBySession as queryDecision } from "@antumbra/server-agents/logic/queries/birth-by-session.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const birthBySession = Effect.fn("Agents.birthBySession")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const birthBySession = Effect.fn("Agents.birthBySession")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

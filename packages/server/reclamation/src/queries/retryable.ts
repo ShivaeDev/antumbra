@@ -1,6 +1,7 @@
-import { retryable as query } from "@antumbra/domain-reclamation/queries/retryable.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { retryable as query } from "@antumbra/domain-reclamation/queries/retryable.ts";
+import { retryable as queryDecision } from "@antumbra/server-reclamation/logic/queries/retryable.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const retryable = Effect.fn("Reclamation.retryable")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const retryable = Effect.fn("Reclamation.retryable")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

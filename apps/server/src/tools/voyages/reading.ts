@@ -1,38 +1,43 @@
-import { byPiece as agentsByPiece } from "@antumbra/domain-agents/queries/by-piece.ts";
-import { captain } from "@antumbra/domain-agents/queries/captain.ts";
-import { byPiece as artifactsByPiece } from "@antumbra/domain-artifacts/queries/by-piece.ts";
-import { all as changes } from "@antumbra/domain-changes/queries/all.ts";
-import { links } from "@antumbra/domain-changes/queries/links.ts";
-import { dependencies } from "@antumbra/domain-pieces/queries/dependencies.ts";
-import { displayByVoyage } from "@antumbra/domain-pieces/queries/display-by-voyage.ts";
-import { byPiece as reportsByPiece } from "@antumbra/domain-reports/queries/by-piece.ts";
-import { openGates } from "@antumbra/domain-rulings/queries/open-gates.ts";
 import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { byId } from "@antumbra/domain-voyages/queries/by-id.ts";
-import { progress } from "@antumbra/domain-voyages/queries/progress.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Agents } from "@antumbra/server-agents/service.ts";
+import { Artifacts } from "@antumbra/server-artifacts/service.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
+import { Pieces } from "@antumbra/server-pieces/service.ts";
+import { Reports } from "@antumbra/server-reports/service.ts";
+import { Rulings } from "@antumbra/server-rulings/service.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Data, Effect } from "effect";
 import { pace } from "#tools/voyages/pace.ts";
 
 class VoyageNotFound extends Data.TaggedError("VoyageNotFound")<{ readonly voyageId: VoyageId }> {}
 
 export const readVoyageView = Effect.fn("VoyageTools.read")(function* (id: VoyageId) {
-	const live = yield* Live;
-	const voyage = yield* live.read(byId, { id });
+	const voyagesService = yield* Voyages;
+	const piecesService = yield* Pieces;
+	const changesService = yield* Changes;
+	const agentsService = yield* Agents;
+
+	const voyage = yield* voyagesService.byId({ id }).pipe(Effect.orDie);
 	if (voyage === null) return yield* Effect.fail(new VoyageNotFound({ voyageId: id }));
-	const members = yield* live.read(displayByVoyage, { voyageId: id });
-	const changeRows = yield* live.read(changes, {});
-	const changeLinks = yield* live.read(links, {});
+	const members = yield* piecesService.displayByVoyage({ voyageId: id }).pipe(Effect.orDie);
+	const changeRows = yield* changesService.all({}).pipe(Effect.orDie);
+	const changeLinks = yield* changesService.links({}).pipe(Effect.orDie);
 	const pieces = yield* Effect.forEach(members, (piece) =>
 		Effect.gen(function* () {
+			const agentsService = yield* Agents;
+			const piecesService = yield* Pieces;
+			const rulingsService = yield* Rulings;
+			const reportsService = yield* Reports;
+			const artifactsService = yield* Artifacts;
+
 			const attached = new Set(changeLinks.filter((link) => link.pieceId === piece.id).map((link) => link.changeId));
 			return {
 				...piece,
-				agents: yield* live.read(agentsByPiece, { pieceId: piece.id }),
-				dependencies: yield* live.read(dependencies, { id: piece.id }),
-				gates: yield* live.read(openGates, { pieceIds: [piece.id] }),
-				reports: yield* live.read(reportsByPiece, { pieceId: piece.id }),
-				artifacts: (yield* live.read(artifactsByPiece, { pieceId: piece.id })).current,
+				agents: yield* agentsService.byPiece({ pieceId: piece.id }).pipe(Effect.orDie),
+				dependencies: yield* piecesService.dependencies({ id: piece.id }).pipe(Effect.orDie),
+				gates: yield* rulingsService.openGates({ pieceIds: [piece.id] }).pipe(Effect.orDie),
+				reports: yield* reportsService.byPiece({ pieceId: piece.id }).pipe(Effect.orDie),
+				artifacts: (yield* artifactsService.byPiece({ pieceId: piece.id }).pipe(Effect.orDie)).current,
 				changes: changeRows.filter((change) => attached.has(change.id)),
 			};
 		}),
@@ -40,8 +45,8 @@ export const readVoyageView = Effect.fn("VoyageTools.read")(function* (id: Voyag
 	return {
 		voyage,
 		pieces,
-		progress: yield* live.read(progress, { id }),
-		captain: yield* live.read(captain, { voyageId: id }),
+		progress: yield* voyagesService.progress({ id }).pipe(Effect.orDie),
+		captain: yield* agentsService.captain({ voyageId: id }).pipe(Effect.orDie),
 		pace: yield* pace(id),
 	};
 });

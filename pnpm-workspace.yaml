@@ -67,6 +67,7 @@ catalog:
   vitest: 5.0.5
   "@shivaedev/events": 0.3.3
   "@shivaedev/github": 0.12.1
+  "@zip.js/zip.js": 2.24.0
 
 savePrefix: ""
 catalogMode: strict

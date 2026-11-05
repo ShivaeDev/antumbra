@@ -1,11 +1,11 @@
-import { register } from "@antumbra/domain-repos/commands/register.ts";
 import { all } from "@antumbra/domain-repos/queries/all.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind, defineTool } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Repos } from "@antumbra/server-repos/service.ts";
 import { Effect, Option, Schema, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 
 const registerRepoSpec = defineTool({
 	description:
@@ -22,11 +22,11 @@ export const registerRepoTool = bind(registerRepoSpec, (context, input) =>
 		context,
 		registerRepoSpec.name,
 		Effect.gen(function* () {
-			const commit = yield* Commit;
-			const live = yield* Live;
+			const reposService = yield* Repos;
+
 			const id = requestId(context);
-			yield* commit.commit(register, { ...input, requestId: id }).pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
-			const repos = Option.getOrThrow(yield* Stream.runHead(live.live(all, {})));
+			yield* reposService.register({ ...input, requestId: id }).pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq)));
+			const repos = Option.getOrThrow(yield* Stream.runHead(stream(keysOf(all.reads, all.scope?.({})))(reposService.all({}).pipe(Effect.orDie))));
 			const repo = yield* Effect.fromNullishOr(repos.find((held) => held.source === input.source));
 			return { known: String(repo.id) !== id, repo };
 		}),

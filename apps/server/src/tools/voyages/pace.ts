@@ -1,16 +1,18 @@
-import { frontier } from "@antumbra/domain-rulings/queries/frontier.ts";
-import { COUNTS, counts } from "@antumbra/domain-settings/queries/counts.ts";
+import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { progress } from "@antumbra/domain-voyages/queries/progress.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Rulings } from "@antumbra/server-rulings/service.ts";
+import { Settings } from "@antumbra/server-settings/service.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Effect } from "effect";
 
 export const plural = (count: number): string => (count === 1 ? "" : "s");
 
 export const pace = Effect.fn("VoyageTools.pace")(function* (id: VoyageId) {
-	const live = yield* Live;
-	const current = yield* live.read(progress, { id });
-	const settings = yield* live.read(counts, {});
+	const voyagesService = yield* Voyages;
+	const settingsService = yield* Settings;
+
+	const current = yield* voyagesService.progress({ id }).pipe(Effect.orDie);
+	const settings = yield* settingsService.counts({}).pipe(Effect.orDie);
 	return {
 		limit: settings.find((setting) => setting.key === "maxParallelSessions")?.count ?? COUNTS.maxParallelSessions.fallback,
 		running: current?.counts.active ?? 0,
@@ -25,8 +27,11 @@ export const paceWords = (pace: Pace): string =>
 	`this voyage has ${pace.running} piece${plural(pace.running)} running and ${pace.waiting} waiting for capacity; the fleet runs at most ${pace.limit} agent${plural(pace.limit)} at once`;
 
 export const notice = Effect.fn("VoyageTools.notice")(function* (voyageId: VoyageId) {
-	const live = yield* Live;
-	const blocking = (yield* live.read(frontier, { voyageId })).filter((ruling) => ruling.urgency === "blocking").map((ruling) => ruling.id);
+	const rulingsService = yield* Rulings;
+
+	const blocking = (yield* rulingsService.frontier({ voyageId }).pipe(Effect.orDie))
+		.filter((ruling) => ruling.urgency === "blocking")
+		.map((ruling) => ruling.id);
 	const current = yield* pace(voyageId);
 	return [
 		...(blocking.length === 0

@@ -16,8 +16,8 @@ import { reach } from "@antumbra/domain-pieces/queries/reach.ts";
 import { ready } from "@antumbra/domain-pieces/queries/ready.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 
 const rows = collection("piece", Schema.String);
 const edgeRows = collection("pieceEdge", Schema.String);
@@ -60,63 +60,57 @@ export const LandVerdict = command("landVerdict", {
 	rejections: landVerdict.Rejection,
 	invalidates: () => [],
 });
-export const All = query("all", { payload: all.input, success: all.output, reads: () => [rows.list], readPolicy: () => Effect.succeed(true) });
-export const ById = query("byId", {
+export const All = stream("all", { payload: all.input, success: all.output, reads: () => [rows.list] });
+export const ById = stream("byId", {
 	payload: byId.input,
 	success: byId.output,
 	reads: () => [rows.list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ByVoyage = query("byVoyage", {
+export const ByVoyage = stream("byVoyage", {
 	payload: byVoyage.input,
 	success: byVoyage.output,
-	reads: (input) => [rows.item(input.voyageId)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "piece", field: "voyageId", value: input.voyageId }],
 });
-export const Others = query("others", {
+export const Others = stream("others", {
 	payload: others.input,
 	success: others.output,
-	reads: (input) => [rows.item(input.voyageId)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "piece", field: "voyageId", value: input.voyageId }],
 });
-export const Reach = query("reach", {
+export const Reach = stream("reach", {
 	payload: reach.input,
 	success: reach.output,
-	reads: (input) => [rows.item(input.voyageId)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "piece", field: "voyageId", value: input.voyageId }],
 });
-export const Edges = query("edges", {
+export const Edges = stream("edges", {
 	payload: edges.input,
 	success: edges.output,
 	reads: () => [rows.list, edgeRows.list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Dependencies = query("dependencies", {
+export const Dependencies = stream("dependencies", {
 	payload: dependencies.input,
 	success: dependencies.output,
 	reads: () => [rows.list, edgeRows.list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Progress = query("progress", {
+export const Progress = stream("progress", {
 	payload: progress.input,
 	success: progress.output,
 	reads: () => [progressRows.list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const DisplayByVoyage = query("displayByVoyage", {
+export const DisplayByVoyage = stream("displayByVoyage", {
 	payload: displayByVoyage.input,
 	success: displayByVoyage.output,
-	reads: (input) => [rows.item(input.voyageId), progressRows.item(input.voyageId)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [
+		{ _tag: "Bucket", collection: "piece", field: "voyageId", value: input.voyageId },
+		{ _tag: "Bucket", collection: "pieceProgress", field: "voyageId", value: input.voyageId },
+	],
 });
-export const Ready = query("ready", {
+export const Ready = stream("ready", {
 	payload: ready.input,
 	success: ready.output,
 	reads: () => [rows.list, progressRows.list, voyageRows.list],
-	readPolicy: () => Effect.succeed(true),
 });
 
 export const PiecesContract = contract("pieces", {
 	commands: [Charter, Launch, Park, Unpark, Rewire, LandVerdict],
-	queries: [All, ById, ByVoyage, Others, Reach, Edges, Dependencies, Progress, DisplayByVoyage, Ready],
+	streams: [All, ById, ByVoyage, Others, Reach, Edges, Dependencies, Progress, DisplayByVoyage, Ready],
 });

@@ -1,6 +1,7 @@
-import { forAgent as query } from "@antumbra/domain-costs/queries/for-agent.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { forAgent as query } from "@antumbra/domain-costs/queries/for-agent.ts";
+import { forAgent as queryDecision } from "@antumbra/server-costs/logic/queries/for-agent.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const forAgent = Effect.fn("Costs.forAgent")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const forAgent = Effect.fn("Costs.forAgent")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

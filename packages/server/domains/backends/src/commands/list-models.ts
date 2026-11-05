@@ -1,5 +1,4 @@
 import { command } from "@antumbra/platform-feature/command.ts";
-import { Effect } from "effect";
 import { modelsListed } from "#facts/models-listed.ts";
 
 export const listModels = command("listModels", {
@@ -7,5 +6,4 @@ export const listModels = command("listModels", {
 	reads: [],
 	emits: modelsListed,
 	rejections: {},
-	run: (input) => Effect.succeed({ backend: input.backend, failure: input.failure, models: input.models }),
 });

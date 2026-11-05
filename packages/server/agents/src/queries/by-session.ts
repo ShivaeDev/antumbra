@@ -1,6 +1,7 @@
-import { bySession as query } from "@antumbra/domain-agents/queries/by-session.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { bySession as query } from "@antumbra/domain-agents/queries/by-session.ts";
+import { bySession as queryDecision } from "@antumbra/server-agents/logic/queries/by-session.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const bySession = Effect.fn("Agents.bySession")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const bySession = Effect.fn("Agents.bySession")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

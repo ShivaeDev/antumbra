@@ -1,4 +1,5 @@
 import { land } from "@antumbra/domain-artifacts/commands/land.ts";
+import { Landing } from "@antumbra/domain-artifacts/commands/landing.ts";
 import { removeSupersession } from "@antumbra/domain-artifacts/commands/remove-supersession.ts";
 import { supersede } from "@antumbra/domain-artifacts/commands/supersede.ts";
 import { ArtifactPublicationFailed } from "@antumbra/domain-artifacts/ports/errors.ts";
@@ -8,9 +9,8 @@ import { ArtifactMarkdown, StoredArtifactContentInvalid } from "@antumbra/domain
 import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
-import { Landing } from "#landing.ts";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Supersede = command("supersede", {
 	payload: supersede.Input,
 	success: Schema.Number,
@@ -29,23 +29,20 @@ export const Land = command("land", {
 	rejections: { ...land.Rejection, ArtifactPublicationFailed },
 	invalidates: () => [],
 });
-export const ById = query("byId", {
+export const ById = stream("byId", {
 	payload: byId.input,
 	success: byId.output,
 	reads: () => [collection("artifact", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ByPiece = query("byPiece", {
+export const ByPiece = stream("byPiece", {
 	payload: byPiece.input,
 	success: byPiece.output,
-	reads: (input) => [collection("artifact", Schema.String).item(input.pieceId)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "artifact", field: "pieceId", value: input.pieceId }],
 });
-export const ReadContent = query("readContent", {
+export const ReadContent = stream("readContent", {
 	payload: { artifactId: ArtifactId },
 	success: ArtifactMarkdown,
 	rejections: { ArtifactNotFound: land.Rejection.ArtifactNotFound, StoredArtifactContentInvalid },
 	reads: () => [collection("artifact", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ArtifactsContract = contract("artifacts", { commands: [Supersede, RemoveSupersession, Land], queries: [ById, ByPiece, ReadContent] });
+export const ArtifactsContract = contract("artifacts", { commands: [Supersede, RemoveSupersession, Land], streams: [ById, ByPiece, ReadContent] });

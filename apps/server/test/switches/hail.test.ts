@@ -2,6 +2,7 @@ import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { pending } from "@antumbra/domain-sessions/queries/pending.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { expect } from "vitest";
 import { crewed, opened, VOYAGE } from "#test/switches/kit.ts";
 
@@ -10,6 +11,8 @@ const HAIL = Request.make("hail");
 const MAIL = Request.make("mail");
 
 it.app("a hail from an agent waits on the hail-wake switch before the captain is told", function* (app) {
+	yield* Sessions;
+
 	const { atWork } = yield* crewed(app);
 	yield* opened(app);
 	yield* app.api.agents.hail({ by: "admiral", requestId: CAPTAIN, voyageId: VOYAGE });

@@ -2,7 +2,7 @@ import { rewire } from "@antumbra/domain-pieces/commands/rewire.ts";
 import { DEPENDS_ON, WOULD_CYCLE } from "@antumbra/domain-pieces/commands/wiring.ts";
 import { PieceId } from "@antumbra/platform-vocabulary/piece.ts";
 import { downstreamOf } from "@antumbra/platform-vocabulary/piece-wiring.ts";
-import { PieceHistory } from "@antumbra/server-journal/postgres/pieces/service.ts";
+import { PieceHistory } from "@antumbra/server-storage/pieces/service.ts";
 import { Effect } from "effect";
 
 export const wiring = Effect.fn("Pieces.wiring")(function* (id: PieceId, dependsOn: readonly string[]) {

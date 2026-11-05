@@ -1,5 +1,5 @@
 import { setFocus as command } from "@antumbra/domain-voyages/commands/set-focus.ts";
-import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
+import { VoyageHistory } from "@antumbra/server-storage/voyages/service.ts";
 import { Clock, Effect } from "effect";
 
 export const setFocus = Effect.fn("Voyages.setFocus")(function* (input: typeof command.Input.Type) {

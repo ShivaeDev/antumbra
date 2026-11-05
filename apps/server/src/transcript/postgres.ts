@@ -1,10 +1,10 @@
 import type { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { transcriptSources } from "@antumbra/domain-sessions/queries/transcript.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { keysOf } from "@antumbra/server-journal/live.ts";
 import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { Effect, Layer, Stream } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 import { snapshot } from "#transcript/snapshot.ts";
 
 export const postgresTranscript = (input: { readonly id: SessionId }) =>

@@ -1,6 +1,7 @@
 import type { Effect } from "effect";
 import type { Inputs } from "#service.ts";
-export const unexpectedSubmit = (error: Effect.Error<ReturnType<typeof Inputs.Service.submit>>) =>
+import type { submit } from "#submit.ts";
+export const unexpectedSubmit = (error: Effect.Error<ReturnType<typeof submit>>) =>
 	error._tag !== "InvalidInput" &&
 	error._tag !== "InputConflict" &&
 	error._tag !== "InputNotFound" &&

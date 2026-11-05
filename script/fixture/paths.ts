@@ -1,8 +1,8 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Effect, Result } from "effect";
+import { devDataDirectory } from "#fixture/legacy-paths.ts";
 import { FixtureError } from "#fixture/manifest.ts";
-import { devDataDirectory } from "#journal/paths.ts";
 
 export const fixturePaths = (checkout: string, home = homedir()) => ({
 	archiveRoot: join(home, ".antumbra", "fixtures"),

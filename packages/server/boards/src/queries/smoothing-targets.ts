@@ -1,7 +1,6 @@
-import { pendingSmoothing as query } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
-import { BoardsHistory } from "@antumbra/server-journal/postgres/boards/service.ts";
+import type { pendingSmoothing as query } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
+import { pendingSmoothing as queryDecision } from "@antumbra/server-boards/logic/queries/smoothing-targets.ts";
 import { Effect, type Schema } from "effect";
 export const pendingSmoothing = Effect.fn("Boards.pendingSmoothing")(function* (input: Schema.Struct<typeof query.input>["Type"]) {
-	const history = yield* BoardsHistory;
-	return yield* query.run(input, yield* history.rows(), {});
+	return yield* queryDecision(input);
 });

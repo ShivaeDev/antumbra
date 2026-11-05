@@ -16,11 +16,11 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-costs": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/server-storage": "workspace:*"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",

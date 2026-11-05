@@ -31,7 +31,11 @@ it.app("only an explicit revision moves an artifact into history", function* (ap
 	const reading = yield* answered(app.api.artifacts.byPiece({ pieceId }), "the piece's artifacts to be read");
 	expect(reading.current.map(({ id }) => id)).toEqual(expect.arrayContaining(["same", "revision"]));
 	expect(reading.history).toMatchObject([{ id: "old", supersededByArtifactId: "revision" }]);
-	expect(yield* app.rows.pieceOutcome.where({ pieceId })).toEqual(
+	expect(
+		yield* app.rows.pieceOutcome
+			.findMany({ where: { pieceId }, orderBy: { field: "id", direction: "asc" }, select: ["id", "pieceId", "sourceKind", "sourceId", "status"] })
+			.pipe(Effect.orDie),
+	).toEqual(
 		expect.arrayContaining([
 			expect.objectContaining({ sourceId: "old", sourceKind: "artifact", status: "landed" }),
 			expect.objectContaining({ sourceId: "revision", sourceKind: "artifact", status: "landed" }),

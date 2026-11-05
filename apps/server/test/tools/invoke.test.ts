@@ -3,7 +3,6 @@ import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { agentBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { invoke } from "#tools/invoke.ts";
@@ -12,8 +11,7 @@ const start = Effect.fn(function* (app: App, name: string) {
 	const requested = Request.make(`birth:${name}`);
 	const { agentId, sessionId } = identity(requested);
 	yield* app.api.agents.spawn({ requestId: requested, role: "hand", backend: "claude", model: null, effort: null });
-	const commit = yield* Commit;
-	yield* commit.observe(observed, {
+	yield* app.observe(observed, {
 		logId: `log:${name}`,
 		cursor: 0,
 		at: 100,

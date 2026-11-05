@@ -1,5 +1,7 @@
+import { All, ById, ByIds, ReposContract } from "@antumbra/server-repos/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { ReposContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { Repos } from "#service.ts";
 export const handlers = ReposContract.application.toLayer(
 	Effect.gen(function* () {
@@ -9,9 +11,9 @@ export const handlers = ReposContract.application.toLayer(
 				service.register(input).pipe(Effect.catchIf((error) => error._tag !== "SlugTaken" && error._tag !== "AlreadyDone", Effect.die)),
 			"repos.forget": (input) =>
 				service.forget(input).pipe(Effect.catchIf((error) => error._tag !== "Referenced" && error._tag !== "AlreadyDone", Effect.die)),
-			"repos.all": (input) => service.all(input).pipe(Effect.orDie),
-			"repos.byId": (input) => service.byId(input).pipe(Effect.orDie),
-			"repos.byIds": (input) => service.byIds(input).pipe(Effect.orDie),
+			"repos.all": (input) => stream(readKeys(All.reads(input)))(service.all(input).pipe(Effect.orDie)),
+			"repos.byId": (input) => stream(readKeys(ById.reads(input)))(service.byId(input).pipe(Effect.orDie)),
+			"repos.byIds": (input) => stream(readKeys(ByIds.reads(input)))(service.byIds(input).pipe(Effect.orDie)),
 		});
 	}),
 );

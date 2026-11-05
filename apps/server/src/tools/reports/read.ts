@@ -2,8 +2,10 @@ import { forVoyage } from "@antumbra/domain-reports/queries/for-voyage.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { bind, defineTool } from "@antumbra/platform-tool-schemas/define.ts";
 import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Reports } from "@antumbra/server-reports/service.ts";
 import { Effect, Option, Schema, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 
 export const readReportSpec = defineTool({
 	description: "Read a landed Report in full by ID.",
@@ -15,10 +17,18 @@ const OUT_OF_REACH = "no report with that id is on your voyage";
 
 export const readReportTool = bind(readReportSpec, (context, input) =>
 	Effect.gen(function* () {
+		const reportsService = yield* Reports;
+
 		yield* Effect.logDebug("agent tool called", { agentId: context.agentId, sessionId: context.sessionId, name: readReportSpec.name });
 		if (context.voyageId === undefined) return { ok: false, text: OUT_OF_REACH };
-		const live = yield* Live;
-		const report = Option.getOrNull(yield* Stream.runHead(live.live(forVoyage, { id: input.reportId, voyageId: VoyageId.make(context.voyageId) })));
+
+		const report = Option.getOrNull(
+			yield* Stream.runHead(
+				stream(keysOf(forVoyage.reads, forVoyage.scope?.({ id: input.reportId, voyageId: VoyageId.make(context.voyageId) })))(
+					reportsService.forVoyage({ id: input.reportId, voyageId: VoyageId.make(context.voyageId) }).pipe(Effect.orDie),
+				),
+			),
+		);
 		if (report === null) return { ok: false, text: OUT_OF_REACH };
 		const byline = report.authorAgentId === null ? "report" : `report by ${report.authorAgentId}`;
 		return { ok: true, text: [`# ${report.title}`, byline, "", report.body].join("\n") };

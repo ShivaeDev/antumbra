@@ -1,6 +1,7 @@
-import { replacements as query } from "@antumbra/domain-rulings/queries/replacements.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { replacements as query } from "@antumbra/domain-rulings/queries/replacements.ts";
+import { replacements as queryDecision } from "@antumbra/server-rulings/logic/queries/replacements.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const replacements = Effect.fn("Rulings.replacements")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const replacements = Effect.fn("Rulings.replacements")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

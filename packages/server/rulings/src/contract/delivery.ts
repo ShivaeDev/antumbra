@@ -4,9 +4,9 @@ import { awaitingDelivery as sourceAwaitingDelivery } from "@antumbra/domain-rul
 import { delivery as sourceDelivery } from "@antumbra/domain-rulings/queries/delivery.ts";
 import { openGates as sourceOpenGates } from "@antumbra/domain-rulings/queries/open-gates.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
-export const Delivery = query("delivery", {
+import { stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
+export const Delivery = stream("delivery", {
 	payload: sourceDelivery.input,
 	success: sourceDelivery.output,
 	reads: () => [
@@ -19,29 +19,24 @@ export const Delivery = query("delivery", {
 		collection("voyageAgent", Schema.String).list,
 		collection("captainReading", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Authority = query("authority", {
+export const Authority = stream("authority", {
 	payload: sourceAuthority.input,
 	success: sourceAuthority.output,
 	reads: () => [collection("voyageAgent", Schema.String).list, collection("voyage", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const AwaitingAscent = query("awaitingAscent", {
+export const AwaitingAscent = stream("awaitingAscent", {
 	payload: sourceAwaitingAscent.input,
 	success: sourceAwaitingAscent.output,
 	reads: () => [collection("ruling", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const AwaitingDelivery = query("awaitingDelivery", {
+export const AwaitingDelivery = stream("awaitingDelivery", {
 	payload: sourceAwaitingDelivery.input,
 	success: sourceAwaitingDelivery.output,
 	reads: () => [collection("ruling", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const OpenGates = query("openGates", {
+export const OpenGates = stream("openGates", {
 	payload: sourceOpenGates.input,
 	success: sourceOpenGates.output,
 	reads: () => [collection("rulingGate", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });

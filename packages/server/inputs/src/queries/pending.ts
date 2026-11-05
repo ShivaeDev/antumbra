@@ -1,7 +1,6 @@
-import { pending as query } from "@antumbra/domain-inputs/queries/pending.ts";
-import { InputsHistory } from "@antumbra/server-journal/postgres/inputs/service.ts";
+import type { pending as query } from "@antumbra/domain-inputs/queries/pending.ts";
+import { pending as queryDecision } from "@antumbra/server-inputs/logic/queries/pending.ts";
 import { Effect, type Schema } from "effect";
 export const pending = Effect.fn("Inputs.pending")(function* (input: Schema.Struct<typeof query.input>["Type"]) {
-	const history = yield* InputsHistory;
-	return yield* query.run(input, yield* history.rows(), {});
+	return yield* queryDecision(input);
 });

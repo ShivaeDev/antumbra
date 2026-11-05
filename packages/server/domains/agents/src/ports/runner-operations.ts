@@ -1,6 +1,6 @@
-import { port } from "@antumbra/platform-feature/port.ts";
 import type { ToolSet } from "@antumbra/platform-vocabulary/tool-set.ts";
 import type { Effect } from "effect";
+import { Context } from "effect";
 
 export interface StartOrder {
 	readonly requestId: string;
@@ -16,10 +16,10 @@ export interface StartOrder {
 	readonly charter: string;
 }
 
-export class RunnerOperations extends port<
+export class RunnerOperations extends Context.Service<
 	RunnerOperations,
 	{
 		readonly runnerFor: (backend: string) => Effect.Effect<string>;
 		readonly start: (runnerId: string, order: StartOrder) => Effect.Effect<string | null>;
 	}
->()("runnerOperations") {}
+>()("@antumbra/port/runnerOperations") {}

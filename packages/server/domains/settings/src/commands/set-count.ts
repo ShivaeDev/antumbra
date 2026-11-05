@@ -1,26 +1,12 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
 import { CountKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { countSet } from "#facts/count-set.ts";
-import { COUNTS } from "#queries/counts.ts";
 
 export const setCount = command("setCount", {
 	input: { key: CountKey, count: titled(Schema.Number.check(Schema.isInt()), { title: "Count" }) },
 	reads: [],
 	emits: countSet,
 	rejections: { OutOfRange: { field: Schema.String, key: CountKey, max: Schema.Number, message: Schema.String, min: Schema.Number } },
-	run: (input, _rows, reject) => {
-		const declaration = COUNTS[input.key];
-		if (input.count < declaration.min || input.count > declaration.max) {
-			return reject.OutOfRange({
-				field: "count",
-				key: input.key,
-				max: declaration.max,
-				message: `${declaration.title} takes a whole number from ${declaration.min} to ${declaration.max}`,
-				min: declaration.min,
-			});
-		}
-		return Effect.succeed({ count: input.count, key: input.key });
-	},
 });

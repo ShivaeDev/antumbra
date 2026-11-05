@@ -19,9 +19,9 @@ Tests prove behavior at the narrowest meaningful boundary and fail for meaningfu
      signal. A real sleep or repeated state read is not a substitute for a signal the test owns.
    - Use condition-named, bounded polling only across a true black-box boundary that exposes no causal signal.
 8. Use the established entry at the boundary being tested: `it.app` and `it.glass` from `@antumbra/app-testing` for behavior of the composed
-   application, and the owner's own primitives for a journal, schema, or adapter unit. Those entries own the test scope, the journal's lifetime, the
+   application, and the owner's own primitives for storage, schema, or adapter stories. Those entries own the test scope, the database's lifetime, the
    external doubles, and the test clock. Fix common service provisioning and isolation in the shared harness instead of repeating them across callers;
-   do not construct the same test API in each file. Keep an explicit separate journal or runtime lifetime when replay or durable recovery is the
+   do not construct the same test API in each file. Keep an explicit separate database or runtime lifetime when replay or durable recovery is the
    behavior under test. Request live time only when the boundary requires it.
 9. Repeated test behavior belongs to its semantic owner or a narrow shared test support package. Use Effect primitives directly when a helper would
    only rename them, and never hide clocks, barriers, and black-box polling behind one universal waiting helper.

@@ -21,7 +21,7 @@ describe("layout export rules", () => {
 				'@antumbra/platform-vocabulary exports {"./board":"./src/board.ts"}: a nested package exports { "./*": "./src/*" } and an import names its file, extension and all.',
 			rule: "layout/package-exports",
 		});
-		expect(check([manifest("packages/server/journal", { "./*": "./src/*", "./package.json": "./package.json" })])).toHaveLength(1);
+		expect(check([manifest("packages/server/storage", { "./*": "./src/*", "./package.json": "./package.json" })])).toHaveLength(1);
 		expect(check([manifest("packages/glass/renderer", { "./*": "./src/*.ts" })])).toHaveLength(1);
 	});
 

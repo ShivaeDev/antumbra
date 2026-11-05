@@ -1,6 +1,6 @@
+import { apiOf } from "@antumbra/app-testing/api.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { apiOf } from "@antumbra/server-journal/testing/api.ts";
 import { Effect } from "effect";
 import { definition } from "#app.ts";
 import { connectRunner } from "#runner.ts";

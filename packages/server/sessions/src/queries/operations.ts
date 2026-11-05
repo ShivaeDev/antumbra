@@ -1,6 +1,7 @@
-import { operations as query } from "@antumbra/domain-sessions/queries/operations.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { operations as query } from "@antumbra/domain-sessions/queries/operations.ts";
+import { operations as queryDecision } from "@antumbra/server-sessions/logic/queries/operations.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const operations = Effect.fn("Sessions.operations")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const operations = Effect.fn("Sessions.operations")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

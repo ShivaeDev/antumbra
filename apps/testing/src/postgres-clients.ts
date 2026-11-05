@@ -7,22 +7,8 @@ import { ChangesContract } from "@antumbra/server-changes/contract.ts";
 import { CostsContract } from "@antumbra/server-costs/contract.ts";
 import { HoldsContract } from "@antumbra/server-holds/contract.ts";
 import { InputsContract } from "@antumbra/server-inputs/contract.ts";
-import { ArtifactsHistory } from "@antumbra/server-journal/postgres/artifacts/service.ts";
-import { BackendsHistory } from "@antumbra/server-journal/postgres/backends/service.ts";
-import { BoardsHistory } from "@antumbra/server-journal/postgres/boards/service.ts";
-import { ChangesHistory } from "@antumbra/server-journal/postgres/changes/service.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
-import { InputsHistory } from "@antumbra/server-journal/postgres/inputs/service.ts";
-import { MailHistory } from "@antumbra/server-journal/postgres/mail/service.ts";
-import { PieceHistory } from "@antumbra/server-journal/postgres/pieces/service.ts";
-import { ReportsHistory } from "@antumbra/server-journal/postgres/reports/service.ts";
-import { ReposHistory } from "@antumbra/server-journal/postgres/repos/service.ts";
-import { RoleSettingsHistory } from "@antumbra/server-journal/postgres/role-settings/service.ts";
-import { SettingsHistory } from "@antumbra/server-journal/postgres/settings/service.ts";
-import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
 import { LifecycleContract } from "@antumbra/server-lifecycle/contract.ts";
 import { MailContract } from "@antumbra/server-mail/contract.ts";
-import { Mail } from "@antumbra/server-mail/service.ts";
 import { PiecesContract } from "@antumbra/server-pieces/contract.ts";
 import { ReclamationContract } from "@antumbra/server-reclamation/contract.ts";
 import { ReportsContract } from "@antumbra/server-reports/contract.ts";
@@ -31,6 +17,19 @@ import { RoleSettingsContract } from "@antumbra/server-role-settings/contract.ts
 import { RulingsContract } from "@antumbra/server-rulings/contract.ts";
 import { SessionsContract } from "@antumbra/server-sessions/contract.ts";
 import { SettingsContract } from "@antumbra/server-settings/contract.ts";
+import { ArtifactsHistory } from "@antumbra/server-storage/artifacts/service.ts";
+import { BackendsHistory } from "@antumbra/server-storage/backends/service.ts";
+import { BoardsHistory } from "@antumbra/server-storage/boards/service.ts";
+import { ChangesHistory } from "@antumbra/server-storage/changes/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { InputsHistory } from "@antumbra/server-storage/inputs/service.ts";
+import { MailHistory } from "@antumbra/server-storage/mail/service.ts";
+import { PieceHistory } from "@antumbra/server-storage/pieces/service.ts";
+import { ReportsHistory } from "@antumbra/server-storage/reports/service.ts";
+import { ReposHistory } from "@antumbra/server-storage/repos/service.ts";
+import { RoleSettingsHistory } from "@antumbra/server-storage/role-settings/service.ts";
+import { SettingsHistory } from "@antumbra/server-storage/settings/service.ts";
+import { VoyageHistory } from "@antumbra/server-storage/voyages/service.ts";
 import { SupervisionContract } from "@antumbra/server-supervision/contract.ts";
 import { VoyagesContract } from "@antumbra/server-voyages/contract.ts";
 import { Effect } from "effect";
@@ -41,7 +40,7 @@ export const postgresClients = Effect.fn("PostgresApp.clients")(function* () {
 	const pieceApi = yield* RpcTest.makeClient(PiecesContract.application);
 	const mailApi = yield* RpcTest.makeClient(MailContract.application);
 	const mailHistory = yield* MailHistory;
-	const mailService = yield* Mail;
+
 	const pieceHistory = yield* PieceHistory;
 	const settingsApi = yield* RpcTest.makeClient(SettingsContract.application);
 	const settingsHistory = yield* SettingsHistory;
@@ -109,6 +108,5 @@ export const postgresClients = Effect.fn("PostgresApp.clients")(function* () {
 		inputsHistory,
 		changesHistory,
 		executionHistory,
-		observeMail: mailService.observeWake,
 	};
 });

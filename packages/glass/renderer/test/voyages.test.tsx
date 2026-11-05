@@ -83,6 +83,7 @@ it.glass("quiets a voyage from its header and offers to resume it", function* ({
 	yield* until(() => container.querySelector("h1")?.textContent === "Sound the bar", "the bare voyage's header");
 	const header = container.querySelector("header") ?? expect.fail("the page header");
 	yield* until(() => [...header.querySelectorAll("button")].some((act) => act.textContent === "Quiet"), "the quiet act");
+	yield* until(() => header.textContent?.includes("Hail a captain") === true, "the captain's act");
 	expect([...header.querySelectorAll("button")].at(-1)?.textContent).toBe("Hail a captain");
 
 	yield* press(header, "Quiet");

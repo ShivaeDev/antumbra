@@ -4,25 +4,22 @@ import { byPiece } from "@antumbra/domain-reports/queries/by-piece.ts";
 import { forVoyage } from "@antumbra/domain-reports/queries/for-voyage.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Land = command("land", { payload: land.Input, success: Schema.Number, rejections: land.Rejection, invalidates: () => [] });
-export const ById = query("byId", {
+export const ById = stream("byId", {
 	payload: byId.input,
 	success: byId.output,
 	reads: () => [collection("report", Schema.String).list, collection("pieceReport", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ByPiece = query("byPiece", {
+export const ByPiece = stream("byPiece", {
 	payload: byPiece.input,
 	success: byPiece.output,
 	reads: () => [collection("report", Schema.String).list, collection("pieceReport", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ForVoyage = query("forVoyage", {
+export const ForVoyage = stream("forVoyage", {
 	payload: forVoyage.input,
 	success: forVoyage.output,
 	reads: () => [collection("report", Schema.String).list, collection("pieceReport", Schema.String).list, collection("piece", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const ReportsContract = contract("reports", { commands: [Land], queries: [ById, ByPiece, ForVoyage] });
+export const ReportsContract = contract("reports", { commands: [Land], streams: [ById, ByPiece, ForVoyage] });

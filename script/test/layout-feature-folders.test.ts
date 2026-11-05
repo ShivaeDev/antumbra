@@ -8,8 +8,7 @@ const holding = (path: string): SeedFile => ({ content: "export {};\n", path });
 const check = (...paths: readonly string[]) =>
 	layoutFeatureFolderViolations(inventoryOf({ sources: paths.map(holding) })).map(({ message }) => message);
 
-const SHAPE =
-	"a domain holds rows, facts, commands, materializers, queries, ports and reconcilers, one file deep, beside feature.ts and ids.ts, and nothing else";
+const SHAPE = "a domain holds rows, facts, commands, queries and ports, one file deep, beside feature.ts and ids.ts, and nothing else";
 
 describe("feature-folders rule", () => {
 	it("lets a domain hold the seven folders and its two files", () => {
@@ -20,10 +19,8 @@ describe("feature-folders rule", () => {
 				"packages/server/domains/pieces/src/rows/piece.ts",
 				"packages/server/domains/pieces/src/facts/piece-parked.ts",
 				"packages/server/domains/pieces/src/commands/park.ts",
-				"packages/server/domains/pieces/src/materializers/piece-parked.ts",
 				"packages/server/domains/pieces/src/queries/by-voyage.ts",
 				"packages/server/domains/pieces/src/ports/dispatch.ts",
-				"packages/server/domains/pieces/src/reconcilers/admission.ts",
 			),
 		).toEqual([]);
 	});
@@ -43,6 +40,6 @@ describe("feature-folders rule", () => {
 
 	it("leaves a domain's tests and every package outside the domains alone", () => {
 		expect(check("packages/server/domains/pieces/test/park.test.ts")).toEqual([]);
-		expect(check("packages/server/journal/src/commit.ts")).toEqual([]);
+		expect(check("packages/server/storage/src/commit.ts")).toEqual([]);
 	});
 });

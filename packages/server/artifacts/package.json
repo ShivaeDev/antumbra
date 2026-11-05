@@ -24,12 +24,13 @@
 		"@antumbra/domain-agents": "workspace:*"
 	},
 	"dependencies": {
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"effect": "catalog:",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/domain-artifacts": "workspace:*"
+		"@antumbra/domain-artifacts": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	}
 }

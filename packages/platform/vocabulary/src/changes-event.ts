@@ -1,8 +1,6 @@
 import { Schema } from "effect";
-import { Agent, Berth, Moorage, PieceAgent, ResourceOwner, VoyageActivity, VoyageCaptainWork } from "#change-evidence.ts";
 import { AdoptionRequest, Change, ChangeFeedback, ChangeTransition, HostCapability, PieceChange } from "#changes.ts";
 import { ChangeId } from "#changes-ids.ts";
-import { Session } from "#session.ts";
 export const ChangeAdoptionFailedPayload = Schema.Struct({ id: Schema.NullOr(Schema.String), message: Schema.String });
 export const ChangeAdoptionRetriedPayload = Schema.Struct({ id: Schema.String, url: Schema.String });
 export const ChangeHostCapabilityObservedPayload = Schema.Struct(HostCapability.fields);
@@ -28,18 +26,7 @@ export const ChangeFeedbackForwardedPayload = Schema.Struct({
 	ids: Schema.Array(Schema.String),
 });
 export const ChangeProposalFrozenPayload = Schema.Struct({ change: Change });
-export const ChangeEvidence = Schema.Struct({
-	owners: Schema.Array(ResourceOwner),
-	agents: Schema.Array(Agent),
-	berths: Schema.Array(Berth),
-	moorages: Schema.Array(Moorage),
-	sessions: Schema.Array(Session),
-	assignments: Schema.Array(PieceAgent),
-	activities: Schema.Array(VoyageActivity),
-	captains: Schema.Array(VoyageCaptainWork),
-});
 export const ChangesEvent = Schema.Union([
-	Schema.Struct({ _tag: Schema.Literal("ChangeEvidenceObserved"), ...ChangeEvidence.fields, at: Schema.Number }),
 	Schema.Struct({ _tag: Schema.Literal("ChangeAdoptionFailed"), ...ChangeAdoptionFailedPayload.fields, at: Schema.Number }),
 	Schema.Struct({ _tag: Schema.Literal("ChangeAdoptionRetried"), ...ChangeAdoptionRetriedPayload.fields, at: Schema.Number }),
 	Schema.Struct({ _tag: Schema.Literal("ChangeHostCapabilityObserved"), ...ChangeHostCapabilityObservedPayload.fields, at: Schema.Number }),

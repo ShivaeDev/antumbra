@@ -1,5 +1,18 @@
+import {
+	BoardsContract,
+	Digest,
+	Display,
+	DueSmoothing,
+	Entries,
+	PendingSmoothing,
+	SmoothingSessionFor,
+	SmoothingState,
+	SmoothingTargets,
+	Under,
+} from "@antumbra/server-boards/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { BoardsContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { Boards } from "#service.ts";
 export const handlers = BoardsContract.application.toLayer(
 	Effect.gen(function* () {
@@ -27,15 +40,16 @@ export const handlers = BoardsContract.application.toLayer(
 				service
 					.finishSmoothingSession(input)
 					.pipe(Effect.catchIf((error) => error._tag !== "UnknownSession" && error._tag !== "Settled" && error._tag !== "AlreadyDone", Effect.die)),
-			"boards.display": (input) => service.display(input).pipe(Effect.orDie),
-			"boards.entries": (input) => service.entries(input).pipe(Effect.orDie),
-			"boards.digest": (input) => service.digest(input).pipe(Effect.orDie),
-			"boards.under": (input) => service.under(input).pipe(Effect.orDie),
-			"boards.dueSmoothing": (input) => service.dueSmoothing(input).pipe(Effect.orDie),
-			"boards.smoothingTargets": (input) => service.smoothingTargets(input).pipe(Effect.orDie),
-			"boards.pendingSmoothing": (input) => service.pendingSmoothing(input).pipe(Effect.orDie),
-			"boards.smoothingSessionFor": (input) => service.smoothingSessionFor(input).pipe(Effect.orDie),
-			"boards.smoothingState": (input) => service.smoothingState(input).pipe(Effect.orDie),
+			"boards.display": (input) => stream(readKeys(Display.reads(input)))(service.display(input).pipe(Effect.orDie)),
+			"boards.entries": (input) => stream(readKeys(Entries.reads(input)))(service.entries(input).pipe(Effect.orDie)),
+			"boards.digest": (input) => stream(readKeys(Digest.reads(input)))(service.digest(input).pipe(Effect.orDie)),
+			"boards.under": (input) => stream(readKeys(Under.reads(input)))(service.under(input).pipe(Effect.orDie)),
+			"boards.dueSmoothing": (input) => stream(readKeys(DueSmoothing.reads(input)))(service.dueSmoothing(input).pipe(Effect.orDie)),
+			"boards.smoothingTargets": (input) => stream(readKeys(SmoothingTargets.reads(input)))(service.smoothingTargets(input).pipe(Effect.orDie)),
+			"boards.pendingSmoothing": (input) => stream(readKeys(PendingSmoothing.reads(input)))(service.pendingSmoothing(input).pipe(Effect.orDie)),
+			"boards.smoothingSessionFor": (input) =>
+				stream(readKeys(SmoothingSessionFor.reads(input)))(service.smoothingSessionFor(input).pipe(Effect.orDie)),
+			"boards.smoothingState": (input) => stream(readKeys(SmoothingState.reads(input)))(service.smoothingState(input).pipe(Effect.orDie)),
 		});
 	}),
 );

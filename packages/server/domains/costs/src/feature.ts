@@ -10,6 +10,5 @@ export const costs = feature("costs", {
 	rows: [sessionUsage, voyageAgent, voyage],
 	facts: [],
 	commands: [],
-	materializers: [],
 	queries: [reading, forVoyage, forAgent],
 });

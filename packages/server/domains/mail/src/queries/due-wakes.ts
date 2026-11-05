@@ -2,13 +2,11 @@ import { agent } from "@antumbra/domain-agents/rows/agent.ts";
 import { voyageAgent } from "@antumbra/domain-agents/rows/voyage-agent.ts";
 import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
-import { COUNTS } from "@antumbra/domain-settings/queries/counts.ts";
 import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
-import { FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
-import { Clock, Effect, Schema } from "effect";
-import { dueMail, MailBatch, quietEnd } from "#queries/due-mail.ts";
+import { Schema } from "effect";
+import { MailBatch } from "#queries/due-mail.ts";
 import { message } from "#rows/message.ts";
 
 export const DueWake = Schema.Struct({
@@ -27,35 +25,4 @@ export const dueWakes = query("dueWakes", {
 	input: {},
 	output: DueWakes,
 	reads: [message, agent, session, sessionOperation, count, voyageAgent],
-	run: Effect.fn("mail.dueWakes")(function* (_input, rows) {
-		const settings = yield* rows.count.where({ scope: FLEET });
-		const quietMillis = (settings.find((value) => value.key === "routineMailMinutes")?.count ?? COUNTS.routineMailMinutes.fallback) * 60_000;
-		const nowMillis = yield* Clock.currentTimeMillis;
-		const alive = new Map((yield* rows.agent.where({ status: "alive" })).map((value) => [String(value.id), value.id]));
-		const sailing = new Map((yield* rows.voyageAgent.where({})).map((crew) => [String(crew.agentId), crew.voyageId]));
-		const resting = yield* rows.session.where({ status: "open", executionStatus: "idle", parentSessionId: null });
-		const wakes: DueWake[] = [];
-		let waitUntil: number | null = null;
-		for (const root of resting) {
-			if (root.stoppedAt !== null) continue;
-			const ownerId = alive.get(root.agentId);
-			if (ownerId === undefined) continue;
-			const unread = (yield* rows.message.where({ toAgentId: root.agentId })).filter((held) => held.readAt === null);
-			const batch = dueMail(unread, nowMillis, quietMillis);
-			if (batch === undefined) {
-				const next = quietEnd(unread, quietMillis);
-				if (next !== undefined && (waitUntil === null || next < waitUntil)) waitUntil = next;
-				continue;
-			}
-			wakes.push({
-				agentId: ownerId,
-				sessionId: root.id,
-				voyageId: sailing.get(String(ownerId)) ?? null,
-				batch,
-				unreadIds: unread.map((held) => held.id),
-				waitedMillis: nowMillis - Math.min(...unread.map((held) => Date.parse(held.sentAt))),
-			});
-		}
-		return { wakes, waitUntil };
-	}),
 });

@@ -2,18 +2,20 @@ import type { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { transcriptSources } from "@antumbra/domain-sessions/queries/transcript.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
 import { Token } from "@antumbra/platform-rpc/token.ts";
-import { keysOf, Live } from "@antumbra/server-journal/live.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { Effect, Stream } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 import { snapshot } from "#transcript/snapshot.ts";
 
 export const transcript = (input: { readonly id: SessionId }) =>
 	Stream.unwrap(
 		Effect.gen(function* () {
-			const live = yield* Live;
+			const sessionsService = yield* Sessions;
+
 			const reactivity = yield* Reactivity;
 			return reactivity
-				.stream([...keysOf(transcriptSources.reads, undefined), "runner:connected"], live.read(transcriptSources, input))
+				.stream([...keysOf(transcriptSources.reads, undefined), "runner:connected"], sessionsService.transcriptSources(input).pipe(Effect.orDie))
 				.pipe(Stream.mapEffect((sources) => snapshot(sources, input.id)));
 		}),
 	);

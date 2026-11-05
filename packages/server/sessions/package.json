@@ -16,12 +16,14 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/platform-feature": "workspace:*"
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",
@@ -29,7 +31,6 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/platform-runner": "workspace:*"
 	}
 }

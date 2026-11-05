@@ -1,7 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { titled } from "@antumbra/platform-feature/edit.ts";
 import { FlagKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { flagSet } from "#facts/flag-set.ts";
 
 export const setFlag = command("setFlag", {
@@ -9,5 +9,4 @@ export const setFlag = command("setFlag", {
 	reads: [],
 	emits: flagSet,
 	rejections: {},
-	run: (input) => Effect.succeed({ keys: [input.key], on: input.on }),
 });

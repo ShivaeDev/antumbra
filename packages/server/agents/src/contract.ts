@@ -1,5 +1,17 @@
-import { contract } from "@shivaedev/contract/contract.ts";
-import { Admit, Cancel, Delay, Hail, Hold, Request, Retire, RetireCrew, Retry, Smooth, Spawn, WorkNow } from "#contract/commands.ts";
+import {
+	Admit,
+	Cancel,
+	Delay,
+	Hail,
+	Hold,
+	Request,
+	Retire,
+	RetireCrew,
+	Retry,
+	Smooth,
+	Spawn,
+	WorkNow,
+} from "@antumbra/server-agents/contract/commands.ts";
 import {
 	All,
 	Authority,
@@ -13,11 +25,12 @@ import {
 	Reading,
 	Roster,
 	Smoother,
-} from "#contract/reading.ts";
-import { Admitted, BirthBySession, Births, Dispatch, Pending, PendingOperations, Rest, WorkingCount } from "#contract/work.ts";
+} from "@antumbra/server-agents/contract/reading.ts";
+import { Admitted, BirthBySession, Births, Dispatch, Pending, PendingOperations, Rest, WorkingCount } from "@antumbra/server-agents/contract/work.ts";
+import { contract } from "@shivaedev/contract/contract.ts";
 export const AgentsContract = contract("agents", {
 	commands: [RetireCrew, Retire, Spawn, Hail, WorkNow, Request, Admit, Hold, Delay, Cancel, Retry, Smooth],
-	queries: [
+	streams: [
 		CanRetireCrew,
 		Smoother,
 		CaptainReading,

@@ -27,7 +27,6 @@
 		"typecheck:compat:workspace": "tsc6 --noEmit -p tsconfig.workspace.json",
 		"typecheck:root": "tsc --noEmit",
 		"typecheck:workspace": "tsc --noEmit -p tsconfig.workspace.json",
-		"journal": "node script/journal.ts",
 		"fixture": "node script/fixture.ts",
 		"flakes": "node script/flakes.ts",
 		"pr": "node script/pr.ts",
@@ -40,7 +39,6 @@
 	"devDependencies": {
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/server": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@biomejs/biome": "catalog:",
 		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
@@ -56,6 +54,9 @@
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
 		"@shivaedev/quality": "catalog:",
-		"@effect/platform-node-shared": "catalog:"
+		"@effect/platform-node-shared": "catalog:",
+		"@antumbra/server-storage": "workspace:*",
+		"@antumbra/legacy-fixture": "workspace:*",
+		"@antumbra/app-testing": "workspace:*"
 	}
 }

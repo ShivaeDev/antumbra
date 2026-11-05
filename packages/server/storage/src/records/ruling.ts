@@ -1,0 +1,54 @@
+import { ruling as row } from "@antumbra/domain-rulings/rows/ruling.ts";
+import { jsonb } from "@shivaedev/sql/jsonb.ts";
+import { makeRepository } from "@shivaedev/sql/repository.ts";
+import { Schema } from "effect";
+import { Model } from "effect/schema";
+import { field } from "#records/field.ts";
+
+class Stored extends Model.Class<Stored>("ruling")({
+	id: row.fields.id,
+	requester: field(jsonb(row.fields.requester)),
+	question: field(row.fields.question),
+	context: field(row.fields.context),
+	declaredRadius: field(row.fields.declaredRadius),
+	declaredUrgency: field(row.fields.declaredUrgency),
+	radius: field(row.fields.radius),
+	urgency: field(row.fields.urgency),
+	rung: field(row.fields.rung),
+	choices: field(jsonb(row.fields.choices)),
+	subjects: field(jsonb(row.fields.subjects)),
+	contexts: field(jsonb(row.fields.contexts)),
+	reclassifications: field(jsonb(row.fields.reclassifications)),
+	recommendation: field(jsonb(row.fields.recommendation)),
+	answer: field(jsonb(row.fields.answer)),
+	parked: field(jsonb(row.fields.parked)),
+	supersession: field(jsonb(row.fields.supersession)),
+	withdrawal: field(jsonb(row.fields.withdrawal)),
+	deliveredAt: field(row.fields.deliveredAt),
+	createdAt: field(row.fields.createdAt),
+	storage_order: Model.GeneratedByDb(Schema.Unknown),
+}) {}
+export const repository = makeRepository(Stored, { tableName: "ruling", idColumn: "id", spanPrefix: "ruling" });
+
+export const selection = [
+	"id",
+	"requester",
+	"question",
+	"context",
+	"declaredRadius",
+	"declaredUrgency",
+	"radius",
+	"urgency",
+	"rung",
+	"choices",
+	"subjects",
+	"contexts",
+	"reclassifications",
+	"recommendation",
+	"answer",
+	"parked",
+	"supersession",
+	"withdrawal",
+	"deliveredAt",
+	"createdAt",
+] as const;

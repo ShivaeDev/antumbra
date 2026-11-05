@@ -1,7 +1,6 @@
-import { links as query } from "@antumbra/domain-changes/queries/links.ts";
-import { ChangesHistory } from "@antumbra/server-journal/postgres/changes/service.ts";
+import type { links as query } from "@antumbra/domain-changes/queries/links.ts";
+import { links as queryDecision } from "@antumbra/server-changes/logic/queries/links.ts";
 import { Effect, type Schema } from "effect";
 export const links = Effect.fn("Changes.links")(function* (input: Schema.Struct<typeof query.input>["Type"]) {
-	const history = yield* ChangesHistory;
-	return yield* query.run(input, yield* history.rows(), {});
+	return yield* queryDecision(input);
 });

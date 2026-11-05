@@ -1,6 +1,7 @@
-import { canRetireCrew as query } from "@antumbra/domain-agents/queries/can-retire-crew.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { canRetireCrew as query } from "@antumbra/domain-agents/queries/can-retire-crew.ts";
+import { canRetireCrew as queryDecision } from "@antumbra/server-agents/logic/queries/can-retire-crew.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const canRetireCrew = Effect.fn("Agents.canRetireCrew")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const canRetireCrew = Effect.fn("Agents.canRetireCrew")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

@@ -1,4 +1,4 @@
-import { apiOf } from "@antumbra/server-journal/testing/api.ts";
+import { apiOf } from "@antumbra/app-testing/api.ts";
 import { expect } from "vitest";
 import { answered } from "#answers.ts";
 import { definition } from "#app.ts";

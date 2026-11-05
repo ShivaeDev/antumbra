@@ -1,7 +1,7 @@
 import type { PieceId } from "@antumbra/platform-vocabulary/piece.ts";
 import type { VoyageId } from "@antumbra/platform-vocabulary/voyage.ts";
-import { PieceHistory } from "@antumbra/server-journal/postgres/pieces/service.ts";
-import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
+import { PieceHistory } from "@antumbra/server-storage/pieces/service.ts";
+import { VoyageHistory } from "@antumbra/server-storage/voyages/service.ts";
 import { Effect } from "effect";
 
 export const all = Effect.fn("Pieces.all")(function* () {

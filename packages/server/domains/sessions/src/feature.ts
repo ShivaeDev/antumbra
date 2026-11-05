@@ -1,18 +1,15 @@
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
-import { toolAnswered, toolAnsweredMaterializer } from "#commands/answer-tool.ts";
-import { toolCalled, toolCalledMaterializer } from "#commands/call-tool.ts";
-import { charter, sessionChartered, sessionCharteredMaterializer } from "#commands/charter.ts";
-import { operationHeld, operationHeldMaterializer } from "#commands/hold.ts";
+import { toolAnswered } from "#commands/answer-tool.ts";
+import { toolCalled } from "#commands/call-tool.ts";
+import { charter, sessionChartered } from "#commands/charter.ts";
+import { operationHeld } from "#commands/hold.ts";
 import { request } from "#commands/request.ts";
-import { gatedOperations, operationRetried, operationRetriedMaterializer, retry } from "#commands/retry.ts";
-import { sessionStopped, sessionStoppedMaterializer, stop } from "#commands/stop.ts";
+import { operationRetried, retry } from "#commands/retry.ts";
+import { sessionStopped, stop } from "#commands/stop.ts";
 import { observed } from "#facts/observed.ts";
 import { operationRequested } from "#facts/operation-requested.ts";
-import { pricedTurns, providerEvent } from "#facts/provider-event.ts";
-import { observedMaterializer } from "#materializers/observed.ts";
-import { operationRequestedMaterializer } from "#materializers/operation-requested.ts";
-import { providerEventMaterializer } from "#materializers/provider-event.ts";
+import { providerEvent } from "#facts/provider-event.ts";
 import { opening } from "#queries/opening.ts";
 import { operations } from "#queries/operations.ts";
 import { pending } from "#queries/pending.ts";
@@ -46,17 +43,5 @@ export const sessions = feature("sessions", {
 	],
 	facts: [providerEvent, toolCalled, operationRetried, toolAnswered, observed, operationRequested, operationHeld, sessionChartered, sessionStopped],
 	commands: [request, retry, charter, stop],
-	materializers: [
-		providerEventMaterializer,
-		toolCalledMaterializer,
-		operationRetriedMaterializer,
-		toolAnsweredMaterializer,
-		observedMaterializer,
-		operationRequestedMaterializer,
-		operationHeldMaterializer,
-		sessionCharteredMaterializer,
-		sessionStoppedMaterializer,
-	],
-	migrations: [pricedTurns, gatedOperations],
 	queries: [operations, opening, transcriptSources, toolCall, reading, tree, forAgent, pending],
 });

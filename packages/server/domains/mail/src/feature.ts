@@ -10,9 +10,6 @@ import { send } from "#commands/send.ts";
 import { messageDelivered } from "#facts/message-delivered.ts";
 import { messageRead } from "#facts/message-read.ts";
 import { messageSent } from "#facts/message-sent.ts";
-import { messageDeliveredMaterializer } from "#materializers/message-delivered.ts";
-import { messageReadMaterializer } from "#materializers/message-read.ts";
-import { messageSentMaterializer } from "#materializers/message-sent.ts";
 import { dueWakes } from "#queries/due-wakes.ts";
 import { mailbox } from "#queries/mailbox.ts";
 import { unread } from "#queries/unread.ts";
@@ -22,6 +19,5 @@ export const mail = feature("mail", {
 	rows: [message, agent, session, sessionOperation, count, voyageAgent],
 	facts: [messageSent, messageDelivered, messageRead],
 	commands: [send, markDelivered, markRead],
-	materializers: [messageSentMaterializer, messageDeliveredMaterializer, messageReadMaterializer],
 	queries: [unread, mailbox, dueWakes],
 });

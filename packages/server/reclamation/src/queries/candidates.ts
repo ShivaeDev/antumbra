@@ -1,6 +1,7 @@
-import { candidates as query } from "@antumbra/domain-reclamation/queries/candidates.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { candidates as query } from "@antumbra/domain-reclamation/queries/candidates.ts";
+import { candidates as queryDecision } from "@antumbra/server-reclamation/logic/queries/candidates.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const candidates = Effect.fn("Reclamation.candidates")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const candidates = Effect.fn("Reclamation.candidates")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

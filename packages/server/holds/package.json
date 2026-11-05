@@ -16,18 +16,24 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-holds": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
-		"effect": "catalog:"
+		"effect": "catalog:",
+		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/domain-voyages": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/server-agents": "workspace:*",
+		"@antumbra/server-boards": "workspace:*",
+		"@antumbra/server-lifecycle": "workspace:*",
+		"@antumbra/server-mail": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",
 		"vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"typescript": "catalog:"
 	}
 }

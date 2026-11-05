@@ -4,7 +4,7 @@ import { command } from "@antumbra/platform-feature/command.ts";
 import { choice, optional } from "@antumbra/platform-feature/edit.ts";
 import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { roleSettingChosen } from "#facts/role-setting-chosen.ts";
 
 export const choose = command("choose", {
@@ -18,5 +18,4 @@ export const choose = command("choose", {
 	reads: [],
 	emits: roleSettingChosen,
 	rejections: {},
-	run: (input) => Effect.succeed({ backend: input.backend, effort: input.effort, model: input.model, role: input.role, scope: input.scope }),
 });

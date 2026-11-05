@@ -18,7 +18,7 @@ it.app("sends one message however often the request that named it arrives", func
 	const again = yield* app.api.mail.send({ ...sending("eastern approach"), body: "a later sounding" });
 
 	expect(again).toBe(first);
-	expect(yield* app.rows.message.count({})).toBe(1);
+	expect(yield* app.rows.message.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 	expect((yield* answered(app.api.mail.unread({ agentId: HAND }), "the agent's unread mail to be listed"))[0]?.body).toBe(
 		sending("eastern approach").body,
 	);
@@ -28,5 +28,5 @@ it.app("refuses a message with nothing said in it and stores nothing", function*
 	const refused = yield* Effect.flip(app.api.mail.send({ ...sending("eastern approach"), body: "   " }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "body" });
-	expect(yield* app.rows.message.count({})).toBe(0);
+	expect(yield* app.rows.message.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });

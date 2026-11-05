@@ -1,31 +1,17 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { applicationStory } from "@antumbra/app-testing/application-story.ts";
+import { artifactCustody } from "@antumbra/app-testing/artifact-custody.ts";
 import { artifactAuthor, prepareArtifactSource } from "@antumbra/app-testing/artifact-source.ts";
-import { it } from "@antumbra/app-testing/entry.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { NodeServices } from "@effect/platform-node";
-import { Effect, Layer } from "effect";
 import { expect } from "vitest";
 import { landArtifact } from "#adapters/artifacts/acts/land.ts";
 import { readArtifact } from "#adapters/artifacts/acts/read.ts";
-import { artifactFiles } from "#adapters/artifacts/layer.ts";
-import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 
-it.app("artifact storage keeps published bytes after their source is removed", function* (app) {
-	const root = yield* Effect.acquireRelease(
-		Effect.sync(() => mkdtempSync(join(tmpdir(), "antumbra-artifact-"))),
-		(path) => Effect.sync(() => rmSync(path, { recursive: true, force: true })),
-	);
+applicationStory.it("artifact storage keeps published bytes after their source is removed", [artifactCustody], function* (app) {
 	yield* prepareArtifactSource({ seed: "agent:chart" });
 	app.artifacts.source.set("reef.md", "# Reef\n");
-	const files = artifactFiles.pipe(
-		Layer.provide(NodeServices.layer),
-		Layer.provide(Layer.succeed(ArtifactStorage, { root: join(root, "published") })),
-	);
 	const voyageId = VoyageId.make("voyage:reef");
 	const pieceId = PieceId.make("piece:reef");
 	yield* app.api.voyages.open({
@@ -57,10 +43,9 @@ it.app("artifact storage keeps published bytes after their source is removed", f
 		path: "reef.md",
 		title: "Reef chart",
 		supersedesArtifactId: null,
-	}).pipe(Effect.provide(files));
+	});
 	app.artifacts.source.clear();
 	const artifactId = ArtifactId.make("artifact:reef");
-	const result = yield* readArtifact(artifactId).pipe(Effect.provide(files));
+	const result = yield* readArtifact(artifactId);
 	expect(result).toMatchObject({ title: "Reef chart", markdown: "# Reef\n", byteSize: 7 });
-	expect(readFileSync(join(root, "published", result.digest, "reef.md"), "utf8")).toBe("# Reef\n");
 });

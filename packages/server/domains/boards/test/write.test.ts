@@ -23,7 +23,7 @@ it.app("refuses an entry on a board whose owner the fleet does not hold and stor
 	const refused = yield* Effect.flip(app.api.boards.write(noting("adrift", "nobody reads this", voyageBoard(VoyageId.make("voyage-nowhere")))));
 
 	expect(refused).toMatchObject({ _tag: "UnknownBoard" });
-	expect(yield* app.rows.boardEntry.count({})).toBe(0);
+	expect(yield* app.rows.boardEntry.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("refuses an entry with nothing said and stores nothing", function* (app) {
@@ -32,7 +32,7 @@ it.app("refuses an entry with nothing said and stores nothing", function* (app) 
 	const refused = yield* Effect.flip(app.api.boards.write({ ...noting("blank", "   ") }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "body", message: "An entry needs a body" });
-	expect(yield* app.rows.boardEntry.count({})).toBe(0);
+	expect(yield* app.rows.boardEntry.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("writes one entry however often the request that named it arrives", function* (app) {
@@ -42,7 +42,7 @@ it.app("writes one entry however often the request that named it arrives", funct
 	const again = yield* app.api.boards.write(noting("swell", "the swell is running"));
 
 	expect(again).toBe(first);
-	expect(yield* app.rows.boardEntry.count({})).toBe(1);
+	expect(yield* app.rows.boardEntry.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 });
 
 it.app("keeps a voyage's board and its piece's board apart", function* (app) {

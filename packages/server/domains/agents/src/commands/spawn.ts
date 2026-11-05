@@ -1,8 +1,7 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { optional, titled } from "@antumbra/platform-feature/edit.ts";
 import { AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
-import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { birthRequested } from "#facts/birth-requested.ts";
 import { agent } from "#rows/agent.ts";
 
@@ -16,21 +15,4 @@ export const spawn = command("spawn", {
 	reads: [agent],
 	emits: birthRequested,
 	rejections: { AgentExists: { id: Schema.String } },
-	run: Effect.fn("Agents.spawn")(function* (input, rows, reject) {
-		const ids = identity(input.requestId);
-		if (yield* rows.agent.exists(ids.agentId)) return yield* reject.AgentExists({ id: ids.agentId });
-		return {
-			wakeSessionId: null,
-			id: ids.birthId,
-			source: "direct" as const,
-			agentId: ids.agentId,
-			sessionId: ids.sessionId,
-			voyageId: null,
-			pieceId: null,
-			backend: input.backend,
-			model: input.model,
-			effort: input.effort,
-			role: input.role,
-		};
-	}),
 });

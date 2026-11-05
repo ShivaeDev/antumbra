@@ -1,5 +1,5 @@
 import { resume as command } from "@antumbra/domain-voyages/commands/resume.ts";
-import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
+import { VoyageHistory } from "@antumbra/server-storage/voyages/service.ts";
 import { Effect } from "effect";
 
 export const resume = Effect.fn("Voyages.resume")(function* (input: typeof command.Input.Type) {

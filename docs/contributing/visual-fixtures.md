@@ -5,8 +5,8 @@ development and migration checks. It contains no provider sessions to resume, an
 
 ## Capture and select
 
-`pnpm run fixture capture <label>` captures the development application's data. Add `--source prod` to capture the packaged application's data. The
-command resolves the application's data location; development honors `ANTUMBRA_DEV_USER_DATA`. A label is required.
+`pnpm run fixture capture <label>` captures the legacy development application's data. Add `--source prod` to capture the legacy packaged
+application's data. The command resolves the application's data location; development honors `ANTUMBRA_DEV_USER_DATA`. A label is required.
 
 Capture takes consistent SQLite copies and preserves their existing schemas. It does not run migrations against the source. Archives live under
 `~/.antumbra/fixtures/`; `pnpm run fixture list` lists their stable numbers, labels and capture dates. Use either a number or a label to select one.
@@ -27,28 +27,17 @@ original fixture again discards those edits and starts fresh.
 
 ## Check an upgrade
 
-`pnpm run fixture check <number-or-label>` extracts a fresh copy under `.fixtures/check/`, runs normal storage startup and validates its reads, then
-exits. It leaves an interactive viewer and its experiments alone. Each check starts from the archive, so an earlier successful migration cannot hide a
-problem in a later attempt.
+`pnpm run fixture check <number-or-label>` extracts a fresh copy under `.fixtures/check/`, starts app-owned PostgreSQL, replays the archive and
+validates its reads, then exits. It leaves an interactive viewer and its experiments alone. Each check starts from the archive, so an earlier
+successful migration cannot hide a problem in a later attempt.
 
-Opening and checking use the same storage upgrade paths as production. Neither forces projection replay beyond what normal startup requires. A
-migration change should also carry a focused assertion that its older data produces the intended reading; successful boot alone does not prove its
-meaning.
+Opening and checking replay the archived journal into a fresh PostgreSQL database through the versioned legacy decoder. The archive is opened
+read-only; pending legacy fact folds run in memory. The current SQL services serve every domain after replay. Checks compare captured rows with SQL
+projections, and smoke stories create new Voyages and Board notes, restart the server, and assert the new work remains visible.
 
-Add `--target postgres` to `fixture check` to also start an app-owned PostgreSQL instance, prepare the current migrations with `test-sql`, and check
-an isolated database cloned from that migrated template. `fixture capture <label> --target postgres` captures the same journal archive and immediately
-runs that check. The PostgreSQL database, templates, instance and socket are released when the check ends.
+PostgreSQL server and client binaries are required. Set `ANTUMBRA_POSTGRES_BIN_DIRECTORY` to their installed directory when it is outside `PATH` and
+the directory reported by `pg_config --bindir`. Missing binaries fail startup and tests. PostgreSQL stories never skip, and application time in
+stories uses a controlled clock.
 
-The PostgreSQL check replays captured Voyage and Piece facts through the published events store and rebuilds their projections. It compares Piece
-rows, edges, progress and Voyage membership with the journal. Outcome, assignment and ruling-gate rows from domains that still use the journal enter
-as typed Piece progress observations, so their contribution to Piece progress also survives a rebuild. Other domain storage remains on the journal.
-
-These checks and `pnpm test:app` require PostgreSQL server and client binaries. Set `ANTUMBRA_POSTGRES_BIN_DIRECTORY` to their directory when they are
-outside `PATH` and the directory reported by `pg_config --bindir`. Missing binaries fail the tests; PostgreSQL stories never skip. Application time in
-those stories uses a controlled clock. The desktop dev app continues to use its existing journal.
-
-## Rebuild explicitly
-
-Settings includes a Debug action to rebuild projections from the journal. It is available in the normal application and fixture viewer. It takes the
-existing pre-rebuild snapshot, preserves journal facts and runner cursors, and refreshes live queries after replay. Commands use the same serialized
-writer while the rebuild runs. The action does not restart agents or discard local fixture edits.
+Settings includes a Debug action to rebuild PostgreSQL projections from retained event histories. It refreshes live queries after replay and never
+restarts agents or discards local fixture edits. Production starts empty in its SQL application namespace and never replays these archives.

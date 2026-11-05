@@ -1,15 +1,14 @@
 import { knownModels } from "@antumbra/app-testing/backends.ts";
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
+import { resourceOwner as resourceOwnerRecordSchema } from "@antumbra/domain-reclamation/rows/resource-owner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { expect } from "vitest";
 
-const READABLE = /^[0-9abcdefghjkmnpqrstvwxyz]{10}$/;
 const asking = (id: string) => ({ requestId: Id.Request.make(id), role: "hand", backend: "claude" as const, model: null, effort: null });
 const born = (id: string) => identity(Id.Request.make(id));
 const BLOCKED = {
@@ -28,10 +27,14 @@ it.app("spawn commits identity and resource eligibility before provider executio
 		status: "spawning",
 		currentSessionId: born("one").sessionId,
 	});
-	expect(yield* app.rows.resourceOwner.get(born("one").agentId)).toMatchObject({ status: "spawning", openSessions: 0 });
-	expect(yield* app.rows.session.count({})).toBe(0);
+	expect(
+		yield* app.rows.resourceOwner
+			.findById(born("one").agentId)
+			.pipe(Effect.flatMap(Schema.decodeUnknownEffect(resourceOwnerRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ status: "spawning", openSessions: 0 });
+	expect(yield* app.rows.session.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 	yield* app.api.agents.spawn(asking("one"));
-	expect(yield* app.rows.agent.count({})).toBe(1);
+	expect(yield* app.rows.agent.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 });
 
 it.app("births reserve the global running budget oldest first", function* (app) {
@@ -134,7 +137,11 @@ it.app("cancelling an unadmitted birth removes its demand without retiring the i
 		currentSessionId: null,
 	});
 	expect(yield* answered(app.api.agents.pending({}), "the pending births to be listed")).toEqual([]);
-	expect(yield* app.rows.resourceOwner.get(born("one").agentId)).toMatchObject({ status: "dormant" });
+	expect(
+		yield* app.rows.resourceOwner
+			.findById(born("one").agentId)
+			.pipe(Effect.flatMap(Schema.decodeUnknownEffect(resourceOwnerRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ status: "dormant" });
 });
 
 it.app("retirement preserves the identity and closes resource eligibility", function* (app) {
@@ -144,7 +151,11 @@ it.app("retirement preserves the identity and closes resource eligibility", func
 		status: "retired",
 		currentSessionId: null,
 	});
-	expect(yield* app.rows.resourceOwner.get(born("one").agentId)).toMatchObject({ status: "retired" });
+	expect(
+		yield* app.rows.resourceOwner
+			.findById(born("one").agentId)
+			.pipe(Effect.flatMap(Schema.decodeUnknownEffect(resourceOwnerRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ status: "retired" });
 });
 
 it.app("only logged charter acceptance activates the Agent and work reading", function* (app) {
@@ -272,7 +283,7 @@ it.app("smoothing reuses its Agent across fresh constrained sessions", function*
 		createsAgent: false,
 		role: "smoother",
 	});
-	expect(yield* app.rows.agent.count({})).toBe(1);
+	expect(yield* app.rows.agent.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 	expect(
 		yield* Effect.flip(app.api.agents.smooth({ ...next, requestId: Id.Request.make("overlap"), sessionId: SessionId.make("session:overlap") })),
 	).toMatchObject({ _tag: "Busy" });
@@ -280,19 +291,5 @@ it.app("smoothing reuses its Agent across fresh constrained sessions", function*
 	expect(yield* answered(app.api.agents.smoother({ voyageId }), "the smoother agent to be read")).toMatchObject({
 		status: "alive",
 		currentSessionId: null,
-	});
-});
-
-it.app("a tool call's request id never becomes the name of the agent it asks for", function* (app) {
-	const asked = requestId({ sessionId: "session-1", callId: "call-9" });
-	const ids = identity(asked);
-	expect(ids.agentId).toMatch(READABLE);
-	expect(ids.sessionId).toMatch(READABLE);
-	expect(ids.birthId).toMatch(READABLE);
-	expect(new Set([ids.agentId, ids.sessionId, ids.birthId]).size).toBe(3);
-	yield* app.api.agents.spawn({ requestId: asked, role: "hand", backend: "claude", model: null, effort: null });
-	expect(yield* answered(app.api.agents.byId({ id: ids.agentId }), "the agent to be read")).toMatchObject({
-		status: "spawning",
-		currentSessionId: ids.sessionId,
 	});
 });

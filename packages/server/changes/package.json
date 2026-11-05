@@ -20,17 +20,21 @@
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@antumbra/domain-agents": "workspace:*"
+		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"effect": "catalog:",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/domain-changes": "workspace:*",
-		"@antumbra/domain-reclamation": "workspace:*"
+		"@antumbra/domain-reclamation": "workspace:*",
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-pieces": "workspace:*",
+		"@antumbra/domain-repos": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server-reclamation": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	}
 }

@@ -1,9 +1,8 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
-import { pendingSmoothing, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Boards } from "@antumbra/server-boards/service.ts";
 import { Clock, Deferred, Effect, Fiber } from "effect";
 import { TestClock } from "effect/testing";
 import { expect } from "vitest";
@@ -27,11 +26,13 @@ const opening = {
 } as const;
 
 it.app("runs a constrained summary pass through its bound domain tool and closes the session", function* (app) {
+	const boardsService = yield* Boards;
+
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
 	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("runtime-pass") });
-	const live = yield* Live;
-	const attempt = (yield* live.read(pendingSmoothing, {})).find((pending) => pending.id === "runtime-pass");
+
+	const attempt = (yield* boardsService.pendingSmoothing({}).pipe(Effect.orDie)).find((pending) => pending.id === "runtime-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
 	let stopped = false;
 	yield* smoothAttempt(attempt, () =>
@@ -57,10 +58,12 @@ it.app("runs a constrained summary pass through its bound domain tool and closes
 });
 
 it.app("records an empty answer as a failed pass and leaves source notes standing", function* (app) {
+	const boardsService = yield* Boards;
+
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
 	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("empty-pass") });
-	const attempt = (yield* (yield* Live).read(pendingSmoothing, {})).find((pending) => pending.id === "empty-pass");
+	const attempt = (yield* boardsService.pendingSmoothing({}).pipe(Effect.orDie)).find((pending) => pending.id === "empty-pass");
 	if (attempt === undefined) return yield* Effect.die("request was not recorded");
 	yield* smoothAttempt(attempt, () =>
 		Effect.succeed({
@@ -77,13 +80,17 @@ it.app("records an empty answer as a failed pass and leaves source notes standin
 });
 
 it.app("stops a silent smoother after the existing ten-minute patience", function* (app) {
+	const boardsService = yield* Boards;
+
 	yield* app.api.voyages.open(opening);
 	yield* app.api.boards.write({ board: voyageBoard(voyageId), body: "The tide turned", register: "rough", author: null });
 	yield* app.api.boards.requestSmoothing({ voyageId, pieceId: null, throughToday: true, by: "antumbra", requestId: Request.make("timeout-pass") });
-	const target = (yield* (yield* Live).read(smoothingTargets, {
-		id: "timeout-pass",
-		now: new Date(yield* Clock.currentTimeMillis).toISOString(),
-	}))[0];
+	const target = (yield* boardsService
+		.smoothingTargets({
+			id: "timeout-pass",
+			now: new Date(yield* Clock.currentTimeMillis).toISOString(),
+		})
+		.pipe(Effect.orDie))[0];
 	if (target === undefined) return yield* Effect.die("summary target was not found");
 	const started = yield* Deferred.make<void>();
 	let stopped = false;

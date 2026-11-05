@@ -1,4 +1,5 @@
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { Effect } from "effect";
 import { claim } from "#commands/claim.ts";
@@ -14,7 +15,7 @@ import { current } from "#queries/current.ts";
 import { retryable } from "#queries/retryable.ts";
 export const Reclamation = defineService({
 	id: "@antumbra/server-reclamation/Reclamation",
-	requires: [ExecutionHistory],
+	requires: [Records, ExecutionHistory],
 	initialize: Effect.void,
 	methods: () => ({ plan, ready, claim, reclaimed, held, failed, berths, current, candidates, claims, retryable }),
 });

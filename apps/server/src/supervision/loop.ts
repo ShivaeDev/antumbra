@@ -1,7 +1,7 @@
-import type { Reconciler } from "@shivaedev/reconciler/Reconciler.ts";
-import type { Effect, Scope } from "effect";
+import type { Reconciler, State } from "@shivaedev/reconciler/Reconciler.ts";
+import type { Effect, Scope, Stream } from "effect";
 
-export type Work = Pick<Reconciler<unknown>, "refresh" | "await">;
+export type Work = Pick<Reconciler<unknown>, "refresh" | "await"> & { readonly status?: Stream.Stream<State<unknown>> };
 
 export interface Loop<R> {
 	readonly name: string;

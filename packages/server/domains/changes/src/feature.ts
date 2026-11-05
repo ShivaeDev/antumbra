@@ -6,39 +6,26 @@ import { session } from "@antumbra/domain-sessions/rows/session.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { feature } from "@antumbra/platform-feature/feature.ts";
 import { adopt } from "#commands/adopt.ts";
-import { adoptionFailed, adoptionFailedMaterializer, failAdoption } from "#commands/adoption-failed.ts";
+import { adoptionFailed, failAdoption } from "#commands/adoption-failed.ts";
 import { archive } from "#commands/archive.ts";
 import { claimRows } from "#commands/claims.ts";
 import { dismiss } from "#commands/dismiss.ts";
 import { forwardFeedback } from "#commands/forward-feedback.ts";
 import { freeze } from "#commands/freeze.ts";
-import {
-	hostCapabilities,
-	hostCapability,
-	hostCapabilityMaterializer,
-	hostCapabilityObserved,
-	observeHostCapability,
-} from "#commands/host-capability.ts";
+import { hostCapabilities, hostCapability, hostCapabilityObserved, observeHostCapability } from "#commands/host-capability.ts";
 import { observe } from "#commands/observe.ts";
 import { prepare } from "#commands/prepare.ts";
-import { failPublication, publicationFailed, publicationFailedMaterializer } from "#commands/publication-failed.ts";
-import { changeRefresh, refresh, refreshRequested, refreshRequestedMaterializer } from "#commands/refresh.ts";
-import { adoptionRequested, adoptionRequestedMaterializer, requestAdoption } from "#commands/request-adoption.ts";
-import { adoptionRetried, adoptionRetriedMaterializer, retryAdoption } from "#commands/retry-adoption.ts";
+import { failPublication, publicationFailed } from "#commands/publication-failed.ts";
+import { changeRefresh, refresh, refreshRequested } from "#commands/refresh.ts";
+import { adoptionRequested, requestAdoption } from "#commands/request-adoption.ts";
+import { adoptionRetried, retryAdoption } from "#commands/retry-adoption.ts";
 import { changeAdopted } from "#facts/change-adopted.ts";
 import { changeArchived } from "#facts/change-archived.ts";
 import { changeDismissed } from "#facts/change-dismissed.ts";
 import { changeFeedbackForwarded } from "#facts/change-feedback-forwarded.ts";
-import { changeObserved, observedFeedback } from "#facts/change-observed.ts";
+import { changeObserved } from "#facts/change-observed.ts";
 import { changePrepared } from "#facts/change-prepared.ts";
 import { proposalFrozen } from "#facts/proposal-frozen.ts";
-import { changeAdoptedMaterializer } from "#materializers/change-adopted.ts";
-import { changeArchivedMaterializer } from "#materializers/change-archived.ts";
-import { changeDismissedMaterializer } from "#materializers/change-dismissed.ts";
-import { changeFeedbackForwardedMaterializer } from "#materializers/change-feedback-forwarded.ts";
-import { changeObservedMaterializer } from "#materializers/change-observed.ts";
-import { changePreparedMaterializer } from "#materializers/change-prepared.ts";
-import { proposalFrozenMaterializer } from "#materializers/proposal-frozen.ts";
 import { adoptions } from "#queries/adoptions.ts";
 import { all } from "#queries/all.ts";
 import { archivable } from "#queries/archivable.ts";
@@ -50,7 +37,6 @@ import { quay } from "#queries/quay.ts";
 import { sessionSituations } from "#queries/session-situations.ts";
 import { watchable } from "#queries/watchable.ts";
 import { world } from "#queries/world.ts";
-import { archiving } from "#reconcilers/archiving.ts";
 import { adoptionRequest } from "#rows/adoption-request.ts";
 import { change } from "#rows/change.ts";
 import { changeFeedback } from "#rows/change-feedback.ts";
@@ -96,7 +82,6 @@ export const changes = feature("changes", {
 		changeFeedbackForwarded,
 		proposalFrozen,
 	],
-	migrations: [observedFeedback],
 	commands: [
 		failAdoption,
 		retryAdoption,
@@ -112,21 +97,5 @@ export const changes = feature("changes", {
 		dismiss,
 		forwardFeedback,
 	],
-	materializers: [
-		adoptionFailedMaterializer,
-		adoptionRetriedMaterializer,
-		hostCapabilityMaterializer,
-		publicationFailedMaterializer,
-		refreshRequestedMaterializer,
-		adoptionRequestedMaterializer,
-		changePreparedMaterializer,
-		changeObservedMaterializer,
-		changeAdoptedMaterializer,
-		changeArchivedMaterializer,
-		changeDismissedMaterializer,
-		changeFeedbackForwardedMaterializer,
-		proposalFrozenMaterializer,
-	],
 	queries: [byPiece, hostCapabilities, browse, sessionSituations, adoptions, world, quay, all, links, watchable, publishing, archivable],
-	reconcilers: [archiving],
 });

@@ -1,6 +1,7 @@
-import { stoppedLoops as query } from "@antumbra/domain-supervision/queries/stopped-loops.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { stoppedLoops as query } from "@antumbra/domain-supervision/queries/stopped-loops.ts";
+import { stoppedLoops as queryDecision } from "@antumbra/server-supervision/logic/queries/stopped-loops.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const stoppedLoops = Effect.fn("Supervision.stoppedLoops")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const stoppedLoops = Effect.fn("Supervision.stoppedLoops")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

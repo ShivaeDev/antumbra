@@ -3,6 +3,8 @@ import type { LogEvent } from "@antumbra/platform-runner/log.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { transcriptFindings } from "@antumbra/runner-backends-claude/subsession-audit.ts";
 import { censusOf, censusUnreadable } from "@antumbra/runner-backends-codex/thread-census.ts";
+import { selection as sessionEventSelection } from "@antumbra/server-storage/records/session-event.ts";
+import { selection as sessionGapSelection } from "@antumbra/server-storage/records/session-gap.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { answered, it } from "#entry.ts";
@@ -61,14 +63,24 @@ it.app("a census admits the missing nested child once and preserves its parent a
 		executionStatus: "idle",
 		attached: false,
 	});
-	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toMatchObject([
-		{ kind: "census-missing", detail: expect.stringContaining("the stream never carried it") },
-	]);
-	expect(yield* app.rows.sessionGap.where({ sessionId: branch.id })).toEqual([]);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: leaf.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ kind: "census-missing", detail: expect.stringContaining("the stream never carried it") }]);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: branch.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toEqual([]);
 	const repeated = censusOf(() => true, sweep);
 	yield* append([...repeated.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: repeated.nodes }]);
 	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read")).toHaveLength(3);
-	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toHaveLength(1);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: leaf.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toHaveLength(1);
 });
 
 it.app("an unreadable census records uncertainty without inventing a child", function* (app) {
@@ -76,7 +88,9 @@ it.app("an unreadable census records uncertainty without inventing a child", fun
 	const census = censusUnreadable("native-root", "provider unavailable");
 	yield* append([...census.events.map((event) => provider(event, "audit")), { type: "SessionCensus", sessionId, nodes: census.nodes }]);
 	expect(yield* answered(app.api.sessions.tree({ rootSessionId: sessionId }), "the session tree to be read")).toHaveLength(1);
-	const rootGaps = yield* app.rows.sessionGap.where({ sessionId });
+	const rootGaps = yield* app.rows.sessionGap
+		.findMany({ where: { sessionId }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+		.pipe(Effect.orDie);
 	expect(rootGaps).toMatchObject([{ kind: "unknown", detail: expect.stringContaining("could not be checked") }]);
 });
 
@@ -113,10 +127,16 @@ it.app("node audit completion preserves a missing transcript line and does not r
 	const gapped = tree.find((node) => node.nativeRef === "gapped");
 	if (gapped === undefined) return yield* Effect.die("audited node missing");
 	expect(gapped).toMatchObject({ completeness: "incomplete", status: "closed", outcome: "completed", executionStatus: "idle", attached: false });
-	expect(yield* app.rows.sessionGap.where({ sessionId: gapped.id })).toMatchObject([
-		{ detail: "1 of 1 transcript lines the provider stored for this node never reached the record" },
-	]);
-	expect(yield* app.rows.sessionEvent.where({ sessionId: gapped.id })).toHaveLength(2);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: gapped.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ detail: "1 of 1 transcript lines the provider stored for this node never reached the record" }]);
+	expect(
+		yield* app.rows.sessionEvent
+			.findMany({ where: { sessionId: gapped.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionEventSelection })
+			.pipe(Effect.orDie),
+	).toHaveLength(2);
 	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the root session to be read")).toMatchObject({
 		nativeRef: "native-root",
 		executionStatus: "idle",
@@ -137,8 +157,20 @@ it.app("a late announcement reparents an already recorded child without moving i
 	if (branch === undefined || leaf === undefined) return yield* Effect.die("delegated nodes missing");
 	expect(tree).toHaveLength(3);
 	expect(leaf).toMatchObject({ parentSessionId: branch.id, kind: "auditor", completeness: "incomplete", status: "closed", outcome: "interrupted" });
-	expect(yield* app.rows.sessionGap.where({ sessionId: leaf.id })).toMatchObject([{ kind: "adopted-late" }]);
-	expect(yield* app.rows.sessionEvent.where({ sessionId: leaf.id })).toMatchObject([{ cursor: 1 }]);
-	expect((yield* app.rows.sessionEvent.where({ sessionId })).map((event) => event.cursor)).toEqual([2, 3, 4]);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: leaf.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ kind: "adopted-late" }]);
+	expect(
+		yield* app.rows.sessionEvent
+			.findMany({ where: { sessionId: leaf.id }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionEventSelection })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ cursor: 1 }]);
+	expect(
+		(yield* app.rows.sessionEvent
+			.findMany({ where: { sessionId }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionEventSelection })
+			.pipe(Effect.orDie)).map((event) => event.cursor),
+	).toEqual([2, 3, 4]);
 	expect(yield* answered(app.api.sessions.reading({ id: sessionId }), "the root session to be read")).toMatchObject({ nativeRef: "native-root" });
 });

@@ -1,19 +1,20 @@
-import { providers } from "@antumbra/domain-capacity/queries/providers.ts";
-import { holdCapacity } from "@antumbra/domain-sessions/commands/hold.ts";
 import type { sessionOperation } from "@antumbra/domain-sessions/rows/session-operation.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Capacity } from "@antumbra/server-capacity/service.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { Effect } from "effect";
 export const capacityAvailable = Effect.fn("Sessions.capacityAvailable")(function* (operation: typeof sessionOperation.Row.Type, backend: string) {
+	const capacityService = yield* Capacity;
+	const sessionsService = yield* Sessions;
+
 	if (operation.kind !== "wake" && operation.kind !== "steer") return true;
-	const live = yield* Live;
-	const capacities = yield* live.read(providers, {});
+
+	const capacities = yield* capacityService.providers({}).pipe(Effect.orDie);
 	const capacity = capacities.find((value) => value.backend === backend);
 	if (capacity?.status !== "blocked") return true;
-	const commit = yield* Commit;
-	yield* commit
-		.commit(holdCapacity, {
+
+	yield* sessionsService
+		.holdCapacity({
 			id: operation.id,
 			backend,
 			detail: capacity.detail ?? "Provider capacity is blocked",

@@ -1,4 +1,6 @@
-import { BoardsHistory } from "@antumbra/server-journal/postgres/boards/service.ts";
+import { BoardsHistory } from "@antumbra/server-storage/boards/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { bindSmoothingSession } from "#commands/bind-smoothing-session.ts";
 import { finishSmoothing } from "#commands/finish-smoothing.ts";
@@ -19,7 +21,7 @@ import { smoothingTargets } from "#queries/targets.ts";
 import { under } from "#queries/under.ts";
 export const Boards = defineService({
 	id: "@antumbra/server-boards/Boards",
-	requires: [BoardsHistory],
+	requires: [ExecutionHistory, Records, BoardsHistory],
 	initialize: initialize,
 	methods: (serial) => ({
 		write: write(serial),

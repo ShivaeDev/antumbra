@@ -57,13 +57,13 @@ it.app("seats both roles and changes only the chosen role", function* (app) {
 });
 
 it.app("rejects a blank name without creating a voyage", function* (app) {
-	const voyages = yield* app.rows.voyage.count({});
-	const roleSettings = yield* app.rows.roleSetting.count({});
+	const voyages = yield* app.rows.voyage.count({ where: {} }).pipe(Effect.orDie);
+	const roleSettings = yield* app.rows.roleSetting.count({ where: {} }).pipe(Effect.orDie);
 	const refused = yield* Effect.flip(app.api.voyages.open({ ...opening, name: "   " }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "name", message: "A voyage needs a name" });
-	expect(yield* app.rows.voyage.count({})).toBe(voyages);
-	expect(yield* app.rows.roleSetting.count({})).toBe(roleSettings);
+	expect(yield* app.rows.voyage.count({ where: {} }).pipe(Effect.orDie)).toBe(voyages);
+	expect(yield* app.rows.roleSetting.count({ where: {} }).pipe(Effect.orDie)).toBe(roleSettings);
 });
 
 it.app("deduplicates the flagship request", function* (app) {
@@ -71,5 +71,5 @@ it.app("deduplicates the flagship request", function* (app) {
 	const again = yield* app.api.voyages.open({ ...opening, kind: "flagship", requestId: FLAGSHIP_REQUEST });
 
 	expect(again).toBe(first);
-	expect(yield* app.rows.voyage.count({})).toBe(1);
+	expect(yield* app.rows.voyage.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 });

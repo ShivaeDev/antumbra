@@ -3,10 +3,9 @@ import type { Violation } from "#lint/violation.ts";
 import { packageOf, workspacePackages } from "#lint/workspace.ts";
 
 const RULE = "layout/feature-folders";
-const SHAPE =
-	"a domain holds rows, facts, commands, materializers, queries, ports and reconcilers, one file deep, beside feature.ts and ids.ts, and nothing else";
+const SHAPE = "a domain holds rows, facts, commands, queries and ports, one file deep, beside feature.ts and ids.ts, and nothing else";
 const DOMAIN_SOURCE = /^packages\/server\/domains\/[^/]+\/src\/(.+)$/;
-const FOLDERS = ["rows", "facts", "commands", "materializers", "queries", "ports", "reconcilers"];
+const FOLDERS = ["rows", "facts", "commands", "queries", "ports"];
 const FILES = ["feature.ts", "ids.ts"];
 
 const placed = (within: string): boolean => {

@@ -1,8 +1,7 @@
-import { world } from "@antumbra/domain-changes/queries/world.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
 import { Effect } from "effect";
-export const readWorld = Effect.flatMap(Live, (live) => live.read(world, {}));
+export const readWorld = Changes.use((service) => service.world({})).pipe(Effect.orDie);
 export const namedRepo = Effect.fn("changes.namedRepo")(function* (name: string) {
 	const snapshot = yield* readWorld;
 	const repo = snapshot.repos.find((repo) => repo.name === name);

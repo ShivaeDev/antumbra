@@ -3,8 +3,7 @@ import { query } from "@antumbra/platform-feature/query.ts";
 import { AGENT_BACKEND_TAGS } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { AgentRoleSchema } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { type Inherited, InheritedSchema, type RoleSettingSource, RoleSettingSourceSchema } from "@antumbra/platform-vocabulary/role-setting.ts";
-import { FLEET } from "@antumbra/platform-vocabulary/role-settings-ids.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { roleSetting } from "#rows/role-setting.ts";
 
 const [FIRST_BACKEND] = AGENT_BACKEND_TAGS;
@@ -53,12 +52,4 @@ export const resolve = query("resolve", {
 	input: { voyageId: Schema.NullOr(Schema.String), role: AgentRoleSchema },
 	output: Resolution,
 	reads: [roleSetting, backendModel],
-	run: Effect.fn("roleSettings.resolve")(function* (input, rows) {
-		const stored = yield* rows.roleSetting.where({ role: input.role });
-		const catalogue = yield* rows.backendModel.where({});
-		const chosenAt = (scope: string) => stored.find((candidate) => candidate.scope === scope) ?? UNCHOSEN;
-		const standing = input.voyageId === null ? UNCHOSEN : chosenAt(FLEET);
-		const chosen = chosenAt(input.voyageId ?? FLEET);
-		return resolution(chosen, standing, catalogue);
-	}),
 });

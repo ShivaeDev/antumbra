@@ -5,7 +5,7 @@ import type { QueryState } from "@shivaedev/react/client/resultState.ts";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import type { ReactNode } from "react";
-import { RECONNECTING } from "#connection.tsx";
+import { RECONNECTING } from "#connection.ts";
 import { useLive } from "#hooks.ts";
 
 const WAITING = "Reading…";

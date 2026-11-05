@@ -56,14 +56,13 @@ const ownerLayers = (shell: WindowShell, directory: string) => {
 	);
 };
 
-const announceBrowserLink = (document: string) =>
-	Effect.gen(function* () {
-		const serving = yield* ServerProcess.use((source) => source.serving);
-		const link = browserLink(document, serving);
-		if (link !== undefined) {
-			yield* Effect.logInfo(`browser: ${link}`);
-		}
-	});
+const announceBrowserLink = Effect.fn("Shell.announceBrowserLink")(function* (document: string) {
+	const serving = yield* ServerProcess.use((source) => source.serving);
+	const link = browserLink(document, serving);
+	if (link !== undefined) {
+		yield* Effect.logInfo(`browser: ${link}`);
+	}
+});
 
 const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =>
 	Effect.gen(function* () {

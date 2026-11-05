@@ -1,6 +1,6 @@
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import type { TranscriptReading } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { Reconnecting } from "@antumbra/glass-client/connection.tsx";
+import { Reconnecting } from "@antumbra/glass-client/connection.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
 import { StatusBadge } from "@antumbra/glass-components/compositions/status-badge.tsx";
 import { Button } from "@antumbra/glass-components/shadcn/button.tsx";

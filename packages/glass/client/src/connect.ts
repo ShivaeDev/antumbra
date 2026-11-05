@@ -8,7 +8,7 @@ import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { RpcClientError } from "effect/rpc/RpcClientError";
 import { createElement, type ReactNode } from "react";
 import { binding } from "#binding.ts";
-import { ClientConnection } from "#connection.tsx";
+import { ClientConnection } from "#connection.ts";
 import { Connection } from "#serving.ts";
 import { deferred, queriesOf } from "#wire.ts";
 import { type Wiring, WiringContext, wiringOf } from "#wiring.ts";

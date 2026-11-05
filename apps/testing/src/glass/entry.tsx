@@ -1,6 +1,6 @@
 import { apiOf } from "@antumbra/app-testing/api.ts";
 import { type Glass, served } from "@antumbra/glass-client/connect.ts";
-import { ClientConnection } from "@antumbra/glass-client/connection.tsx";
+import { ClientConnection } from "@antumbra/glass-client/connection.ts";
 import { lostConnection } from "@antumbra/glass-client/query.ts";
 import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
 import { NodeServices } from "@effect/platform-node";

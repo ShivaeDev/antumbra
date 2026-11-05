@@ -3,7 +3,7 @@ import { click, labelled, press, until } from "@antumbra/app-testing/glass/dom.t
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { RECONNECTING, Reconnecting } from "@antumbra/glass-client/connection.tsx";
+import { RECONNECTING, Reconnecting } from "@antumbra/glass-client/connection.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { expect } from "@effect/vitest";
 import { ReportOutcomes, ReportReferences } from "#report-outcomes.tsx";

@@ -1,4 +1,4 @@
-import { useReconnecting } from "@antumbra/glass-client/connection.tsx";
+import { useReconnecting } from "@antumbra/glass-client/connection.ts";
 import type { ReactNode } from "react";
 import { cn } from "#class-names.ts";
 

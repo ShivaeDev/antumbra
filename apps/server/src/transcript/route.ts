@@ -1,7 +1,7 @@
 import type { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { transcriptSources } from "@antumbra/domain-sessions/queries/transcript.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
 import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { Effect, Stream } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
@@ -20,4 +20,4 @@ export const transcript = (input: { readonly id: SessionId }) =>
 		}),
 	);
 
-export const transcriptLayer = TranscriptRpc.middleware(Token).toLayer({ "sessions.transcript": transcript });
+export const transcriptLayer = TranscriptRpc.middleware(Owner).toLayer({ "sessions.transcript": transcript });

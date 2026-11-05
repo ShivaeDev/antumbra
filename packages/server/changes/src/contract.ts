@@ -45,7 +45,7 @@ export const ChangesContract = contract("changes", {
 		Dismiss,
 		ForwardFeedback,
 	],
-	streams: [
+	queries: [
 		CleanupCandidates,
 		ByPiece,
 		HostCapabilities,

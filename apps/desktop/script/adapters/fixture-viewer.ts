@@ -12,14 +12,16 @@ const serve = async () => {
 	}
 	const [directory, label, captureCompletedAt] = Schema.decodeUnknownSync(Arguments)(process.argv.slice(2));
 	const token = crypto.randomUUID();
-	const server = await watchFixtureServer(directory, token);
+	const server = await watchFixtureServer(directory);
 	const renderer = await fixtureRenderer(directory, label, captureCompletedAt, token, server);
 	process.once("SIGTERM", () => {
 		void renderer.shutdown().then(renderer.close);
 	});
 	try {
+		const listening = await renderer.listen();
+		server.setOrigin(new URL(listening).origin);
 		await server.ready;
-		const url = await renderer.listen();
+		const url = renderer.url();
 		process.send?.({ url, token });
 		process.stdout.write(`Fixture viewer: ${url}\n`);
 	} catch (error) {

@@ -1,5 +1,5 @@
+import { type Watching, watching } from "@antumbra/glass-client/query.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
-import { type Watching, watching } from "@antumbra/platform-rpc/query.ts";
 import { type QueryState, useQuery } from "@shivaedev/react/client/resultState.ts";
 import { Stream } from "effect";
 import { createContext, useContext } from "react";

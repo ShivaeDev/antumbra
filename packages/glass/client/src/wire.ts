@@ -1,7 +1,7 @@
+import { type Watching, watching } from "@antumbra/glass-client/query.ts";
 import type { CommandShape } from "@antumbra/platform-feature/command.ts";
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
 import type { QueryShape } from "@antumbra/platform-feature/query.ts";
-import { type Watching, watching } from "@antumbra/platform-rpc/query.ts";
 import { Effect, Stream } from "effect";
 
 export type Wire = Effect.Effect<unknown>;

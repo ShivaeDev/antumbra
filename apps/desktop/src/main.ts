@@ -1,11 +1,14 @@
 import { NodeServices } from "@effect/platform-node";
-import { Effect, FileSystem, Layer, ManagedRuntime, Ref } from "effect";
+import { Effect, FileSystem, Layer, ManagedRuntime, Ref, Stream } from "effect";
 import { app } from "electron";
 import { lifecycle, ShellLifecycle, ShellLifecycleLayer } from "#adapters/app-lifecycle.ts";
 import { ownerBoot, runBoot, runManagedRuntimeStartup } from "#adapters/boot.ts";
 import { ShellDraftsLayer } from "#adapters/drafts.ts";
 import { drainManagedRuntime, requestRestart } from "#adapters/graceful-shutdown.ts";
 import { registerOpenExternal } from "#adapters/open-external.ts";
+import { PostgresLayer } from "#adapters/postgres.ts";
+import { originOf } from "#adapters/renderer-document.ts";
+import { rendererProtocol } from "#adapters/renderer-protocol.ts";
 import { RunnerProcessLayer } from "#adapters/runner-process.ts";
 import { ServerProcess, ServerProcessLive } from "#adapters/server-process.ts";
 import {
@@ -27,7 +30,7 @@ import { devTracing } from "#adapters/tracing.ts";
 import { fleetTray } from "#adapters/tray.ts";
 import { fileLayoutStore, type LayoutStore } from "#adapters/windows/layout-store.ts";
 import { layoutWriter } from "#adapters/windows/layout-writer.ts";
-import { openConsole, rendererDocument } from "#adapters/windows/open.ts";
+import { openConsole, reloadWindows, rendererDocument } from "#adapters/windows/open.ts";
 import { makeWindowRegistry, type WindowShell } from "#adapters/windows/registry.ts";
 import { restoreWindows } from "#adapters/windows/restore.ts";
 import { WindowSourceLive } from "#adapters/windows/source.ts";
@@ -35,10 +38,16 @@ import { browserLink } from "#browser-link.ts";
 
 const ownerLayers = (shell: WindowShell, directory: string) => {
 	const state = ShellStateLayer(directory).pipe(Layer.provide(NodeServices.layer));
-	const server = ServerProcessLive(serverBundle(), serverDataDirectory(), directory).pipe(Layer.provide(state), Layer.provide(NodeServices.layer));
+	const postgres = PostgresLayer(serverDataDirectory()).pipe(Layer.provide(NodeServices.layer));
+	const server = ServerProcessLive(serverBundle(), serverDataDirectory(), directory, originOf(shell.document)).pipe(
+		Layer.provide(state),
+		Layer.provide(postgres),
+		Layer.provide(NodeServices.layer),
+	);
 	const runner = RunnerProcessLayer(runnerBundle(), directory).pipe(Layer.provide(server), Layer.provide(state), Layer.provide(NodeServices.layer));
 	return Layer.mergeAll(
 		WindowSourceLive(shell),
+		Layer.effectDiscard(whenReady.pipe(Effect.andThen(rendererProtocol))),
 		ShellDraftsLayer(directory),
 		devTracing(),
 		server,
@@ -78,9 +87,10 @@ const startOwner = (shell: WindowShell, store: LayoutStore, directory: string) =
 			yield* Effect.sync(() => shell.registry.onChanged(() => runtime.runFork(writer.note)));
 			const api = yield* ShellLifecycle;
 			const server = yield* ServerProcess;
+			yield* Effect.sync(() => runtime.runFork(Stream.runForEach(server.restarted, () => reloadWindows)));
 			yield* Effect.sync(() =>
 				runtime.runFork(
-					fleetTray(api["agents.workingCount"]({}), focusOrOpenConsole(shell.registry, openConsole(shell)), {
+					fleetTray(api["agents.workingCount"](), focusOrOpenConsole(shell.registry, openConsole(shell)), {
 						restart: restart.pipe(Effect.provideService(ShellLifecycle, api)),
 						restartServer: server.restart,
 					}),

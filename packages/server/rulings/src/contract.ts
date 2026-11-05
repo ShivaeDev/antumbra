@@ -17,7 +17,7 @@ import { Binding, ById, Choices, Display, Frontier, Open, Replacements, Standing
 import { contract } from "@shivaedev/contract/contract.ts";
 export const RulingsContract = contract("rulings", {
 	commands: [AcknowledgeNotice, AddContext, Answer, Gate, MarkDelivered, Park, PassUp, Proclaim, Reclassify, Request, Supersede, Withdraw],
-	streams: [
+	queries: [
 		Delivery,
 		Authority,
 		Choices,

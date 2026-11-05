@@ -39,6 +39,10 @@ export const fixtureRenderer = async (directory: string, label: string, captureC
 			return;
 		}
 		const handle = async () => {
+			if (request.url === "/__fixture/server") {
+				response.end(JSON.stringify({ port: server.port, token: server.token }));
+				return;
+			}
 			if (request.url === "/__fixture/stop") {
 				await shutdown();
 				response.end(JSON.stringify({ stopped: true }));
@@ -97,6 +101,11 @@ export const fixtureRenderer = async (directory: string, label: string, captureC
 	return {
 		shutdown,
 		close: closeRenderer,
+		url: () => {
+			const address = http.address();
+			if (address === null || typeof address === "string") throw new Error("Fixture HTTP address unavailable");
+			return `http://127.0.0.1:${address.port}/?fixture=1&port=${server.port}&token=${token}`;
+		},
 		listen: async () => {
 			const listening = once(http, "listening");
 			http.listen(0, "127.0.0.1");

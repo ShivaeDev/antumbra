@@ -6,8 +6,6 @@ import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { RpcClientError } from "effect/rpc/RpcClientError";
 
-const AGAIN_AFTER = 1000;
-
 export const lostConnection = (result: AsyncResult.AsyncResult<unknown, unknown>): boolean => {
 	if (!AsyncResult.isFailure(result)) return false;
 	const error = Cause.findErrorOption(result.cause);
@@ -28,19 +26,9 @@ export interface Watching {
 	readonly atom: (input: Record<string, unknown>) => Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>;
 }
 
-const reconnecting = (source: Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>>): Atom.Atom<AsyncResult.AsyncResult<unknown, unknown>> =>
-	Atom.transform(source, (get) => {
-		const result = get(source);
-		if (lostConnection(result)) {
-			const waited = setTimeout(() => get.refresh(source), AGAIN_AFTER);
-			get.addFinalizer(() => clearTimeout(waited));
-		}
-		return result;
-	});
-
 export const watching = (fields: Fields, live: (input: Record<string, unknown>) => Stream.Stream<unknown, unknown>): Watching => {
 	const named = Object.keys(fields);
-	const family = Atom.family((input: Record<string, unknown>) => reconnecting(Atom.make(live(input))));
+	const family = Atom.family((input: Record<string, unknown>) => Atom.make(live(input)));
 	const atom = (input: Record<string, unknown>) => family(Object.fromEntries(named.map((name) => [name, input[name]])));
 	return Object.assign((input: Record<string, unknown>) => live(input), { atom });
 };

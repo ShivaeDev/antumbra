@@ -3,9 +3,11 @@ import { forVoyage as sourceForVoyage } from "@antumbra/domain-costs/queries/for
 import { reading as sourceReading } from "@antumbra/domain-costs/queries/reading.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const Reading = stream("reading", {
+export const Reading = query("reading", {
+	readPolicy: signedIn,
 	payload: sourceReading.input,
 	success: sourceReading.output,
 	reads: () => [
@@ -14,14 +16,16 @@ export const Reading = stream("reading", {
 		collection("voyage", Schema.String).list,
 	],
 });
-export const ForVoyage = stream("forVoyage", {
+export const ForVoyage = query("forVoyage", {
+	readPolicy: signedIn,
 	payload: sourceForVoyage.input,
 	success: sourceForVoyage.output,
 	reads: () => [collection("sessionUsage", Schema.String).list, collection("voyageAgent", Schema.String).list],
 });
-export const ForAgent = stream("forAgent", {
+export const ForAgent = query("forAgent", {
+	readPolicy: signedIn,
 	payload: sourceForAgent.input,
 	success: sourceForAgent.output,
 	reads: () => [collection("sessionUsage", Schema.String).list],
 });
-export const CostsContract = contract("costs", { commands: [], streams: [Reading, ForVoyage, ForAgent] });
+export const CostsContract = contract("costs", { commands: [], queries: [Reading, ForVoyage, ForAgent] });

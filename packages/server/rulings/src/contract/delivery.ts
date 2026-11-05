@@ -4,9 +4,11 @@ import { awaitingDelivery as sourceAwaitingDelivery } from "@antumbra/domain-rul
 import { delivery as sourceDelivery } from "@antumbra/domain-rulings/queries/delivery.ts";
 import { openGates as sourceOpenGates } from "@antumbra/domain-rulings/queries/open-gates.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const Delivery = stream("delivery", {
+export const Delivery = query("delivery", {
+	readPolicy: signedIn,
 	payload: sourceDelivery.input,
 	success: sourceDelivery.output,
 	reads: () => [
@@ -20,22 +22,26 @@ export const Delivery = stream("delivery", {
 		collection("captainReading", Schema.String).list,
 	],
 });
-export const Authority = stream("authority", {
+export const Authority = query("authority", {
+	readPolicy: signedIn,
 	payload: sourceAuthority.input,
 	success: sourceAuthority.output,
 	reads: () => [collection("voyageAgent", Schema.String).list, collection("voyage", Schema.String).list],
 });
-export const AwaitingAscent = stream("awaitingAscent", {
+export const AwaitingAscent = query("awaitingAscent", {
+	readPolicy: signedIn,
 	payload: sourceAwaitingAscent.input,
 	success: sourceAwaitingAscent.output,
 	reads: () => [collection("ruling", Schema.String).list],
 });
-export const AwaitingDelivery = stream("awaitingDelivery", {
+export const AwaitingDelivery = query("awaitingDelivery", {
+	readPolicy: signedIn,
 	payload: sourceAwaitingDelivery.input,
 	success: sourceAwaitingDelivery.output,
 	reads: () => [collection("ruling", Schema.String).list],
 });
-export const OpenGates = stream("openGates", {
+export const OpenGates = query("openGates", {
+	readPolicy: signedIn,
 	payload: sourceOpenGates.input,
 	success: sourceOpenGates.output,
 	reads: () => [collection("rulingGate", Schema.String).list],

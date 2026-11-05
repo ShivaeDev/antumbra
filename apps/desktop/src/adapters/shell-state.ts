@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { Context, Effect, FileSystem, Layer, Ref, Schema } from "effect";
 
-const Identity = Schema.Struct({ port: Schema.Int, token: Schema.String, runnerId: Schema.String, logId: Schema.String });
+const Identity = Schema.Struct({ port: Schema.Int, runnerId: Schema.String, logId: Schema.String });
 export type ShellIdentity = typeof Identity.Type;
 export class ShellState extends Context.Service<
 	ShellState,
@@ -20,7 +20,7 @@ export const ShellStateLayer = (directory: string) =>
 			const exists = yield* fs.exists(path).pipe(Effect.orDie);
 			const identity = exists
 				? yield* fs.readFileString(path).pipe(Effect.orDie, Effect.flatMap(Schema.decodeUnknownEffect(Schema.fromJsonString(Identity))), Effect.orDie)
-				: { port: 0, token: crypto.randomUUID(), runnerId: crypto.randomUUID(), logId: crypto.randomUUID() };
+				: { port: 0, runnerId: crypto.randomUUID(), logId: crypto.randomUUID() };
 			if (!exists) yield* save(identity);
 			const selected = yield* Ref.make(identity.port);
 			return {
@@ -30,7 +30,8 @@ export const ShellStateLayer = (directory: string) =>
 						if ((yield* Ref.get(selected)) === port) return;
 						yield* save({ ...identity, port });
 						yield* Ref.set(selected, port);
-					}),
+						yield* Effect.logInfo("Renderer endpoint remembered");
+					}).pipe(Effect.withSpan("ShellState.rememberPort")),
 			};
 		}),
 	);

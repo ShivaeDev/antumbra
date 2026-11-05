@@ -1,4 +1,4 @@
-import type { DraftRef, ShellBridge } from "@antumbra/platform-shell/bridge.ts";
+import { type DraftRef, Serving, type ShellBridge } from "@antumbra/platform-shell/bridge.ts";
 import { Schema } from "effect";
 
 const Metadata = Schema.Struct({ label: Schema.String, captureCompletedAt: Schema.String });
@@ -26,8 +26,11 @@ export const fixtureBridge = async (bridge: ShellBridge) => {
 	banner.id = "fixture-banner";
 	document.body.prepend(banner);
 	const events = new EventSource(`/__fixture/events?token=${token}`);
+	let interrupted = false;
 	events.onmessage = (event) => {
 		const status = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Struct({ failure: Schema.NullOr(Schema.String) })))(event.data);
+		if (interrupted && status.failure === null) location.reload();
+		interrupted = status.failure !== null;
 		banner.textContent = status.failure === null ? description : `${description} · ${status.failure}`;
 	};
 	events.onerror = () => {
@@ -37,6 +40,7 @@ export const fixtureBridge = async (bridge: ShellBridge) => {
 	const read = async (ref: DraftRef) => snapshot(await request("draft/read", ref));
 	const shell: ShellBridge = {
 		...bridge,
+		server: async () => Schema.decodeUnknownSync(Serving)(await request("server", {})),
 		openExternal: () => {},
 		readDraft: read,
 		writeDraft: async (ref, text, expected) => {

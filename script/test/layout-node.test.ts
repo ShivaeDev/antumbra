@@ -17,20 +17,19 @@ describe("node-only-in-apps rule", () => {
 		expect(check("packages/platform/skills/src/folders.ts", "node:url")).toEqual([]);
 	});
 
-	it("keeps legacy SQLite access in app adapters and the named trace sink", () => {
+	it("keeps legacy SQLite access in app adapters", () => {
 		expect(check("apps/server/src/fixture/source.ts", "@effect/sql-sqlite-node/SqliteClient")).toEqual([]);
-		expect(check("packages/platform/trace-sink/src/adapters/database.ts", "node:sqlite")).toEqual([]);
 		expect(check("packages/server/storage/src/journal.ts", "node:sqlite")).toEqual([
 			"@antumbra/server-storage may not import node:sqlite: only a package under apps/ may reach the machine.",
 		]);
 	});
 
 	it("keeps the Node platform out of a platform package", () => {
-		expect(check("packages/platform/rpc/src/transport.ts", "@effect/platform-node")).toEqual([
-			"@antumbra/platform-rpc may not import @effect/platform-node: only a package under apps/ may reach the machine.",
+		expect(check("packages/platform/access/src/transport.ts", "@effect/platform-node")).toEqual([
+			"@antumbra/platform-access may not import @effect/platform-node: only a package under apps/ may reach the machine.",
 		]);
-		expect(check("packages/platform/rpc/src/transport.ts", "ws")).toEqual([
-			"@antumbra/platform-rpc may not import ws: only a package under apps/ may reach the machine.",
+		expect(check("packages/platform/access/src/transport.ts", "ws")).toEqual([
+			"@antumbra/platform-access may not import ws: only a package under apps/ may reach the machine.",
 		]);
 	});
 

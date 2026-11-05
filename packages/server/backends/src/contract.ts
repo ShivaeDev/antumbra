@@ -5,7 +5,8 @@ import { efforts } from "@antumbra/domain-backends/queries/efforts.ts";
 import { models } from "@antumbra/domain-backends/queries/models.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const ListModels = command("listModels", {
 	payload: listModels.Input,
@@ -13,17 +14,20 @@ export const ListModels = command("listModels", {
 	rejections: {},
 	invalidates: () => [],
 });
-export const Models = stream("models", {
+export const Models = query("models", {
+	readPolicy: signedIn,
 	payload: models.input,
 	success: models.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "backendModel", field: "backend", value: input.backend }],
 });
-export const Efforts = stream("efforts", {
+export const Efforts = query("efforts", {
+	readPolicy: signedIn,
 	payload: efforts.input,
 	success: efforts.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "backendModel", field: "backend", value: input.backend }],
 });
-export const Catalog = stream("catalog", {
+export const Catalog = query("catalog", {
+	readPolicy: signedIn,
 	payload: catalog.input,
 	success: catalog.output,
 	reads: (input) => [collection("backendCatalog", Schema.String).item(input.backend)],
@@ -34,4 +38,4 @@ export const ObserveCapability = command("observeCapability", {
 	rejections: {},
 	invalidates: () => [],
 });
-export const BackendsContract = contract("backends", { commands: [ListModels, ObserveCapability], streams: [Models, Efforts, Catalog] });
+export const BackendsContract = contract("backends", { commands: [ListModels, ObserveCapability], queries: [Models, Efforts, Catalog] });

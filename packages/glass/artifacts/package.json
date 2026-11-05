@@ -34,7 +34,7 @@
 		"react": "catalog:",
 		"@antumbra/domain-artifacts": "workspace:*",
 		"lucide-react": "catalog:",
-		"@antumbra/platform-rpc": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/platform-access": "workspace:*"
 	}
 }

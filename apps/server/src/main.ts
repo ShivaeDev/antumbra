@@ -1,20 +1,18 @@
-import { createServer } from "node:http";
-import { ServerToken } from "@antumbra/platform-rpc/token.ts";
-import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node";
-import { Cause, Console, Effect, Exit, FileSystem, Layer, Logger, Path, type Runtime } from "effect";
-import * as HttpRouter from "effect/http/HttpRouter";
+import { NodeCrypto, NodeRuntime, NodeServices } from "@effect/platform-node";
+import { SessionPolicy } from "@shivaedev/identity/server/SessionPolicy.ts";
+import { appHost } from "@shivaedev/server/appHost.ts";
+import { Cause, Config, Console, Effect, Exit, FileSystem, Layer, Logger, Path, Redacted, type Runtime } from "effect";
 import * as HttpServer from "effect/http/HttpServer";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 import { githubHosts } from "#adapters/github/hosts.ts";
 import { application } from "#application.ts";
 import { Files } from "#files.ts";
-import { type Options, options } from "#options.ts";
+import { identity } from "#identity.ts";
+import { options } from "#options.ts";
+import { rpc } from "#rpc.ts";
 import { ServerRuntime } from "#runtime.ts";
 import { storage } from "#storage.ts";
-import { transport } from "#transport.ts";
-
-const HOST = "127.0.0.1";
 
 const artifacts = Layer.unwrap(
 	Effect.gen(function* () {
@@ -23,34 +21,36 @@ const artifacts = Layer.unwrap(
 		return artifactFiles.pipe(Layer.provide(Layer.succeed(ArtifactStorage, { root: path.join(files.root, "artifacts") })));
 	}),
 );
-const listener = (settings: Options) => {
-	const app = application.pipe(
-		Layer.provideMerge(Layer.mergeAll(storage(settings.directory), githubHosts, artifacts)),
-		Layer.provideMerge(Layer.succeed(Files, { root: settings.files })),
-	);
-	return HttpRouter.serve(transport, { disableListenLog: true }).pipe(
-		Layer.provideMerge(app),
-		Layer.provide(Layer.succeed(ServerToken, { token: settings.token })),
-		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: HOST, port: settings.port, disablePreemptiveShutdown: true })),
-	);
-};
-
-const announce = (address: HttpServer.HttpServer["Service"]["address"]) =>
-	address._tag === "InetAddressV4" ? Console.log(JSON.stringify({ port: address.port })) : Effect.die(address);
-
-const listen = Effect.gen(function* () {
-	const server = yield* HttpServer.HttpServer;
-	yield* announce(server.address);
-	return yield* (yield* ServerRuntime).await;
-});
 
 const main = Effect.gen(function* () {
 	const settings = yield* options(process.argv);
 	const fs = yield* FileSystem.FileSystem;
 	yield* fs.makeDirectory(settings.directory, { recursive: true });
 	yield* fs.makeDirectory(settings.files, { recursive: true });
-	return yield* Effect.provide(listen, listener(settings));
-}).pipe(Effect.provide(NodeServices.layer));
+	const database = yield* Layer.build(storage(yield* Config.Redacted("ANTUMBRA_DATABASE_URL")));
+	const origin = yield* Config.String("ANTUMBRA_RENDERER_ORIGIN").pipe(Config.withDefault(undefined));
+	const origins = origin === undefined ? [] : [origin];
+	const local = yield* identity(settings.directory, origins).pipe(Effect.provideContext(database));
+	const app = application.pipe(
+		Layer.provideMerge(Layer.mergeAll(githubHosts, artifacts)),
+		Layer.provideMerge(Layer.succeed(Files, { root: settings.files })),
+	);
+	const socketPath = (yield* Path.Path).join(settings.directory, "host.sock");
+	const host = appHost({
+		group: rpc,
+		handlers: Layer.empty,
+		services: app,
+		sessions: Layer.succeed(SessionPolicy, local.sessions),
+		nativeOrigins: origins,
+		config: { host: "127.0.0.1", port: settings.port, socketPath, disablePreemptiveShutdown: true },
+	}).pipe(Layer.provideMerge(Layer.succeedContext(database)));
+	return yield* Effect.gen(function* () {
+		const { address } = yield* HttpServer.HttpServer;
+		if (address._tag !== "InetAddressV4") return yield* Effect.die(address);
+		yield* Console.log(JSON.stringify({ port: address.port, socketPath, token: Redacted.value(local.token), runnerToken: local.runnerToken }));
+		return yield* (yield* ServerRuntime).await;
+	}).pipe(Effect.provide(host));
+}).pipe(Effect.provide(NodeServices.layer), Effect.provide(NodeCrypto.layer), Effect.scoped);
 
 const teardown: Runtime.Teardown = (exit, onExit) => {
 	if (Exit.isSuccess(exit) || Cause.hasInterruptsOnly(exit.cause)) {

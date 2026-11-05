@@ -93,6 +93,7 @@ it.glass("says it is reconnecting in the body when the server was away before th
 	const container = yield* render(screen(api, shell(Effect.void)));
 
 	yield* until(() => container.querySelector("section")?.textContent?.includes(RECONNECTING) === true, "the reading to say it is reconnecting");
-	expect(container.querySelector(HELD)).toBeNull();
+	expect(container.querySelector(HELD)?.hasAttribute("inert")).toBe(true);
+	expect(container.querySelector("form")).toBeNull();
 	expect(read(container)).toBe(false);
 });

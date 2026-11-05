@@ -13,3 +13,10 @@ export const selectRendererDocument = (input: RendererDocumentInput): string => 
 	const override = input.arguments.find((argument) => argument.startsWith(RENDERER_URL_FLAG));
 	return override?.slice(RENDERER_URL_FLAG.length) ?? input.bundled;
 };
+
+export const rendererOrigin = "antumbra://localhost";
+
+export const originOf = (document: string): string => {
+	const url = new URL(document);
+	return url.origin === "null" ? `${url.protocol}//${url.host}` : url.origin;
+};

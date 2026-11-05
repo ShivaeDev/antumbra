@@ -1,5 +1,6 @@
-import { layerServer } from "@antumbra/platform-rpc/token.ts";
+import { Owner, Runner } from "@antumbra/platform-access/policy.ts";
 import { InputStorage } from "@antumbra/server-inputs/storage.ts";
+import { permissionLayer } from "@shivaedev/identity/server/permissions.ts";
 import { Effect, Layer, Path } from "effect";
 import { artifactContentHandlers } from "#adapters/artifacts/content-layer.ts";
 import { artifactSource } from "#adapters/artifacts/source.ts";
@@ -35,7 +36,8 @@ const delivery = Layer.mergeAll(inputDeliveryLayer, execution, artifactSource, r
 
 export const application = Layer.mergeAll(
 	handlers,
-	layerServer,
+	permissionLayer(Owner),
+	permissionLayer(Runner),
 	debugHandlers,
 	runtime,
 	artifactContentHandlers,

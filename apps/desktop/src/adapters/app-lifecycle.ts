@@ -1,26 +1,47 @@
-import { agents } from "@antumbra/domain-agents/feature.ts";
-import { loopback } from "@antumbra/platform-rpc/endpoint.ts";
-import { group } from "@antumbra/platform-rpc/group.ts";
-import { ClientToken } from "@antumbra/platform-rpc/token.ts";
-import { transport } from "@antumbra/platform-rpc/transport.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
 import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
+import { AgentsContract } from "@antumbra/server-agents/contract.ts";
 import { NodeSocket } from "@effect/platform-node";
-import { Context, Effect, Layer } from "effect";
-import * as RpcClient from "effect/rpc/RpcClient";
+import { makeClient } from "@shivaedev/contract/bind.ts";
+import { mountLive } from "@shivaedev/react/client/mountLive.ts";
+import { Context, Effect, Layer, Stream } from "effect";
+import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { ServerProcess } from "#adapters/server-process.ts";
 
-const connecting = RpcClient.make(LifecycleRpc.merge(group([agents])));
-export class ShellLifecycle extends Context.Service<ShellLifecycle, Effect.Success<typeof connecting>>()("@antumbra/desktop/ShellLifecycle") {}
-export const ShellLifecycleLayer = Layer.unwrap(
-	Effect.gen(function* () {
-		const { serving } = yield* ServerProcess;
-		const { port, token } = yield* serving;
-		return Layer.effect(ShellLifecycle)(connecting).pipe(
-			Layer.provide(transport),
-			Layer.provide(Layer.merge(NodeSocket.layerWebSocket(loopback(port)), Layer.succeed(ClientToken, { token }))),
-		);
-	}),
-);
-
+const connecting = Effect.gen(function* () {
+	const { serving } = yield* ServerProcess;
+	const { socketPath, token } = yield* serving;
+	const registry = AtomRegistry.make();
+	yield* Effect.addFinalizer(() => Effect.sync(() => registry.dispose()));
+	const client = makeClient(AgentsContract.middleware(Owner), {
+		group: AgentsContract.middleware(Owner).merge(LifecycleRpc),
+		url: `ws+unix://${socketPath}:/rpc`,
+		bearerToken: token,
+		webSocketConstructor: NodeSocket.layerWebSocketConstructorWS,
+		registry,
+	});
+	const release = yield* mountLive(client.api).pipe(Effect.provideService(AtomRegistry.AtomRegistry, registry));
+	yield* Effect.addFinalizer(() => Effect.sync(release));
+	const calls = yield* client.client;
+	return { ...calls, "agents.workingCount": () => AtomRegistry.toStreamResult(registry, client.api.workingCount.query({})) };
+});
+const makeLifecycle = Effect.gen(function* () {
+	const server = yield* ServerProcess;
+	const open = connecting.pipe(Effect.provideService(ServerProcess, server));
+	const call = (method: "drain" | "recordRestart" | "honorRestart" | "abandonRestart") => (input: { readonly requestId: string }) =>
+		Effect.scoped(Effect.flatMap(open, (api) => api[`lifecycle.${method}`](input)));
+	return {
+		"lifecycle.drain": call("drain"),
+		"lifecycle.recordRestart": call("recordRestart"),
+		"lifecycle.honorRestart": call("honorRestart"),
+		"lifecycle.abandonRestart": call("abandonRestart"),
+		"agents.workingCount": () =>
+			Stream.switchMap(Stream.concat(Stream.succeed(undefined), server.restarted), () =>
+				Stream.unwrap(Effect.map(open, (api) => api["agents.workingCount"]())),
+			),
+	};
+});
+export class ShellLifecycle extends Context.Service<ShellLifecycle, Effect.Success<typeof makeLifecycle>>()("@antumbra/desktop/ShellLifecycle") {}
+export const ShellLifecycleLayer = Layer.effect(ShellLifecycle, makeLifecycle);
 export const lifecycle = (method: "drain" | "recordRestart" | "honorRestart" | "abandonRestart") =>
 	ShellLifecycle.use((api) => Effect.suspend(() => api[`lifecycle.${method}`]({ requestId: crypto.randomUUID() })));

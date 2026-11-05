@@ -43,7 +43,8 @@
 		"@shivaedev/events": "catalog:",
 		"@shivaedev/local-postgres": "catalog:",
 		"@shivaedev/service": "catalog:",
-		"@shivaedev/sql": "catalog:"
+		"@shivaedev/sql": "catalog:",
+		"@shivaedev/identity": "catalog:"
 	},
 	"devDependencies": {
 		"@effect/vitest": "catalog:",

@@ -1,10 +1,9 @@
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
 import { defaultConsole, type WindowPlace } from "@antumbra/platform-shell/windows.ts";
 import { Effect } from "effect";
 import { app, BrowserWindow } from "electron";
 import { openInBrowser } from "#adapters/open-external.ts";
-import { selectRendererDocument } from "#adapters/renderer-document.ts";
+import { rendererOrigin, selectRendererDocument } from "#adapters/renderer-document.ts";
 import { attachWindow, type WindowOpening } from "#adapters/windows/attach.ts";
 import { guardWindow } from "#adapters/windows/guard.ts";
 import type { WindowShell } from "#adapters/windows/registry.ts";
@@ -12,7 +11,7 @@ import type { WindowShell } from "#adapters/windows/registry.ts";
 export const rendererDocument = Effect.sync(() =>
 	selectRendererDocument({
 		arguments: process.argv,
-		bundled: pathToFileURL(join(import.meta.dirname, "renderer", "index.html")).toString(),
+		bundled: rendererOrigin,
 		isPackaged: app.isPackaged,
 	}),
 );
@@ -71,3 +70,7 @@ export const openWindow = (opening: WindowOpening) =>
 	});
 
 export const openConsole = (shell: WindowShell) => Effect.asVoid(openWindow({ ...shell, place: defaultConsole }));
+
+export const reloadWindows = Effect.sync(() => {
+	for (const window of BrowserWindow.getAllWindows()) window.reload();
+});

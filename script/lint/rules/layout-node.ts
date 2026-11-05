@@ -44,14 +44,11 @@ const REACHING = [
 	"process",
 ];
 
-const OWNERS: readonly { readonly root: string; readonly specifier: string }[] = [{ root: "packages/platform/trace-sink", specifier: "node:sqlite" }];
-
 const names = (specifier: string, module: string): boolean => specifier === module || specifier.startsWith(`${module}/`);
 
 const inScope = (owner: WorkspacePackage, path: string): boolean => isNestedPackage(owner.root) && path.startsWith(`${owner.root}/src/`);
 
-const reaching = (owner: WorkspacePackage, specifier: string): boolean =>
-	REACHING.some((module) => names(specifier, module)) && !OWNERS.some((owns) => owns.root === owner.root && names(specifier, owns.specifier));
+const reaching = (specifier: string): boolean => REACHING.some((module) => names(specifier, module));
 
 export const layoutNodeViolations = (inventory: Inventory): readonly Violation[] => {
 	const packages = workspacePackages(inventory);
@@ -63,7 +60,7 @@ export const layoutNodeViolations = (inventory: Inventory): readonly Violation[]
 				return [];
 			}
 			return specifiersOf(file)
-				.filter((specifier) => reaching(owner, specifier.text))
+				.filter((specifier) => reaching(specifier.text))
 				.map((specifier) => ({
 					file: file.path,
 					line: specifier.line,

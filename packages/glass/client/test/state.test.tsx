@@ -1,7 +1,7 @@
 import { press, until } from "@antumbra/app-testing/glass/dom.ts";
 import { it } from "@antumbra/app-testing/glass/entry.tsx";
+import { watching } from "@antumbra/glass-client/query.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
-import { watching } from "@antumbra/platform-rpc/query.ts";
 import { expect } from "@effect/vitest";
 import { Data, Deferred, Effect, Schema, Stream } from "effect";
 import type { ReactNode } from "react";

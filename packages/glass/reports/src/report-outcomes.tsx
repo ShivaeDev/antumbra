@@ -2,10 +2,8 @@ import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import type { ReportReading } from "@antumbra/domain-reports/queries/by-id.ts";
 import { useLive } from "@antumbra/glass-client/hooks.ts";
 import { Live } from "@antumbra/glass-client/live.tsx";
-import { useHolding } from "@antumbra/glass-client/reconnection.tsx";
 import { OutcomeChips, OutcomeDetailView } from "@antumbra/glass-components/outcome-detail.tsx";
 import type { OutcomeDetail, OutcomeRef } from "@antumbra/glass-components/outcome-read.ts";
-import { lostConnection } from "@antumbra/platform-rpc/query.ts";
 import { ReportId } from "@antumbra/platform-vocabulary/reports-ids.ts";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -24,7 +22,6 @@ const ReadingReport = (props: {
 	readonly onClose: () => void;
 }): ReactNode => {
 	const { data: last, result } = useLive(props.api.reports.byId, { id: ReportId.make(props.selected.id) });
-	useHolding(Option.isSome(last) && lostConnection(result));
 	const read = (value: ReportReading | null): OutcomeDetail => {
 		if (value === null) return { _tag: "failed", title: props.selected.title, message: `no such report: ${props.selected.id}` };
 		return {

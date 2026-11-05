@@ -15,7 +15,8 @@ import { pendingSmoothing, smoothingTargets } from "@antumbra/domain-boards/quer
 import { under } from "@antumbra/domain-boards/queries/under.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Write = command("write", { payload: write.Input, success: Schema.Number, rejections: write.Rejection, invalidates: () => [] });
 export const Summarize = command("summarize", {
@@ -54,27 +55,32 @@ export const FinishSmoothingSession = command("finishSmoothingSession", {
 	rejections: finishSmoothingSession.Rejection,
 	invalidates: () => [],
 });
-export const Display = stream("display", {
+export const Display = query("display", {
+	readPolicy: signedIn,
 	payload: display.input,
 	success: display.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Entries = stream("entries", {
+export const Entries = query("entries", {
+	readPolicy: signedIn,
 	payload: entries.input,
 	success: entries.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Digest = stream("digest", {
+export const Digest = query("digest", {
+	readPolicy: signedIn,
 	payload: digest.input,
 	success: digest.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Under = stream("under", {
+export const Under = query("under", {
+	readPolicy: signedIn,
 	payload: under.input,
 	success: under.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const DueSmoothing = stream("dueSmoothing", {
+export const DueSmoothing = query("dueSmoothing", {
+	readPolicy: signedIn,
 	payload: dueSmoothing.input,
 	success: dueSmoothing.output,
 	reads: () => [
@@ -85,7 +91,8 @@ export const DueSmoothing = stream("dueSmoothing", {
 		collection("boardEntry", Schema.String).list,
 	],
 });
-export const SmoothingTargets = stream("smoothingTargets", {
+export const SmoothingTargets = query("smoothingTargets", {
+	readPolicy: signedIn,
 	payload: smoothingTargets.input,
 	success: smoothingTargets.output,
 	reads: () => [
@@ -95,17 +102,20 @@ export const SmoothingTargets = stream("smoothingTargets", {
 		collection("boardEntry", Schema.String).list,
 	],
 });
-export const PendingSmoothing = stream("pendingSmoothing", {
+export const PendingSmoothing = query("pendingSmoothing", {
+	readPolicy: signedIn,
 	payload: pendingSmoothing.input,
 	success: pendingSmoothing.output,
 	reads: () => [collection("smoothingAttempt", Schema.String).list, collection("flag", Schema.String).list, collection("voyage", Schema.String).list],
 });
-export const SmoothingSessionFor = stream("smoothingSessionFor", {
+export const SmoothingSessionFor = query("smoothingSessionFor", {
+	readPolicy: signedIn,
 	payload: smoothingSessionFor.input,
 	success: smoothingSessionFor.output,
 	reads: () => [collection("smoothingSession", Schema.String).list, collection("smoothingAttempt", Schema.String).list],
 });
-export const SmoothingState = stream("smoothingState", {
+export const SmoothingState = query("smoothingState", {
+	readPolicy: signedIn,
 	payload: smoothingState.input,
 	success: smoothingState.output,
 	reads: () => [
@@ -116,5 +126,5 @@ export const SmoothingState = stream("smoothingState", {
 });
 export const BoardsContract = contract("boards", {
 	commands: [Write, Summarize, SummarizePiece, RequestSmoothing, FinishSmoothing, BindSmoothingSession, FinishSmoothingSession],
-	streams: [Display, Entries, Digest, Under, DueSmoothing, SmoothingTargets, PendingSmoothing, SmoothingSessionFor, SmoothingState],
+	queries: [Display, Entries, Digest, Under, DueSmoothing, SmoothingTargets, PendingSmoothing, SmoothingSessionFor, SmoothingState],
 });

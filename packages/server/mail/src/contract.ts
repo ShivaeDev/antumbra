@@ -6,7 +6,8 @@ import { mailbox } from "@antumbra/domain-mail/queries/mailbox.ts";
 import { unread } from "@antumbra/domain-mail/queries/unread.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 
 const rows = collection("message", Schema.String);
@@ -23,19 +24,22 @@ export const MarkRead = command("markRead", {
 	rejections: markRead.Rejection,
 	invalidates: () => [],
 });
-export const Mailbox = stream("mailbox", {
+export const Mailbox = query("mailbox", {
+	readPolicy: signedIn,
 	payload: mailbox.input,
 	success: mailbox.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "message", field: "toAgentId", value: input.agentId }],
 });
-export const Unread = stream("unread", {
+export const Unread = query("unread", {
+	readPolicy: signedIn,
 	payload: unread.input,
 	success: unread.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "message", field: "toAgentId", value: input.agentId }],
 });
-export const DueWakes = stream("dueWakes", {
+export const DueWakes = query("dueWakes", {
+	readPolicy: signedIn,
 	payload: dueWakes.input,
 	success: dueWakes.output,
 	reads: () => [rows.list, ...["agent", "session", "sessionOperation", "count", "voyageAgent"].map((name) => collection(name, Schema.String).list)],
 });
-export const MailContract = contract("mail", { commands: [Send, MarkDelivered, MarkRead], streams: [Mailbox, Unread, DueWakes] });
+export const MailContract = contract("mail", { commands: [Send, MarkDelivered, MarkRead], queries: [Mailbox, Unread, DueWakes] });

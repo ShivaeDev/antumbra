@@ -33,9 +33,10 @@
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"effect": "catalog:",
 		"react": "catalog:",
-		"lucide-react": "catalog:"
+		"lucide-react": "catalog:",
+		"@antumbra/platform-access": "workspace:*",
+		"@shivaedev/identity": "catalog:"
 	}
 }

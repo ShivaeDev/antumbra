@@ -33,7 +33,6 @@
 		"@antumbra/server": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/platform-runner": "workspace:*",
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/platform-change-host": "workspace:*",
@@ -83,6 +82,12 @@
 		"@antumbra/server-storage": "workspace:*",
 		"@effect/sql-sqlite-node": "catalog:",
 		"@shivaedev/changes": "catalog:",
-		"@shivaedev/local-postgres": "catalog:"
+		"@shivaedev/local-postgres": "catalog:",
+		"@antumbra/platform-access": "workspace:*",
+		"@shivaedev/identity": "catalog:",
+		"@shivaedev/errors": "catalog:",
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/react": "catalog:",
+		"@shivaedev/server": "catalog:"
 	}
 }

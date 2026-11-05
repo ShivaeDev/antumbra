@@ -1,5 +1,5 @@
 {
-	"name": "@antumbra/platform-rpc",
+	"name": "@antumbra/platform-access",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -23,10 +23,9 @@
 		"vitest": "catalog:"
 	},
 	"dependencies": {
-		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
 		"effect": "catalog:",
-		"@shivaedev/contract": "catalog:",
-		"@shivaedev/errors": "catalog:"
+		"@shivaedev/access": "catalog:",
+		"@shivaedev/identity": "catalog:",
+		"@shivaedev/contract": "catalog:"
 	}
 }

@@ -1,7 +1,5 @@
-import { StoppedLoops, SupervisionContract } from "@antumbra/server-supervision/contract.ts";
-import { readKeys } from "@shivaedev/changes/keys.ts";
+import { SupervisionContract } from "@antumbra/server-supervision/contract.ts";
 import { Effect, Layer } from "effect";
-import { stream } from "effect/reactivity/Reactivity";
 import { unexpectedFailLoop, unexpectedForgetLoop, unexpectedResumeLoop } from "#failures.ts";
 import { Supervision } from "#service.ts";
 export const handlers = SupervisionContract.application.toLayer(
@@ -11,7 +9,7 @@ export const handlers = SupervisionContract.application.toLayer(
 			"supervision.failLoop": (input) => service.failLoop(input).pipe(Effect.catchIf(unexpectedFailLoop, Effect.die)),
 			"supervision.forgetLoop": (input) => service.forgetLoop(input).pipe(Effect.catchIf(unexpectedForgetLoop, Effect.die)),
 			"supervision.resumeLoop": (input) => service.resumeLoop(input).pipe(Effect.catchIf(unexpectedResumeLoop, Effect.die)),
-			"supervision.stoppedLoops": (input) => stream(readKeys(StoppedLoops.reads(input)))(service.stoppedLoops(input).pipe(Effect.orDie)),
+			"supervision.stoppedLoops": (input) => service.stoppedLoops(input).pipe(Effect.orDie),
 		});
 	}),
 );

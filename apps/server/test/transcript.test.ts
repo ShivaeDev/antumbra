@@ -2,7 +2,7 @@ import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner, type LogEntry } from "@antumbra/app-testing/runner.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { TranscriptReading, TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { Effect, Schema, Stream } from "effect";
 import * as RpcTest from "effect/rpc/RpcTest";
@@ -93,7 +93,7 @@ it.app("streams runner evidence and retains usage after raw events expire", func
 		),
 	);
 	yield* runner.append(entries);
-	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Owner), { flatten: true });
 	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: sessionId }), { capacity: "unbounded" });
 	const initial = yield* eventually(
 		Stream.fromQueue(updates),
@@ -194,7 +194,7 @@ it.app("shows a repeated reading and a repeated notice once after they travel th
 		),
 	);
 	yield* runner.append(entries);
-	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Owner), { flatten: true });
 	const updates = yield* Stream.toQueue(rpc("sessions.transcript", { id: repeatedId }), { capacity: "unbounded" });
 	const reading = yield* eventually(
 		Stream.fromQueue(updates),
@@ -271,7 +271,7 @@ it.app("a reroute is one line in the record, and the session's spend is split by
 		),
 	);
 	yield* runner.append(entries);
-	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Token), { flatten: true });
+	const rpc = yield* RpcTest.makeClient(TranscriptRpc.middleware(Owner), { flatten: true });
 	const reading = yield* eventually(
 		rpc("sessions.transcript", { id: sessionId }),
 		(held) => held.standing.models.length === 2,

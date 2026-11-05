@@ -1,5 +1,5 @@
+import type { Api } from "@antumbra/glass-client/api.ts";
 import type { FeatureShape } from "@antumbra/platform-feature/feature.ts";
-import type { Api } from "@antumbra/platform-rpc/client.ts";
 import { Effect, Stream, SubscriptionRef } from "effect";
 import { RpcClientError } from "effect/rpc/RpcClientError";
 import { SocketCloseError } from "effect/socket/Socket";

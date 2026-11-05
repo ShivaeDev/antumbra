@@ -9,7 +9,8 @@ import { ArtifactMarkdown, StoredArtifactContentInvalid } from "@antumbra/domain
 import { ArtifactId } from "@antumbra/platform-vocabulary/artifacts-ids.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Supersede = command("supersede", {
 	payload: supersede.Input,
@@ -29,20 +30,23 @@ export const Land = command("land", {
 	rejections: { ...land.Rejection, ArtifactPublicationFailed },
 	invalidates: () => [],
 });
-export const ById = stream("byId", {
+export const ById = query("byId", {
+	readPolicy: signedIn,
 	payload: byId.input,
 	success: byId.output,
 	reads: () => [collection("artifact", Schema.String).list],
 });
-export const ByPiece = stream("byPiece", {
+export const ByPiece = query("byPiece", {
+	readPolicy: signedIn,
 	payload: byPiece.input,
 	success: byPiece.output,
 	reads: (input) => [{ _tag: "Bucket", collection: "artifact", field: "pieceId", value: input.pieceId }],
 });
-export const ReadContent = stream("readContent", {
+export const ReadContent = query("readContent", {
+	readPolicy: signedIn,
 	payload: { artifactId: ArtifactId },
 	success: ArtifactMarkdown,
 	rejections: { ArtifactNotFound: land.Rejection.ArtifactNotFound, StoredArtifactContentInvalid },
 	reads: () => [collection("artifact", Schema.String).list],
 });
-export const ArtifactsContract = contract("artifacts", { commands: [Supersede, RemoveSupersession, Land], streams: [ById, ByPiece, ReadContent] });
+export const ArtifactsContract = contract("artifacts", { commands: [Supersede, RemoveSupersession, Land], queries: [ById, ByPiece, ReadContent] });

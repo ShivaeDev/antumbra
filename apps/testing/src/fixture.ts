@@ -1,7 +1,6 @@
 import { postgresTests } from "@antumbra/app-testing/postgres-testing.ts";
 import { replayPostgresFixture } from "@antumbra/legacy-fixture/replay.ts";
 import { LegacyModel, legacyModel } from "@antumbra/legacy-fixture/v1/model.ts";
-import { ServerToken } from "@antumbra/platform-rpc/token.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import type { VoyageId } from "@antumbra/platform-vocabulary/voyage.ts";
@@ -26,6 +25,7 @@ import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDat
 import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { Clock, Effect, Exit, FileSystem, Layer, Path, Scope } from "effect";
 import { capture, id, image, inputId, seed } from "#fixture/evidence.ts";
+import { sessions } from "#identity.ts";
 import { capturedLegacyFile } from "#test-support/legacy-file.ts";
 
 const create = Effect.fn("FixtureStory.create")(function* () {
@@ -39,7 +39,7 @@ const create = Effect.fn("FixtureStory.create")(function* () {
 		Layer.provideMerge(capturedLogs(root)),
 		Layer.provideMerge(artifactFiles.pipe(Layer.provide(Layer.succeed(ArtifactStorage, { root: path.join(root, "artifacts") })))),
 		Layer.provideMerge(Layer.succeed(Files, { root })),
-		Layer.provideMerge(Layer.succeed(ServerToken, { token: "fixture" })),
+		Layer.provideMerge(sessions),
 	);
 	const boot = Effect.gen(function* () {
 		const scope = yield* Scope.fork(lifetime);

@@ -24,7 +24,7 @@ export const checkFixtureServer = async (directory: string) => {
 	const output = bundle.output.file;
 	const child = spawn(process.execPath, [output, "--check", "--data", join(directory, "server"), "--files", directory, "--logs", directory], {
 		stdio: "inherit",
-		env: fixtureEnvironment(crypto.randomUUID()),
+		env: fixtureEnvironment(),
 	});
 	const stop = () => {
 		child.kill("SIGTERM");

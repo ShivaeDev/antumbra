@@ -1,12 +1,17 @@
-import { serialization } from "@antumbra/platform-rpc/serialization.ts";
-import { ClientToken, layerClient } from "@antumbra/platform-rpc/token.ts";
+import { serialization } from "@antumbra/platform-access/serialization.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { NodeSocket } from "@effect/platform-node";
+import { authenticateSocket } from "@shivaedev/contract/socketAuthentication.ts";
 import { Context, Effect, Latch, Layer } from "effect";
 import * as RpcClient from "effect/rpc/RpcClient";
 import { RpcClientError } from "effect/rpc/RpcClientError";
+import * as Socket from "effect/socket/Socket";
 
 const makeClient = RpcClient.make(RunnerRpc);
+const authenticatedSocket = (url: string, token: string) =>
+	Layer.effect(Socket.Socket, authenticateSocket(token)).pipe(
+		Layer.provide(Layer.effect(Socket.Socket, Socket.makeWebSocket(`${url}?auth=frame`)).pipe(Layer.provide(NodeSocket.layerWebSocketConstructorWS))),
+	);
 export class RunnerClient extends Context.Service<
 	RunnerClient,
 	{
@@ -22,7 +27,7 @@ export const connection = (url: string, token: string) =>
 			const protocol = RpcClient.layerProtocolSocket({ retryTransientErrors: true }).pipe(
 				Layer.provide(
 					Layer.mergeAll(
-						NodeSocket.layerWebSocket(url),
+						authenticatedSocket(url, token),
 						serialization,
 						Layer.succeed(RpcClient.ConnectionHooks, { onConnect: ready.open.pipe(Effect.asVoid), onDisconnect: ready.close.pipe(Effect.asVoid) }),
 					),
@@ -31,7 +36,7 @@ export const connection = (url: string, token: string) =>
 			return Layer.effect(
 				RunnerClient,
 				Effect.map(makeClient, (calls) => ({ calls, connected: ready.await })),
-			).pipe(Layer.provide(Layer.merge(protocol, layerClient.pipe(Layer.provide(Layer.succeed(ClientToken, { token }))))));
+			).pipe(Layer.provide(protocol));
 		}),
 	);
 

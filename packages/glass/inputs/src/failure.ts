@@ -1,6 +1,13 @@
 import type { InputFailure } from "@antumbra/domain-inputs/commands/errors.ts";
-export const inputFailureMessage = (failure: InputFailure): string => {
+import type { IdentityFailures } from "@shivaedev/identity/middleware.ts";
+export const inputFailureMessage = (failure: InputFailure | IdentityFailures): string => {
 	switch (failure._tag) {
+		case "AuthUnavailable":
+		case "Forbidden":
+		case "MissingReadPolicy":
+		case "QueryReadDenied":
+		case "Unauthorized":
+			return failure.message;
 		case "InvalidInput":
 			return `${failure.reason}: ${failure.detail}`;
 		case "InputConflict":

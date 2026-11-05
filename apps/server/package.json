@@ -28,7 +28,6 @@
 		"@antumbra/domain-backends": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",
-		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-voyages": "workspace:*",
 		"@effect/platform-node": "catalog:",
@@ -88,6 +87,11 @@
 		"@antumbra/server-voyages": "workspace:*",
 		"@shivaedev/events": "catalog:",
 		"@shivaedev/local-postgres": "catalog:",
-		"@shivaedev/sql": "catalog:"
+		"@shivaedev/sql": "catalog:",
+		"@shivaedev/server": "catalog:",
+		"@shivaedev/identity": "catalog:",
+		"@shivaedev/access": "catalog:",
+		"@antumbra/platform-access": "workspace:*",
+		"@shivaedev/contract": "catalog:"
 	}
 }

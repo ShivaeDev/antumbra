@@ -1,7 +1,7 @@
 import { artifactContent } from "@antumbra/domain-artifacts/queries/content.ts";
 import { TranscriptRpc } from "@antumbra/domain-sessions/queries/transcript-rpc.ts";
-import { DebugRpc } from "@antumbra/platform-rpc/debug.ts";
-import { Token } from "@antumbra/platform-rpc/token.ts";
+import { Owner } from "@antumbra/platform-access/policy.ts";
+import { DebugRpc } from "@antumbra/platform-feature/debug.ts";
 import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { AgentsContract } from "@antumbra/server-agents/contract.ts";
@@ -29,27 +29,27 @@ import { RpcGroup } from "effect/rpc";
 
 export const rpc = RpcGroup.make()
 	.merge(
-		AgentsContract.application,
-		ArtifactsContract.application,
-		BackendsContract.application,
-		BoardsContract.application,
-		CapacityContract.application,
-		ChangesContract.application,
-		CostsContract.application,
-		HoldsContract.application,
-		InputsContract.application,
-		LifecycleContract.application,
-		MailContract.application,
-		PiecesContract.application,
-		ReclamationContract.application,
-		ReportsContract.application,
-		ReposContract.application,
-		RoleSettingsContract.application,
-		RulingsContract.application,
-		SessionsContract.application,
-		SettingsContract.application,
-		SupervisionContract.application,
-		VoyagesContract.application,
+		AgentsContract,
+		ArtifactsContract,
+		BackendsContract,
+		BoardsContract,
+		CapacityContract,
+		ChangesContract,
+		CostsContract,
+		HoldsContract,
+		InputsContract,
+		LifecycleContract,
+		MailContract,
+		PiecesContract,
+		ReclamationContract,
+		ReportsContract,
+		ReposContract,
+		RoleSettingsContract,
+		RulingsContract,
+		SessionsContract,
+		SettingsContract,
+		SupervisionContract,
+		VoyagesContract,
 	)
-	.middleware(Token)
-	.merge(DebugRpc.middleware(Token), artifactContent.middleware(Token), TranscriptRpc.middleware(Token), LifecycleRpc, RunnerRpc);
+	.middleware(Owner)
+	.merge(DebugRpc.middleware(Owner), artifactContent.middleware(Owner), TranscriptRpc.middleware(Owner), LifecycleRpc, RunnerRpc);

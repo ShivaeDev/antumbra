@@ -1,9 +1,11 @@
 import { queues as sourceQueues } from "@antumbra/domain-holds/queries/queues.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { stream } from "@shivaedev/contract/operation.ts";
+import { query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
-export const Queues = stream("queues", {
+export const Queues = query("queues", {
+	readPolicy: signedIn,
 	payload: sourceQueues.input,
 	success: sourceQueues.output,
 	reads: () => [
@@ -37,4 +39,4 @@ export const Queues = stream("queues", {
 		collection("flag", Schema.String).list,
 	],
 });
-export const HoldsContract = contract("holds", { commands: [], streams: [Queues] });
+export const HoldsContract = contract("holds", { commands: [], queries: [Queues] });

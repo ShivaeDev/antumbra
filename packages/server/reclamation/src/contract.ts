@@ -12,7 +12,8 @@ import { retryable as sourceRetryable } from "@antumbra/domain-reclamation/queri
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, stream } from "@shivaedev/contract/operation.ts";
+import { command, query } from "@shivaedev/contract/operation.ts";
+import { signedIn } from "@shivaedev/contract/readPolicy.ts";
 import { Schema } from "effect";
 export const Plan = command("plan", {
 	payload: sourcePlan.Input,
@@ -50,17 +51,20 @@ export const Failed = command("failed", {
 	rejections: { ...sourceFailed.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const Berths = stream("berths", {
+export const Berths = query("berths", {
+	readPolicy: signedIn,
 	payload: sourceBerths.input,
 	success: sourceBerths.output,
 	reads: () => [collection("berth", Schema.String).list],
 });
-export const Current = stream("current", {
+export const Current = query("current", {
+	readPolicy: signedIn,
 	payload: sourceCurrent.input,
 	success: sourceCurrent.output,
 	reads: () => [collection("moorage", Schema.String).list],
 });
-export const Candidates = stream("candidates", {
+export const Candidates = query("candidates", {
+	readPolicy: signedIn,
 	payload: sourceCandidates.input,
 	success: sourceCandidates.output,
 	reads: () => [
@@ -70,17 +74,19 @@ export const Candidates = stream("candidates", {
 		collection("heldResource", Schema.String).list,
 	],
 });
-export const Claims = stream("claims", {
+export const Claims = query("claims", {
+	readPolicy: signedIn,
 	payload: sourceClaims.input,
 	success: sourceClaims.output,
 	reads: () => [collection("berth", Schema.String).list],
 });
-export const Retryable = stream("retryable", {
+export const Retryable = query("retryable", {
+	readPolicy: signedIn,
 	payload: sourceRetryable.input,
 	success: sourceRetryable.output,
 	reads: () => [collection("berth", Schema.String).list],
 });
 export const ReclamationContract = contract("reclamation", {
 	commands: [Plan, Ready, Claim, Reclaimed, Held, Failed],
-	streams: [Berths, Current, Candidates, Claims, Retryable],
+	queries: [Berths, Current, Candidates, Claims, Retryable],
 });

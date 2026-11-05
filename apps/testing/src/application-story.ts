@@ -14,6 +14,7 @@ import type { SqlClient } from "effect/sql/SqlClient";
 import { eventually } from "#answers.ts";
 import { definition, layer } from "#app.ts";
 import { ScriptedArtifacts } from "#artifacts.ts";
+import { hosted } from "#hosted.ts";
 import { sqlKit } from "#sql-story.ts";
 import type { TestApp } from "#surface.ts";
 
@@ -25,6 +26,11 @@ export type App = TestApp<typeof definition.features> & {
 		readonly waitingForDue: (loop: string, at: number) => Effect.Effect<void>;
 	};
 	readonly artifacts: ScriptedArtifacts["Service"];
+	readonly host: () => Effect.Effect<
+		Effect.Success<ReturnType<typeof hosted>>,
+		Effect.Error<ReturnType<typeof hosted>>,
+		import("effect").Scope.Scope
+	>;
 	readonly observe: <Fact extends FactShape>(fact: Fact, record: Observation<FactPayload<Fact>>) => Effect.Effect<number>;
 };
 
@@ -48,7 +54,14 @@ const create = Effect.fn("ApplicationStory.create")(function* () {
 				if (state === undefined) return yield* Effect.die(new Error(`No running reconciler named ${loop}`));
 				yield* eventually(state, (state) => state.status === "waiting" && state.nextDue === at, `${loop} to arm its due timer`);
 			}).pipe(Effect.provideContext(services));
-		return { ...parts, clock: { ...parts.clock, waitingForDue }, api, artifacts, observe };
+		return {
+			...parts,
+			host: () => hosted().pipe(Effect.provideContext(services)),
+			clock: { ...parts.clock, waitingForDue },
+			api,
+			artifacts,
+			observe,
+		};
 	}).pipe(Effect.provideContext(services));
 	return { app, services };
 });

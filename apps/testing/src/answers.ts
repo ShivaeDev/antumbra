@@ -16,10 +16,14 @@ const shown = (value: unknown): string => {
 const lastSeen = (seen: Option.Option<unknown>): string => (Option.isNone(seen) ? "; nothing was seen" : `; last saw ${shown(seen.value)}`);
 
 export const eventually = <Value, Failure, Requirements>(
-	stream: Stream.Stream<Value, Failure, Requirements>,
+	stream: Stream.Stream<Value, Failure, Requirements> | Effect.Effect<Value, Failure, Requirements>,
 	predicate: (value: Value) => boolean,
 	description: string,
 ): Effect.Effect<Value, Failure, Requirements> => {
+	if (Effect.isEffect(stream))
+		return Effect.flatMap(stream, (value) =>
+			predicate(value) ? Effect.succeed(value) : Effect.die(`The query did not answer ${description}; saw ${shown(value)}`),
+		);
 	let seen = Option.none<unknown>();
 	const watched = Stream.tap(stream, (value) =>
 		Effect.sync(() => {
@@ -41,6 +45,6 @@ export const eventually = <Value, Failure, Requirements>(
 };
 
 export const answered = <Value, Failure, Requirements>(
-	stream: Stream.Stream<Value, Failure, Requirements>,
+	stream: Stream.Stream<Value, Failure, Requirements> | Effect.Effect<Value, Failure, Requirements>,
 	description: string,
 ): Effect.Effect<Value, Failure, Requirements> => eventually(stream, () => true, description);

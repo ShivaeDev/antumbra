@@ -35,7 +35,7 @@ bridge. Reloading a window has no effect on an Agent or its runner attachment.
 | `apps/runner`              | Runner entry, provider SDK and process adapters, filesystem and Git execution                                                 |
 | `apps/testing`             | Production application composition with test implementations of external services                                             |
 | `packages/platform`        | Shared schemas, feature declarations, RPC and runner wire contracts, shell vocabulary, prompts, skills, and service utilities |
-| `packages/server/journal`  | SQLite commit, schema-derived tables, materialization, replay, live queries, and reconciliation primitives                    |
+| `packages/server/journal`  | SQLite commit, schema-derived tables, materialization, replay, and live queries                                               |
 | `packages/server/domains`  | Feature-owned rows, facts, commands, queries, and derived projections                                                         |
 | `packages/server/edges`    | Neutral external-service adapters, including the GitHub Change host                                                           |
 | `packages/runner/fabric`   | Session attachment, operation handling, and durable runner log                                                                |
@@ -105,9 +105,10 @@ completion. Image and Artifact bytes live in app-managed custody, while journal 
 ## Requests and reconciliation
 
 Durable requests describe pending operations. Reconcilers compare rows with current external evidence, then call commands to record decisions and
-runner operations to perform effects. They do not write rows directly or checkpoint an executing workflow. Journal reconciliation primitives run at
-boot, on dirty keys, at the next due time a reconciler reports from its read, and a minute after a run fails; the app refreshes them on runner
-reconnect and owns any remaining cadence.
+runner operations to perform effects. They do not write rows directly or checkpoint an executing workflow. `@shivaedev/reconciler` owns startup,
+change-key and due-time wakes, merges pending passes, and scopes keyed actions until their eligibility ends. Antumbra supplies reads, domain acts,
+refusal timing, failure records and supervision. Runner reconnect refreshes the running loops; Change observation reports its next due time through
+the same engine.
 
 Starts use committed admission guards and observable waiting reasons. Piece demand survives an attempt, and provider capacity can hold an operation
 until an explicit release or suitable evidence permits progress. Resource reclamation keeps committed claim exclusions and Change-backed holds; runner

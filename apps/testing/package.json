@@ -69,6 +69,7 @@
 		"@antumbra/server-lifecycle": "workspace:*",
 		"@antumbra/server-supervision": "workspace:*",
 		"@antumbra/server-costs": "workspace:*",
-		"@antumbra/server-holds": "workspace:*"
+		"@antumbra/server-holds": "workspace:*",
+		"@shivaedev/reconciler": "catalog:"
 	}
 }

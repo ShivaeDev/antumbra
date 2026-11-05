@@ -6,8 +6,10 @@ import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import * as Id from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
-import { each, run } from "@antumbra/server-journal/reconcile.ts";
+import { each } from "@shivaedev/reconciler/each.ts";
+import { run } from "@shivaedev/reconciler/run.ts";
 import { Effect, Fiber } from "effect";
+import { watchKeys } from "#supervision/keys.ts";
 
 const requestClaim = Effect.fn("Reclamation.requestClaim")(function* (agentId: string) {
 	const commit = yield* Commit;
@@ -24,23 +26,23 @@ const requestClaim = Effect.fn("Reclamation.requestClaim")(function* (agentId: s
 export const reconcile = Effect.fn("Reclamation.reconcile")(function* () {
 	const runners = yield* RunnerOperations;
 	const live = yield* Live;
-	const selection = yield* run(
-		candidates,
-		{},
-		Effect.fn("Reclamation.select")(function* (sites) {
+	const selection = yield* run({
+		keys: watchKeys(candidates.reads, candidates.scope?.({})),
+		read: Live.use((live) => live.read(candidates, {})),
+		act: Effect.fn("Reclamation.select")(function* (sites) {
 			const connected = new Set((yield* runners.connected).map((runner) => runner.runnerId));
 			for (const site of sites) if (connected.has(site.runner)) yield* requestClaim(site.agentId);
 		}),
-	);
-	const execution = yield* each(
-		claims,
-		{},
-		(site) => site.reclaimRequestId,
-		Effect.fn("Reclamation.execute")(function* (site) {
+	});
+	const execution = yield* each({
+		keys: watchKeys(claims.reads, claims.scope?.({})),
+		read: Live.use((live) => live.read(claims, {})),
+		key: (site) => site.reclaimRequestId,
+		act: Effect.fn("Reclamation.execute")(function* (site) {
 			if (site.reclaimRequestId === null || site.reclaimResult !== null) return;
 			yield* runners.execute(site.runner, { type: "Reclaim", requestId: site.reclaimRequestId, agentId: site.agentId, berth: site });
 		}),
-	);
+	});
 	const cadence = yield* Effect.forkScoped(
 		Effect.forever(
 			Effect.gen(function* () {

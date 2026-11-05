@@ -9,12 +9,14 @@ import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Commit } from "@antumbra/server-journal/commit.ts";
 import { Live } from "@antumbra/server-journal/live.ts";
-import { each, run } from "@antumbra/server-journal/reconcile.ts";
-import { Effect, Fiber, Ref } from "effect";
+import { each } from "@shivaedev/reconciler/each.ts";
+import { run } from "@shivaedev/reconciler/run.ts";
+import { Effect } from "effect";
 import { adoptExternal } from "#changes/adopt.ts";
 import { recordObservation } from "#changes/observations.ts";
 import { publish } from "#changes/publish.ts";
 import { readWorld } from "#changes/read.ts";
+import { watchKeys } from "#supervision/keys.ts";
 
 const OBSERVE_INTERVAL_MILLIS = 60_000;
 const OBSERVE_BACKOFF_CAP_MILLIS = 900_000;
@@ -44,20 +46,29 @@ const observePass = Effect.fn("changes.observePass")(function* (host: ChangeHost
 });
 
 const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
-	const wait = yield* Ref.make(OBSERVE_INTERVAL_MILLIS);
-	const observer = yield* run(world, {}, (snapshot) =>
-		observePass(host, snapshot).pipe(
-			Effect.andThen(Ref.set(wait, OBSERVE_INTERVAL_MILLIS)),
-			Effect.catch((error) =>
-				Effect.andThen(
-					Ref.update(wait, (held) => Math.min(held * 2, OBSERVE_BACKOFF_CAP_MILLIS)),
-					Effect.logWarning("change observation failed", { host: host.tag, error }),
+	let wait = OBSERVE_INTERVAL_MILLIS;
+	const observer = yield* run({
+		keys: watchKeys(world.reads, world.scope?.({})),
+		read: Live.use((live) => live.read(world, {})),
+		act: (snapshot) =>
+			observePass(host, snapshot).pipe(
+				Effect.tap(() =>
+					Effect.sync(() => {
+						wait = OBSERVE_INTERVAL_MILLIS;
+					}),
+				),
+				Effect.catch((error) =>
+					Effect.andThen(
+						Effect.sync(() => {
+							wait = Math.min(wait * 2, OBSERVE_BACKOFF_CAP_MILLIS);
+						}),
+						Effect.logWarning("change observation failed", { host: host.tag, error }),
+					),
 				),
 			),
-		),
-	);
-	const cadence = yield* Effect.forkScoped(Effect.forever(Effect.andThen(Effect.flatMap(Ref.get(wait), Effect.sleep), observer.refresh)));
-	return { refresh: observer.refresh, await: Effect.raceAllFirst([observer.await, Effect.asVoid(Fiber.join(cadence))]) };
+		due: (_snapshot, now) => now + wait,
+	});
+	return observer;
 });
 const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(function* (row: Parameters<typeof publish>[0], error: unknown) {
 	const commit = yield* Commit;
@@ -73,21 +84,21 @@ const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(f
 export const watchChanges = Effect.gen(function* () {
 	const hosts = yield* ChangeHosts;
 	const observers = yield* Effect.forEach(hosts, watchHost);
-	const publisher = yield* each(
-		publishing,
-		{},
-		(row) => row.id,
-		(row) =>
+	const publisher = yield* each({
+		keys: watchKeys(publishing.reads, publishing.scope?.({})),
+		read: Live.use((live) => live.read(publishing, {})),
+		key: (row) => row.id,
+		act: (row) =>
 			publish(row).pipe(
 				Effect.asVoid,
 				Effect.catch((error) => recordPublicationFailure(row, error)),
 			),
-	);
-	const adopter = yield* each(
-		pendingAdoptions,
-		{},
-		(request) => request.id,
-		(request) =>
+	});
+	const adopter = yield* each({
+		keys: watchKeys(pendingAdoptions.reads, pendingAdoptions.scope?.({})),
+		read: Live.use((live) => live.read(pendingAdoptions, {})),
+		key: (request) => request.id,
+		act: (request) =>
 			Effect.gen(function* () {
 				const repository = (yield* readWorld).repos.find((repo) => repo.id === request.repoId);
 				if (repository !== undefined)
@@ -109,7 +120,7 @@ export const watchChanges = Effect.gen(function* () {
 					}),
 				),
 			),
-	);
+	});
 	const all = [...observers, publisher, adopter];
 	return {
 		refresh: Effect.forEach(all, (observer) => observer.refresh, { discard: true }),

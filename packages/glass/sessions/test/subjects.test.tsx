@@ -32,9 +32,8 @@ it.glass("an agent card opens that agent's session and leaves the fleet only thr
 	yield* click(labelled(container, "Open hand"));
 	expect(opened).toBe(identity(CREW).sessionId);
 	expect(leaving).toBeUndefined();
-	expect(container.textContent).toContain("Soundings");
-
 	yield* until(() => container.querySelector(`[aria-label="Open voyage ${VOYAGE_NAME}"]`) !== null, "the voyage breadcrumb to name its voyage");
+	expect(container.textContent).toContain("Soundings");
 	yield* click(labelled(container, `Open voyage ${VOYAGE_NAME}`));
 	expect(leaving).toBe(`${voyageId}/${pieceId}`);
 });

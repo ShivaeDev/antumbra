@@ -24,6 +24,7 @@
 		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
+		"@zip.js/zip.js": "catalog:",
 		"@antumbra/domain-backends": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",

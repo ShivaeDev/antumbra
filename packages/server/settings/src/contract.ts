@@ -2,7 +2,6 @@ import { setCount } from "@antumbra/domain-settings/commands/set-count.ts";
 import { setFlag } from "@antumbra/domain-settings/commands/set-flag.ts";
 import { counts } from "@antumbra/domain-settings/queries/counts.ts";
 import { flags } from "@antumbra/domain-settings/queries/flags.ts";
-import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
 import { command, stream } from "@shivaedev/contract/operation.ts";
 import { Schema } from "effect";
@@ -16,11 +15,11 @@ export const SetCount = command("setCount", {
 export const Flags = stream("flags", {
 	payload: flags.input,
 	success: flags.output,
-	reads: () => [collection("flag", Schema.String).item("fleet")],
+	reads: () => [{ _tag: "Bucket", collection: "flag", field: "scope", value: "fleet" }],
 });
 export const Counts = stream("counts", {
 	payload: counts.input,
 	success: counts.output,
-	reads: () => [collection("count", Schema.String).item("fleet")],
+	reads: () => [{ _tag: "Bucket", collection: "count", field: "scope", value: "fleet" }],
 });
 export const SettingsContract = contract("settings", { commands: [SetFlag, SetCount], streams: [Flags, Counts] });

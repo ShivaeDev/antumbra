@@ -260,6 +260,9 @@ catalogs:
     "@vitejs/plugin-react":
       specifier: 6.0.5
       version: 6.0.5
+    "@zip.js/zip.js":
+      specifier: 2.24.0
+      version: 2.24.0
     class-variance-authority:
       specifier: 0.7.1
       version: 0.7.1
@@ -846,7 +849,7 @@ importers:
         version: 0.3.3(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
       "@shivaedev/github":
         specifier: "catalog:"
-        version: 0.12.1(effect@4.0.7)
+        version: 0.12.1(@zip.js/zip.js@2.24.0)(effect@4.0.7)
       "@shivaedev/local-postgres":
         specifier: "catalog:"
         version: 0.14.1(effect@4.0.7)
@@ -856,6 +859,9 @@ importers:
       "@shivaedev/sql":
         specifier: 0.40.0
         version: 0.40.0(@effect/sql-pg@4.0.7(effect@4.0.7))(effect@4.0.7)
+      "@zip.js/zip.js":
+        specifier: "catalog:"
+        version: 2.24.0
       effect:
         specifier: "catalog:"
         version: 4.0.7
@@ -3867,7 +3873,10 @@ importers:
         version: link:../../../platform/vocabulary
       "@shivaedev/github":
         specifier: "catalog:"
-        version: 0.12.1(effect@4.0.7)
+        version: 0.12.1(@zip.js/zip.js@2.24.0)(effect@4.0.7)
+      "@zip.js/zip.js":
+        specifier: "catalog:"
+        version: 2.24.0
       effect:
         specifier: "catalog:"
         version: 4.0.7
@@ -7294,6 +7303,10 @@ packages:
     resolution: { integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw== }
     engines: { node: ">=10.0.0" }
     deprecated: this version has critical issues, please update to the latest version
+
+  "@zip.js/zip.js@2.24.0":
+    resolution: { integrity: sha512-WlaVKzdqBK+RF3bdiXZWbdCnvGB6PdO4IHC1mn/2Yfl3bASgqUNegnU3+PNg61iecwoPfUi5BgLUPqBukXpyWw== }
+    engines: { bun: ">=0.7.0", deno: ">=1.0.0", node: ">=18.0.0" }
 
   abbrev@4.0.0:
     resolution: { integrity: sha512-a1wflyaL0tHtJSmLSOVybYhy22vRih4eduhhrkcjgrWGnRfrZtovJ2FRjxuTtkkj47O/baf0R86QU5OuYpz8fA== }
@@ -11972,12 +11985,14 @@ snapshots:
       "@effect/atom-react": 4.0.7(effect@4.0.7)(react@19.3.1)(scheduler@0.28.0)
       react: 19.3.1
 
-  "@shivaedev/github@0.12.1(effect@4.0.7)":
+  "@shivaedev/github@0.12.1(@zip.js/zip.js@2.24.0)(effect@4.0.7)":
     dependencies:
       "@shivaedev/errors": 0.9.1(effect@4.0.7)
       "@shivaedev/http": 0.6.1(effect@4.0.7)
       "@shivaedev/service": 0.7.1(effect@4.0.7)
       effect: 4.0.7
+    optionalDependencies:
+      "@zip.js/zip.js": 2.24.0
 
   "@shivaedev/heavy-lock@0.10.1(@effect/platform-node-shared@4.0.7(effect@4.0.7))(@effect/platform-node@4.0.7(effect@4.0.7)(redis@6.2.1))(effect@4.0.7)":
     dependencies:
@@ -12411,6 +12426,8 @@ snapshots:
   "@vitest/spy@5.0.5": {}
 
   "@xmldom/xmldom@0.8.13": {}
+
+  "@zip.js/zip.js@2.24.0": {}
 
   abbrev@4.0.0: {}
 

@@ -1,15 +1,13 @@
-import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
-import { hail } from "@antumbra/domain-agents/commands/hail.ts";
-import { spawn } from "@antumbra/domain-agents/commands/spawn.ts";
+import { type App, answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { RulingId } from "@antumbra/domain-rulings/ids.ts";
-import { answerTool } from "@antumbra/domain-sessions/commands/answer-tool.ts";
-import { callTool } from "@antumbra/domain-sessions/commands/call-tool.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Agents } from "@antumbra/server-agents/service.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
+import { selection as messageSelection } from "@antumbra/server-storage/records/message.ts";
 import { Effect, Fiber, Option } from "effect";
 import { expect } from "vitest";
 import { rulingReconciliation } from "#tools/rulings/reconciliation.ts";
@@ -25,37 +23,41 @@ const input = {
 	urgency: "blocking",
 	recommendation: { choice: "North", reasoning: "It is deeper" },
 };
-const begin = Effect.gen(function* () {
-	const commit = yield* Commit;
-	yield* commit.commit(spawn, { requestId: asked, role: "hand", backend: "claude", model: null, effort: null });
-	yield* commit.observe(observed, {
-		logId: "runner",
-		cursor: 0,
-		at: 100,
-		requestId: Request.make("start"),
-		payload: {
-			live: true,
-			sessionId,
-			nodeRef: null,
-			origin: null,
-			operationId: "start",
-			evidence: {
-				type: "started",
-				agentId: context.agentId,
-				backend: "scripted",
-				cwd: "/berth",
-				nativeRef: "native",
-				runnerId: "runner",
-				toolSetVersion: "tools",
+const begin = (app: App) =>
+	Effect.gen(function* () {
+		const agentsService = yield* Agents;
+
+		yield* agentsService.spawn({ requestId: asked, role: "hand", backend: "claude", model: null, effort: null });
+		yield* app.observe(observed, {
+			logId: "runner",
+			cursor: 0,
+			at: 100,
+			requestId: Request.make("start"),
+			payload: {
+				live: true,
+				sessionId,
+				nodeRef: null,
+				origin: null,
+				operationId: "start",
+				evidence: {
+					type: "started",
+					agentId: context.agentId,
+					backend: "scripted",
+					cwd: "/berth",
+					nativeRef: "native",
+					runnerId: "runner",
+					toolSetVersion: "tools",
+				},
 			},
-		},
+		});
 	});
-});
 const request = commonRulingTools[0];
 
 it.app("holds a blocking tool until answered and does not duplicate its answer as mail", function* (app) {
-	yield* begin;
-	yield* (yield* Commit).commit(callTool, {
+	const sessionsService = yield* Sessions;
+
+	yield* begin(app);
+	yield* sessionsService.callTool({
 		requestId: Request.make("called"),
 		sessionId,
 		callId: context.callId,
@@ -71,12 +73,18 @@ it.app("holds a blocking tool until answered and does not duplicate its answer a
 	yield* app.api.rulings.answer({ rulingId, answer: "Take the north", choiceId: null, by: "admiral", byAgentId: null });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("your hold is over") });
 	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
-	expect((yield* app.rows.message.where({})).filter((message) => message.id === `ruling:${rulingId}`)).toEqual([]);
+	expect(
+		(yield* app.rows.message
+			.findMany({ where: {}, orderBy: { field: "sent_order", direction: "asc" }, select: messageSelection })
+			.pipe(Effect.orDie)).filter((message) => message.id === `ruling:${rulingId}`),
+	).toEqual([]);
 });
 
 it.app("parking releases the tool without generating a duplicate notice", function* (app) {
-	yield* begin;
-	yield* (yield* Commit).commit(callTool, {
+	const sessionsService = yield* Sessions;
+
+	yield* begin(app);
+	yield* sessionsService.callTool({
 		requestId: Request.make("called"),
 		sessionId,
 		callId: context.callId,
@@ -87,7 +95,7 @@ it.app("parking releases the tool without generating a duplicate notice", functi
 	yield* eventually(app.api.rulings.open({}), (rows) => rows.length === 1, "one open ruling to be listed");
 	yield* app.api.rulings.park({ rulingId: RulingId.make(requestId(context)), note: "Wait for daylight" });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("Wait for daylight") });
-	yield* (yield* Commit).commit(answerTool, {
+	yield* sessionsService.answerTool({
 		requestId: Request.make("answered"),
 		sessionId,
 		callId: context.callId,
@@ -100,7 +108,7 @@ it.app("parking releases the tool without generating a duplicate notice", functi
 });
 
 it.app("delivers a nonblocking answer once as priority mail", function* (app) {
-	yield* begin;
+	yield* begin(app);
 	yield* rulingReconciliation;
 	expect(yield* request.invoke(context, { ...input, urgency: "pressing" })).toMatchObject({ ok: true });
 	const rulingId = RulingId.make(requestId(context));
@@ -110,15 +118,19 @@ it.app("delivers a nonblocking answer once as priority mail", function* (app) {
 		(found) => Option.isSome(found) && found.value.deliveredAt !== null,
 		"the ruling to be delivered",
 	);
-	const notices = (yield* app.rows.message.where({})).filter((message) => message.id === `ruling:${rulingId}`);
+	const notices = (yield* app.rows.message
+		.findMany({ where: {}, orderBy: { field: "sent_order", direction: "asc" }, select: messageSelection })
+		.pipe(Effect.orDie)).filter((message) => message.id === `ruling:${rulingId}`);
 	expect(notices).toMatchObject([{ precedence: "priority", toAgentId: context.agentId, body: expect.stringContaining("Take the north") }]);
 	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 });
 
 it.app("asks the blocking requester for context and holds their reply until the ruling", function* (app) {
-	yield* begin;
-	const commit = yield* Commit;
-	yield* commit.commit(callTool, {
+	const sessionsService = yield* Sessions;
+
+	yield* begin(app);
+
+	yield* sessionsService.callTool({
 		requestId: Request.make("first-call"),
 		sessionId,
 		callId: context.callId,
@@ -130,7 +142,7 @@ it.app("asks the blocking requester for context and holds their reply until the 
 	const rulingId = RulingId.make(requestId(context));
 	yield* app.api.rulings.addContext({ rulingId, authorAgentId: null, body: "How deep is north?" });
 	expect(yield* Fiber.join(waiting)).toMatchObject({ ok: true, text: expect.stringContaining("How deep is north?") });
-	yield* commit.commit(answerTool, {
+	yield* sessionsService.answerTool({
 		requestId: Request.make("first-answer"),
 		sessionId,
 		callId: context.callId,
@@ -141,7 +153,7 @@ it.app("asks the blocking requester for context and holds their reply until the 
 	const replyContext = { ...context, callId: "reply" };
 	const replyInput = { rulingId, context: "Ten fathoms" };
 	const replyTool = commonRulingTools[1];
-	yield* commit.commit(callTool, {
+	yield* sessionsService.callTool({
 		requestId: Request.make("reply-call"),
 		sessionId,
 		callId: replyContext.callId,
@@ -160,7 +172,9 @@ it.app("asks the blocking requester for context and holds their reply until the 
 });
 
 it.app("waits for a missing flagship captain and delivers the ascent once they are hailed", function* (app) {
-	yield* begin;
+	const agentsService = yield* Agents;
+
+	yield* begin(app);
 	yield* app.api.rulings.request({
 		requestId: Request.make("ascent"),
 		requester: { kind: "agent", agentId: context.agentId },
@@ -177,11 +191,13 @@ it.app("waits for a missing flagship captain and delivers the ascent once they a
 	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 	yield* rulingReconciliation;
 	const captain = Request.make("captain");
-	yield* (yield* Commit).commit(hail, { requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "agent" });
+	yield* agentsService.hail({ requestId: captain, voyageId: VoyageId.make(FLAGSHIP_REQUEST), by: "agent" });
 	const captainId = identity(captain).agentId;
 	yield* eventually(app.api.mail.mailbox({ agentId: captainId }), (messages) => messages.length === 1, "one message in the captain's mailbox");
-	expect(yield* app.rows.message.where({ toAgentId: captainId })).toMatchObject([
-		{ id: `ruling-ascent:ascent:${captainId}`, precedence: "priority" },
-	]);
+	expect(
+		yield* app.rows.message
+			.findMany({ where: { toAgentId: captainId }, orderBy: { field: "sent_order", direction: "asc" }, select: messageSelection })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ id: `ruling-ascent:ascent:${captainId}`, precedence: "priority" }]);
 	expect(yield* answered(app.api.rulings.delivery({}), "the ruling deliveries to be read")).toEqual([]);
 });

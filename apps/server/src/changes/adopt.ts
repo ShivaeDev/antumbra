@@ -1,8 +1,7 @@
-import { adopt } from "@antumbra/domain-changes/commands/adopt.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
 import { Clock, Effect } from "effect";
 import { claimingHost } from "#changes/host.ts";
 import { namedRepo, readWorld } from "#changes/read.ts";
@@ -14,12 +13,14 @@ export const adoptExternal = Effect.fn("changes.adoptExternal")(function* (input
 	readonly agentId: string | null;
 	readonly url: string;
 }) {
+	const changesService = yield* Changes;
+
 	const repository = yield* namedRepo(input.repo);
 	const host = yield* claimingHost(repository);
 	const observation = yield* host.adopt(input.url, repository);
-	const commit = yield* Commit;
-	yield* commit
-		.commit(adopt, {
+
+	yield* changesService
+		.adopt({
 			requestId: Request.make(input.callId),
 			...(input.adoptionId === undefined ? {} : { adoptionId: input.adoptionId }),
 			pieceId: PieceId.make(input.pieceId),

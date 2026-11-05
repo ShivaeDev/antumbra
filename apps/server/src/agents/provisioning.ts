@@ -1,29 +1,25 @@
 import { BirthHeld, Provisioning } from "@antumbra/domain-agents/ports/provisioning.ts";
-import { plan as recordPlan } from "@antumbra/domain-reclamation/commands/plan.ts";
-import { ready } from "@antumbra/domain-reclamation/commands/ready.ts";
-import { berths } from "@antumbra/domain-reclamation/queries/berths.ts";
-import { current } from "@antumbra/domain-reclamation/queries/moorage.ts";
-import { all as repos } from "@antumbra/domain-repos/queries/all.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import type { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { repoSlug } from "@antumbra/platform-vocabulary/repos-ids.ts";
 import type { Moorage } from "@antumbra/platform-vocabulary/resources.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Reclamation } from "@antumbra/server-reclamation/service.ts";
+import { Repos } from "@antumbra/server-repos/service.ts";
 import { Effect, Layer, Option } from "effect";
 
 const prepare = Effect.fn("Agents.prepareMoorage")(function* (agentId: AgentId, requestId: Request, runnerId: string) {
-	const live = yield* Live;
-	const commit = yield* Commit;
+	const reclamationService = yield* Reclamation;
+	const reposService = yield* Repos;
+
 	const runners = yield* RunnerOperations;
-	const stored = yield* live.read(current, { agentId });
+	const stored = yield* reclamationService.current({ agentId }).pipe(Effect.orDie);
 	let plan: Moorage;
 	if (Option.isSome(stored)) {
 		if (stored.value.runner !== runnerId) return yield* new BirthHeld({ reason: "The agent's resources belong to another runner" });
-		plan = { root: stored.value.root, berths: yield* live.read(berths, { agentId }) };
+		plan = { root: stored.value.root, berths: yield* reclamationService.berths({ agentId }).pipe(Effect.orDie) };
 	} else {
-		const registered = yield* live.read(repos, {});
+		const registered = yield* reposService.all({}).pipe(Effect.orDie);
 		const result = yield* runners.execute(runnerId, {
 			type: "Plan",
 			requestId: `${requestId}:plan`,
@@ -34,13 +30,13 @@ const prepare = Effect.fn("Agents.prepareMoorage")(function* (agentId: AgentId, 
 			return yield* new BirthHeld({ reason: result.type === "Refused" ? result.reason : "Runner did not return a resource plan" });
 		plan = result.plan;
 	}
-	yield* commit.commit(recordPlan, { requestId: Request.make(`${requestId}:plan`), agentId, runner: runnerId, plan }).pipe(
+	yield* reclamationService.plan({ requestId: Request.make(`${requestId}:plan`), agentId, runner: runnerId, plan }).pipe(
 		Effect.catchTag("AlreadyDone", () => Effect.void),
 		Effect.mapError((failure) => new BirthHeld({ reason: failure._tag })),
 	);
 	const result = yield* runners.execute(runnerId, { type: "Provision", requestId: `${requestId}:provision`, agentId, plan });
 	if (result.type === "Refused") return yield* new BirthHeld({ reason: result.reason });
-	yield* commit.commit(ready, { requestId: Request.make(`${requestId}:provision`), agentId }).pipe(
+	yield* reclamationService.ready({ requestId: Request.make(`${requestId}:provision`), agentId }).pipe(
 		Effect.catchTag("AlreadyDone", () => Effect.void),
 		Effect.mapError((failure) => new BirthHeld({ reason: failure._tag })),
 	);
@@ -50,16 +46,9 @@ const prepare = Effect.fn("Agents.prepareMoorage")(function* (agentId: AgentId, 
 export const provisioning = Layer.effect(
 	Provisioning,
 	Effect.gen(function* () {
-		const live = yield* Live;
-		const commit = yield* Commit;
-		const runners = yield* RunnerOperations;
+		const context = yield* Effect.context<Effect.Services<ReturnType<typeof prepare>>>();
 		return {
-			prepare: (agentId, requestId, runnerId) =>
-				prepare(agentId, requestId, runnerId).pipe(
-					Effect.provideService(Live, live),
-					Effect.provideService(Commit, commit),
-					Effect.provideService(RunnerOperations, runners),
-				),
+			prepare: (agentId, requestId, runnerId) => prepare(agentId, requestId, runnerId).pipe(Effect.provideContext(context)),
 		};
 	}),
 );

@@ -1,12 +1,9 @@
-import { finishSmoothing } from "@antumbra/domain-boards/commands/finish-smoothing.ts";
-import { requestSmoothing } from "@antumbra/domain-boards/commands/request-smoothing.ts";
 import { dueSmoothing } from "@antumbra/domain-boards/queries/due-smoothing.ts";
 import { localDay } from "@antumbra/domain-boards/queries/smoothing-span.ts";
-import { pendingSmoothing, type SmoothingTarget, smoothingTargets } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
+import { pendingSmoothing, type SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import type { smoothingAttempt } from "@antumbra/domain-boards/rows/smoothing-attempt.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Boards } from "@antumbra/server-boards/service.ts";
 import { each } from "@shivaedev/reconciler/each.ts";
 import { run } from "@shivaedev/reconciler/run.ts";
 import { Clock, Effect, Fiber, Semaphore } from "effect";
@@ -23,11 +20,15 @@ const failure = {
 } as const;
 
 export const smoothAttempt = Effect.fn("Smoothing.attempt")(function* <R>(attempt: Attempt, prepare: PrepareSmoother<R>) {
-	const live = yield* Live;
-	const commit = yield* Commit;
+	const boardsService = yield* Boards;
+
 	const work = Effect.gen(function* () {
+		const boardsService = yield* Boards;
+
 		while (true) {
-			const targets = yield* live.read(smoothingTargets, { id: attempt.id, now: new Date(yield* Clock.currentTimeMillis).toISOString() });
+			const targets = yield* boardsService
+				.smoothingTargets({ id: attempt.id, now: new Date(yield* Clock.currentTimeMillis).toISOString() })
+				.pipe(Effect.orDie);
 			const target = targets[0];
 			if (target === undefined) return;
 			const prepared = yield* prepare(attempt, target);
@@ -38,17 +39,18 @@ export const smoothAttempt = Effect.fn("Smoothing.attempt")(function* <R>(attemp
 	const result = yield* Effect.result(work);
 	const status = result._tag === "Success" ? "succeeded" : "failed";
 	const detail = result._tag === "Success" ? null : String(result.failure);
-	yield* commit.commit(finishSmoothing, { id: attempt.id, status, detail, requestId: Request.make(`${attempt.id}:finished`) }).pipe(
+	yield* boardsService.finishSmoothing({ id: attempt.id, status, detail, requestId: Request.make(`${attempt.id}:finished`) }).pipe(
 		Effect.catchTag("AlreadyDone", () => Effect.void),
 		Effect.orDie,
 	);
 });
 
 const requestDue = Effect.fn("Smoothing.requestDue")(function* (now: Date, demands: typeof dueSmoothing.output.Type) {
-	const commit = yield* Commit;
+	const boardsService = yield* Boards;
+
 	for (const demand of demands) {
 		const key = demand.pieceId === null ? ["smoothing-day", demand.voyageId, localDay(now)] : ["smoothing-piece", demand.pieceId];
-		yield* commit.commit(requestSmoothing, { ...demand, requestId: Request.make(JSON.stringify(key)) }).pipe(
+		yield* boardsService.requestSmoothing({ ...demand, requestId: Request.make(JSON.stringify(key)) }).pipe(
 			Effect.catchTag("AlreadyDone", () => Effect.void),
 			Effect.orDie,
 		);
@@ -56,10 +58,12 @@ const requestDue = Effect.fn("Smoothing.requestDue")(function* (now: Date, deman
 });
 
 const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
+	const boardsService = yield* Boards;
+
 	const now = new Date(yield* Clock.currentTimeMillis);
 	const due = yield* run({
 		keys: watchKeys(dueSmoothing.reads, dueSmoothing.scope?.({ now: now.toISOString() })),
-		read: Live.use((live) => live.read(dueSmoothing, { now: now.toISOString() })),
+		read: boardsService.dueSmoothing({ now: now.toISOString() }).pipe(Effect.orDie),
 		act: (demands) => requestDue(now, demands),
 	});
 	const tomorrow = new Date(now);
@@ -68,10 +72,15 @@ const watchDay = Effect.fn("Smoothing.watchDay")(function* () {
 });
 
 export const smoothing = Effect.fn("Smoothing.run")(function* <R>(prepare: PrepareSmoother<R>) {
+	const boardsService = yield* Boards;
+
 	const serial = yield* Semaphore.make(1);
 	const pending = yield* each({
 		keys: watchKeys(pendingSmoothing.reads, pendingSmoothing.scope?.({})),
-		read: Live.use((live) => live.read(pendingSmoothing, {})).pipe(Effect.map((attempts) => attempts.filter((attempt) => !attempt.held))),
+		read: boardsService
+			.pendingSmoothing({})
+			.pipe(Effect.orDie)
+			.pipe(Effect.map((attempts) => attempts.filter((attempt) => !attempt.held))),
 		key: (attempt) => attempt.id,
 		act: (attempt) => smoothAttempt(attempt, prepare).pipe(serial.withPermit),
 	});

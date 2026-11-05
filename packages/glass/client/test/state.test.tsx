@@ -14,7 +14,6 @@ const shared = query("shared", {
 	input: { ids: Schema.Array(Schema.String) },
 	output: Schema.String,
 	reads: [],
-	run: () => Effect.succeed("aboard"),
 });
 
 const Reader = () => {

@@ -1,16 +1,18 @@
 import { unaudited } from "@antumbra/domain-sessions/queries/unaudited.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { each } from "@shivaedev/reconciler/each.ts";
 import { Effect, Option, Stream } from "effect";
 import { Reactivity } from "effect/reactivity/Reactivity";
 import { watchKeys } from "#supervision/keys.ts";
 export const audit = Effect.fn("Sessions.audit")(function* () {
+	const sessionsService = yield* Sessions;
+
 	const runners = yield* RunnerOperations;
 	const reactivity = yield* Reactivity;
 	return yield* each({
 		keys: watchKeys(unaudited.reads, unaudited.scope?.({})),
-		read: Live.use((live) => live.read(unaudited, {})),
+		read: sessionsService.unaudited({}).pipe(Effect.orDie),
 		key: ({ node }) => node.id,
 		act: Effect.fn("Sessions.auditNode")(function* ({ node, root }) {
 			if (node.nativeRef === null || root.nativeRef === null) return;

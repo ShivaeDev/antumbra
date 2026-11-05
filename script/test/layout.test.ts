@@ -28,19 +28,17 @@ describe("layout rules", () => {
 	it("passes a domain's files to the glass and nothing else of the server", () => {
 		expect(check(importing("packages/glass/settings", "@antumbra/domain-pieces/feature.ts"), "packages/server/domains/pieces")).toEqual([]);
 		expect(check(importing("packages/glass/settings", "@antumbra/domain-pieces/rows/piece.ts"), "packages/server/domains/pieces")).toEqual([]);
-		expect(check(importing("packages/glass/settings", "@antumbra/server-journal"), "packages/server/journal")).toEqual([
-			"@antumbra/glass-settings may not import @antumbra/server-journal: glass packages import platform, glass, and a server domain's files.",
+		expect(check(importing("packages/glass/settings", "@antumbra/server-storage"), "packages/server/storage")).toEqual([
+			"@antumbra/glass-settings may not import @antumbra/server-storage: glass packages import platform, glass, and a server domain's files.",
 		]);
 	});
 
-	it("keeps the journal to the domains", () => {
-		expect(check(importing("packages/server/domains/pieces", "@antumbra/server-journal"), "packages/server/journal")).toEqual([]);
-		expect(check(importing("packages/server/edges/github", "@antumbra/server-journal"), "packages/server/journal")).toEqual([
-			"@antumbra/edge-github may not import @antumbra/server-journal: server edge packages import platform.",
+	it("keeps storage out of server edges", () => {
+		expect(check(importing("packages/server/domains/pieces", "@antumbra/server-storage"), "packages/server/storage")).toEqual([]);
+		expect(check(importing("packages/server/edges/github", "@antumbra/server-storage"), "packages/server/storage")).toEqual([
+			"@antumbra/edge-github may not import @antumbra/server-storage: server edge packages import platform.",
 		]);
-		expect(check(importing("packages/server/journal", "@antumbra/domain-pieces"), "packages/server/domains/pieces")).toEqual([
-			"@antumbra/server-journal may not import @antumbra/domain-pieces: server journal packages import platform.",
-		]);
+		expect(check(importing("packages/server/storage", "@antumbra/domain-pieces"), "packages/server/domains/pieces")).toEqual([]);
 	});
 
 	it("keeps a backend on the runner's ports", () => {
@@ -85,9 +83,9 @@ describe("layout rules", () => {
 		expect(check({ ...importing(root, "@antumbra/server/application.ts"), path: `${root}/test/screens.test.tsx` }, "apps/server")).toHaveLength(1);
 	});
 
-	it("allows domain contracts in journal tests", () => {
-		const source = importing("packages/server/journal", "@antumbra/domain-settings/queries/counts.ts");
-		expect(check({ ...source, path: "packages/server/journal/test/live.test.ts" }, "packages/server/domains/settings")).toEqual([]);
-		expect(check(source, "packages/server/domains/settings")).toHaveLength(1);
+	it("allows domain contracts in storage sources and tests", () => {
+		const source = importing("packages/server/storage", "@antumbra/domain-settings/queries/counts.ts");
+		expect(check({ ...source, path: "packages/server/storage/test/live.test.ts" }, "packages/server/domains/settings")).toEqual([]);
+		expect(check(source, "packages/server/domains/settings")).toEqual([]);
 	});
 });

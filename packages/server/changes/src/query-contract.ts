@@ -12,39 +12,34 @@ import { watchable } from "@antumbra/domain-changes/queries/watchable.ts";
 import { world } from "@antumbra/domain-changes/queries/world.ts";
 import { candidates } from "@antumbra/domain-reclamation/queries/candidates.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
-import { query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
-export const ByPiece = query("byPiece", {
+import { stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
+export const ByPiece = stream("byPiece", {
 	payload: byPiece.input,
 	success: byPiece.output,
 	reads: () => [collection("pieceChangeView", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const HostCapabilities = query("hostCapabilities", {
+export const HostCapabilities = stream("hostCapabilities", {
 	payload: hostCapabilities.input,
 	success: hostCapabilities.output,
 	reads: () => [collection("changeHostCapability", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Browse = query("browse", {
+export const Browse = stream("browse", {
 	payload: browse.input,
 	success: browse.output,
 	reads: () => [collection("quayChange", Schema.String).list, collection("repo", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const SessionSituations = query("sessionSituations", {
+export const SessionSituations = stream("sessionSituations", {
 	payload: sessionSituations.input,
 	success: sessionSituations.output,
 	reads: () => [collection("sessionSituation", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Adoptions = query("adoptions", {
+export const Adoptions = stream("adoptions", {
 	payload: adoptions.input,
 	success: adoptions.output,
 	reads: () => [collection("changeAdoptionRequest", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const World = query("world", {
+export const World = stream("world", {
 	payload: world.input,
 	success: world.output,
 	reads: () => [
@@ -53,47 +48,39 @@ export const World = query("world", {
 		collection("repo", Schema.String).list,
 		collection("berth", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Quay = query("quay", {
+export const Quay = stream("quay", {
 	payload: quay.input,
 	success: quay.output,
 	reads: () => [collection("quayChange", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const All = query("all", {
+export const All = stream("all", {
 	payload: all.input,
 	success: all.output,
 	reads: () => [collection("change", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Links = query("links", {
+export const Links = stream("links", {
 	payload: links.input,
 	success: links.output,
 	reads: () => [collection("pieceChange", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Watchable = query("watchable", {
+export const Watchable = stream("watchable", {
 	payload: watchable.input,
 	success: watchable.output,
 	reads: () => [collection("change", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Publishing = query("publishing", {
+export const Publishing = stream("publishing", {
 	payload: publishing.input,
 	success: publishing.output,
 	reads: () => [collection("change", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Archivable = query("archivable", {
+export const Archivable = stream("archivable", {
 	payload: archivable.input,
 	success: archivable.output,
 	reads: () => [collection("change", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const CleanupCandidates = query("cleanupCandidates", {
+export const CleanupCandidates = stream("cleanupCandidates", {
 	payload: candidates.input,
 	success: candidates.output,
 	reads: () => ["resourceOwner", "moorage", "berth", "heldResource"].map((name) => collection(name, Schema.String).list),
-	readPolicy: () => Effect.succeed(true),
 });

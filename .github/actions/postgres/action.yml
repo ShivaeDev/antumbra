@@ -1,0 +1,13 @@
+name: PostgreSQL 18 binaries
+description: Install the host binaries used by app-owned PostgreSQL stories
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes postgresql-common
+        sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+        sudo apt-get update
+        sudo apt-get install --yes postgresql-18 postgresql-client-18
+        echo "ANTUMBRA_POSTGRES_BIN_DIRECTORY=/usr/lib/postgresql/18/bin" >> "$GITHUB_ENV"

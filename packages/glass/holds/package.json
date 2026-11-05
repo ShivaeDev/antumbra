@@ -23,7 +23,6 @@
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
 		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
 		"@antumbra/domain-pieces": "workspace:*"
 	},
 	"dependencies": {
@@ -34,6 +33,7 @@
 		"effect": "catalog:",
 		"react": "catalog:",
 		"@antumbra/domain-holds": "workspace:*",
-		"@antumbra/domain-settings": "workspace:*"
+		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*"
 	}
 }

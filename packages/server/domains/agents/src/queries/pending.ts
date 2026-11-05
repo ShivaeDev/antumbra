@@ -8,16 +8,11 @@ import { count } from "@antumbra/domain-settings/rows/count.ts";
 import { flag } from "@antumbra/domain-settings/rows/flag.ts";
 import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { agent } from "#rows/agent.ts";
 import { birth } from "#rows/birth.ts";
 export const pending = query("pending", {
 	input: {},
 	output: Schema.Array(birth.Row),
 	reads: [pieceProgress, birth, agent, capacity, session, count, flag, roleSetting, backendModel, backendCatalog, voyage],
-	run: Effect.fn("Agents.pending")(function* (_input, rows) {
-		return (yield* rows.birth.where({ status: "requested" })).toSorted(
-			(a, b) => a.requestedAt.localeCompare(b.requestedAt) || a.id.localeCompare(b.id),
-		);
-	}),
 });

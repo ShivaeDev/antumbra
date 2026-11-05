@@ -26,7 +26,6 @@
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",
 		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@antumbra/domain-role-settings": "workspace:*",
 		"@antumbra/platform-rpc": "workspace:*",
 		"@antumbra/domain-settings": "workspace:*",
@@ -71,6 +70,23 @@
 		"@antumbra/server-supervision": "workspace:*",
 		"@shivaedev/reconciler": "catalog:",
 		"@shivaedev/changes": "catalog:",
-		"@antumbra/server-changes": "workspace:*"
+		"@antumbra/server-changes": "workspace:*",
+		"@antumbra/legacy-fixture": "workspace:*",
+		"@antumbra/server-artifacts": "workspace:*",
+		"@antumbra/server-backends": "workspace:*",
+		"@antumbra/server-boards": "workspace:*",
+		"@antumbra/server-costs": "workspace:*",
+		"@antumbra/server-holds": "workspace:*",
+		"@antumbra/server-mail": "workspace:*",
+		"@antumbra/server-pieces": "workspace:*",
+		"@antumbra/server-reports": "workspace:*",
+		"@antumbra/server-repos": "workspace:*",
+		"@antumbra/server-role-settings": "workspace:*",
+		"@antumbra/server-settings": "workspace:*",
+		"@antumbra/server-storage": "workspace:*",
+		"@antumbra/server-voyages": "workspace:*",
+		"@shivaedev/events": "catalog:",
+		"@shivaedev/local-postgres": "catalog:",
+		"@shivaedev/sql": "catalog:"
 	}
 }

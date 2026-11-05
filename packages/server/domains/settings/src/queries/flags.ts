@@ -1,6 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
-import { FLAG_KEYS, FLEET, type FlagDeclaration, FlagKey, type SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
-import { Effect, Schema } from "effect";
+import { FLEET, type FlagDeclaration, FlagKey, type SwitchKey } from "@antumbra/platform-vocabulary/settings-ids.ts";
+import { Schema } from "effect";
 import { flag } from "#rows/flag.ts";
 
 export const FLAGS: Readonly<Record<FlagKey, FlagDeclaration>> = {
@@ -89,13 +89,4 @@ export const flags = query("flags", {
 	output: Schema.Array(FlagReading),
 	reads: [flag],
 	scope: () => FLEET,
-	run: Effect.fn("settings.flags")(function* (_input, rows) {
-		const stored = yield* rows.flag.where({ scope: FLEET });
-		return FLAG_KEYS.map((key) => ({
-			description: FLAGS[key].description,
-			key,
-			on: stored.find((candidate) => candidate.key === key)?.on ?? FLAGS[key].fallback,
-			title: FLAGS[key].title,
-		}));
-	}),
 });

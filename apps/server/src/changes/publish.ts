@@ -1,17 +1,17 @@
-import { freeze } from "@antumbra/domain-changes/commands/freeze.ts";
 import { all } from "@antumbra/domain-changes/queries/all.ts";
 import type { ChangeRow } from "@antumbra/domain-changes/rows/change.ts";
 import { ChangeHostRefused } from "@antumbra/platform-change-host/port.ts";
 import { RunnerOperations } from "@antumbra/platform-runner/dispatch.ts";
 import { ANTUMBRA_TRAILER } from "@antumbra/platform-vocabulary/change-host.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
 import { Clock, Effect, Option, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
 import { claimingHost } from "#changes/host.ts";
 import { recordObservation } from "#changes/observations.ts";
 import { type LocalChangeInput, prepareLocal } from "#changes/prepare.ts";
 import { readChange, readWorld } from "#changes/read.ts";
+import { keysOf } from "#keys.ts";
 export const publish = Effect.fn("changes.publish")(function* (held: ChangeRow) {
 	if (held.stage !== "prepared" || held.externalId !== null) return held;
 	const snapshot = yield* readWorld;
@@ -60,11 +60,12 @@ export const publish = Effect.fn("changes.publish")(function* (held: ChangeRow) 
 export const openLocal = Effect.fn("changes.openLocal")(function* (
 	input: LocalChangeInput & { readonly title: string; readonly body: string; readonly base: string | null; readonly draft: boolean },
 ) {
+	const changesService = yield* Changes;
+
 	const held = yield* prepareLocal(input);
-	const commit = yield* Commit;
-	const live = yield* Live;
-	yield* commit
-		.commit(freeze, {
+
+	yield* changesService
+		.freeze({
 			requestId: Request.make(`${input.callId}:freeze`),
 			changeId: held.id,
 			title: input.title,
@@ -74,7 +75,7 @@ export const openLocal = Effect.fn("changes.openLocal")(function* (
 			at: new Date(yield* Clock.currentTimeMillis).toISOString(),
 		})
 		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
-	const settled = yield* live.live(all, {}).pipe(
+	const settled = yield* stream(keysOf(all.reads, all.scope?.({})))(changesService.all({}).pipe(Effect.orDie)).pipe(
 		Stream.map((rows) => rows.find((row) => row.id === held.id)),
 		Stream.filter((row): row is ChangeRow => row !== undefined && (row.stage !== "prepared" || row.publicationError !== null)),
 		Stream.runHead,

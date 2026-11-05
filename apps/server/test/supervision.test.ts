@@ -65,7 +65,7 @@ it.app("a record an earlier boot left behind is cleared for a loop that runs aga
 		trace: "an earlier trace",
 	});
 	yield* eventually(app.api.supervision.stoppedLoops({}), (held) => held.length === 1, "one stopped-loop row to be recorded");
-	yield* forgetRunning({ refresh: Effect.void, running: (loop) => loop === "mailing", start: () => Effect.void });
+	yield* forgetRunning({ state: () => undefined, refresh: Effect.void, running: (loop) => loop === "mailing", start: () => Effect.void });
 	expect(yield* answered(app.api.supervision.stoppedLoops({}), "the stopped loops to be read")).toEqual([]);
 });
 

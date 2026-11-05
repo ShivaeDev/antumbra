@@ -1,5 +1,5 @@
 import { query } from "@antumbra/platform-feature/query.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { berth } from "#rows/berth.ts";
 
 export const berths = query("berths", {
@@ -7,7 +7,4 @@ export const berths = query("berths", {
 	output: Schema.Array(berth.Row),
 	reads: [berth],
 	scope: (input) => input.agentId,
-	run: Effect.fn("Reclamation.berths")(function* (input, rows) {
-		return yield* rows.berth.where(input);
-	}),
 });

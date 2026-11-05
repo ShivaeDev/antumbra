@@ -1,27 +1,28 @@
-import { markDelivered } from "@antumbra/domain-mail/commands/mark-delivered.ts";
 import { WAKE_SWITCHES } from "@antumbra/domain-mail/queries/due-mail.ts";
 import type { DueWake } from "@antumbra/domain-mail/queries/due-wakes.ts";
-import { request } from "@antumbra/domain-sessions/commands/request.ts";
-import { operations } from "@antumbra/domain-sessions/queries/operations.ts";
-import { allows, flags, ungated } from "@antumbra/domain-settings/queries/flags.ts";
-import { list } from "@antumbra/domain-voyages/queries/list.ts";
+import { allows, ungated } from "@antumbra/domain-settings/queries/flags.ts";
 import { quietIds } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Mail } from "@antumbra/server-mail/service.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
+import { Settings } from "@antumbra/server-settings/service.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Clock, Effect } from "effect";
 
 export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<DueWake>) {
-	const live = yield* Live;
-	const commit = yield* Commit;
-	const chosen = yield* live.read(flags, {});
-	const quiet = quietIds(yield* live.read(list, {}));
+	const settingsService = yield* Settings;
+	const voyagesService = yield* Voyages;
+	const sessionsService = yield* Sessions;
+	const mailService = yield* Mail;
+
+	const chosen = yield* settingsService.flags({}).pipe(Effect.orDie);
+	const quiet = quietIds(yield* voyagesService.list().pipe(Effect.orDie));
 	for (const wake of due) {
 		if (!allows(chosen, WAKE_SWITCHES[wake.batch.precedence])) continue;
 		if (wake.voyageId !== null && quiet.has(wake.voyageId)) continue;
 		const requestId = Request.make(`mail-wake:${wake.sessionId}:${wake.unreadIds.toSorted().join(":")}`);
-		const held = yield* live.read(operations, { sessionId: wake.sessionId });
+		const held = yield* sessionsService.operations({ sessionId: wake.sessionId }).pipe(Effect.orDie);
 		if (
 			held.some(
 				(operation) =>
@@ -34,8 +35,8 @@ export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<D
 		)
 			continue;
 		const at = yield* Clock.currentTimeMillis;
-		const accepted = yield* commit
-			.commit(request, {
+		const accepted = yield* sessionsService
+			.request({
 				requestId,
 				sessionId: wake.sessionId,
 				kind: "wake",
@@ -49,7 +50,7 @@ export const deliver = Effect.fn("Mail.deliver")(function* (due: ReadonlyArray<D
 				Effect.catchTags({ Busy: () => Effect.succeed(false), Unavailable: () => Effect.succeed(false) }),
 			);
 		if (!accepted) continue;
-		yield* commit.commit(markDelivered, { requestId: Request.make(`mail-delivered:${requestId}`), agentId: wake.agentId, ids: wake.unreadIds }).pipe(
+		yield* mailService.markDelivered({ requestId: Request.make(`mail-delivered:${requestId}`), agentId: wake.agentId, ids: wake.unreadIds }).pipe(
 			Effect.catchTag("AlreadyDone", () => Effect.void),
 			Effect.orDie,
 		);

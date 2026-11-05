@@ -1,4 +1,3 @@
-import { contract } from "@shivaedev/contract/contract.ts";
 import {
 	Adopt,
 	Archive,
@@ -13,7 +12,7 @@ import {
 	Refresh,
 	RequestAdoption,
 	RetryAdoption,
-} from "#command-contract.ts";
+} from "@antumbra/server-changes/command-contract.ts";
 import {
 	Adoptions,
 	All,
@@ -28,7 +27,8 @@ import {
 	SessionSituations,
 	Watchable,
 	World,
-} from "#query-contract.ts";
+} from "@antumbra/server-changes/query-contract.ts";
+import { contract } from "@shivaedev/contract/contract.ts";
 export const ChangesContract = contract("changes", {
 	commands: [
 		FailAdoption,
@@ -45,7 +45,7 @@ export const ChangesContract = contract("changes", {
 		Dismiss,
 		ForwardFeedback,
 	],
-	queries: [
+	streams: [
 		CleanupCandidates,
 		ByPiece,
 		HostCapabilities,

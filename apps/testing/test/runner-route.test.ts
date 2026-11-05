@@ -10,7 +10,6 @@ import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { transport } from "@antumbra/server/transport.ts";
 import { NodeHttpServer, NodeSocket } from "@effect/platform-node";
-import { it } from "@effect/vitest";
 import { Effect, Fiber, Latch, Layer, Queue, Stream } from "effect";
 import * as HttpRouter from "effect/http/HttpRouter";
 import * as HttpServer from "effect/http/HttpServer";
@@ -19,6 +18,7 @@ import * as RpcClient from "effect/rpc/RpcClient";
 import { expect } from "vitest";
 import { eventually } from "#answers.ts";
 import { layer } from "#app.ts";
+import { it } from "#entry.ts";
 
 const server = HttpRouter.serve(transport, { disableListenLog: true }).pipe(
 	Layer.provideMerge(layer),
@@ -87,9 +87,7 @@ const exchange = Effect.gen(function* () {
 	);
 });
 
-it.live("the production RPC endpoint authenticates runners and exchanges operations", () =>
-	Effect.gen(function* () {
-		const services = yield* Layer.build(server);
-		yield* exchange.pipe(Effect.provide(services));
-	}),
-);
+it.app("the production RPC endpoint authenticates runners and exchanges operations", function* () {
+	const services = yield* Layer.build(server);
+	yield* exchange.pipe(Effect.provide(services));
+});

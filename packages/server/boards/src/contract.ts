@@ -15,8 +15,8 @@ import { pendingSmoothing, smoothingTargets } from "@antumbra/domain-boards/quer
 import { under } from "@antumbra/domain-boards/queries/under.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Write = command("write", { payload: write.Input, success: Schema.Number, rejections: write.Rejection, invalidates: () => [] });
 export const Summarize = command("summarize", {
 	payload: summarize.Input,
@@ -54,31 +54,27 @@ export const FinishSmoothingSession = command("finishSmoothingSession", {
 	rejections: finishSmoothingSession.Rejection,
 	invalidates: () => [],
 });
-export const Display = query("display", {
+export const Display = stream("display", {
 	payload: display.input,
 	success: display.output,
-	reads: (input) => [collection("boardEntry", Schema.String).item(input.board)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Entries = query("entries", {
+export const Entries = stream("entries", {
 	payload: entries.input,
 	success: entries.output,
-	reads: (input) => [collection("boardEntry", Schema.String).item(input.board)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Digest = query("digest", {
+export const Digest = stream("digest", {
 	payload: digest.input,
 	success: digest.output,
-	reads: (input) => [collection("boardEntry", Schema.String).item(input.board)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const Under = query("under", {
+export const Under = stream("under", {
 	payload: under.input,
 	success: under.output,
-	reads: (input) => [collection("boardEntry", Schema.String).item(input.board)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "boardEntry", field: "board", value: input.board }],
 });
-export const DueSmoothing = query("dueSmoothing", {
+export const DueSmoothing = stream("dueSmoothing", {
 	payload: dueSmoothing.input,
 	success: dueSmoothing.output,
 	reads: () => [
@@ -88,9 +84,8 @@ export const DueSmoothing = query("dueSmoothing", {
 		collection("pieceProgress", Schema.String).list,
 		collection("boardEntry", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
-export const SmoothingTargets = query("smoothingTargets", {
+export const SmoothingTargets = stream("smoothingTargets", {
 	payload: smoothingTargets.input,
 	success: smoothingTargets.output,
 	reads: () => [
@@ -99,21 +94,18 @@ export const SmoothingTargets = query("smoothingTargets", {
 		collection("pieceProgress", Schema.String).list,
 		collection("boardEntry", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
-export const PendingSmoothing = query("pendingSmoothing", {
+export const PendingSmoothing = stream("pendingSmoothing", {
 	payload: pendingSmoothing.input,
 	success: pendingSmoothing.output,
 	reads: () => [collection("smoothingAttempt", Schema.String).list, collection("flag", Schema.String).list, collection("voyage", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const SmoothingSessionFor = query("smoothingSessionFor", {
+export const SmoothingSessionFor = stream("smoothingSessionFor", {
 	payload: smoothingSessionFor.input,
 	success: smoothingSessionFor.output,
 	reads: () => [collection("smoothingSession", Schema.String).list, collection("smoothingAttempt", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const SmoothingState = query("smoothingState", {
+export const SmoothingState = stream("smoothingState", {
 	payload: smoothingState.input,
 	success: smoothingState.output,
 	reads: () => [
@@ -121,9 +113,8 @@ export const SmoothingState = query("smoothingState", {
 		collection("boardEntry", Schema.String).list,
 		collection("pieceProgress", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
 export const BoardsContract = contract("boards", {
 	commands: [Write, Summarize, SummarizePiece, RequestSmoothing, FinishSmoothing, BindSmoothingSession, FinishSmoothingSession],
-	queries: [Display, Entries, Digest, Under, DueSmoothing, SmoothingTargets, PendingSmoothing, SmoothingSessionFor, SmoothingState],
+	streams: [Display, Entries, Digest, Under, DueSmoothing, SmoothingTargets, PendingSmoothing, SmoothingSessionFor, SmoothingState],
 });

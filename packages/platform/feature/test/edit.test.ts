@@ -1,7 +1,7 @@
 import { choice, editing, many, optional, titled } from "@antumbra/platform-feature/edit.ts";
 import { query } from "@antumbra/platform-feature/query.ts";
 import { row } from "@antumbra/platform-feature/row.ts";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { expect, it } from "vitest";
 
 const model = row("model", { id: Schema.String, backend: Schema.String, name: Schema.String }, { key: "id", scope: "backend" });
@@ -10,9 +10,6 @@ const models = query("models", {
 	input: { backend: Schema.String },
 	output: Schema.Array(model.Row),
 	reads: [model],
-	run: Effect.fn("catalogue.models")(function* (input, rows) {
-		return yield* rows.model.where({ backend: input.backend });
-	}),
 });
 
 const TAGS = ["claude", "codex"] as const;

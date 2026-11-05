@@ -20,8 +20,7 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-pieces": "workspace:*",
@@ -33,6 +32,7 @@
 		"@antumbra/domain-settings": "workspace:*",
 		"@antumbra/domain-boards": "workspace:*",
 		"@antumbra/domain-lifecycle": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*"
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*"
 	}
 }

@@ -4,6 +4,7 @@ import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { agentBoard, pieceBoard, voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { Effect } from "effect";
 import { expect } from "vitest";
 import { writeSummaryTool } from "#tools/boards/summary.ts";
 import { markReadTool, readBoardTool, readMailTool, writeBoardTool } from "#tools/boards/tools.ts";
@@ -25,7 +26,7 @@ it.app("refuses an unbound board and malformed input before recording anything",
 	expect(yield* writeBoardTool.invoke(context, { scope: "piece", body: "hello" })).toEqual({ ok: false, text: "you have no piece board" });
 	expect(yield* readBoardTool.invoke(context, { scope: "voyage" })).toEqual({ ok: false, text: "you have no voyage board" });
 	expect((yield* writeBoardTool.invoke(context, { scope: "self" })).ok).toBe(false);
-	expect(yield* app.rows.boardEntry.count({})).toBe(0);
+	expect(yield* app.rows.boardEntry.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("reads a digest and the exact rough notes behind its summary", function* (app) {

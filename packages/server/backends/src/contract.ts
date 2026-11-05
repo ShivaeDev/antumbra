@@ -5,31 +5,28 @@ import { efforts } from "@antumbra/domain-backends/queries/efforts.ts";
 import { models } from "@antumbra/domain-backends/queries/models.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const ListModels = command("listModels", {
 	payload: listModels.Input,
 	success: Schema.Number,
 	rejections: {},
 	invalidates: () => [],
 });
-export const Models = query("models", {
+export const Models = stream("models", {
 	payload: models.input,
 	success: models.output,
-	reads: (input) => [collection("backendModel", Schema.String).item(input.backend)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "backendModel", field: "backend", value: input.backend }],
 });
-export const Efforts = query("efforts", {
+export const Efforts = stream("efforts", {
 	payload: efforts.input,
 	success: efforts.output,
-	reads: (input) => [collection("backendModel", Schema.String).item(input.backend)],
-	readPolicy: () => Effect.succeed(true),
+	reads: (input) => [{ _tag: "Bucket", collection: "backendModel", field: "backend", value: input.backend }],
 });
-export const Catalog = query("catalog", {
+export const Catalog = stream("catalog", {
 	payload: catalog.input,
 	success: catalog.output,
 	reads: (input) => [collection("backendCatalog", Schema.String).item(input.backend)],
-	readPolicy: () => Effect.succeed(true),
 });
 export const ObserveCapability = command("observeCapability", {
 	payload: observeCapability.Input,
@@ -37,4 +34,4 @@ export const ObserveCapability = command("observeCapability", {
 	rejections: {},
 	invalidates: () => [],
 });
-export const BackendsContract = contract("backends", { commands: [ListModels, ObserveCapability], queries: [Models, Efforts, Catalog] });
+export const BackendsContract = contract("backends", { commands: [ListModels, ObserveCapability], streams: [Models, Efforts, Catalog] });

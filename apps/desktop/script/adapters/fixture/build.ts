@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Schema } from "effect";
 import { build } from "rolldown";
+import { fixtureEnvironment } from "#script/adapters/fixture/environment.ts";
 
 export const fixtureBundle = async (directory: string) => {
 	const output = join(directory, ".build", "server.mjs");
@@ -23,7 +24,7 @@ export const checkFixtureServer = async (directory: string) => {
 	const output = bundle.output.file;
 	const child = spawn(process.execPath, [output, "--check", "--data", join(directory, "server"), "--files", directory, "--logs", directory], {
 		stdio: "inherit",
-		env: { ANTUMBRA_TOKEN: crypto.randomUUID() },
+		env: fixtureEnvironment(crypto.randomUUID()),
 	});
 	const stop = () => {
 		child.kill("SIGTERM");

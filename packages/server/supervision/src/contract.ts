@@ -5,8 +5,8 @@ import { stoppedLoops as sourceStoppedLoops } from "@antumbra/domain-supervision
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const FailLoop = command("failLoop", {
 	payload: sourceFailLoop.Input,
 	success: Schema.Number,
@@ -25,10 +25,9 @@ export const ResumeLoop = command("resumeLoop", {
 	rejections: { ...sourceResumeLoop.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const StoppedLoops = query("stoppedLoops", {
+export const StoppedLoops = stream("stoppedLoops", {
 	payload: sourceStoppedLoops.input,
 	success: sourceStoppedLoops.output,
 	reads: () => [collection("stoppedLoop", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const SupervisionContract = contract("supervision", { commands: [FailLoop, ForgetLoop, ResumeLoop], queries: [StoppedLoops] });
+export const SupervisionContract = contract("supervision", { commands: [FailLoop, ForgetLoop, ResumeLoop], streams: [StoppedLoops] });

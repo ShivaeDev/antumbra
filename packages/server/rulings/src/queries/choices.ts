@@ -1,6 +1,7 @@
-import { choices as query } from "@antumbra/domain-rulings/queries/choices.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { choices as query } from "@antumbra/domain-rulings/queries/choices.ts";
+import { choices as queryDecision } from "@antumbra/server-rulings/logic/queries/choices.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const choices = Effect.fn("Rulings.choices")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const choices = Effect.fn("Rulings.choices")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

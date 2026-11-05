@@ -1,11 +1,13 @@
+import { HoldsContract, Queues } from "@antumbra/server-holds/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { HoldsContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { Holds } from "#service.ts";
 export const handlers = HoldsContract.application.toLayer(
 	Effect.gen(function* () {
 		const service = yield* Holds;
 		return HoldsContract.application.of({
-			"holds.queues": (input) => service.queues(input).pipe(Effect.orDie),
+			"holds.queues": (input) => stream(readKeys(Queues.reads(input)))(service.queues(input).pipe(Effect.orDie)),
 		});
 	}),
 );

@@ -40,14 +40,14 @@ describe("domain-imports rule", () => {
 		expect(check(from, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([
 			`@antumbra/domain-role-settings sources may not import @antumbra/domain-pieces/feature.ts: ${SOURCES}.`,
 		]);
-		expect(check(from, "@antumbra/server-journal/rows/piece.ts", "packages/server/journal")).toEqual([
-			`@antumbra/domain-role-settings sources may not import @antumbra/server-journal/rows/piece.ts: ${SOURCES}.`,
+		expect(check(from, "@antumbra/server-storage/rows/piece.ts", "packages/server/storage")).toEqual([
+			`@antumbra/domain-role-settings sources may not import @antumbra/server-storage/rows/piece.ts: ${SOURCES}.`,
 		]);
 	});
 
 	it("keeps the journal, the machine and old packages out of a domain", () => {
-		expect(check(from, "@antumbra/server-journal/app.ts")).toEqual([
-			`@antumbra/domain-role-settings sources may not import @antumbra/server-journal/app.ts: ${SOURCES}.`,
+		expect(check(from, "@antumbra/server-storage/app.ts")).toEqual([
+			`@antumbra/domain-role-settings sources may not import @antumbra/server-storage/app.ts: ${SOURCES}.`,
 		]);
 		expect(check(from, "node:fs")).toEqual([`@antumbra/domain-role-settings sources may not import node:fs: ${SOURCES}.`]);
 		expect(check(from, "@antumbra/settings")).toEqual([`@antumbra/domain-role-settings sources may not import @antumbra/settings: ${SOURCES}.`]);
@@ -66,8 +66,8 @@ describe("domain-imports rule", () => {
 		expect(check(kit, "@antumbra/domain-pieces/feature.ts", "packages/server/domains/pieces")).toEqual([
 			`@antumbra/domain-role-settings tests may not import @antumbra/domain-pieces/feature.ts: ${TESTS}.`,
 		]);
-		expect(check(kit, "@antumbra/server-journal/testing/kit.ts")).toEqual([
-			`@antumbra/domain-role-settings tests may not import @antumbra/server-journal/testing/kit.ts: ${TESTS}.`,
+		expect(check(kit, "@antumbra/server-storage/testing/kit.ts")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/server-storage/testing/kit.ts: ${TESTS}.`,
 		]);
 	});
 
@@ -83,13 +83,13 @@ describe("domain-imports rule", () => {
 	it("keeps the machine, the rest of the journal and old packages out of a domain's tests", () => {
 		expect(check(kit, "@effect/platform-node")).toEqual([`@antumbra/domain-role-settings tests may not import @effect/platform-node: ${TESTS}.`]);
 		expect(check(kit, "@antumbra/settings")).toEqual([`@antumbra/domain-role-settings tests may not import @antumbra/settings: ${TESTS}.`]);
-		expect(check(kit, "@antumbra/server-journal/app.ts")).toEqual([
-			`@antumbra/domain-role-settings tests may not import @antumbra/server-journal/app.ts: ${TESTS}.`,
+		expect(check(kit, "@antumbra/server-storage/app.ts")).toEqual([
+			`@antumbra/domain-role-settings tests may not import @antumbra/server-storage/app.ts: ${TESTS}.`,
 		]);
 	});
 
 	it("leaves every package outside the domains alone", () => {
-		expect(check("packages/server/journal/src/commit.ts", "@antumbra/platform-feature/command.ts")).toEqual([]);
-		expect(check("packages/server/journal/test/kit.ts", "@antumbra/settings")).toEqual([]);
+		expect(check("packages/server/storage/src/commit.ts", "@antumbra/platform-feature/command.ts")).toEqual([]);
+		expect(check("packages/server/storage/test/kit.ts", "@antumbra/settings")).toEqual([]);
 	});
 });

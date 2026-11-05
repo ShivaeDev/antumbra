@@ -2,6 +2,7 @@ import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
 import { pendingOperations } from "@antumbra/domain-agents/queries/pending-operations.ts";
 import { hailWords } from "@antumbra/platform-prompts/hail.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
+import { Agents } from "@antumbra/server-agents/service.ts";
 import { expect } from "vitest";
 import { chartered, crewed, opened, PIECE, VOYAGE } from "#test/switches/kit.ts";
 import { hailCaptain } from "#tools/voyages/hail.ts";
@@ -39,6 +40,8 @@ it.app("the admiral's hail wakes a quieted voyage's captain and leaves the voyag
 });
 
 it.app("a hail parked behind its switch stays parked when the voyage goes quiet", function* (app) {
+	yield* Agents;
+
 	const { atWork } = yield* crewed(app);
 	yield* opened(app);
 	yield* app.api.agents.hail({ by: "admiral", requestId: CAPTAIN, voyageId: VOYAGE });

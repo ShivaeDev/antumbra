@@ -1,7 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
 import { BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
-import { Effect, Schema } from "effect";
-import { type Entry, newestFirst, summaryOf } from "#queries/covered.ts";
+import { Schema } from "effect";
 import { boardEntry } from "#rows/board-entry.ts";
 
 export const under = query("under", {
@@ -9,18 +8,4 @@ export const under = query("under", {
 	output: Schema.Array(boardEntry.Row),
 	reads: [boardEntry],
 	scope: (input) => input.board,
-	run: Effect.fn("boards.under")(function* (input, rows) {
-		const stored = yield* rows.boardEntry.where({ board: input.board });
-		const summary = summaryOf(stored, input.summaryId);
-		if (summary === undefined || summary.coversFrom === null || summary.coversTo === null) {
-			return [];
-		}
-		const beneath: Entry[] = [];
-		for (const entry of stored) {
-			if (entry.register === "rough" && entry.seq >= summary.coversFrom && entry.seq <= summary.coversTo) {
-				beneath.push(entry);
-			}
-		}
-		return newestFirst(beneath);
-	}),
 });

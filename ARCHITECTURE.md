@@ -10,12 +10,12 @@ The shell in `apps/desktop` selects the data directory, takes Electron's single-
 native menus, tray, windows, links, and requested restart. Repeat launches reach the existing shell for that directory. Window roles, arrangement, and
 drafts are shell state; losing a window does not lose domain work. Preload exposes the narrow shell bridge from `packages/platform/shell`.
 
-The server in `apps/server` owns the journal, command execution, materialized rows, live queries, and reconciliation. Its application definition
-assembles feature declarations and projection stages; its runtime supervises the reconcilers features declare, Session operations, capacity release,
-resource reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. Each runs as a named loop in its own scope: a defect
-stops that one loop, records it as a `LoopFailed` fact, and leaves the process, the RPC surface, and every other loop running. App Layers supply
-filesystem custody, GitHub processes, and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle,
-and runner transport.
+The server in `apps/server` owns app-managed PostgreSQL, command execution, projected rows, live queries, and reconciliation. Its application
+definition assembles domain services and projection stages; its runtime supervises domain reconcilers, Session operations, capacity release, resource
+reclamation, mail delivery, Change observation, Ruling reconciliation, and smoothing. Each runs as a named loop in its own scope: a defect stops that
+one loop, records it as a `LoopFailed` fact, and leaves the process, the RPC surface, and every other loop running. App Layers supply filesystem
+custody, GitHub processes, and runner connections. The server hosts Effect RPC for commands, live queries, transcripts, content, lifecycle, and runner
+transport.
 
 The runner in `apps/runner` owns provider processes, live attachments, tool forwarding, Git work, and its durable event log. Its entry assembles the
 Claude, Codex, OpenCode, and Pi adapters. Provider availability and configuration remain adapter concerns. Restarting a server does not transfer
@@ -28,22 +28,24 @@ bridge. Reloading a window has no effect on an Agent or its runner attachment.
 
 ## Ownership
 
-| Path                       | Responsibility                                                                                                                |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `apps/desktop`             | Shell entry, native adapters, child supervision, and packaging                                                                |
-| `apps/server`              | Feature and projection assembly, RPC handlers, reconcilers, tool handlers, external custody, and server adapters              |
-| `apps/runner`              | Runner entry, provider SDK and process adapters, filesystem and Git execution                                                 |
-| `apps/testing`             | Production application composition with test implementations of external services                                             |
-| `packages/platform`        | Shared schemas, feature declarations, RPC and runner wire contracts, shell vocabulary, prompts, skills, and service utilities |
-| `packages/server/journal`  | SQLite commit, schema-derived tables, materialization, replay, and live queries                                               |
-| `packages/server/domains`  | Feature-owned rows, facts, commands, queries, and derived projections                                                         |
-| `packages/server/edges`    | Neutral external-service adapters, including the GitHub Change host                                                           |
-| `packages/runner/fabric`   | Session attachment, operation handling, and durable runner log                                                                |
-| `packages/runner/ports`    | Backend capabilities and neutral delivery contracts                                                                           |
-| `packages/runner/backends` | Provider mapping and behavior over the runner ports                                                                           |
-| `packages/runner/tools`    | Binding frozen tool descriptors into provider sessions                                                                        |
-| `packages/runner/git`      | Git semantics over app-supplied machine capabilities                                                                          |
-| `packages/glass`           | Client, forms, shared components, feature screens, renderer, and harness                                                      |
+| Path                             | Responsibility                                                                                                                |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `apps/desktop`                   | Shell entry, native adapters, child supervision, and packaging                                                                |
+| `apps/server`                    | Feature and projection assembly, RPC handlers, reconcilers, tool handlers, external custody, and server adapters              |
+| `apps/runner`                    | Runner entry, provider SDK and process adapters, filesystem and Git execution                                                 |
+| `apps/testing`                   | Production application composition with test implementations of external services                                             |
+| `packages/platform`              | Shared schemas, feature declarations, RPC and runner wire contracts, shell vocabulary, prompts, skills, and service utilities |
+| `packages/server/storage`        | PostgreSQL event histories, migrations, typed repositories, and projections                                                   |
+| `packages/server/legacy-fixture` | Versioned legacy journal decoding and fixture replay                                                                          |
+| `packages/server/domains`        | Neutral feature schemas and RPC declarations                                                                                  |
+| `packages/server/<domain>`       | SQL domain services, guards, queries, and business decisions                                                                  |
+| `packages/server/edges`          | Neutral external-service adapters, including the GitHub Change host                                                           |
+| `packages/runner/fabric`         | Session attachment, operation handling, and durable runner log                                                                |
+| `packages/runner/ports`          | Backend capabilities and neutral delivery contracts                                                                           |
+| `packages/runner/backends`       | Provider mapping and behavior over the runner ports                                                                           |
+| `packages/runner/tools`          | Binding frozen tool descriptors into provider sessions                                                                        |
+| `packages/runner/git`            | Git semantics over app-supplied machine capabilities                                                                          |
+| `packages/glass`                 | Client, forms, shared components, feature screens, renderer, and harness                                                      |
 
 Server domains include Agents, Sessions, lifecycle, settings, role settings, backend catalog, Voyages, Pieces, Boards, mail, Rulings, repositories,
 Changes, Artifacts, Reports, inputs, costs, reclamation, and capacity. Each owns its specific vocabulary and invariants: every invariant has a feature
@@ -57,8 +59,8 @@ use runner ports and platform. App composition roots supply machine services and
 
 Every package exports explicit source subpaths through `{ "./*": "./src/*" }`; imports name the real file and extension. Runtime code uses Effect
 services and Layers, typed failures, and Schema decoding at boundaries. A package does not hide a forbidden dependency behind an alias or a wrapper.
-Node, network, filesystem, and child-process implementations live in apps, apart from the named SQLite owners for the journal, runner log, and dev
-trace sink.
+Node, network, filesystem, and child-process implementations live in apps, apart from the runner log and dev trace sink. Legacy SQLite access belongs
+to fixture-only app adapters.
 
 A feature declares its rows, facts, commands, and queries with the platform feature vocabulary. App assembly registers those declarations and the
 ordered derived projection stages. Neighbor-owned contribution rows express the evidence a feature needs without a reverse service dependency; for
@@ -67,30 +69,21 @@ example Agents contribute resource eligibility and Changes contribute held Berth
 Mechanical package, import, IO, and declaration rules live under `script/lint` and `script/boundaries`. Tests may depend on `@antumbra/app-testing` to
 exercise production composition; production code never imports it.
 
-## Durable truth and the commit
+## Durable truth and committed changes
 
-The server journal is SQLite at `server/journal.db` under the selected data directory. A command guard reads current rows, then the journal appends
-its fact and runs materializers and derived projection stages in one transaction. Commands are serialized. Commit marks reactivity keys dirty only
-with the committed change. Tables and wire shapes derive from the feature schemas. Every durable fact enters here and nothing else writes a fact or a
-row, so the moment a command is answered every projection already reflects it and every live query and reconciler that reads it has been woken.
-Provider events are not domain facts: they live in the runner's log, and a domain fact names a Session by id.
+The server starts an app-owned PostgreSQL cluster under `server/postgres` in its application data directory. The cluster listens on a private Unix
+socket and has no TCP listener. `PostgresBinaries` supplies installed binaries through `hostPostgresBinaries`; `ANTUMBRA_POSTGRES_BIN_DIRECTORY`
+selects an installed binary directory. PostgreSQL 18 or later is required. Missing or incompatible binaries stop startup with a typed error.
+`migrateAppPostgres` takes a backup before applying current SQL migrations and keeps three backups.
 
-Rows are rebuildable projections of journal facts. When their shape changes, journal replay rebuilds them from retained facts. An existing journal is
-backed up before an actual rebuild, and the `backups` directory beside it keeps the five newest copies and deletes the rest.
+Domain services append facts through `@shivaedev/events` and update their projections in the same PostgreSQL transaction. Guarded writes serialize
+through one shared SQL writer. `@shivaedev/sql` publishes affected changes keys after commit; rollback publishes nothing. Live queries and
+`@shivaedev/reconciler` consume those keys. Provider events remain in the runner log, while committed domain facts name the Session they describe.
 
-A fact migration is a numbered one-shot rewrite of stored facts. A feature declares its migrations beside its facts, numbered from one, and startup
-applies every declared migration the `fact_migration` table does not already record, feature by feature and in each feature's declared order, after
-the journal is opened and before the shape comparison and any replay. A migration reads one stored fact as data and returns the fact to keep or
-nothing to drop it, so it may rewrite a payload, rename a fact, or drop the fact, and the sequence number stays. A pending migration makes replay
-follow whether or not a row shape changed, and takes the same backup a rebuild takes. A migration that fails rewrites nothing, records nothing, and
-stops startup.
-
-The journal's own tables — `journal`, `applied`, `shape`, `runner_cursor`, and `fact_migration` — change through numbered upgrade steps rather than a
-wipe. The journal package declares the steps in one ordered list, numbered from one, and startup applies every step above the database's
-`user_version`, after the tables are ensured and before fact migrations and the shape comparison, then stamps the number it reached. A step adds a
-column, creates an index, or recreates a table and copies the old one into it where SQLite cannot alter in place; a step also runs on a database
-created at the latest shape, so it guards on the shape it finds. A pending step takes the same backup a rebuild takes, and a step that fails changes
-nothing and stops startup.
+The packaged application uses `Antumbra-SQL`; development uses `Antumbra-SQL-Dev`. A development override names a parent directory containing its own
+`Antumbra-SQL-Dev` namespace. These fresh namespaces create new local credentials and runner-log identities. Production never opens a legacy journal
+or imports its records. Archived journals are fixture evidence only: the versioned legacy decoder folds them in memory, then fixture tooling replays
+them into an isolated PostgreSQL database. Fixture viewer writes remain in that database between restarts.
 
 The runner log has a separate owner and sequence. A runner appends durable evidence locally before reporting it, and the server asserts nothing about
 a Session it did not read there; that is what lets a runner outlive a server restart and lets a dead runner's Sessions still read from their last fact
@@ -100,7 +93,8 @@ identity metadata and ensures the request index without replacing the entries ta
 upgrade of an existing log takes a snapshot beside the file before applying the upgrade and version stamp in one transaction. Files predating stored
 identity retain their configured log id. Previously retained rollover files remain separate logs with their own identities and cursors; reading one
 requires its original configured id when the file predates stored identity. Transport replies acknowledge operations; they do not fabricate Session
-completion. Image and Artifact bytes live in app-managed custody, while journal rows hold their identity, ordering, and delivery or landing evidence.
+completion. Image and Artifact bytes live in app-managed custody, while PostgreSQL rows hold their identity, ordering, and delivery or landing
+evidence.
 
 ## Requests and reconciliation
 
@@ -135,7 +129,7 @@ Historical handler-version hosting and staged server swaps are not built.
 ## Validation
 
 Feature behavior is tested through the production application with scripted external boundaries. Glass tests exercise the same server definition; app
-tests own process, filesystem, provider, and transport integration. Pure schema and journal primitive tests remain with their owners. The
+tests own process, filesystem, provider, and transport integration. Pure schema and storage primitive stories remain with their owners. The
 [testing guide](docs/contributing/tests.md) lists commands and local test serialization.
 
 Run `pnpm ready` for the repository gates. The [quality routes](quality-gates/README.md) cover judgments that an import graph or passing test cannot

@@ -48,8 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
-      - name: Install PostgreSQL server binaries for domain stories
-        run: sudo apt-get update && sudo apt-get install --yes postgresql
+      - uses: ./.github/actions/postgres
       - run: pnpm test:packages --shard=${{ matrix.shard }}/8
       - uses: actions/upload-artifact@v4
         if: always()
@@ -64,6 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - uses: ./.github/actions/postgres
       - run: pnpm test:server
       - uses: actions/upload-artifact@v4
         if: always()
@@ -84,8 +84,7 @@ jobs:
           restore-keys: |
             electron-cache-${{ runner.os }}-
       - uses: ./.github/actions/setup
-      - name: Install PostgreSQL server binaries for app-owned test instances
-        run: sudo apt-get update && sudo apt-get install --yes postgresql
+      - uses: ./.github/actions/postgres
       - run: pnpm test:desktop
       - run: pnpm test:runner
       - run: pnpm test:app

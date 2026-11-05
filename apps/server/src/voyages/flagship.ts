@@ -1,6 +1,5 @@
-import { open } from "@antumbra/domain-voyages/commands/open.ts";
 import { FLAGSHIP_REQUEST } from "@antumbra/domain-voyages/ids.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Effect } from "effect";
 
 const flagship = {
@@ -18,8 +17,9 @@ const flagship = {
 } as const;
 
 export const openFlagship = Effect.gen(function* () {
-	const commit = yield* Commit;
-	yield* commit.commit(open, flagship).pipe(
+	const voyagesService = yield* Voyages;
+
+	yield* voyagesService.open(flagship).pipe(
 		Effect.catchTag("AlreadyDone", () => Effect.void),
 		Effect.orDie,
 	);

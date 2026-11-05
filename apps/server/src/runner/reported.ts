@@ -4,12 +4,13 @@ import type { FactPayload } from "@antumbra/platform-feature/fact.ts";
 export type Observation = FactPayload<typeof observed>;
 
 export interface Reported {
+	readonly fork: () => Reported;
 	readonly news: (observation: Observation) => boolean;
 	readonly landed: (observation: Observation) => void;
 }
 
-export const reported = (): Reported => {
-	const sessions = new Map<string, Map<string, string>>();
+export const reported = (initial: ReadonlyMap<string, ReadonlyMap<string, string>> = new Map()): Reported => {
+	const sessions = new Map([...initial].map(([id, nodes]) => [id, new Map(nodes)]));
 	const nodes = (sessionId: string): Map<string, string> => {
 		const known = sessions.get(sessionId);
 		if (known !== undefined) return known;
@@ -18,6 +19,7 @@ export const reported = (): Reported => {
 		return opened;
 	};
 	return {
+		fork: () => reported(sessions),
 		news: (observation) =>
 			observation.evidence.type !== "node-seen" ||
 			sessions.get(observation.sessionId)?.get(observation.nodeRef ?? "") !== JSON.stringify(observation),

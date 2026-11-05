@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { deadline, step } from "#waiting.ts";
+import { deadline } from "#waiting.ts";
 
 export const settle = (change: () => void): Effect.Effect<void> =>
 	Effect.promise(() =>
@@ -31,7 +31,7 @@ const polling = (ready: () => boolean): Effect.Effect<void> =>
 		while (!settled) {
 			yield* settle(() => undefined);
 			settled = ready();
-			if (!settled) yield* Effect.sleep(step);
+			if (!settled) yield* Effect.yieldNow;
 		}
 	});
 

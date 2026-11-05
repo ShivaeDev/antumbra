@@ -1,4 +1,5 @@
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { Effect } from "effect";
 import { admit } from "#commands/admit.ts";
@@ -35,7 +36,7 @@ import { smoother } from "#queries/smoother.ts";
 import { workingCount } from "#queries/working-count.ts";
 export const Agents = defineService({
 	id: "@antumbra/server-agents/Agents",
-	requires: [ExecutionHistory],
+	requires: [Records, ExecutionHistory],
 	initialize: Effect.void,
 	methods: () => ({
 		retireCrew,

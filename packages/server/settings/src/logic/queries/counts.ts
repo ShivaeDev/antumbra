@@ -1,0 +1,68 @@
+import type * as Source from "@antumbra/domain-settings/queries/counts.ts";
+import { ROUTINE_MAIL_MINUTES } from "@antumbra/platform-vocabulary/mail.ts";
+import { COUNT_KEYS, type CountDeclaration, CountKey, FLEET } from "@antumbra/platform-vocabulary/settings-ids.ts";
+import { selection as countSelection } from "@antumbra/server-storage/records/count.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
+import { Effect, Schema } from "effect";
+
+const MINUTES = "min";
+
+export const CountReading = Schema.Struct({
+	count: Schema.Number,
+	description: Schema.String,
+	key: CountKey,
+	title: Schema.String,
+	unit: Schema.NullOr(Schema.String),
+});
+
+export const COUNTS: Readonly<Record<CountKey, CountDeclaration>> = {
+	idleSiestaMinutes: {
+		description: "Shorter waits free capacity sooner; longer waits are more likely to keep conversation context cached.",
+		fallback: 60,
+		max: 1440,
+		min: 1,
+		title: "Idle before siesta",
+		unit: MINUTES,
+	},
+	maxParallelSessions: {
+		description: "How many agents may be running at once.",
+		fallback: 4,
+		max: 64,
+		min: 1,
+		title: "Maximum running agents",
+		unit: null,
+	},
+	retireRestMinutes: {
+		description: "How long an agent must have rested before the sweep may retire it.",
+		fallback: 15,
+		max: 1440,
+		min: 1,
+		title: "Rest before retirement",
+		unit: MINUTES,
+	},
+	routineMailMinutes: {
+		description: "Routine mail waits this long before it wakes a resting agent; priority and flash mail wake one at once.",
+		fallback: ROUTINE_MAIL_MINUTES,
+		max: 1440,
+		min: 1,
+		title: "Routine mail before a wake",
+		unit: MINUTES,
+	},
+};
+
+export const counts = Effect.fn("settings.counts")(function* (
+	_input: Schema.Struct.Type<typeof Source.counts.input>,
+): Effect.fn.Return<typeof Source.counts.output.Type, never, Records> {
+	const rows = yield* Records;
+
+	const stored = yield* rows.count
+		.findMany({ where: { scope: FLEET }, orderBy: { field: "storage_order", direction: "asc" }, select: countSelection })
+		.pipe(Effect.orDie);
+	return COUNT_KEYS.map((key) => ({
+		count: stored.find((candidate) => candidate.key === key)?.count ?? COUNTS[key].fallback,
+		description: COUNTS[key].description,
+		key,
+		title: COUNTS[key].title,
+		unit: COUNTS[key].unit,
+	}));
+});

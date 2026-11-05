@@ -23,12 +23,12 @@ postgresApp.it(
 		yield* api["backends.listModels"]({ ...newer, requestId: request("newer") });
 		yield* clearPublished();
 		expect(yield* api["backends.listModels"]({ ...listing, requestId: request("repeat") })).toBe(repeated);
-		expect(yield* api["backends.models"]({ backend: "codex" })).toMatchObject([{ name: "New chart" }]);
-		expect(yield* api["backends.catalog"]({ backend: "codex" })).toMatchObject({ failure: null });
+		expect(yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models")).toMatchObject([{ name: "New chart" }]);
+		expect(yield* answered(api["backends.catalog"]({ backend: "codex" }), "backends.catalog")).toMatchObject({ failure: null });
 		expect(yield* backendsHistory.read()).toHaveLength(2);
 		expect(yield* published()).toEqual([]);
 		yield* backendsHistory.rebuild();
-		expect(yield* api["backends.models"]({ backend: "codex" })).toMatchObject([{ name: "New chart" }]);
+		expect(yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models")).toMatchObject([{ name: "New chart" }]);
 		yield* clearPublished();
 		expect(yield* api["backends.listModels"]({ ...listing, requestId: request("repeat") })).toBe(repeated);
 		expect(yield* published()).toEqual([]);
@@ -48,30 +48,13 @@ postgresApp.it(
 		yield* api["backends.observeCapability"]({ ...input, imageInput: false, requestId: request("capability-newer") });
 		yield* clearPublished();
 		expect(yield* api["backends.observeCapability"]({ ...input, requestId: request("capability-repeat") })).toBe(repeated);
-		expect(yield* api["backends.catalog"]({ backend: "codex" })).toEqual({ backend: "codex", imageInput: false, failure: null });
+		expect(yield* answered(api["backends.catalog"]({ backend: "codex" }), "backends.catalog")).toEqual({
+			backend: "codex",
+			imageInput: false,
+			failure: null,
+		});
 		expect(yield* backendsHistory.read()).toHaveLength(2);
 		expect(yield* published()).toEqual([]);
-	},
-);
-
-postgresApp.it(
-	"replays backend fixtures and accepts a later listing with the journal refresh keys",
-	[],
-	function* ({ api, journal, replayJournal, clearPublished, published }) {
-		const legacy = yield* journal();
-		yield* legacy.api.backends.listModels({ ...listing, requestId: request("seed") });
-		yield* replayJournal(legacy);
-		expect(yield* api["backends.models"]({ backend: "codex" })).toEqual(yield* answered(legacy.api.backends.models({ backend: "codex" }), "models"));
-		const watched = yield* legacy.watchKeys(["backendModel", "backendModel:codex", "backendCatalog", "backendCatalog:codex"]);
-		yield* clearPublished();
-		const input = { ...listing, failure: "unavailable", models: [], requestId: request("failure") };
-		yield* legacy.api.backends.listModels(input);
-		yield* api["backends.listModels"](input);
-		expect(yield* api["backends.catalog"]({ backend: "codex" })).toEqual(
-			yield* answered(legacy.api.backends.catalog({ backend: "codex" }), "catalog"),
-		);
-		expect(yield* api["backends.models"]({ backend: "codex" })).toEqual([]);
-		expect(new Set(yield* published())).toEqual(new Set(watched.seen()));
 	},
 );
 
@@ -79,7 +62,7 @@ postgresApp.it(
 	"keeps backends readers quiet until commit and discards rollback",
 	[],
 	function* ({ api, backendsHistory, transaction, rollback, published, clearPublished }) {
-		const before = yield* api["backends.models"]({ backend: "codex" });
+		const before = yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models");
 		const event = { _tag: "ModelsListed" as const, ...listing, at: 0 };
 		const written = yield* Deferred.make<void>();
 		const release = yield* Deferred.make<void>();
@@ -91,16 +74,16 @@ postgresApp.it(
 			}),
 		).pipe(Effect.forkScoped);
 		yield* Deferred.await(written);
-		expect(yield* api["backends.models"]({ backend: "codex" })).toEqual(before);
+		expect(yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models")).toEqual(before);
 		expect(yield* published()).toEqual([]);
 		yield* Deferred.succeed(release, undefined);
 		yield* Fiber.join(pending);
-		const committed = yield* api["backends.models"]({ backend: "codex" });
+		const committed = yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models");
 		expect(committed).not.toEqual(before);
 		expect(yield* published()).toContain("backendModel");
 		yield* clearPublished();
 		yield* rollback(backendsHistory.append(request("rollback"), [event]));
-		expect(yield* api["backends.models"]({ backend: "codex" })).toEqual(committed);
+		expect(yield* answered(api["backends.models"]({ backend: "codex" }), "backends.models")).toEqual(committed);
 		expect(yield* published()).toEqual([]);
 	},
 );

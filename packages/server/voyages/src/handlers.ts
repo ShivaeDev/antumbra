@@ -1,5 +1,7 @@
+import { ById, List, Progress, VoyagesContract } from "@antumbra/server-voyages/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { VoyagesContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { Voyages } from "#service.ts";
 
 export const handlers = VoyagesContract.application.toLayer(
@@ -14,9 +16,9 @@ export const handlers = VoyagesContract.application.toLayer(
 				voyages.quiet(input).pipe(Effect.catchIf((error) => error._tag !== "Unknown" && error._tag !== "AlreadyDone", Effect.die)),
 			"voyages.resume": (input) =>
 				voyages.resume(input).pipe(Effect.catchIf((error) => error._tag !== "Unknown" && error._tag !== "AlreadyDone", Effect.die)),
-			"voyages.byId": (input) => voyages.byId(input).pipe(Effect.orDie),
-			"voyages.list": () => voyages.list().pipe(Effect.orDie),
-			"voyages.progress": (input) => voyages.progress(input).pipe(Effect.orDie),
+			"voyages.byId": (input) => stream(readKeys(ById.reads(input)))(voyages.byId(input).pipe(Effect.orDie)),
+			"voyages.list": () => stream(readKeys(List.reads({})))(voyages.list().pipe(Effect.orDie)),
+			"voyages.progress": (input) => stream(readKeys(Progress.reads(input)))(voyages.progress(input).pipe(Effect.orDie)),
 		});
 	}),
 );

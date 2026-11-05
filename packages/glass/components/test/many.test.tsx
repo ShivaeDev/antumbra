@@ -17,7 +17,6 @@ const crew = command("crew", {
 	reads: [],
 	emits: crewed,
 	rejections: {},
-	run: (input) => Effect.succeed({ key: input.backend, models: input.models }),
 });
 
 const rewire = command("rewire", {
@@ -25,7 +24,6 @@ const rewire = command("rewire", {
 	reads: [],
 	emits: crewed,
 	rejections: {},
-	run: (input) => Effect.succeed({ key: input.key, models: input.models }),
 });
 
 const FIXED = { backend: "codex" } as const;

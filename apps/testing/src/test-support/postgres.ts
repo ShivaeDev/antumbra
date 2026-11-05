@@ -1,6 +1,6 @@
-import { binaries } from "@antumbra/server-journal/postgres/instance.ts";
-import { postgresTests } from "@antumbra/server-journal/postgres/testing.ts";
-import { createInstanceEngine, createIsolationEngine } from "@antumbra/server-journal/test-support/postgres.ts";
+import { postgresTests } from "@antumbra/app-testing/postgres-testing.ts";
+import { createInstanceEngine, createIsolationEngine } from "@antumbra/app-testing/test-support/postgres-control.ts";
+import { binaries } from "@antumbra/server-storage/instance.ts";
 import { NodeServices } from "@effect/platform-node";
 import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { Clock, Layer } from "effect";

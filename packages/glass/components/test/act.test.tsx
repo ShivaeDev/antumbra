@@ -13,7 +13,6 @@ const launch = command("launch", {
 	reads: [],
 	emits: launched,
 	rejections: { Refused: { message: Schema.String } },
-	run: (input) => Effect.succeed({ id: input.id }),
 });
 
 const INPUT = { id: "the-reef" };

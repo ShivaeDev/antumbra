@@ -16,12 +16,12 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-supervision": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/platform-feature": "workspace:*"
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",

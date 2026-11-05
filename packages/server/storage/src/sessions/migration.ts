@@ -1,0 +1,22 @@
+import { Effect } from "effect";
+import { SqlClient } from "effect/sql";
+export const migration = Effect.gen(function* () {
+	const sql = yield* SqlClient.SqlClient;
+	yield* sql`create table "sessionCapacityWait" ("id" text primary key, "backend" text not null, storage_order bigint generated always as identity)`;
+	yield* sql`create table "sessionEvent" ("id" text primary key, "sessionId" text not null, "rootSessionId" text not null, "logId" text not null, "cursor" double precision not null, "observedAt" double precision not null, "sequence" double precision not null, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionEvent" ("sessionId")`;
+	yield* sql`create table "sessionUsage" ("id" text primary key, "sessionId" text not null, "agentId" text not null, "backend" text not null, "observedAt" double precision not null, "usage" jsonb not null, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionUsage" ("agentId")`;
+	yield* sql`create table "session" ("id" text primary key, "agentId" text not null, "backend" text not null, "cwd" text not null, "nativeRef" text, "status" text not null, "executionStatus" text not null, "completeness" text not null, "outcome" text, "label" text, "kind" text, "parentSessionId" text, "rootSessionId" text not null, "runnerId" text not null, "toolSetVersion" text not null, "startRequestId" text not null, "charterDeliveredAt" text, "attached" boolean not null, "idleSince" text, "stoppedAt" text, "openDelegations" double precision not null, "toolCalls" double precision not null, "createdAt" text not null, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "session" ("agentId")`;
+	yield* sql`create table "sessionOpening" ("id" text primary key, "inputId" text not null, "standingOrders" text, "charter" text not null, "sequence" double precision not null, storage_order bigint generated always as identity)`;
+	yield* sql`create table "sessionOperation" ("id" text primary key, "sessionId" text not null, "kind" text not null, "inputId" text, "reason" text not null, "status" text not null, "detail" text, "requestedAt" text not null, "sequence" double precision not null, "gatedBy" text, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionOperation" ("sessionId")`;
+	yield* sql`create table "sessionToolCall" ("id" text primary key, "callId" text not null, "sessionId" text not null, "name" text not null, "input" text not null, "answeredAt" text, "answer" jsonb, "calledAt" text, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionToolCall" ("sessionId")`;
+	yield* sql`create table "sessionStartResult" ("requestId" text primary key, "sessionId" text not null, "status" text not null, "reason" text, storage_order bigint generated always as identity)`;
+	yield* sql`create table "sessionNode" ("id" text primary key, "rootSessionId" text not null, "nativeRef" text not null, "spawnedBy" text not null, "announced" boolean not null, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionNode" ("rootSessionId")`;
+	yield* sql`create table "sessionGap" ("id" text primary key, "sessionId" text not null, "kind" text not null, "detail" text not null, "observedAt" text not null, storage_order bigint generated always as identity)`;
+	yield* sql`create index on "sessionGap" ("sessionId")`;
+});

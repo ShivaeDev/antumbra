@@ -1,52 +1,54 @@
 import { capacityObserved } from "@antumbra/domain-capacity/facts/observed.ts";
 import { inputObserved } from "@antumbra/domain-inputs/facts/observed.ts";
-import { ready } from "@antumbra/domain-reclamation/commands/ready.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { providerEvent } from "@antumbra/domain-sessions/facts/provider-event.ts";
-import type { LogEntry, LogEvent } from "@antumbra/platform-runner/log.ts";
+import type { LogEntry } from "@antumbra/platform-runner/log.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit, type CommitService } from "@antumbra/server-journal/commit.ts";
-import { type ObservedFact, observation } from "@antumbra/server-journal/observe.ts";
+import { Reclamation } from "@antumbra/server-reclamation/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { type ObservedFact, observation } from "@antumbra/server-storage/observe.ts";
 import { Effect, Option, Schema } from "effect";
 import { inputObservation } from "#adapters/inputs/observation.ts";
 import { RunnerConnections } from "#runner/connections.ts";
 import { providerEventObservation } from "#runner/provider-event.ts";
+import type { Reported } from "#runner/reported.ts";
 import { observation as resourceObservation } from "#runner/resources.ts";
 import { observation as sessionObservation } from "#runner/session-observation.ts";
 
-const moored = (commit: CommitService, event: LogEvent): Effect.Effect<void> =>
-	event.type === "MoorageProvisioned"
-		? Effect.ignore(commit.commit(ready, { agentId: event.agentId, requestId: Request.make(event.requestId) }))
-		: Effect.void;
+const translate = Effect.fn("RunnerLog.translatePostgres")(function* (entry: LogEntry, reported: Reported) {
+	const reclamationService = yield* Reclamation;
 
+	const facts: ObservedFact[] = [];
+	if (entry.event.type === "CapacityObserved")
+		facts.push(observation(capacityObserved, yield* Schema.decodeUnknownEffect(capacityObserved.Payload)(entry.event)));
+	const resource = resourceObservation(entry.event);
+	if (Option.isSome(resource)) facts.push(resource.value);
+	const session = sessionObservation(entry);
+	if (session !== null && reported.news(session)) facts.push(observation(observed, session));
+	if (session !== null) reported.landed(session);
+	const provider = providerEventObservation(entry);
+	if (provider !== null) facts.push(observation(providerEvent, provider));
+	const delivery = inputObservation(entry);
+	if (delivery !== null) facts.push(observation(inputObserved, delivery));
+	return {
+		cursor: entry.cursor,
+		at: entry.at,
+		facts,
+		before:
+			entry.event.type === "MoorageProvisioned"
+				? reclamationService.ready({ agentId: entry.event.agentId, requestId: Request.make(entry.event.requestId) }).pipe(Effect.ignore)
+				: Effect.void,
+	};
+});
 export const append = Effect.fn("RunnerLog.append")(function* (input: { readonly logId: string; readonly entries: readonly LogEntry[] }) {
-	const commit = yield* Commit;
+	const history = yield* ExecutionHistory;
 	const connections = yield* RunnerConnections;
+	const preview = yield* connections.preview(input.logId);
+	const entries = yield* Effect.forEach(input.entries, (entry) => translate(entry, preview));
+	const cursor = yield* history.ingest({ logId: input.logId, entries });
 	for (const entry of input.entries) {
-		yield* moored(commit, entry.event);
-		const facts: ObservedFact[] = [];
-		if (entry.event.type === "CapacityObserved") {
-			const payload = yield* Schema.decodeUnknownEffect(capacityObserved.Payload)(entry.event).pipe(Effect.orDie);
-			facts.push(observation(capacityObserved, payload));
-		}
-		const resource = resourceObservation(entry.event);
-		if (Option.isSome(resource)) facts.push(resource.value);
 		const session = sessionObservation(entry);
-		if (session !== null && (yield* connections.news(input.logId, session))) facts.push(observation(observed, session));
-		const provider = providerEventObservation(entry);
-		if (provider !== null) facts.push(observation(providerEvent, provider));
-		const delivery = inputObservation(entry);
-		if (delivery !== null) facts.push(observation(inputObserved, delivery));
-		yield* commit.observeBatch(
-			{
-				logId: input.logId,
-				cursor: entry.cursor,
-				at: entry.at,
-				requestId: Request.make(`runner:${input.logId}:${entry.cursor}`),
-			},
-			facts,
-		);
 		if (session !== null) yield* connections.landed(input.logId, session);
 	}
-	return yield* commit.cursor(input.logId);
+	return cursor;
 });

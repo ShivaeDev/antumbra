@@ -6,13 +6,13 @@ const appData = "/home/pilot/Library/Application Support";
 
 it("keeps packaged builds on the installed directory", () => {
 	for (const devOverride of [undefined, "/tmp/isolated", "relative/path", ""]) {
-		expect(selectDataDirectory({ appData, devOverride, isPackaged: true })).toBe(join(appData, "Antumbra"));
+		expect(selectDataDirectory({ appData, devOverride, isPackaged: true })).toBe(join(appData, "Antumbra-SQL"));
 	}
 });
 
 it("keeps unconfigured dev runs on the shared dev directory", () => {
 	for (const devOverride of [undefined, ""]) {
-		expect(selectDataDirectory({ appData, devOverride, isPackaged: false })).toBe(join(appData, "Antumbra-Dev"));
+		expect(selectDataDirectory({ appData, devOverride, isPackaged: false })).toBe(join(appData, "Antumbra-SQL-Dev"));
 	}
 });
 
@@ -23,7 +23,7 @@ it("gives a configured dev run its own directory", () => {
 			devOverride: "/tmp/antumbra-instances/two",
 			isPackaged: false,
 		}),
-	).toBe("/tmp/antumbra-instances/two");
+	).toBe("/tmp/antumbra-instances/two/Antumbra-SQL-Dev");
 });
 
 it("refuses a dev override that is not an absolute path", () => {

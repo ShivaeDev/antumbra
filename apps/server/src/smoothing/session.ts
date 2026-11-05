@@ -1,13 +1,13 @@
-import { bindSmoothingSession } from "@antumbra/domain-boards/commands/bind-smoothing-session.ts";
-import { finishSmoothingSession } from "@antumbra/domain-boards/commands/finish-smoothing-session.ts";
 import { smoothingSessionFor } from "@antumbra/domain-boards/queries/smoothing-session-for.ts";
 import type { SmoothingTarget } from "@antumbra/domain-boards/queries/smoothing-targets.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
 import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Boards } from "@antumbra/server-boards/service.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
 import { Effect, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 
 export interface PreparedSmoother<R> {
 	readonly agentId: string;
@@ -23,11 +23,12 @@ export const runSmoothingSession = Effect.fn("Smoothing.session")(function* <R>(
 	target: typeof SmoothingTarget.Type,
 	prepared: PreparedSmoother<R>,
 ) {
-	const commit = yield* Commit;
-	const live = yield* Live;
+	const boardsService = yield* Boards;
+	const sessionsService = yield* Sessions;
+
 	const sessionId = prepared.sessionId;
-	yield* commit
-		.commit(bindSmoothingSession, {
+	yield* boardsService
+		.bindSmoothingSession({
 			attemptId,
 			agentId: prepared.agentId,
 			sessionId,
@@ -41,23 +42,27 @@ export const runSmoothingSession = Effect.fn("Smoothing.session")(function* <R>(
 		})
 		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 	const finished = Stream.runHead(
-		live.live(smoothingSessionFor, { sessionId }).pipe(Stream.filter((held) => held !== null && held.status !== "waiting")),
+		stream(keysOf(smoothingSessionFor.reads, smoothingSessionFor.scope?.({ sessionId })))(
+			boardsService.smoothingSessionFor({ sessionId }).pipe(Effect.orDie),
+		).pipe(Stream.filter((held) => held !== null && held.status !== "waiting")),
 	).pipe(Effect.as("answered" as const));
 	const ended = Stream.runHead(
-		live
-			.live(reading, { id: SessionId.make(sessionId) })
-			.pipe(Stream.filter((held) => held !== null && (held.status === "closed" || held.executionStatus === "idle"))),
+		stream(keysOf(reading.reads, reading.scope?.({ id: SessionId.make(sessionId) })))(
+			sessionsService.reading({ id: SessionId.make(sessionId) }).pipe(Effect.orDie),
+		).pipe(Stream.filter((held) => held !== null && (held.status === "closed" || held.executionStatus === "idle"))),
 	).pipe(Effect.as("silent" as const));
 	const work = Effect.gen(function* () {
+		const boardsService = yield* Boards;
+
 		yield* prepared.start;
 		const result = yield* Effect.raceAllFirst([finished, ended]).pipe(
 			Effect.timeoutOrElse({ duration: PATIENCE_MILLIS, orElse: () => Effect.succeed("timedOut" as const) }),
 		);
-		const stored = yield* live.read(smoothingSessionFor, { sessionId });
+		const stored = yield* boardsService.smoothingSessionFor({ sessionId }).pipe(Effect.orDie);
 		if (stored !== null && stored.status !== "waiting") return stored.status;
 		const status = result === "timedOut" ? "timedOut" : "silent";
-		yield* commit
-			.commit(finishSmoothingSession, { sessionId, status, requestId: Request.make(`${sessionId}:summary-${status}`) })
+		yield* boardsService
+			.finishSmoothingSession({ sessionId, status, requestId: Request.make(`${sessionId}:summary-${status}`) })
 			.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 		return status;
 	});

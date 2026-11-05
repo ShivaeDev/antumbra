@@ -1,11 +1,8 @@
-import { answer } from "@antumbra/domain-rulings/commands/answer.ts";
-import { passUp } from "@antumbra/domain-rulings/commands/pass-up.ts";
-import { reclassify } from "@antumbra/domain-rulings/commands/reclassify.ts";
 import { RulingId } from "@antumbra/domain-rulings/ids.ts";
 import { answered } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Rulings } from "@antumbra/server-rulings/service.ts";
 import { Effect } from "effect";
 import { authorityFor, readRuling, replayed } from "#tools/rulings/runtime.ts";
 import { passUpSpec, reclassifyRulingSpec, ruleOnSpec } from "#tools/rulings/verdicts.ts";
@@ -15,7 +12,8 @@ const verdict = bind(ruleOnSpec, (context, input) =>
 		context,
 		ruleOnSpec.name,
 		Effect.gen(function* () {
-			const commit = yield* Commit;
+			const rulingsService = yield* Rulings;
+
 			const rulingId = RulingId.make(input.rulingId);
 			const ruling = yield* readRuling(rulingId);
 			const authority = yield* authorityFor(context);
@@ -23,7 +21,7 @@ const verdict = bind(ruleOnSpec, (context, input) =>
 			if (input.choice !== undefined && choice === undefined)
 				return yield* Effect.fail(`ruling ${ruling.id} never offered the choice "${input.choice}"`);
 			yield* replayed(
-				commit.commit(answer, {
+				rulingsService.answer({
 					requestId: requestId(context),
 					rulingId,
 					answer: input.answer,
@@ -42,10 +40,11 @@ const pass = bind(passUpSpec, (context, input) =>
 		context,
 		passUpSpec.name,
 		Effect.gen(function* () {
-			const commit = yield* Commit;
+			const rulingsService = yield* Rulings;
+
 			const authority = yield* authorityFor(context);
 			yield* replayed(
-				commit.commit(passUp, {
+				rulingsService.passUp({
 					requestId: requestId(context),
 					rulingId: RulingId.make(input.rulingId),
 					note: input.note,
@@ -63,11 +62,12 @@ const move = bind(reclassifyRulingSpec, (context, input) =>
 		context,
 		reclassifyRulingSpec.name,
 		Effect.gen(function* () {
-			const commit = yield* Commit;
+			const rulingsService = yield* Rulings;
+
 			const authority = yield* authorityFor(context);
 			const rulingId = RulingId.make(input.rulingId);
 			yield* replayed(
-				commit.commit(reclassify, {
+				rulingsService.reclassify({
 					requestId: requestId(context),
 					rulingId,
 					by: authority.by,

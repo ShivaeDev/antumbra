@@ -1,6 +1,7 @@
-import { admitted as query } from "@antumbra/domain-agents/queries/admitted.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { admitted as query } from "@antumbra/domain-agents/queries/admitted.ts";
+import { admitted as queryDecision } from "@antumbra/server-agents/logic/queries/admitted.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const admitted = Effect.fn("Agents.admitted")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const admitted = Effect.fn("Agents.admitted")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

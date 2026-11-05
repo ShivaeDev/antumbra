@@ -29,6 +29,7 @@ it.app("a routine mail timer submits the wake when its quiet interval ends", fun
 	yield* runner.rest(2);
 	yield* app.api.settings.setCount({ key: "routineMailMinutes", count: 1 });
 	yield* app.api.mail.send({ ...sending("shoal"), precedence: "routine" });
+	yield* app.clock.waitingForDue("mailing", 60_000);
 	yield* app.clock.advance(55_000);
 	expect(yield* answered(app.api.sessions.operations({ sessionId: ROOT }), "the session's operations to be read")).toEqual([]);
 	yield* app.clock.advance(5_000);

@@ -11,12 +11,6 @@ import { berthReclaimed } from "#facts/berth-reclaimed.ts";
 import { mooragePlanned } from "#facts/moorage-planned.ts";
 import { moorageReady } from "#facts/moorage-ready.ts";
 import { resourcesClaimed } from "#facts/resources-claimed.ts";
-import { berthHeldMaterializer } from "#materializers/berth-held.ts";
-import { berthReclaimFailedMaterializer } from "#materializers/berth-reclaim-failed.ts";
-import { berthReclaimedMaterializer } from "#materializers/berth-reclaimed.ts";
-import { mooragePlannedMaterializer } from "#materializers/moorage-planned.ts";
-import { moorageReadyMaterializer } from "#materializers/moorage-ready.ts";
-import { resourcesClaimedMaterializer } from "#materializers/resources-claimed.ts";
 import { berths } from "#queries/berths.ts";
 import { candidates } from "#queries/candidates.ts";
 import { claims } from "#queries/claims.ts";
@@ -31,13 +25,5 @@ export const reclamation = feature("reclamation", {
 	rows: [moorage, berth, heldResource, resourceOwner],
 	facts: [mooragePlanned, moorageReady, resourcesClaimed, berthReclaimed, berthHeld, berthReclaimFailed],
 	commands: [plan, ready, claim, reclaimed, held, failed],
-	materializers: [
-		mooragePlannedMaterializer,
-		moorageReadyMaterializer,
-		resourcesClaimedMaterializer,
-		berthReclaimedMaterializer,
-		berthHeldMaterializer,
-		berthReclaimFailedMaterializer,
-	],
 	queries: [berths, current, candidates, claims, retryable],
 });

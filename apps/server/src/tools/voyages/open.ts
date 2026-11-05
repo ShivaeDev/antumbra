@@ -1,12 +1,10 @@
-import { resolve } from "@antumbra/domain-role-settings/queries/resolve.ts";
-import { open } from "@antumbra/domain-voyages/commands/open.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import { answered, refused } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind } from "@antumbra/platform-tool-schemas/define.ts";
 import { AGENT_BACKEND_TAGS, AgentBackendTagSchema } from "@antumbra/platform-vocabulary/agent-backend.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { RoleSettings } from "@antumbra/server-role-settings/service.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Effect, Schema } from "effect";
 import { resolvedPart } from "#tools/voyages/role.ts";
 import { openVoyageSpec } from "#tools/voyages/specs.ts";
@@ -28,11 +26,12 @@ export const openVoyage = bind(openVoyageSpec, (context, input) => {
 		context,
 		openVoyageSpec.name,
 		Effect.gen(function* () {
-			const commit = yield* Commit;
-			const live = yield* Live;
+			const voyagesService = yield* Voyages;
+			const roleSettingsService = yield* RoleSettings;
+
 			const request = requestId(context);
-			yield* commit
-				.commit(open, {
+			yield* voyagesService
+				.open({
 					name: input.name,
 					northStar: input.northStar,
 					context: input.context,
@@ -49,8 +48,8 @@ export const openVoyage = bind(openVoyageSpec, (context, input) => {
 			const voyageId = VoyageId.make(request);
 			return {
 				id: voyageId,
-				captain: yield* live.read(resolve, { voyageId, role: "captain" }),
-				crew: yield* live.read(resolve, { voyageId, role: "crew" }),
+				captain: yield* roleSettingsService.resolve({ voyageId, role: "captain" }).pipe(Effect.orDie),
+				crew: yield* roleSettingsService.resolve({ voyageId, role: "crew" }).pipe(Effect.orDie),
 			};
 		}),
 		(voyage) => [`opened voyage ${voyage.id}`, resolvedPart("captain", voyage.captain), resolvedPart("crew", voyage.crew)].join(" · "),

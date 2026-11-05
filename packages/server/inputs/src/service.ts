@@ -1,8 +1,9 @@
-import { InputDelivery } from "@antumbra/domain-inputs/commands/delivery-port.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
-import { InputsHistory } from "@antumbra/server-journal/postgres/inputs/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { InputsHistory } from "@antumbra/server-storage/inputs/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { FileSystem } from "effect";
+import { admit } from "#admit.ts";
 import { delivery } from "#commands/delivery.ts";
 import { record } from "#commands/record.ts";
 import { retry } from "#commands/retry.ts";
@@ -13,13 +14,12 @@ import { pending } from "#queries/pending.ts";
 import { reading } from "#queries/reading.ts";
 import { support } from "#queries/support.ts";
 import { InputStorage } from "#storage.ts";
-import { submit } from "#submit.ts";
 export const Inputs = defineService({
 	id: "@antumbra/server-inputs/Inputs",
-	requires: [ExecutionHistory, InputsHistory, InputDelivery, InputStorage, FileSystem.FileSystem],
+	requires: [Records, ExecutionHistory, InputsHistory, InputStorage, FileSystem.FileSystem],
 	initialize: initialize,
 	methods: (serial) => ({
-		submit: submit(serial),
+		admit,
 		image,
 		record: record(serial),
 		delivery: delivery(serial),

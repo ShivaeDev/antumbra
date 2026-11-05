@@ -1,5 +1,7 @@
+import { Berths, Candidates, Claims, Current, ReclamationContract, Retryable } from "@antumbra/server-reclamation/contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { ReclamationContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import { unexpectedClaim, unexpectedFailed, unexpectedHeld, unexpectedPlan, unexpectedReady, unexpectedReclaimed } from "#failures.ts";
 import { Reclamation } from "#service.ts";
 export const handlers = ReclamationContract.application.toLayer(
@@ -12,11 +14,11 @@ export const handlers = ReclamationContract.application.toLayer(
 			"reclamation.reclaimed": (input) => service.reclaimed(input).pipe(Effect.catchIf(unexpectedReclaimed, Effect.die)),
 			"reclamation.held": (input) => service.held(input).pipe(Effect.catchIf(unexpectedHeld, Effect.die)),
 			"reclamation.failed": (input) => service.failed(input).pipe(Effect.catchIf(unexpectedFailed, Effect.die)),
-			"reclamation.berths": (input) => service.berths(input).pipe(Effect.orDie),
-			"reclamation.current": (input) => service.current(input).pipe(Effect.orDie),
-			"reclamation.candidates": (input) => service.candidates(input).pipe(Effect.orDie),
-			"reclamation.claims": (input) => service.claims(input).pipe(Effect.orDie),
-			"reclamation.retryable": (input) => service.retryable(input).pipe(Effect.orDie),
+			"reclamation.berths": (input) => stream(readKeys(Berths.reads(input)))(service.berths(input).pipe(Effect.orDie)),
+			"reclamation.current": (input) => stream(readKeys(Current.reads(input)))(service.current(input).pipe(Effect.orDie)),
+			"reclamation.candidates": (input) => stream(readKeys(Candidates.reads(input)))(service.candidates(input).pipe(Effect.orDie)),
+			"reclamation.claims": (input) => stream(readKeys(Claims.reads(input)))(service.claims(input).pipe(Effect.orDie)),
+			"reclamation.retryable": (input) => stream(readKeys(Retryable.reads(input)))(service.retryable(input).pipe(Effect.orDie)),
 		});
 	}),
 );

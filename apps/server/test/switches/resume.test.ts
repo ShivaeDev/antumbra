@@ -7,12 +7,15 @@ const CREW = Request.make("crew");
 const resuming = `Resume assigned piece ${PIECE}`;
 
 it.app("an idle agent is not told to continue its piece while the resume switch is off, and is told when it goes back on", function* (app) {
+	yield* app.api.settings.setFlag({ key: "holdEverything", on: true });
 	const { atWork } = yield* crewed(app);
 	yield* opened(app);
 	yield* chartered(app);
-	yield* app.api.agents.request({ requestId: CREW, voyageId: VOYAGE, pieceId: PIECE, role: "crew" });
 	yield* app.api.pieces.launch({ id: PIECE });
+	yield* app.api.agents.request({ requestId: CREW, voyageId: VOYAGE, pieceId: PIECE, role: "crew" });
+
 	yield* app.api.settings.setFlag({ key: "resumePieces", on: false });
+	yield* app.api.settings.setFlag({ key: "holdEverything", on: false });
 	const { sessionId } = yield* atWork(CREW, 0);
 	const held = yield* eventually(app.api.agents.dispatch({}), (reading) => reading.ready.length === 1, "one ready piece in the dispatch");
 	expect(held.ready).toMatchObject([{ held: true, piece: { id: PIECE } }]);

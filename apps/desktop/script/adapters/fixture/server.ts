@@ -5,6 +5,7 @@ import { createInterface } from "node:readline";
 import { Result, Schema } from "effect";
 import { watch } from "rolldown";
 import { fixtureBundle } from "#script/adapters/fixture/build.ts";
+import { fixtureEnvironment } from "#script/adapters/fixture/environment.ts";
 
 const Ready = Schema.fromJsonString(Schema.Struct({ port: Schema.Int }));
 
@@ -34,7 +35,7 @@ export const watchFixtureServer = async (directory: string, token: string) => {
 			process.execPath,
 			[output, "--data", join(directory, "server"), "--files", directory, "--logs", directory, "--port", String(port)],
 			{
-				env: { ANTUMBRA_TOKEN: token },
+				env: fixtureEnvironment(token),
 				stdio: ["ignore", "pipe", "inherit"],
 			},
 		);

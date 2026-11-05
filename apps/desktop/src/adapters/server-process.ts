@@ -1,5 +1,5 @@
 import type { Serving } from "@antumbra/platform-shell/bridge.ts";
-import { Context, Effect, Layer, Option, type PlatformError, Schedule, Schema, ScopedRef, Stream } from "effect";
+import { Console, Context, Data, Effect, Fiber, Layer, Option, Schedule, Schema, ScopedRef, Stream } from "effect";
 import { ChildProcess, type ChildProcessSpawner } from "effect/process";
 import { ShellState } from "#adapters/shell-state.ts";
 
@@ -15,19 +15,13 @@ interface Running {
 	readonly port: number;
 }
 
+export class ServerStartupFailed extends Data.TaggedError("ServerStartupFailed")<{ readonly message: string; readonly exitCode: number }> {}
+
 const Readiness = Schema.fromJsonString(Schema.Struct({ port: Schema.Int }));
 
 const restarts = Schedule.min([Schedule.exponential("500 millis"), Schedule.spaced("5 seconds")]);
 
 const ending: ChildProcess.KillOptions = { forceKillAfter: "5 seconds", killSignal: "SIGTERM" };
-
-const readiness = (output: Stream.Stream<Uint8Array, PlatformError.PlatformError>) =>
-	output.pipe(
-		Stream.decodeText(),
-		Stream.splitLines,
-		Stream.runHead,
-		Effect.flatMap((line) => Schema.decodeUnknownEffect(Readiness)(Option.getOrUndefined(line))),
-	);
 
 const started = (bundle: string, directory: string, files: string, token: string, port: number) =>
 	Effect.gen(function* () {
@@ -35,10 +29,25 @@ const started = (bundle: string, directory: string, files: string, token: string
 			...ending,
 			env: { ANTUMBRA_TOKEN: token, ELECTRON_RUN_AS_NODE: "1" },
 			extendEnv: true,
-			stderr: "inherit",
+			stderr: "pipe",
 			stdout: "pipe",
 		});
-		const { port: listeningPort } = yield* readiness(child.stdout);
+		const diagnostics = yield* child.stderr.pipe(
+			Stream.decodeText,
+			Stream.tap((chunk) => Console.error(chunk)),
+			Stream.runFold(
+				() => "",
+				(held, chunk) => (held + chunk).slice(-16384),
+			),
+			Effect.forkScoped,
+		);
+		const line = yield* child.stdout.pipe(Stream.decodeText, Stream.splitLines, Stream.runHead);
+		if (Option.isNone(line))
+			return yield* new ServerStartupFailed({
+				exitCode: Number(yield* child.exitCode),
+				message: (yield* Fiber.join(diagnostics)).trim() || "The Antumbra server exited before announcing its port.",
+			});
+		const { port: listeningPort } = yield* Schema.decodeUnknownEffect(Readiness)(line.value);
 		yield* Effect.logInfo(`server: listening on port ${listeningPort}`);
 		return { child, port: listeningPort };
 	});

@@ -1,6 +1,7 @@
 import { answered, eventually, it } from "@antumbra/app-testing/entry.ts";
+import { change as changeRecordSchema } from "@antumbra/domain-changes/rows/change.ts";
 import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import { expect } from "vitest";
 import { adoption, chartering, opening, recorded, registration, request, seen } from "#test/kit.ts";
 
@@ -53,11 +54,14 @@ it.app("archives a landed change once seven days have passed and leaves a younge
 	);
 	expect(archived.rows).toMatchObject([{ id: older }]);
 
-	const archivedAt = (yield* app.rows.change.get(older)).archivedAt;
+	const archivedAt = (yield* app.rows.change.findById(older).pipe(Effect.flatMap(Schema.decodeUnknownEffect(changeRecordSchema.Row)), Effect.orDie))
+		.archivedAt;
 	expect(archivedAt).not.toBeNull();
 	yield* app.clock.advance(REMAINING_MILLIS);
 	expect(yield* Effect.flip(app.commit.changes.archive({ changeId: older, requestId: request(`archive:${older}`) }))).toMatchObject({
 		_tag: "AlreadyDone",
 	});
-	expect((yield* app.rows.change.get(older)).archivedAt).toBe(archivedAt);
+	expect(
+		(yield* app.rows.change.findById(older).pipe(Effect.flatMap(Schema.decodeUnknownEffect(changeRecordSchema.Row)), Effect.orDie)).archivedAt,
+	).toBe(archivedAt);
 });

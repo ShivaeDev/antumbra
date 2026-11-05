@@ -4,8 +4,8 @@ import { providers as sourceProviders } from "@antumbra/domain-capacity/queries/
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Observe = command("observe", {
 	payload: sourceObserve.Input,
 	success: Schema.Number,
@@ -18,10 +18,9 @@ export const Release = command("release", {
 	rejections: { ...sourceRelease.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const Providers = query("providers", {
+export const Providers = stream("providers", {
 	payload: sourceProviders.input,
 	success: sourceProviders.output,
 	reads: () => [collection("capacity", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const CapacityContract = contract("capacity", { commands: [Observe, Release], queries: [Providers] });
+export const CapacityContract = contract("capacity", { commands: [Observe, Release], streams: [Providers] });

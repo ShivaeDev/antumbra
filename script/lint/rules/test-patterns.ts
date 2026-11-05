@@ -11,10 +11,10 @@ const ENTRIES = ["@antumbra/app-testing/entry.ts", "@antumbra/app-testing/glass/
 const COMPOSITION = [
 	"@antumbra/app-testing/app.ts",
 	"@antumbra/server/application.ts",
-	"@antumbra/server-journal/app.ts",
-	"@antumbra/server-journal/journal.ts",
-	"@antumbra/server-journal/testing/kit.ts",
-	"@antumbra/server-journal/testing/api.ts",
+	"@antumbra/server/services.ts",
+	"@antumbra/server-storage/records.ts",
+	"@antumbra/app-testing/postgres-engine.ts",
+	"@antumbra/app-testing/api.ts",
 	"react-dom/client",
 ];
 const FIXTURE = "Use the fixed it.app or it.glass entry from @antumbra/app-testing; shared fixtures own application setup and mounting.";

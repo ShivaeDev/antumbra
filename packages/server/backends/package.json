@@ -25,11 +25,11 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-backends": "workspace:*",
-		"@antumbra/server-journal": "workspace:*",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/contract": "catalog:",
 		"@shivaedev/changes": "catalog:",
 		"effect": "catalog:",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/server-storage": "workspace:*"
 	}
 }

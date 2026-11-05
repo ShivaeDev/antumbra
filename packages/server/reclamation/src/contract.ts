@@ -12,8 +12,8 @@ import { retryable as sourceRetryable } from "@antumbra/domain-reclamation/queri
 import { AlreadyDone } from "@antumbra/platform-feature/rejection.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 export const Plan = command("plan", {
 	payload: sourcePlan.Input,
 	success: Schema.Number,
@@ -50,19 +50,17 @@ export const Failed = command("failed", {
 	rejections: { ...sourceFailed.Rejection, AlreadyDone },
 	invalidates: () => [],
 });
-export const Berths = query("berths", {
+export const Berths = stream("berths", {
 	payload: sourceBerths.input,
 	success: sourceBerths.output,
 	reads: () => [collection("berth", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Current = query("current", {
+export const Current = stream("current", {
 	payload: sourceCurrent.input,
 	success: sourceCurrent.output,
 	reads: () => [collection("moorage", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Candidates = query("candidates", {
+export const Candidates = stream("candidates", {
 	payload: sourceCandidates.input,
 	success: sourceCandidates.output,
 	reads: () => [
@@ -71,21 +69,18 @@ export const Candidates = query("candidates", {
 		collection("berth", Schema.String).list,
 		collection("heldResource", Schema.String).list,
 	],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Claims = query("claims", {
+export const Claims = stream("claims", {
 	payload: sourceClaims.input,
 	success: sourceClaims.output,
 	reads: () => [collection("berth", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const Retryable = query("retryable", {
+export const Retryable = stream("retryable", {
 	payload: sourceRetryable.input,
 	success: sourceRetryable.output,
 	reads: () => [collection("berth", Schema.String).list],
-	readPolicy: () => Effect.succeed(true),
 });
 export const ReclamationContract = contract("reclamation", {
 	commands: [Plan, Ready, Claim, Reclaimed, Held, Failed],
-	queries: [Berths, Current, Candidates, Claims, Retryable],
+	streams: [Berths, Current, Candidates, Claims, Retryable],
 });

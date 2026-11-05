@@ -7,18 +7,18 @@ import { voyage } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { voyageProgress } from "@antumbra/domain-voyages/rows/voyage-progress.ts";
 import { collection } from "@shivaedev/changes/keys.ts";
 import { contract } from "@shivaedev/contract/contract.ts";
-import { command, query } from "@shivaedev/contract/operation.ts";
-import { Effect, Schema } from "effect";
+import { command, stream } from "@shivaedev/contract/operation.ts";
+import { Schema } from "effect";
 
 const rows = collection("voyage", VoyageId);
-const roleRows = collection("roleSetting", Schema.String);
+const roleRows = collection("roleSetting", Schema.String, { scope: Schema.String });
 const progressRows = collection("voyageProgress", VoyageId);
 
 export const Open = command("open", {
 	payload: open.Input,
 	success: Schema.Number,
 	rejections: open.Rejection,
-	invalidates: (input) => [rows.list, roleRows.item(input.requestId), progressRows.list],
+	invalidates: (input) => [rows.list, roleRows.bucket.scope(input.requestId), progressRows.list],
 });
 export const SetFocus = command("setFocus", {
 	payload: setFocus.Input,
@@ -33,18 +33,16 @@ export const Resume = command("resume", {
 	rejections: resume.Rejection,
 	invalidates: () => [rows.list],
 });
-export const ById = query("byId", {
+export const ById = stream("byId", {
 	payload: { id: VoyageId },
 	success: Schema.NullOr(voyage.Row),
 	reads: () => [rows.list],
-	readPolicy: () => Effect.succeed(true),
 });
-export const List = query("list", { success: Schema.Array(voyage.Row), reads: () => [rows.list], readPolicy: () => Effect.succeed(true) });
-export const Progress = query("progress", {
+export const List = stream("list", { payload: {}, success: Schema.Array(voyage.Row), reads: () => [rows.list] });
+export const Progress = stream("progress", {
 	payload: { id: VoyageId },
 	success: Schema.NullOr(voyageProgress.Row),
 	reads: () => [progressRows.list],
-	readPolicy: () => Effect.succeed(true),
 });
 
-export const VoyagesContract = contract("voyages", { commands: [Open, SetFocus, Quiet, Resume], queries: [ById, List, Progress] });
+export const VoyagesContract = contract("voyages", { commands: [Open, SetFocus, Quiet, Resume], streams: [ById, List, Progress] });

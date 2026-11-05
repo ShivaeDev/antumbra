@@ -13,17 +13,10 @@ import { write } from "#commands/write.ts";
 import { noteWritten } from "#facts/note-written.ts";
 import { pieceSummaryWritten } from "#facts/piece-summary-written.ts";
 import { smoothingFinished } from "#facts/smoothing-finished.ts";
-import { askedByAntumbra, smoothingRequested } from "#facts/smoothing-requested.ts";
+import { smoothingRequested } from "#facts/smoothing-requested.ts";
 import { smoothingSessionBound } from "#facts/smoothing-session-bound.ts";
 import { smoothingSessionFinished } from "#facts/smoothing-session-finished.ts";
 import { summaryWritten } from "#facts/summary-written.ts";
-import { noteWrittenMaterializer } from "#materializers/note-written.ts";
-import { pieceSummaryWrittenMaterializer } from "#materializers/piece-summary-written.ts";
-import { smoothingFinishedMaterializer } from "#materializers/smoothing-finished.ts";
-import { smoothingRequestedMaterializer } from "#materializers/smoothing-requested.ts";
-import { smoothingSessionBoundMaterializer } from "#materializers/smoothing-session-bound.ts";
-import { smoothingSessionFinishedMaterializer } from "#materializers/smoothing-session-finished.ts";
-import { summaryWrittenMaterializer } from "#materializers/summary-written.ts";
 import { digest } from "#queries/digest.ts";
 import { display } from "#queries/display.ts";
 import { dueSmoothing } from "#queries/due-smoothing.ts";
@@ -40,15 +33,5 @@ export const boards = feature("boards", {
 	rows: [boardEntry, piece, voyage, smoothingAttempt, pieceProgress, smoothingSession, flag],
 	facts: [noteWritten, summaryWritten, pieceSummaryWritten, smoothingRequested, smoothingFinished, smoothingSessionBound, smoothingSessionFinished],
 	commands: [write, summarize, summarizePiece, requestSmoothing, finishSmoothing, bindSmoothingSession, finishSmoothingSession],
-	materializers: [
-		noteWrittenMaterializer,
-		summaryWrittenMaterializer,
-		pieceSummaryWrittenMaterializer,
-		smoothingRequestedMaterializer,
-		smoothingFinishedMaterializer,
-		smoothingSessionBoundMaterializer,
-		smoothingSessionFinishedMaterializer,
-	],
-	migrations: [askedByAntumbra],
 	queries: [display, entries, digest, under, dueSmoothing, smoothingTargets, pendingSmoothing, smoothingSessionFor, smoothingState],
 });

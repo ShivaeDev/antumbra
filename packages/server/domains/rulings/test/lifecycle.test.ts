@@ -83,9 +83,9 @@ it.app("keeps explicit piece gates when parked and releases them only when ruled
 	yield* app.api.pieces.charter(chartering);
 	yield* app.api.rulings.request({ ...asked("gate"), gates: [PieceId.make("piece")] });
 	yield* app.api.rulings.park({ requestId: Id.Request.make("park"), rulingId: RulingId.make("gate"), note: "Wait for the tide" });
-	expect(yield* app.rows.pieceRulingGate.count({ pieceId: PieceId.make("piece") })).toBe(1);
+	expect(yield* app.rows.pieceRulingGate.count({ where: { pieceId: PieceId.make("piece") } }).pipe(Effect.orDie)).toBe(1);
 	yield* app.api.rulings.answer(ruled("gate"));
-	expect(yield* app.rows.pieceRulingGate.count({ pieceId: PieceId.make("piece") })).toBe(0);
+	expect(yield* app.rows.pieceRulingGate.count({ where: { pieceId: PieceId.make("piece") } }).pipe(Effect.orDie)).toBe(0);
 	const record = Option.getOrThrow(yield* answered(app.api.rulings.byId({ id: RulingId.make("gate") }), "the ruling to be read"));
 	expect(record.parked?.note).toBe("Wait for the tide");
 });

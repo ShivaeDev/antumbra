@@ -1,9 +1,8 @@
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { Effect, Schema } from "effect";
-import type { FactPayload, FactShape } from "#fact.ts";
+import type { FactShape } from "#fact.ts";
 import type { Fields, Values } from "#fields.ts";
-import type { ReadHandles } from "#handles.ts";
-import { type Reject, type RejectedBy, type RejectionSpecs, type Rejections, rejectionPair } from "#rejection.ts";
+import { type Reject, type RejectionSpecs, type Rejections, rejectionPair } from "#rejection.ts";
 import type { RowShape } from "#row.ts";
 
 const requested = { requestId: Request };
@@ -21,14 +20,7 @@ export interface CommandShape {
 	readonly rejections: RejectionSpecs;
 	readonly Rejection: object;
 	readonly reject: object;
-	readonly run: (input: never, rows: never, reject: never) => Effect.Effect<unknown, unknown>;
 }
-
-export type CommandBody<Input extends Fields, Reads extends readonly RowShape[], Emits extends FactShape, Specs extends RejectionSpecs> = (
-	input: CommandInput<Input>,
-	rows: ReadHandles<Reads>,
-	reject: Reject<Specs>,
-) => Effect.Effect<FactPayload<Emits>, RejectedBy<Specs>>;
 
 export interface CommandDefinition<
 	Name extends string,
@@ -45,7 +37,6 @@ export interface CommandDefinition<
 	readonly rejections: Specs;
 	readonly Rejection: Rejections<Specs>;
 	readonly reject: Reject<Specs>;
-	readonly run: CommandBody<Input, Reads, Emits, Specs>;
 }
 
 interface Declaration<Input extends Fields, Reads extends readonly RowShape[], Emits extends FactShape, Specs extends RejectionSpecs> {
@@ -53,7 +44,6 @@ interface Declaration<Input extends Fields, Reads extends readonly RowShape[], E
 	readonly reads: Reads;
 	readonly emits: Emits;
 	readonly rejections: Specs;
-	readonly run: CommandBody<Input, Reads, Emits, Specs>;
 }
 
 export function command<
@@ -78,6 +68,5 @@ export function command(name: string, declaration: Declaration<Fields, readonly 
 		reject: pair.reject,
 		Rejection: pair.rejections,
 		rejections: declaration.rejections,
-		run: declaration.run,
 	};
 }

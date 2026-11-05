@@ -2,8 +2,12 @@ import { it } from "@antumbra/app-testing/entry.ts";
 import { connectRunner } from "@antumbra/app-testing/runner.ts";
 import { observed } from "@antumbra/domain-sessions/facts/observed.ts";
 import { SessionId } from "@antumbra/domain-sessions/ids.ts";
+import { session as sessionRecordSchema } from "@antumbra/domain-sessions/rows/session.ts";
 import type { LogEntry, LogEvent } from "@antumbra/platform-runner/log.ts";
-import { Database } from "@antumbra/server-journal/database.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { selection as sessionSelection } from "@antumbra/server-storage/records/session.ts";
+import { selection as sessionEventSelection } from "@antumbra/server-storage/records/session-event.ts";
+import { selection as sessionGapSelection } from "@antumbra/server-storage/records/session-gap.ts";
 import { Effect, Schema } from "effect";
 import { expect } from "vitest";
 
@@ -77,10 +81,12 @@ const walking =
 		runner.append(events.map((event) => ({ logId: registration.logId, at: 100, cursor: cursor.next++, event })));
 
 const observations = Effect.gen(function* () {
-	const database = yield* Database;
-	const rows = yield* Effect.orDie(database.read`SELECT "payload" FROM "journal" WHERE "name" = ${observed.name} ORDER BY "seq"`);
-	const decode = Schema.decodeUnknownEffect(observed.Payload);
-	return yield* Effect.orDie(Effect.forEach(rows, (row) => decode(JSON.parse(String(row.payload)))));
+	const history = yield* ExecutionHistory;
+	const entries = yield* history.read();
+	return yield* Effect.forEach(
+		entries.filter((entry) => entry.value._tag === observed.name),
+		(entry) => Schema.decodeUnknownEffect(observed.Payload)(entry.value),
+	).pipe(Effect.orDie);
 });
 
 const reports = (node: string) =>
@@ -97,8 +103,17 @@ it.app("the walk reports a node once while nothing about it changes", function* 
 	const walk = walking(yield* connectRunner(registration), { next: 0 });
 	yield* walk([started, said("alpha", "sounding the channel"), said("alpha", "the channel is clear"), said("alpha", "logging the depth")]);
 	expect(yield* reports("alpha")).toEqual(["node-seen"]);
-	const alpha = yield* walked(yield* app.rows.session.where({ rootSessionId: sessionId }), "alpha");
-	expect(yield* app.rows.sessionEvent.where({ sessionId: alpha })).toHaveLength(3);
+	const alpha = yield* walked(
+		yield* app.rows.session
+			.findMany({ where: { rootSessionId: sessionId }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionSelection })
+			.pipe(Effect.orDie),
+		"alpha",
+	);
+	expect(
+		yield* app.rows.sessionEvent
+			.findMany({ where: { sessionId: alpha }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionEventSelection })
+			.pipe(Effect.orDie),
+	).toHaveLength(3);
 });
 
 it.app("a node stays reported once across the readings that come between", function* () {
@@ -120,19 +135,39 @@ it.app("a reading that asserts something is written every time it is made", func
 	yield* walk([started, opened("alpha"), missing("alpha", finding)]);
 	yield* walk([working("alpha"), missing("alpha", finding)]);
 	expect(yield* reports("alpha")).toEqual(["gap", "activity", "gap"]);
-	const alpha = yield* walked(yield* app.rows.session.where({ rootSessionId: sessionId }), "alpha");
-	expect(yield* app.rows.sessionGap.where({ sessionId: alpha })).toHaveLength(2);
+	const alpha = yield* walked(
+		yield* app.rows.session
+			.findMany({ where: { rootSessionId: sessionId }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionSelection })
+			.pipe(Effect.orDie),
+		"alpha",
+	);
+	expect(
+		yield* app.rows.sessionGap
+			.findMany({ where: { sessionId: alpha }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionGapSelection })
+			.pipe(Effect.orDie),
+	).toHaveLength(2);
 });
 
 it.app("a census re-asserts what it saw even when it says what it said before", function* (app) {
 	const walk = walking(yield* connectRunner(registration), { next: 0 });
 	yield* walk([started, opened("alpha"), censused("alpha", false)]);
-	const alpha = yield* walked(yield* app.rows.session.where({ rootSessionId: sessionId }), "alpha");
-	expect(yield* app.rows.session.get(alpha)).toMatchObject({ executionStatus: "idle" });
+	const alpha = yield* walked(
+		yield* app.rows.session
+			.findMany({ where: { rootSessionId: sessionId }, orderBy: { field: "storage_order", direction: "asc" }, select: sessionSelection })
+			.pipe(Effect.orDie),
+		"alpha",
+	);
+	expect(
+		yield* app.rows.session.findById(alpha).pipe(Effect.flatMap(Schema.decodeUnknownEffect(sessionRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ executionStatus: "idle" });
 	yield* walk([working("alpha")]);
-	expect(yield* app.rows.session.get(alpha)).toMatchObject({ executionStatus: "active" });
+	expect(
+		yield* app.rows.session.findById(alpha).pipe(Effect.flatMap(Schema.decodeUnknownEffect(sessionRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ executionStatus: "active" });
 	yield* walk([censused("alpha", false)]);
-	expect(yield* app.rows.session.get(alpha)).toMatchObject({ executionStatus: "idle" });
+	expect(
+		yield* app.rows.session.findById(alpha).pipe(Effect.flatMap(Schema.decodeUnknownEffect(sessionRecordSchema.Row)), Effect.orDie),
+	).toMatchObject({ executionStatus: "idle" });
 	expect(yield* censuses).toBe(2);
 });
 

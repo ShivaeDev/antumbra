@@ -27,7 +27,6 @@ postgresInstance.it("starts on a Unix socket and applies Antumbra migrations", [
 		{ name: "lifecycle" },
 		{ name: "supervision" },
 		{ name: "execution" },
-		{ name: "execution_contexts" },
 	]);
 });
 

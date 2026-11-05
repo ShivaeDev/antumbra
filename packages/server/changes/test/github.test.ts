@@ -1,8 +1,10 @@
+import { answered } from "@antumbra/app-testing/answers.ts";
 import { pullRequest } from "@antumbra/app-testing/github-fixtures.ts";
 import { postgresApp } from "@antumbra/app-testing/postgres.ts";
 import { hasChartedReef, soundings } from "@antumbra/app-testing/postgres-fixtures.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
+import { selection as changeFeedbackSelection } from "@antumbra/server-storage/records/change-feedback.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 
@@ -43,7 +45,9 @@ postgresApp.it(
 				requestId: Request.make(`adopt:${observation.externalId}`),
 			});
 		yield* recordGitHub("full", full);
-		const feedback = yield* (yield* changesHistory.rows()).changeFeedback.where({});
+		const feedback = yield* (yield* changesHistory.rows()).changeFeedback
+			.findMany({ where: {}, orderBy: { field: "storage_order", direction: "asc" }, select: changeFeedbackSelection })
+			.pipe(Effect.orDie);
 		expect(feedback).toMatchObject([{ body: "Keep this feedback" }]);
 		yield* fixture.reply({
 			data: { r_0: { pr_0: pullRequest(23, "MERGED"), pr_1: pullRequest(24) } },
@@ -52,14 +56,18 @@ postgresApp.it(
 		const partial = yield* fixture.host.observe(refs);
 		expect(partial.map((observation) => observation.externalId)).toEqual(["23"]);
 		yield* recordGitHub("partial", partial);
-		const changes = yield* api["changes.all"]({});
+		const changes = yield* answered(api["changes.all"]({}), "changes.all");
 		expect(changes.map((row) => [row.externalId, row.stage])).toEqual([
 			["23", "landed"],
 			["24", "open"],
 		]);
-		expect(yield* (yield* changesHistory.rows()).changeFeedback.where({})).toEqual(feedback);
+		expect(
+			yield* (yield* changesHistory.rows()).changeFeedback
+				.findMany({ where: {}, orderBy: { field: "storage_order", direction: "asc" }, select: changeFeedbackSelection })
+				.pipe(Effect.orDie),
+		).toEqual(feedback);
 		yield* rebuild();
-		expect(yield* api["changes.all"]({})).toEqual(changes);
+		expect(yield* answered(api["changes.all"]({}), "changes.all")).toEqual(changes);
 		expect(fixture.http.requests.map((request) => request.path)).toEqual(["/graphql", "/graphql"]);
 	},
 );
@@ -82,12 +90,12 @@ postgresApp.it(
 			observedAt: "2026-11-04T12:00:00Z",
 			requestId: Request.make("adopt"),
 		});
-		const before = yield* api["changes.all"]({});
+		const before = yield* answered(api["changes.all"]({}), "changes.all");
 		yield* clearPublished();
 		yield* fixture.reply({ message: "Bad credentials" }, 401);
 		const pass = fixture.host.observe(refs).pipe(Effect.flatMap((values) => recordGitHub("rejected", values)));
 		expect(yield* Effect.flip(pass)).toMatchObject({ _tag: "ChangeHostUnavailable" });
-		expect(yield* api["changes.all"]({})).toEqual(before);
+		expect(yield* answered(api["changes.all"]({}), "changes.all")).toEqual(before);
 		expect(yield* published()).toEqual([]);
 	},
 );
@@ -111,7 +119,7 @@ postgresApp.it(
 			requestId: Request.make("adopt"),
 		});
 		yield* recordGitHub("enterprise", [observation]);
-		expect(yield* api["changes.quay"]({})).toMatchObject([
+		expect(yield* answered(api["changes.quay"]({}), "changes.quay")).toMatchObject([
 			{ externalId: "23", stage: "open", url: "https://git.corp.test/ShivaeDev/antumbra/pull/23" },
 		]);
 		expect(fixture.http.requests.map((request) => request.path)).toEqual(["/api/graphql"]);

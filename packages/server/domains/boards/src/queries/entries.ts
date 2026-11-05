@@ -1,7 +1,6 @@
 import { query } from "@antumbra/platform-feature/query.ts";
 import { BoardId } from "@antumbra/platform-vocabulary/board-ids.ts";
-import { Effect, Schema } from "effect";
-import { inOrder } from "#queries/covered.ts";
+import { Schema } from "effect";
 import { boardEntry } from "#rows/board-entry.ts";
 
 export const entries = query("entries", {
@@ -9,7 +8,4 @@ export const entries = query("entries", {
 	output: Schema.Array(boardEntry.Row),
 	reads: [boardEntry],
 	scope: (input) => input.board,
-	run: Effect.fn("boards.entries")(function* (input, rows) {
-		return inOrder(yield* rows.boardEntry.where({ board: input.board }));
-	}),
 });

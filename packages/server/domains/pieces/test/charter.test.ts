@@ -22,7 +22,7 @@ it.app("refuses a piece on a voyage the fleet does not hold and stores nothing",
 	const refused = yield* Effect.flip(app.api.pieces.charter({ ...chartering("adrift"), voyageId: VoyageId.make("voyage-nowhere") }));
 
 	expect(refused).toMatchObject({ _tag: "UnknownVoyage", voyageId: "voyage-nowhere" });
-	expect(yield* app.rows.piece.count({})).toBe(0);
+	expect(yield* app.rows.piece.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("refuses a piece waiting on work the fleet does not hold and stores nothing", function* (app) {
@@ -31,8 +31,8 @@ it.app("refuses a piece waiting on work the fleet does not hold and stores nothi
 	const refused = yield* Effect.flip(app.api.pieces.charter(chartering("adrift", [pieceOf("nowhere")])));
 
 	expect(refused).toMatchObject({ _tag: "UnknownDependency", pieceId: pieceOf("nowhere") });
-	expect(yield* app.rows.piece.count({})).toBe(0);
-	expect(yield* app.rows.pieceEdge.count({})).toBe(0);
+	expect(yield* app.rows.piece.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
+	expect(yield* app.rows.pieceEdge.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("refuses a piece with nothing said in the fields a piece needs", function* (app) {
@@ -41,7 +41,7 @@ it.app("refuses a piece with nothing said in the fields a piece needs", function
 	const refused = yield* Effect.flip(app.api.pieces.charter({ ...chartering("blank"), title: "   " }));
 
 	expect(refused).toMatchObject({ _tag: "Blank", field: "title", message: "A piece needs a title" });
-	expect(yield* app.rows.piece.count({})).toBe(0);
+	expect(yield* app.rows.piece.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 });
 
 it.app("charters one piece however often the request that named it arrives", function* (app) {
@@ -52,5 +52,5 @@ it.app("charters one piece however often the request that named it arrives", fun
 
 	expect(again).toBe(first);
 	expect(yield* answered(app.api.pieces.byId({ id: pieceOf("soundings") }), "the piece to be read")).toMatchObject({ title: "soundings" });
-	expect(yield* app.rows.piece.count({})).toBe(1);
+	expect(yield* app.rows.piece.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 });

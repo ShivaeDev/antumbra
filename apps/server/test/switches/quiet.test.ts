@@ -6,8 +6,7 @@ import { mailWords } from "@antumbra/platform-prompts/mail.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { voyageBoard } from "@antumbra/platform-vocabulary/board-ids.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import type { Live } from "@antumbra/server-journal/live.ts";
+import { rebuild } from "@antumbra/server-storage/rebuild.ts";
 import { Effect } from "effect";
 import { expect } from "vitest";
 import { type PrepareSmoother, smoothing } from "#smoothing/run.ts";
@@ -20,7 +19,7 @@ const BAR = VoyageId.make("bar");
 const BAR_PIECE = PieceId.make("bar-sounding");
 const BAR_CREW = Request.make("bar-crew");
 
-const prepare: PrepareSmoother<Commit | Live> = (attempt) => {
+const prepare: PrepareSmoother<Effect.Services<ReturnType<typeof writeSummaryTool.invoke>>> = (attempt) => {
 	const context = { agentId: `smoother-${attempt.id}`, sessionId: `session-${attempt.id}`, callId: `call-${attempt.id}` };
 	return Effect.succeed({
 		agentId: context.agentId,
@@ -170,13 +169,13 @@ it.app("a restart does not wake a quieted voyage's roots", function* (app) {
 	expect(yield* answered(app.api.sessions.operations({ sessionId }), "the quieted session's operations")).toEqual([]);
 });
 
-it.app("the hold survives a rebuild from the journal", function* (app) {
+it.app("the hold survives a rebuild from SQL events", function* (app) {
 	yield* opened(app);
 	yield* app.api.voyages.quiet({ id: VOYAGE });
-	yield* (yield* Commit).rebuild;
+	yield* rebuild();
 	expect(yield* answered(app.api.voyages.byId({ id: VOYAGE }), "the voyage to be read")).toMatchObject({ quietedAt: expect.any(String) });
 	yield* app.api.voyages.resume({ id: VOYAGE });
-	yield* (yield* Commit).rebuild;
+	yield* rebuild();
 	expect(yield* answered(app.api.voyages.byId({ id: VOYAGE }), "the voyage to be read")).toMatchObject({ quietedAt: null });
 });
 

@@ -5,8 +5,10 @@ import type { Ruling } from "@antumbra/domain-rulings/rows/ruling.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
 import type { ToolContext } from "@antumbra/platform-tool-schemas/context.ts";
 import { AgentId } from "@antumbra/platform-vocabulary/agents-ids.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Rulings } from "@antumbra/server-rulings/service.ts";
 import { Effect, Option, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 
 export const subjectFor = (context: ToolContext, tags: readonly string[] = []): Ruling["subjects"] => [
 	{ kind: "agent", id: context.agentId },
@@ -15,20 +17,37 @@ export const subjectFor = (context: ToolContext, tags: readonly string[] = []): 
 	...tags.map((tag) => ({ kind: "tag" as const, tag })),
 ];
 export const readRuling = Effect.fn("rulings.readRuling")(function* (id: RulingId) {
-	const live = yield* Live;
-	const found = Option.flatten(yield* Stream.runHead(live.live(byId, { id })));
+	const rulingsService = yield* Rulings;
+
+	const found = Option.flatten(
+		yield* Stream.runHead(stream(keysOf(byId.reads, byId.scope?.({ id })))(rulingsService.byId({ id }).pipe(Effect.orDie))),
+	);
 	if (Option.isNone(found)) return yield* Effect.fail({ _tag: "Unknown", rulingId: id });
 	return found.value;
 });
 export const authorityFor = Effect.fn("rulings.authorityFor")(function* (context: ToolContext) {
-	const live = yield* Live;
+	const rulingsService = yield* Rulings;
+
 	return Option.getOrThrow(
 		yield* Stream.runHead(
-			live.live(authority, {
-				agentId: AgentId.make(context.agentId),
-				voyageId: context.voyageId === undefined ? null : VoyageId.make(context.voyageId),
-				pieceId: context.pieceId ?? null,
-			}),
+			stream(
+				keysOf(
+					authority.reads,
+					authority.scope?.({
+						agentId: AgentId.make(context.agentId),
+						voyageId: context.voyageId === undefined ? null : VoyageId.make(context.voyageId),
+						pieceId: context.pieceId ?? null,
+					}),
+				),
+			)(
+				rulingsService
+					.authority({
+						agentId: AgentId.make(context.agentId),
+						voyageId: context.voyageId === undefined ? null : VoyageId.make(context.voyageId),
+						pieceId: context.pieceId ?? null,
+					})
+					.pipe(Effect.orDie),
+			),
 		),
 	);
 });

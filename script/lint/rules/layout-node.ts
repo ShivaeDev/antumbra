@@ -44,10 +44,7 @@ const REACHING = [
 	"process",
 ];
 
-const OWNERS: readonly { readonly root: string; readonly specifier: string }[] = [
-	{ root: "packages/platform/trace-sink", specifier: "node:sqlite" },
-	{ root: "packages/server/journal", specifier: "@effect/sql-sqlite-node" },
-];
+const OWNERS: readonly { readonly root: string; readonly specifier: string }[] = [{ root: "packages/platform/trace-sink", specifier: "node:sqlite" }];
 
 const names = (specifier: string, module: string): boolean => specifier === module || specifier.startsWith(`${module}/`);
 

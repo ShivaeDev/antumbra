@@ -70,14 +70,14 @@ The [Agent recovery guide](docs/design/agent-recovery.md) owns resource, Session
 - **Workflows reconcile; they are never checkpointed.** Every attempt starts from durable intent and domain truth, then idempotently compares it with
   current runtime and external reality. Reconcilers read rows and write nothing; a decision becomes a fact through a command before the next look, and
   the edge dedupes by the request id it was given.
-- **The journal is the product surface; views are glass.** The glass holds no truth and projects nothing: a screen is a live query over the server's
-  projections, re-pushed when a fact changes what it shows, and a transcript is streamed by sequence. Views may offer only existing commands; killing
-  one cannot affect an Agent or durable work. The glass remembers nothing, so the shell remembers where it was pointed: a window's role is minted when
-  it opens and never travels in its address, and the arrangement of windows is shell state the shell writes down, not something a view keeps or a
-  reload can invent.
+- **The durable domain record is the product surface; views are glass.** The glass holds no truth and projects nothing: a screen is a live query over
+  the server's projections, re-pushed when a fact changes what it shows, and a transcript is streamed by sequence. Views may offer only existing
+  commands; killing one cannot affect an Agent or durable work. The glass remembers nothing, so the shell remembers where it was pointed: a window's
+  role is minted when it opens and never travels in its address, and the arrangement of windows is shell state the shell writes down, not something a
+  view keeps or a reload can invent.
 - **One schema, one commit.** Every durable fact enters through the commit: the guard reads rows, the fact is appended, the rows are written, all
-  inside one SQLite transaction, and as it commits the reactivity keys are marked dirty; one command at a time. Nothing else writes a fact or a row.
-  Tables, wire contracts, forms, and columns are derived from the same Schema classes, never declared twice.
+  inside one PostgreSQL transaction, with changes keys published after commit; one command at a time. Nothing else writes a fact or a row. Tables,
+  wire contracts, forms, and columns are derived from the same Schema classes, never declared twice.
 - **One vocabulary serves many backends.** The domain owns neutral Session events and delivery acts; adapters preserve provider payloads and native
   ids without making them authoritative. A second backend must fit the same model before the interface can claim neutrality.
 - **Every backend has both delivery boundaries and one reading surface.** `steer` enters running work; `queue` waits for the next full provider

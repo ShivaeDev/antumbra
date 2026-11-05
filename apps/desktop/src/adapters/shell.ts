@@ -21,15 +21,15 @@ interface DataDirectoryInput {
 // Electron scopes its single-instance lock by userData path, so development and packaged runs use separate directories.
 export const selectDataDirectory = (input: DataDirectoryInput): string => {
 	if (input.isPackaged) {
-		return join(input.appData, "Antumbra");
+		return join(input.appData, "Antumbra-SQL");
 	}
 	if (input.devOverride === undefined || input.devOverride === "") {
-		return join(input.appData, "Antumbra-Dev");
+		return join(input.appData, "Antumbra-SQL-Dev");
 	}
 	if (!isAbsolute(input.devOverride)) {
 		throw new Error(`${DEV_USER_DATA_VARIABLE} must be an absolute path`);
 	}
-	return input.devOverride;
+	return join(input.devOverride, "Antumbra-SQL-Dev");
 };
 
 const devUserDataOverride = Config.String(DEV_USER_DATA_VARIABLE).pipe(Config.withDefault(""));

@@ -1,26 +1,29 @@
-import { byPiece as artifacts } from "@antumbra/domain-artifacts/queries/by-piece.ts";
-import { displayByVoyage } from "@antumbra/domain-pieces/queries/display-by-voyage.ts";
-import { edges } from "@antumbra/domain-pieces/queries/edges.ts";
-import { byPiece as reports } from "@antumbra/domain-reports/queries/by-piece.ts";
-import { byId as rulingById } from "@antumbra/domain-rulings/queries/by-id.ts";
-import { openGates } from "@antumbra/domain-rulings/queries/open-gates.ts";
 import type { VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Artifacts } from "@antumbra/server-artifacts/service.ts";
+import { Pieces } from "@antumbra/server-pieces/service.ts";
+import { Reports } from "@antumbra/server-reports/service.ts";
+import { Rulings } from "@antumbra/server-rulings/service.ts";
 import { Effect, Option } from "effect";
 
 export const pieceLines = Effect.fn("Agents.pieceLines")(function* (voyageId: VoyageId) {
-	const live = yield* Live;
-	const members = yield* live.read(displayByVoyage, { voyageId });
-	const dependencies = yield* live.read(edges, { voyageId });
-	const gates = yield* live.read(openGates, { pieceIds: members.map((piece) => piece.id) });
+	const piecesService = yield* Pieces;
+	const rulingsService = yield* Rulings;
+
+	const members = yield* piecesService.displayByVoyage({ voyageId }).pipe(Effect.orDie);
+	const dependencies = yield* piecesService.edges({ voyageId }).pipe(Effect.orDie);
+	const gates = yield* rulingsService.openGates({ pieceIds: members.map((piece) => piece.id) }).pipe(Effect.orDie);
 	return yield* Effect.forEach(
 		members,
 		Effect.fn("Agents.pieceLine")(function* (piece) {
-			const landedReports = yield* live.read(reports, { pieceId: piece.id });
-			const landedArtifacts = yield* live.read(artifacts, { pieceId: piece.id });
+			const reportsService = yield* Reports;
+			const artifactsService = yield* Artifacts;
+			const rulingsService = yield* Rulings;
+
+			const landedReports = yield* reportsService.byPiece({ pieceId: piece.id }).pipe(Effect.orDie);
+			const landedArtifacts = yield* artifactsService.byPiece({ pieceId: piece.id }).pipe(Effect.orDie);
 			const blocked = yield* Effect.forEach(
 				gates.filter((gate) => gate.pieceId === piece.id),
-				(gate) => live.read(rulingById, { id: gate.rulingId }),
+				(gate) => rulingsService.byId({ id: gate.rulingId }).pipe(Effect.orDie),
 			);
 			const from = dependencies
 				.filter((edge) => edge.to === piece.id)

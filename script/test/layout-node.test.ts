@@ -17,11 +17,11 @@ describe("node-only-in-apps rule", () => {
 		expect(check("packages/platform/skills/src/folders.ts", "node:url")).toEqual([]);
 	});
 
-	it("lets the two named places own their file", () => {
-		expect(check("packages/server/journal/src/journal.ts", "@effect/sql-sqlite-node/SqliteClient")).toEqual([]);
+	it("keeps legacy SQLite access in app adapters and the named trace sink", () => {
+		expect(check("apps/server/src/fixture/source.ts", "@effect/sql-sqlite-node/SqliteClient")).toEqual([]);
 		expect(check("packages/platform/trace-sink/src/adapters/database.ts", "node:sqlite")).toEqual([]);
-		expect(check("packages/server/journal/src/journal.ts", "node:sqlite")).toEqual([
-			"@antumbra/server-journal may not import node:sqlite: only a package under apps/ may reach the machine.",
+		expect(check("packages/server/storage/src/journal.ts", "node:sqlite")).toEqual([
+			"@antumbra/server-storage may not import node:sqlite: only a package under apps/ may reach the machine.",
 		]);
 	});
 

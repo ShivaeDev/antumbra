@@ -1,5 +1,5 @@
 import { quiet as command } from "@antumbra/domain-voyages/commands/quiet.ts";
-import { VoyageHistory } from "@antumbra/server-journal/postgres/voyages/service.ts";
+import { VoyageHistory } from "@antumbra/server-storage/voyages/service.ts";
 import { Clock, Effect } from "effect";
 
 export const quiet = Effect.fn("Voyages.quiet")(function* (input: typeof command.Input.Type) {

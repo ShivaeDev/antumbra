@@ -1,5 +1,5 @@
+import { postgresTests } from "@antumbra/app-testing/postgres-testing.ts";
 import { postgresDefinition } from "@antumbra/server/postgres-definition.ts";
-import { postgresTests } from "@antumbra/server-journal/postgres/testing.ts";
 import { NodeServices } from "@effect/platform-node";
 import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
 import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";

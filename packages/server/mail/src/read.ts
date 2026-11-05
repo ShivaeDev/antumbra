@@ -1,4 +1,4 @@
-import { MailHistory } from "@antumbra/server-journal/postgres/mail/service.ts";
+import { MailHistory } from "@antumbra/server-storage/mail/service.ts";
 import { Effect } from "effect";
 
 export const mailbox = Effect.fn("Mail.mailbox")(function* (input: { readonly agentId: string }) {

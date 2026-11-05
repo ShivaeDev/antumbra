@@ -1,8 +1,6 @@
-import { write } from "@antumbra/domain-boards/commands/write.ts";
 import type { Entry } from "@antumbra/domain-boards/queries/covered.ts";
 import { digest } from "@antumbra/domain-boards/queries/digest.ts";
 import { under } from "@antumbra/domain-boards/queries/under.ts";
-import { markRead } from "@antumbra/domain-mail/commands/mark-read.ts";
 import { unread } from "@antumbra/domain-mail/queries/unread.ts";
 import { PieceId } from "@antumbra/domain-pieces/ids.ts";
 import { VoyageId } from "@antumbra/domain-voyages/ids.ts";
@@ -13,9 +11,11 @@ import { agentBoard, type BoardId, pieceBoard, voyageBoard } from "@antumbra/pla
 import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
 import type { ToolAnswer } from "@antumbra/platform-vocabulary/tool-answer.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Boards } from "@antumbra/server-boards/service.ts";
+import { Mail } from "@antumbra/server-mail/service.ts";
 import { Effect, Option, Stream } from "effect";
+import { stream } from "effect/reactivity/Reactivity";
+import { keysOf } from "#keys.ts";
 import { markReadSpec, readBoardSpec, readMailSpec, writeBoardSpec } from "#tools/boards/specs.ts";
 
 const boardOf = (context: ToolContext, scope: "self" | "piece" | "voyage"): BoardId | undefined => {
@@ -33,32 +33,35 @@ const lines = (entries: readonly Entry[]) =>
 	entries.map((entry) => `[${entry.kind === "summary" ? `summary ${entry.id}` : entry.register}] ${entry.body}`).join("\n");
 const first = <A, E, R>(stream: Stream.Stream<A, E, R>) => Stream.runHead(stream).pipe(Effect.map(Option.getOrThrow));
 
-export const readBoardTool = bind(readBoardSpec, (context, input) =>
-	withBoard(context, input.scope, (board) =>
+export const readBoardTool = bind(readBoardSpec, (context, input) => {
+	const summaryId = input.summaryId;
+	return withBoard(context, input.scope, (board) =>
 		answered(
 			context,
 			readBoardSpec.name,
-			Effect.flatMap(Live, (live) =>
-				first(input.summaryId === undefined ? live.live(digest, { board }) : live.live(under, { board, summaryId: input.summaryId })),
+			first(
+				summaryId === undefined
+					? stream(keysOf(digest.reads, digest.scope?.({ board })))(Boards.use((service) => service.digest({ board })).pipe(Effect.orDie))
+					: stream(keysOf(under.reads, under.scope?.({ board, summaryId: summaryId })))(
+							Boards.use((service) => service.under({ board, summaryId: summaryId })).pipe(Effect.orDie),
+						),
 			),
 			(entries) => {
 				if (entries.length > 0) return lines(entries);
-				return input.summaryId === undefined ? "the board is empty" : "no notes stand behind that summary";
+				return summaryId === undefined ? "the board is empty" : "no notes stand behind that summary";
 			},
 		),
-	),
-);
+	);
+});
 
 export const writeBoardTool = bind(writeBoardSpec, (context, input) =>
 	withBoard(context, input.scope, (board) =>
 		answered(
 			context,
 			writeBoardSpec.name,
-			Effect.flatMap(Commit, (commit) =>
-				commit
-					.commit(write, { author: context.agentId, board, body: input.body, register: "rough", requestId: requestId(context) })
-					.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq))),
-			),
+			Boards.use((service) =>
+				service.write({ author: context.agentId, board, body: input.body, register: "rough", requestId: requestId(context) }),
+			).pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq))),
 			() => `written to the ${input.scope} board`,
 		),
 	),
@@ -68,7 +71,11 @@ export const readMailTool = bind(readMailSpec, (context) =>
 	answered(
 		context,
 		readMailSpec.name,
-		Effect.flatMap(Live, (live) => first(live.live(unread, { agentId: context.agentId }))),
+		first(
+			stream(keysOf(unread.reads, unread.scope?.({ agentId: context.agentId })))(
+				Mail.use((service) => service.unread({ agentId: context.agentId })).pipe(Effect.orDie),
+			),
+		),
 		(held) => (held.length === 0 ? "No mail." : held.map((mail) => `${mail.id} [${mail.precedence}] ${mail.sentAt} — ${mail.body}`).join("\n")),
 	),
 );
@@ -77,11 +84,9 @@ export const markReadTool = bind(markReadSpec, (context, input) =>
 	answered(
 		context,
 		markReadSpec.name,
-		Effect.flatMap(Commit, (commit) =>
-			commit
-				.commit(markRead, { agentId: context.agentId, ids: input.entryIds.map((id) => MessageId.make(id)), requestId: requestId(context) })
-				.pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq))),
-		),
+		Mail.use((service) =>
+			service.markRead({ agentId: context.agentId, ids: input.entryIds.map((id) => MessageId.make(id)), requestId: requestId(context) }),
+		).pipe(Effect.catchTag("AlreadyDone", (done) => Effect.succeed(done.seq))),
 		() => "marked read",
 	),
 );

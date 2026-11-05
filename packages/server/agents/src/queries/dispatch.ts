@@ -1,6 +1,7 @@
-import { dispatch as query } from "@antumbra/domain-agents/queries/dispatch.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { dispatch as query } from "@antumbra/domain-agents/queries/dispatch.ts";
+import { dispatch as queryDecision } from "@antumbra/server-agents/logic/queries/dispatch.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const dispatch = Effect.fn("Agents.dispatch")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const dispatch = Effect.fn("Agents.dispatch")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

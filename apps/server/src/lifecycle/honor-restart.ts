@@ -1,40 +1,43 @@
-import { roster } from "@antumbra/domain-agents/queries/roster.ts";
-import { clear } from "@antumbra/domain-lifecycle/commands/clear.ts";
-import { pending } from "@antumbra/domain-lifecycle/queries/pending.ts";
-import { request } from "@antumbra/domain-sessions/commands/request.ts";
-import { reading } from "@antumbra/domain-sessions/queries/reading.ts";
-import { allows, flags } from "@antumbra/domain-settings/queries/flags.ts";
-import { list } from "@antumbra/domain-voyages/queries/list.ts";
+import { allows } from "@antumbra/domain-settings/queries/flags.ts";
 import { quietIds } from "@antumbra/domain-voyages/rows/voyage.ts";
 import { wakeWords } from "@antumbra/platform-prompts/wake.ts";
 import { LifecycleRefused } from "@antumbra/platform-runner/lifecycle.ts";
 import { Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Agents } from "@antumbra/server-agents/service.ts";
+import { Lifecycle } from "@antumbra/server-lifecycle/service.ts";
+import { Sessions } from "@antumbra/server-sessions/service.ts";
+import { Settings } from "@antumbra/server-settings/service.ts";
+import { Voyages } from "@antumbra/server-voyages/service.ts";
 import { Clock, Effect } from "effect";
 
 export const honorRestart = Effect.fn("Lifecycle.honorRestart")(function* ({ requestId }: { readonly requestId: string }) {
-	const commit = yield* Commit;
-	const live = yield* Live;
-	const sessions = yield* live.read(pending, {});
+	const lifecycleService = yield* Lifecycle;
+	const settingsService = yield* Settings;
+	const voyagesService = yield* Voyages;
+	const agentsService = yield* Agents;
+	const sessionsService = yield* Sessions;
+
+	const sessions = yield* lifecycleService.pending({}).pipe(Effect.orDie);
 	if (sessions === null) return;
-	if (!allows(yield* live.read(flags, {}), "wakeAfterRestart")) return;
-	const quiet = quietIds(yield* live.read(list, {}));
+	if (!allows(yield* settingsService.flags({}).pipe(Effect.orDie), "wakeAfterRestart")) return;
+	const quiet = quietIds(yield* voyagesService.list().pipe(Effect.orDie));
 	const hushed = new Set(
-		(yield* live.read(roster, {})).filter((crew) => crew.voyageIds.some((sailed) => quiet.has(sailed))).map((crew) => String(crew.id)),
+		(yield* agentsService.roster({}).pipe(Effect.orDie))
+			.filter((crew) => crew.voyageIds.some((sailed) => quiet.has(sailed)))
+			.map((crew) => String(crew.id)),
 	);
-	const consumed = yield* commit.commit(clear, { requestId: Request.make(requestId) }).pipe(
+	const consumed = yield* lifecycleService.clear({ requestId: Request.make(requestId) }).pipe(
 		Effect.as(true),
 		Effect.catchTag("AlreadyDone", () => Effect.succeed(false)),
 	);
 	if (!consumed) return;
 	const requestedAt = new Date(yield* Clock.currentTimeMillis).toISOString();
 	for (const sessionId of sessions) {
-		const root = yield* live.read(reading, { id: sessionId });
+		const root = yield* sessionsService.reading({ id: sessionId }).pipe(Effect.orDie);
 		if (root !== null && root.stoppedAt !== null) continue;
 		if (root !== null && hushed.has(root.agentId)) continue;
-		yield* commit
-			.commit(request, {
+		yield* sessionsService
+			.request({
 				requestId: Request.make(`${requestId}:${sessionId}`),
 				sessionId,
 				kind: "wake",

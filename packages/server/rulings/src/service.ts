@@ -1,4 +1,5 @@
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
+import { Records } from "@antumbra/server-storage/records.ts";
 import { defineService } from "@shivaedev/service/defineService.ts";
 import { Effect } from "effect";
 import { acknowledgeNotice } from "#commands/acknowledge-notice.ts";
@@ -28,7 +29,7 @@ import { replacements } from "#queries/replacements.ts";
 import { standing } from "#queries/standing.ts";
 export const Rulings = defineService({
 	id: "@antumbra/server-rulings/Rulings",
-	requires: [ExecutionHistory],
+	requires: [Records, ExecutionHistory],
 	initialize: Effect.void,
 	methods: () => ({
 		acknowledgeNotice,

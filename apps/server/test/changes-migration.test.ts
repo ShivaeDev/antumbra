@@ -1,18 +1,10 @@
+import { legacyFacts } from "@antumbra/app-testing/legacy.ts";
 import { type ChangeRow, change } from "@antumbra/domain-changes/rows/change.ts";
 import type { ChangeFeedbackRow } from "@antumbra/domain-changes/rows/change-feedback.ts";
 import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
 import { RepoId } from "@antumbra/platform-vocabulary/repos-ids.ts";
-import { app, registryOf } from "@antumbra/server-journal/app.ts";
-import { Database } from "@antumbra/server-journal/database.ts";
-import * as Journal from "@antumbra/server-journal/journal.ts";
-import { start } from "@antumbra/server-journal/startup.ts";
-import { it } from "@effect/vitest";
-import { Effect, Schema } from "effect";
+import { Schema } from "effect";
 import { expect } from "vitest";
-import { features } from "#features.ts";
-import { projections } from "#projections.ts";
-
-const JOURNAL = `CREATE TABLE "journal" ("seq" INTEGER PRIMARY KEY AUTOINCREMENT, "at" INTEGER NOT NULL, "requestId" TEXT NOT NULL, "name" TEXT NOT NULL, "payload" TEXT NOT NULL, "subject" TEXT)`;
 
 const AT = "2026-09-13T09:00:00.000Z";
 
@@ -68,27 +60,11 @@ const feedbackRow = (id: string, changeId: string): ChangeFeedbackRow => ({
 
 const encodeChange = Schema.encodeUnknownSync(change.Row);
 
-const seeded = (...facts: readonly { readonly name: string; readonly payload: Record<string, unknown> }[]) =>
-	Effect.gen(function* () {
-		const { write: sql } = yield* Database;
-		yield* sql.unsafe(JOURNAL);
-		const entries: Record<string, unknown>[] = [];
-		for (const fact of facts) {
-			const seq = entries.length + 1;
-			entries.push({ at: 100 + seq, name: fact.name, payload: JSON.stringify(fact.payload), requestId: `request-${seq}`, seq });
-		}
-		yield* sql`INSERT INTO "journal" ${sql.insert(entries)}`;
-	}).pipe(Effect.orDie);
-
-const booted = Effect.gen(function* () {
-	const database = yield* Database;
-	yield* start(database.write, yield* registryOf(app(features, projections)));
-});
-
-it.effect("a journal written before changes carried feedback boots, migrates once, and keeps the feedback it already held", () =>
-	Effect.gen(function* () {
-		const database = yield* Database;
-		yield* seeded(
+legacyFacts.it(
+	"fills absent legacy feedback and preserves feedback already recorded after SQL rebuild",
+	[],
+	function* ({ seed, changes, feedback, facts, rebuild }) {
+		yield* seed([
 			{
 				name: "RepoRegistered",
 				payload: { id: "repo-reef", name: "reef", source: "https://github.com/example/reef.git", defaultRef: "main", createdAt: AT },
@@ -96,19 +72,17 @@ it.effect("a journal written before changes carried feedback boots, migrates onc
 			{ name: "ChangeObserved", payload: { change: encodeChange(changeRow("change-older", "41")), transition: null } },
 			{
 				name: "ChangeObserved",
-				payload: {
-					change: encodeChange(changeRow("change-newer", "42")),
-					transition: null,
-					feedback: [feedbackRow("IC_kept", "change-newer")],
-				},
+				payload: { change: encodeChange(changeRow("change-newer", "42")), transition: null, feedback: [feedbackRow("IC_kept", "change-newer")] },
 			},
-		);
-		yield* booted;
-		expect(yield* database.read`SELECT "id", "review" FROM "change" ORDER BY "id"`).toEqual([
-			{ id: "change-newer", review: "none" },
-			{ id: "change-older", review: "none" },
 		]);
-		expect(yield* database.read`SELECT "id", "changeId" FROM "changeFeedback"`).toEqual([{ id: "IC_kept", changeId: "change-newer" }]);
-		expect(yield* database.read`SELECT "feature", "number" FROM "fact_migration"`).toContainEqual({ feature: "changes", number: 1 });
-	}).pipe(Effect.provide(Journal.memory()), Effect.orDie),
+		yield* rebuild();
+		expect(yield* changes()).toEqual(
+			expect.arrayContaining([
+				{ id: "change-newer", review: "none" },
+				{ id: "change-older", review: "none" },
+			]),
+		);
+		expect(yield* feedback()).toEqual([{ id: "IC_kept", changeId: "change-newer" }]);
+		expect((yield* facts()).find((fact) => fact.name === "ChangeObserved")?.payload).toMatchObject({ feedback: [] });
+	},
 );

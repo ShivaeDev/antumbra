@@ -1,6 +1,7 @@
-import { open as query } from "@antumbra/domain-rulings/queries/open.ts";
-import { ExecutionHistory } from "@antumbra/server-journal/postgres/execution/service.ts";
+import type { open as query } from "@antumbra/domain-rulings/queries/open.ts";
+import { open as queryDecision } from "@antumbra/server-rulings/logic/queries/open.ts";
+import type { Schema } from "effect";
 import { Effect } from "effect";
-export const open = Effect.fn("Rulings.open")(function* (input: Parameters<typeof query.run>[0]) {
-	return yield* query.run(input, yield* (yield* ExecutionHistory).rowsFor(query.reads), {});
+export const open = Effect.fn("Rulings.open")(function* (input: Schema.Struct.Type<typeof query.input>) {
+	return yield* queryDecision(input);
 });

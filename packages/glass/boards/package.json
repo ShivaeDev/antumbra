@@ -22,8 +22,7 @@
 		"@effect/vitest": "catalog:",
 		"vitest": "catalog:",
 		"happy-dom": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*"
+		"@antumbra/app-testing": "workspace:*"
 	},
 	"dependencies": {
 		"@antumbra/domain-boards": "workspace:*",
@@ -33,6 +32,7 @@
 		"@antumbra/glass-components": "workspace:*",
 		"effect": "catalog:",
 		"react": "catalog:",
-		"lucide-react": "catalog:"
+		"lucide-react": "catalog:",
+		"@antumbra/platform-vocabulary": "workspace:*"
 	}
 }

@@ -1,7 +1,5 @@
 import { createServer } from "node:http";
 import { ServerToken } from "@antumbra/platform-rpc/token.ts";
-import { DataDirectory } from "@antumbra/server-journal/database.ts";
-import * as Journal from "@antumbra/server-journal/journal.ts";
 import { NodeHttpServer, NodeRuntime, NodeServices } from "@effect/platform-node";
 import { Cause, Console, Effect, Exit, FileSystem, Layer, Logger, Path, type Runtime } from "effect";
 import * as HttpRouter from "effect/http/HttpRouter";
@@ -13,11 +11,10 @@ import { application } from "#application.ts";
 import { Files } from "#files.ts";
 import { type Options, options } from "#options.ts";
 import { ServerRuntime } from "#runtime.ts";
+import { storage } from "#storage.ts";
 import { transport } from "#transport.ts";
 
 const HOST = "127.0.0.1";
-
-const journal = (directory: string) => Journal.file().pipe(Layer.provide(Layer.succeed(DataDirectory, { path: directory })));
 
 const artifacts = Layer.unwrap(
 	Effect.gen(function* () {
@@ -28,14 +25,13 @@ const artifacts = Layer.unwrap(
 );
 const listener = (settings: Options) => {
 	const app = application.pipe(
-		Layer.provideMerge(Layer.mergeAll(journal(settings.directory), githubHosts, artifacts)),
+		Layer.provideMerge(Layer.mergeAll(storage(settings.directory), githubHosts, artifacts)),
 		Layer.provideMerge(Layer.succeed(Files, { root: settings.files })),
 	);
 	return HttpRouter.serve(transport, { disableListenLog: true }).pipe(
 		Layer.provideMerge(app),
 		Layer.provide(Layer.succeed(ServerToken, { token: settings.token })),
-		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: HOST, port: settings.port })),
-		Layer.orDie,
+		Layer.provideMerge(NodeHttpServer.layer(() => createServer(), { host: HOST, port: settings.port, disablePreemptiveShutdown: true })),
 	);
 };
 

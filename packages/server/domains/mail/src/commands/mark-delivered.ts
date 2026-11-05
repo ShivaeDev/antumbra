@@ -1,7 +1,6 @@
 import { command } from "@antumbra/platform-feature/command.ts";
 import { MessageId } from "@antumbra/platform-vocabulary/mail.ts";
-import { Clock, Effect, Schema } from "effect";
-import { addressed } from "#commands/addressed.ts";
+import { Schema } from "effect";
 import { messageDelivered } from "#facts/message-delivered.ts";
 import { message } from "#rows/message.ts";
 
@@ -10,13 +9,4 @@ export const markDelivered = command("markDelivered", {
 	reads: [message],
 	emits: messageDelivered,
 	rejections: { NotAddressed: { id: Schema.String } },
-	run: Effect.fn("mail.markDelivered")(function* (input, rows, reject) {
-		const scanned = yield* addressed(rows, input.agentId, input.ids);
-		if (scanned._tag === "Stray") {
-			return yield* reject.NotAddressed({ id: scanned.id });
-		}
-		const at = yield* Clock.currentTimeMillis;
-		const waiting = scanned.held.filter((held) => held.deliveredAt === null);
-		return { deliveredAt: new Date(at).toISOString(), ids: waiting.map((held) => held.id) };
-	}),
 });

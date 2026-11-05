@@ -1,5 +1,22 @@
+import { ChangesContract } from "@antumbra/server-changes/contract.ts";
+import {
+	Adoptions,
+	All,
+	Archivable,
+	Browse,
+	ByPiece,
+	CleanupCandidates,
+	HostCapabilities,
+	Links,
+	Publishing,
+	Quay,
+	SessionSituations,
+	Watchable,
+	World,
+} from "@antumbra/server-changes/query-contract.ts";
+import { readKeys } from "@shivaedev/changes/keys.ts";
 import { Effect, Layer } from "effect";
-import { ChangesContract } from "#contract.ts";
+import { stream } from "effect/reactivity/Reactivity";
 import {
 	unexpectedAdopt,
 	unexpectedArchive,
@@ -20,7 +37,7 @@ export const handlers = ChangesContract.application.toLayer(
 	Effect.gen(function* () {
 		const service = yield* Changes;
 		return ChangesContract.application.of({
-			"changes.cleanupCandidates": () => service.cleanupCandidates().pipe(Effect.orDie),
+			"changes.cleanupCandidates": () => stream(readKeys(CleanupCandidates.reads({})))(service.cleanupCandidates().pipe(Effect.orDie)),
 			"changes.failAdoption": (input) => service.failAdoption(input).pipe(Effect.catchIf(unexpectedFailAdoption, Effect.die)),
 			"changes.retryAdoption": (input) => service.retryAdoption(input).pipe(Effect.catchIf(unexpectedRetryAdoption, Effect.die)),
 			"changes.observeHostCapability": (input) =>
@@ -35,18 +52,18 @@ export const handlers = ChangesContract.application.toLayer(
 			"changes.archive": (input) => service.archive(input).pipe(Effect.catchIf(unexpectedArchive, Effect.die)),
 			"changes.dismiss": (input) => service.dismiss(input).pipe(Effect.catchIf(unexpectedDismiss, Effect.die)),
 			"changes.forwardFeedback": (input) => service.forwardFeedback(input).pipe(Effect.catchIf(unexpectedForwardFeedback, Effect.die)),
-			"changes.byPiece": (input) => service.byPiece(input).pipe(Effect.orDie),
-			"changes.hostCapabilities": (input) => service.hostCapabilities(input).pipe(Effect.orDie),
-			"changes.browse": (input) => service.browse(input).pipe(Effect.orDie),
-			"changes.sessionSituations": (input) => service.sessionSituations(input).pipe(Effect.orDie),
-			"changes.adoptions": (input) => service.adoptions(input).pipe(Effect.orDie),
-			"changes.world": (input) => service.world(input).pipe(Effect.orDie),
-			"changes.quay": (input) => service.quay(input).pipe(Effect.orDie),
-			"changes.all": (input) => service.all(input).pipe(Effect.orDie),
-			"changes.links": (input) => service.links(input).pipe(Effect.orDie),
-			"changes.watchable": (input) => service.watchable(input).pipe(Effect.orDie),
-			"changes.publishing": (input) => service.publishing(input).pipe(Effect.orDie),
-			"changes.archivable": (input) => service.archivable(input).pipe(Effect.orDie),
+			"changes.byPiece": (input) => stream(readKeys(ByPiece.reads(input)))(service.byPiece(input).pipe(Effect.orDie)),
+			"changes.hostCapabilities": (input) => stream(readKeys(HostCapabilities.reads(input)))(service.hostCapabilities(input).pipe(Effect.orDie)),
+			"changes.browse": (input) => stream(readKeys(Browse.reads(input)))(service.browse(input).pipe(Effect.orDie)),
+			"changes.sessionSituations": (input) => stream(readKeys(SessionSituations.reads(input)))(service.sessionSituations(input).pipe(Effect.orDie)),
+			"changes.adoptions": (input) => stream(readKeys(Adoptions.reads(input)))(service.adoptions(input).pipe(Effect.orDie)),
+			"changes.world": (input) => stream(readKeys(World.reads(input)))(service.world(input).pipe(Effect.orDie)),
+			"changes.quay": (input) => stream(readKeys(Quay.reads(input)))(service.quay(input).pipe(Effect.orDie)),
+			"changes.all": (input) => stream(readKeys(All.reads(input)))(service.all(input).pipe(Effect.orDie)),
+			"changes.links": (input) => stream(readKeys(Links.reads(input)))(service.links(input).pipe(Effect.orDie)),
+			"changes.watchable": (input) => stream(readKeys(Watchable.reads(input)))(service.watchable(input).pipe(Effect.orDie)),
+			"changes.publishing": (input) => stream(readKeys(Publishing.reads(input)))(service.publishing(input).pipe(Effect.orDie)),
+			"changes.archivable": (input) => stream(readKeys(Archivable.reads(input)))(service.archivable(input).pipe(Effect.orDie)),
 		});
 	}),
 );

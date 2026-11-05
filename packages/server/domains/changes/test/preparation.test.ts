@@ -2,6 +2,7 @@ import { answered, it } from "@antumbra/app-testing/entry.ts";
 import { postgresApp } from "@antumbra/app-testing/postgres.ts";
 import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
 import { ChangeId } from "@antumbra/platform-vocabulary/changes-ids.ts";
+import { Effect } from "effect";
 import { expect } from "vitest";
 import { chartering, opening, pieceId, registration, repoId, request, seen } from "#test/kit.ts";
 
@@ -48,7 +49,7 @@ it.app("attaches host evidence only to the exact prepared branch and head", func
 		stage: "open",
 		externalId: "41",
 	});
-	expect(yield* app.rows.change.count({})).toBe(1);
+	expect(yield* app.rows.change.count({ where: {} }).pipe(Effect.orDie)).toBe(1);
 });
 
 postgresApp.it("keeps a publication failure actionable and retries the same frozen proposal", [], function* ({ api }) {
@@ -74,10 +75,10 @@ postgresApp.it("keeps a publication failure actionable and retries the same froz
 		attemptId: proposal.requestId,
 		message: "GitHub login required",
 	});
-	expect(yield* api["changes.publishing"]({})).toEqual([]);
-	expect((yield* api["changes.quay"]({}))[0]?.publicationError).toBe("GitHub login required");
+	expect(yield* answered(api["changes.publishing"]({}), "changes.publishing")).toEqual([]);
+	expect((yield* answered(api["changes.quay"]({}), "changes.quay"))[0]?.publicationError).toBe("GitHub login required");
 	yield* api["changes.freeze"]({ ...proposal, requestId: request("publish:retry"), title: "Later title", body: "Later body" });
-	expect((yield* api["changes.publishing"]({}))[0]).toMatchObject({
+	expect((yield* answered(api["changes.publishing"]({}), "changes.publishing"))[0]).toMatchObject({
 		title: "Frozen title",
 		body: "Frozen body",
 		publicationError: null,
@@ -89,7 +90,7 @@ postgresApp.it("keeps a publication failure actionable and retries the same froz
 		attemptId: proposal.requestId,
 		message: "Old attempt failed",
 	});
-	expect((yield* api["changes.publishing"]({}))[0]?.publicationError).toBeNull();
+	expect((yield* answered(api["changes.publishing"]({}), "changes.publishing"))[0]?.publicationError).toBeNull();
 });
 
 it.app("shows an adoption refusal and allows correcting its URL without losing the request", function* (app) {

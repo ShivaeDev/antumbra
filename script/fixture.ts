@@ -1,41 +1,36 @@
 import { resolve } from "node:path";
-import { definition } from "@antumbra/server/application.ts";
-import { postgresDefinition } from "@antumbra/server/postgres-definition.ts";
-import { checkPostgresFixture } from "@antumbra/server-journal/postgres/fixture.ts";
-import { validateFixture } from "@antumbra/server-journal/testing/validate-fixture.ts";
+import { checkPostgresFixture } from "@antumbra/app-testing/fixture-replay.ts";
+import { validateFixture } from "@antumbra/legacy-fixture/validate.ts";
+import { legacySource } from "@antumbra/server/fixture/source.ts";
 import { NodeRuntime, NodeServices } from "@effect/platform-node";
 import { Cause, Config, Console, Effect, Result } from "effect";
+import { layer as reactivityLayer } from "effect/reactivity/Reactivity";
 import { captureFixture, extractFixture, listFixtures } from "#fixture/adapters/archive.ts";
 import { workingManifest } from "#fixture/adapters/launch.ts";
 import { stopViewer, withCheckOwnership, withViewerOwnership } from "#fixture/adapters/viewer-owner.ts";
 import { checkViewer, startViewer } from "#fixture/adapters/viewer-process.ts";
-import { parseCommand, type Target, usage } from "#fixture/command.ts";
+import { parseCommand, usage } from "#fixture/command.ts";
+import { appDataDirectory, overrideVariable } from "#fixture/legacy-paths.ts";
 import type { Manifest } from "#fixture/manifest.ts";
 import { fixturePaths, sourceDirectory } from "#fixture/paths.ts";
-import { appDataDirectory } from "#journal/adapters/files.ts";
-import { overrideVariable } from "#journal/paths.ts";
 
 const checkout = resolve(import.meta.dirname, "..");
 const paths = fixturePaths(checkout);
 
-const check = Effect.fn("Fixture.check")(function* (selector: string, target: Target) {
-	yield* Console.log(`Checking fixture ${selector} against ${target}…`);
+const check = Effect.fn("Fixture.check")(function* (selector: string) {
+	yield* Console.log(`Checking fixture ${selector} against PostgreSQL…`);
 	const fixture = yield* withCheckOwnership(
 		checkout,
 		Effect.gen(function* () {
 			const extracted = yield* extractFixture({ archiveRoot: paths.archiveRoot, selector, destination: paths.check });
 			yield* checkViewer(checkout);
-			yield* validateFixture(resolve(paths.check, "server", "journal.db"), definition);
-			if (target === "postgres") {
-				const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db")).pipe(Effect.provide(postgresDefinition));
-				yield* Console.log(JSON.stringify({ postgres }));
-			}
+			yield* validateFixture(resolve(paths.check, "server", "journal.db"));
+			const postgres = yield* checkPostgresFixture(resolve(paths.check, "server", "journal.db"));
+			yield* Console.log(JSON.stringify({ postgres }));
 			return extracted;
 		}),
 	);
-	yield* Console.log(
-		`Fixture ${fixture.id}: journal startup and reads passed${target === "postgres" ? "; isolated PostgreSQL domain histories and rows match" : ""}.`,
-	);
+	yield* Console.log(`Fixture ${fixture.id}: PostgreSQL replay and reads passed.`);
 });
 
 const program = Effect.gen(function* () {
@@ -59,7 +54,7 @@ const program = Effect.gen(function* () {
 			source: command.source,
 		});
 		yield* Console.log(`Captured fixture ${fixture.id}: ${fixture.label}`);
-		if (command.target === "postgres") yield* check(String(fixture.id), command.target);
+		yield* check(String(fixture.id));
 		return;
 	}
 	if (command.name === "stop") {
@@ -67,7 +62,7 @@ const program = Effect.gen(function* () {
 		return yield* Console.log("Fixture viewer stopped; working copy preserved.");
 	}
 	if (command.name === "check") {
-		return yield* check(command.selector, command.target);
+		return yield* check(command.selector);
 	}
 	const { fixture, viewer } = yield* withViewerOwnership(
 		checkout,
@@ -96,4 +91,6 @@ const program = Effect.gen(function* () {
 	),
 );
 
-NodeRuntime.runMain(program.pipe(Effect.provide(NodeServices.layer)), { disableErrorReporting: true });
+NodeRuntime.runMain(program.pipe(Effect.provide(legacySource), Effect.provide(reactivityLayer), Effect.provide(NodeServices.layer)), {
+	disableErrorReporting: true,
+});

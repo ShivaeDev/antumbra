@@ -1,150 +1,44 @@
-import { existsSync, mkdtempSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { agents } from "@antumbra/domain-agents/feature.ts";
-import { roleSettings } from "@antumbra/domain-role-settings/feature.ts";
-import { FLAGSHIP_REQUEST, VoyageId } from "@antumbra/domain-voyages/ids.ts";
-import { client } from "@antumbra/platform-rpc/client.ts";
-import { serialization } from "@antumbra/platform-rpc/serialization.ts";
-import { ClientToken } from "@antumbra/platform-rpc/token.ts";
-import { transport } from "@antumbra/platform-rpc/transport.ts";
-import { identity } from "@antumbra/platform-vocabulary/agents-ids.ts";
-import * as Id from "@antumbra/platform-vocabulary/id.ts";
-import { NodeServices, NodeSocket } from "@effect/platform-node";
-import { it } from "@effect/vitest";
+import { flagship, serverProcess } from "@antumbra/app-testing/process.ts";
 import { Unauthorized } from "@shivaedev/errors/taxonomy.ts";
-import { Config, Effect, Layer, Option, Schema, Stream } from "effect";
-import { ChildProcess } from "effect/process";
+import { Effect, Option } from "effect";
 import * as RpcMessage from "effect/rpc/RpcMessage";
-import * as RpcSerialization from "effect/rpc/RpcSerialization";
-import * as Socket from "effect/socket/Socket";
-import { beforeEach, expect } from "vitest";
-import { isolatedTemp } from "#test/isolated.ts";
+import { expect } from "vitest";
 
-let temp: string;
-
-beforeEach(({ skip }) => {
-	if (Effect.runSync(Config.String("GITHUB_ACTIONS").pipe(Config.withDefault(""))) !== "true") {
-		skip("This test spawns a real Antumbra server and runs only on a GitHub Actions runner.");
-	}
-	temp = isolatedTemp();
+serverProcess.it("answers the protocol ping on its announced websocket", [], function* ({ listen }) {
+	const server = yield* listen;
+	expect(yield* server.ping).toEqual([RpcMessage.constPong]);
 });
-
-const entry = fileURLToPath(new URL("../src/main.ts", import.meta.url));
-const TOKEN = "app-level-test-token";
-const PATIENCE = "5 seconds";
-
-const Readiness = Schema.fromJsonString(Schema.Struct({ port: Schema.Int }));
-
-const FLAGSHIP = VoyageId.make(FLAGSHIP_REQUEST);
-const HAIL = Id.Request.make("process-hail");
-const { sessionId } = identity(HAIL);
-
-const dataDirectory = (): string => mkdtempSync(join(temp, "antumbra-server-"));
-
-const spawned = (args: readonly string[]) =>
-	ChildProcess.make(process.execPath, [entry, ...args], {
-		env: { ANTUMBRA_TOKEN: TOKEN },
-		extendEnv: true,
-		stderr: "inherit",
-		stdout: "pipe",
-	});
-
-const listening = (directory: string) =>
-	Effect.gen(function* () {
-		const child = yield* spawned(["--data", directory, "--files", join(directory, "files"), "--port", "0"]);
-		const line = yield* Stream.runHead(Stream.splitLines(Stream.decodeText(child.stdout)));
-		const { port } = yield* Schema.decodeUnknownEffect(Readiness)(Option.getOrUndefined(line));
-		return { child, port };
-	});
-
-const pong = Effect.gen(function* () {
-	const socket = yield* Socket.Socket;
-	const format = yield* RpcSerialization.RpcSerialization;
-	const parser = format.makeUnsafe();
-	const reader = yield* socket.reader;
-	const writer = yield* socket.writer;
-	const ping = parser.encode(RpcMessage.constPing);
-	yield* ping === undefined ? Effect.die(RpcMessage.constPing) : writer.write(ping);
-	return (yield* reader.pull).flatMap((message) => parser.decode(message));
+serverProcess.it("answers a live query with its configured token", [], function* ({ listen }) {
+	const server = yield* listen;
+	expect(Option.isSome(yield* server.defaults())).toBe(true);
 });
-
-it.live("answers the protocol's ping over the websocket it serves on the port it announced", () =>
-	Effect.gen(function* () {
-		const { port } = yield* listening(dataDirectory());
-		const answered = yield* Effect.provide(pong, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), serialization));
-		expect(answered).toEqual([RpcMessage.constPong]);
-	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
-);
-
-const dialing = (port: number, token: string) =>
-	Layer.provide(transport, Layer.merge(NodeSocket.layerWebSocket(`ws://127.0.0.1:${port}/rpc`), Layer.succeed(ClientToken, { token })));
-
-const fleetDefaults = (port: number, token: string) =>
-	Effect.provide(
-		Effect.flatMap(client([roleSettings]), (reach) => Stream.runHead(reach.roleSettings.defaults({}))),
-		dialing(port, token),
+serverProcess.it("refuses a live query with the wrong token", [], function* ({ listen }) {
+	const server = yield* listen;
+	expect(yield* Effect.flip(server.defaults("wrong-token"))).toBeInstanceOf(Unauthorized);
+});
+serverProcess.it("serves the fleet's role settings", [], function* ({ listen }) {
+	const server = yield* listen;
+	expect(Option.map(yield* server.defaults(), (rows) => rows.map((row) => row.role))).toEqual(
+		Option.some(["flagship", "captain", "crew", "smoother"]),
 	);
-
-it.live("answers a live query that presents the token it was given", () =>
-	Effect.gen(function* () {
-		const { port } = yield* listening(dataDirectory());
-		const defaults = yield* fleetDefaults(port, TOKEN);
-		expect(Option.isSome(defaults)).toBe(true);
-	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
+});
+serverProcess.it("hails the flagship captain through the derived socket client", [], function* ({ listen }) {
+	const server = yield* listen;
+	expect(Option.getOrNull(yield* server.hail)).toMatchObject({ role: "captain", voyageId: flagship });
+});
+serverProcess.it(
+	"exits cleanly on SIGTERM and retains PostgreSQL without creating a legacy journal",
+	[],
+	function* ({ listen, postgresExists, legacyJournalExists }) {
+		const server = yield* listen;
+		yield* server.keepConnected;
+		expect(yield* server.stop).toBe(0);
+		const again = yield* listen;
+		expect(Option.isSome(yield* again.defaults())).toBe(true);
+		expect(yield* postgresExists).toBe(true);
+		expect(yield* legacyJournalExists).toBe(false);
+	},
 );
-
-it.live("refuses a live query that presents the wrong token", () =>
-	Effect.gen(function* () {
-		const { port } = yield* listening(dataDirectory());
-		const refusal = yield* Effect.flip(fleetDefaults(port, "not-the-token-it-was-given"));
-		expect(refusal).toBeInstanceOf(Unauthorized);
-	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
-);
-
-it.live("answers the fleet's role settings to a client that presents the token it was given", () =>
-	Effect.gen(function* () {
-		const { port } = yield* listening(dataDirectory());
-		const answered = yield* fleetDefaults(port, TOKEN);
-		expect(Option.map(answered, (rows) => rows.map((row) => row.role))).toEqual(Option.some(["flagship", "captain", "crew", "smoother"]));
-	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
-);
-
-const hailing = (port: number, token: string) =>
-	Effect.provide(
-		Effect.flatMap(client([agents]), (reach) =>
-			Effect.andThen(
-				reach.agents.hail({ requestId: HAIL, voyageId: FLAGSHIP, by: "admiral" }),
-				Stream.runHead(reach.agents.birthBySession({ sessionId })),
-			),
-		),
-		dialing(port, token),
-	);
-
-it.live("hails the flagship captain over the socket through the derived client", () =>
-	Effect.gen(function* () {
-		const { port } = yield* listening(dataDirectory());
-		const born = yield* hailing(port, TOKEN);
-		expect(Option.getOrNull(born)).toMatchObject({ role: "captain", voyageId: FLAGSHIP });
-	}).pipe(Effect.timeout(PATIENCE), Effect.provide(NodeServices.layer)),
-);
-
-it.live("ends with exit code 0 on SIGTERM and leaves its journal in the data directory", () =>
-	Effect.gen(function* () {
-		const directory = dataDirectory();
-		const { child } = yield* listening(directory);
-		const code = yield* Effect.timeout(Effect.andThen(child.kill(), child.exitCode), PATIENCE);
-		expect(code).toBe(0);
-		expect(existsSync(join(directory, "journal.db"))).toBe(true);
-	}).pipe(Effect.provide(NodeServices.layer)),
-);
-
-it.live("exits 2 without announcing a port when no data directory is given", () =>
-	Effect.gen(function* () {
-		const child = yield* spawned([]);
-		const announced = yield* Stream.runCollect(Stream.decodeText(child.stdout));
-		const code = yield* Effect.timeout(child.exitCode, PATIENCE);
-		expect(code).toBe(2);
-		expect(announced).toEqual([]);
-	}).pipe(Effect.provide(NodeServices.layer)),
-);
+serverProcess.it("exits 2 without announcing a port when no data directory is supplied", [], function* ({ withoutDirectory }) {
+	expect(yield* withoutDirectory).toEqual({ code: 2, announced: [] });
+});

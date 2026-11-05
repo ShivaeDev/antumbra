@@ -26,19 +26,6 @@ import { rulingReclassified } from "#facts/ruling-reclassified.ts";
 import { rulingRequested } from "#facts/ruling-requested.ts";
 import { rulingSuperseded } from "#facts/ruling-superseded.ts";
 import { rulingWithdrawn } from "#facts/ruling-withdrawn.ts";
-import { requestWrites } from "#materializers/requested.ts";
-import { rulingAnsweredMaterializer } from "#materializers/ruling-answered.ts";
-import { rulingContextAddedMaterializer } from "#materializers/ruling-context-added.ts";
-import { rulingDeliveredMaterializer } from "#materializers/ruling-delivered.ts";
-import { rulingGatedMaterializer } from "#materializers/ruling-gated.ts";
-import { rulingNoticeDeliveredMaterializer } from "#materializers/ruling-notice-delivered.ts";
-import { rulingParkedMaterializer } from "#materializers/ruling-parked.ts";
-import { rulingPassedUpMaterializer } from "#materializers/ruling-passed-up.ts";
-import { rulingProclaimedMaterializer } from "#materializers/ruling-proclaimed.ts";
-import { rulingReclassifiedMaterializer } from "#materializers/ruling-reclassified.ts";
-import { rulingRequestedMaterializer } from "#materializers/ruling-requested.ts";
-import { rulingSupersededMaterializer } from "#materializers/ruling-superseded.ts";
-import { rulingWithdrawnMaterializer } from "#materializers/ruling-withdrawn.ts";
 import { authority } from "#queries/authority.ts";
 import { awaitingAscent } from "#queries/awaiting-ascent.ts";
 import { awaitingDelivery } from "#queries/awaiting-delivery.ts";
@@ -54,6 +41,7 @@ import { replacements } from "#queries/replacements.ts";
 import { standing } from "#queries/standing.ts";
 import { rulingDisplay } from "#rows/display.ts";
 import { rulingNoticeReceipt } from "#rows/notice-receipt.ts";
+import { requestWrites } from "#rows/request-writes.ts";
 export const rulings = feature("rulings", {
 	rows: [...delivery.reads, rulingNoticeReceipt, ...subjectRows, ...requestWrites, rulingDisplay, voyageAgent, pieceProgress, voyageProgress],
 	facts: [
@@ -71,20 +59,6 @@ export const rulings = feature("rulings", {
 		rulingWithdrawn,
 	],
 	commands: [acknowledgeNotice, addContext, answer, gate, markDelivered, park, passUp, proclaim, reclassify, request, supersede, withdraw],
-	materializers: [
-		rulingNoticeDeliveredMaterializer,
-		rulingAnsweredMaterializer,
-		rulingContextAddedMaterializer,
-		rulingDeliveredMaterializer,
-		rulingGatedMaterializer,
-		rulingParkedMaterializer,
-		rulingPassedUpMaterializer,
-		rulingProclaimedMaterializer,
-		rulingReclassifiedMaterializer,
-		rulingRequestedMaterializer,
-		rulingSupersededMaterializer,
-		rulingWithdrawnMaterializer,
-	],
 	queries: [
 		delivery,
 		authority,

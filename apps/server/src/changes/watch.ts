@@ -1,14 +1,10 @@
-import { failAdoption } from "@antumbra/domain-changes/commands/adoption-failed.ts";
-import { hostCapabilities, observeHostCapability } from "@antumbra/domain-changes/commands/host-capability.ts";
-import { failPublication } from "@antumbra/domain-changes/commands/publication-failed.ts";
 import { pendingAdoptions } from "@antumbra/domain-changes/queries/pending-adoptions.ts";
 import { publishing } from "@antumbra/domain-changes/queries/publishing.ts";
 import { world } from "@antumbra/domain-changes/queries/world.ts";
 import type { ChangeHost } from "@antumbra/platform-change-host/port.ts";
 import { ChangeHosts } from "@antumbra/platform-change-host/port.ts";
 import { make, Request } from "@antumbra/platform-vocabulary/id.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
-import { Live } from "@antumbra/server-journal/live.ts";
+import { Changes } from "@antumbra/server-changes/service.ts";
 import { each } from "@shivaedev/reconciler/each.ts";
 import { run } from "@shivaedev/reconciler/run.ts";
 import { Effect } from "effect";
@@ -22,13 +18,15 @@ const OBSERVE_INTERVAL_MILLIS = 60_000;
 const OBSERVE_BACKOFF_CAP_MILLIS = 900_000;
 
 const recordCapability = Effect.fn("changes.recordCapability")(function* (host: ChangeHost) {
+	const changesService = yield* Changes;
+
 	const seen = yield* host.capability;
-	const live = yield* Live;
-	const held = (yield* live.read(hostCapabilities, {})).find((row) => row.host === host.tag);
+
+	const held = (yield* changesService.hostCapabilities({}).pipe(Effect.orDie)).find((row) => row.host === host.tag);
 	if (held !== undefined && held.available === seen.available && held.detail === seen.detail) return;
-	const commit = yield* Commit;
-	yield* commit
-		.commit(observeHostCapability, { requestId: Request.make(make()), host: host.tag, ...seen })
+
+	yield* changesService
+		.observeHostCapability({ requestId: Request.make(make()), host: host.tag, ...seen })
 		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 });
 
@@ -46,10 +44,12 @@ const observePass = Effect.fn("changes.observePass")(function* (host: ChangeHost
 });
 
 const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
+	const changesService = yield* Changes;
+
 	let wait = OBSERVE_INTERVAL_MILLIS;
 	const observer = yield* run({
 		keys: watchKeys(world.reads, world.scope?.({})),
-		read: Live.use((live) => live.read(world, {})),
+		read: changesService.world({}).pipe(Effect.orDie),
 		act: (snapshot) =>
 			observePass(host, snapshot).pipe(
 				Effect.tap(() =>
@@ -71,9 +71,10 @@ const watchHost = Effect.fn("changes.watchHost")(function* (host: ChangeHost) {
 	return observer;
 });
 const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(function* (row: Parameters<typeof publish>[0], error: unknown) {
-	const commit = yield* Commit;
-	yield* commit
-		.commit(failPublication, {
+	const changesService = yield* Changes;
+
+	yield* changesService
+		.failPublication({
 			requestId: Request.make(make()),
 			changeId: row.id,
 			attemptId: row.publicationRequestId ?? "",
@@ -82,11 +83,13 @@ const recordPublicationFailure = Effect.fn("changes.recordPublicationFailure")(f
 		.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 });
 export const watchChanges = Effect.gen(function* () {
+	const changesService = yield* Changes;
+
 	const hosts = yield* ChangeHosts;
 	const observers = yield* Effect.forEach(hosts, watchHost);
 	const publisher = yield* each({
 		keys: watchKeys(publishing.reads, publishing.scope?.({})),
-		read: Live.use((live) => live.read(publishing, {})),
+		read: changesService.publishing({}).pipe(Effect.orDie),
 		key: (row) => row.id,
 		act: (row) =>
 			publish(row).pipe(
@@ -96,7 +99,7 @@ export const watchChanges = Effect.gen(function* () {
 	});
 	const adopter = yield* each({
 		keys: watchKeys(pendingAdoptions.reads, pendingAdoptions.scope?.({})),
-		read: Live.use((live) => live.read(pendingAdoptions, {})),
+		read: changesService.pendingAdoptions({}).pipe(Effect.orDie),
 		key: (request) => request.id,
 		act: (request) =>
 			Effect.gen(function* () {
@@ -113,9 +116,10 @@ export const watchChanges = Effect.gen(function* () {
 			}).pipe(
 				Effect.catch((error) =>
 					Effect.gen(function* () {
-						const commit = yield* Commit;
-						yield* commit
-							.commit(failAdoption, { requestId: Request.make(make()), id: request.id, url: request.url, message: String(error) })
+						const changesService = yield* Changes;
+
+						yield* changesService
+							.failAdoption({ requestId: Request.make(make()), id: request.id, url: request.url, message: String(error) })
 							.pipe(Effect.catchTag("AlreadyDone", () => Effect.void));
 					}),
 				),

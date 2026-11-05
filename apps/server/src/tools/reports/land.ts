@@ -3,7 +3,7 @@ import { land } from "@antumbra/domain-reports/commands/land.ts";
 import { answered, onPiece } from "@antumbra/platform-tool-schemas/answers.ts";
 import { bind, defineTool } from "@antumbra/platform-tool-schemas/define.ts";
 import { requestId } from "@antumbra/platform-vocabulary/tool-request.ts";
-import { Commit } from "@antumbra/server-journal/commit.ts";
+import { Reports } from "@antumbra/server-reports/service.ts";
 import { Effect, Schema } from "effect";
 
 export const landReportSpec = defineTool({
@@ -18,12 +18,13 @@ export const landReportSpec = defineTool({
 export const landReportTool = bind(landReportSpec, (context, input) =>
 	onPiece(context, (pieceId) =>
 		Effect.gen(function* () {
-			const commit = yield* Commit;
+			const reportsService = yield* Reports;
+
 			return yield* answered(
 				context,
 				landReportSpec.name,
-				commit
-					.commit(land, {
+				reportsService
+					.land({
 						authorAgentId: context.agentId,
 						body: input.body,
 						title: input.title,

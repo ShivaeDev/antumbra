@@ -9,7 +9,7 @@ export class RunnerConnections extends Context.Service<
 	RunnerConnections,
 	{
 		readonly landed: (logId: string, observation: Observation) => Effect.Effect<void>;
-		readonly news: (logId: string, observation: Observation) => Effect.Effect<boolean>;
+		readonly preview: (logId: string) => Effect.Effect<Reported>;
 		readonly operations: (registration: Registration) => Stream.Stream<Operation>;
 		readonly reply: (reply: Reply) => Effect.Effect<void>;
 	}
@@ -35,11 +35,7 @@ export const layer = Layer.effectContext(
 			for (const connection of connections.values()) if (connection.registration.logId === logId) return connection.reported;
 			return undefined;
 		};
-		const news = (logId: string, observation: Observation): Effect.Effect<boolean> =>
-			Effect.sync(() => {
-				const walk = walking(logId);
-				return walk === undefined || walk.news(observation);
-			});
+		const preview = (logId: string) => Effect.sync(() => walking(logId)?.fork() ?? reported());
 		const landed = (logId: string, observation: Observation): Effect.Effect<void> =>
 			Effect.sync(() => {
 				walking(logId)?.landed(observation);
@@ -98,6 +94,6 @@ export const layer = Layer.effectContext(
 		return Context.make(RunnerOperations, {
 			connected: Effect.sync(() => [...connections.values()].map(({ registration }) => registration)),
 			execute,
-		}).pipe(Context.add(RunnerConnections, { landed, news, operations, reply }));
+		}).pipe(Context.add(RunnerConnections, { landed, preview, operations, reply }));
 	}),
 );

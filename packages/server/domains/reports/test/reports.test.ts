@@ -21,16 +21,28 @@ it.app("lands a report and its Piece outcome together, and pushes its reference 
 		authorAgentId: landing.authorAgentId,
 		pieceIds: [soundings],
 	});
-	expect(yield* app.rows.pieceReport.where({ pieceId: soundings })).toMatchObject([{ reportId, pieceId: soundings }]);
-	expect(yield* app.rows.pieceOutcome.where({ pieceId: soundings })).toMatchObject([{ sourceKind: "report", sourceId: reportId, status: "landed" }]);
+	expect(
+		yield* app.rows.pieceReport
+			.findMany({ where: { pieceId: soundings }, orderBy: { field: "storage_order", direction: "asc" }, select: ["id", "pieceId", "reportId"] })
+			.pipe(Effect.orDie),
+	).toMatchObject([{ reportId, pieceId: soundings }]);
+	expect(
+		yield* app.rows.pieceOutcome
+			.findMany({
+				where: { pieceId: soundings },
+				orderBy: { field: "id", direction: "asc" },
+				select: ["id", "pieceId", "sourceKind", "sourceId", "status"],
+			})
+			.pipe(Effect.orDie),
+	).toMatchObject([{ sourceKind: "report", sourceId: reportId, status: "landed" }]);
 });
 
 it.app("refuses an orphan report without leaving report, link, or outcome rows", function* (app) {
 	const refusal = yield* Effect.flip(app.api.reports.land(landing));
 	expect(refusal).toMatchObject({ _tag: "PieceNotFound", pieceId: soundings });
-	expect(yield* app.rows.report.count({})).toBe(0);
-	expect(yield* app.rows.pieceReport.count({})).toBe(0);
-	expect(yield* app.rows.pieceOutcome.count({})).toBe(0);
+	expect(yield* app.rows.report.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
+	expect(yield* app.rows.pieceReport.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
+	expect(yield* app.rows.pieceOutcome.count({ where: {} }).pipe(Effect.orDie)).toBe(0);
 	expect(yield* answered(app.api.reports.byId({ id: reportId }), "the report to be read")).toBeNull();
 });
 

@@ -1,7 +1,7 @@
 import { ownedStorage } from "@antumbra/server/storage.ts";
-import { NodeServices } from "@effect/platform-node";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { ConfigProvider, Effect, Exit, FileSystem, Layer, Path, Scope } from "effect";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { answered } from "#answers.ts";
 import { apiOf } from "#api.ts";
 import { definition, layer } from "#app.ts";

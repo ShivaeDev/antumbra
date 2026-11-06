@@ -9,4 +9,4 @@ export class ToolCatalog extends Context.Service<
 		readonly freeze: (role: AgentRole) => Effect.Effect<ToolSet>;
 		readonly byVersion: (version: string) => Effect.Effect<readonly ToolDescriptor[]>;
 	}
->()("@antumbra/port/toolCatalog") {}
+>()("@antumbra/domain-agents/toolCatalog") {}

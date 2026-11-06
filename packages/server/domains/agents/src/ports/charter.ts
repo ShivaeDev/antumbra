@@ -8,5 +8,5 @@ export interface Chartered {
 }
 
 export class Charter extends Context.Service<Charter, { readonly compose: (held: typeof birth.Row.Type) => Effect.Effect<Chartered> }>()(
-	"@antumbra/port/charter",
+	"@antumbra/domain-agents/charter",
 ) {}

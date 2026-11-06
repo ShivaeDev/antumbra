@@ -3,17 +3,23 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#test/*": "./test/*",
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"dependencies": {
+		"@shivaedev/access": "catalog:",
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/identity": "catalog:",
+		"effect": "catalog:"
 	},
 	"devDependencies": {
 		"@effect/vitest": "catalog:",
@@ -21,11 +27,5 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"effect": "catalog:",
-		"@shivaedev/access": "catalog:",
-		"@shivaedev/identity": "catalog:",
-		"@shivaedev/contract": "catalog:"
 	}
 }

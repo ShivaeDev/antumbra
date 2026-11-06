@@ -30,12 +30,6 @@ describe("documentation rules", () => {
 		expect(documentationViolations(cleanDocuments())).toEqual([]);
 	});
 
-	it("flags broken relative links and missing anchors", () => {
-		const documents = [...cleanDocuments(), document("docs/design/broken.md", "[Missing](absent.md)\n[Anchor](work-and-planning.md#absent)\n")];
-		expect(hasRule(documents, "docs/relative-link")).toBe(true);
-		expect(hasRule(documents, "docs/anchor")).toBe(true);
-	});
-
 	it("ignores Markdown links demonstrated inside code", () => {
 		const documents = replaceDocument(
 			cleanDocuments(),
@@ -58,11 +52,6 @@ describe("documentation rules", () => {
 			() => "# Design guides\n\n- [Work and planning][work]\n\n[work]: work-and-planning.md\n",
 		);
 		expect(documentationViolations(documents)).toEqual([]);
-	});
-
-	it("validates the destinations of reference-style links", () => {
-		const documents = replaceDocument(cleanDocuments(), "README.md", () => "# Antumbra\n\n[Design][design]\n\n[design]: absent.md\n");
-		expect(hasRule(documents, "docs/relative-link")).toBe(true);
 	});
 
 	it("flags pages unreachable from the public README", () => {

@@ -1,6 +1,6 @@
 import type { OpenRequest } from "@antumbra/platform-vocabulary/change-host.ts";
-import type { GitHub } from "@shivaedev/github/GitHub.ts";
 import { Effect, Option } from "effect";
+import type { GitHub } from "@shivaedev/github/github/service.ts";
 import { runGh } from "#command.ts";
 import { type GhError, GhOutputInvalid } from "#errors.ts";
 import { findPull } from "#find-pull.ts";

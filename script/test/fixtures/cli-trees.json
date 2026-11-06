@@ -19,10 +19,6 @@
 	],
 	"dirty": [
 		{
-			"content": "export {};\n",
-			"path": "packages/x/src/things/index.ts"
-		},
-		{
 			"content": "export const v = 1; // @ts-expect-error probing\n",
 			"path": "packages/x/src/escape.ts"
 		},

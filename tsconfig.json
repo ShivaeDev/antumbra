@@ -3,5 +3,5 @@
 	"compilerOptions": {
 		"resolveJsonModule": true
 	},
-	"include": ["script", ".dependency-cruiser.ts"]
+	"include": ["script", ".dependency-cruiser.ts", "quality.config.ts"]
 }

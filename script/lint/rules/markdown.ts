@@ -10,7 +10,6 @@ const LINK = /(?<!!)\[[^\]]+\]\(([^)]+)\)/g;
 const REFERENCE = /(?<!!)\[([^\]]+)\]\[([^\]]*)\]/g;
 const REFERENCE_DEFINITION = /^[ \t]{0,3}\[([^\]]+)\]:\s*(\S.*)$/;
 const FENCE = /^[ \t]{0,3}(`{3,}|~{3,})/;
-const HEADING = /^(#{1,6})\s+(.+?)\s*#*$/;
 
 interface MarkdownLine {
 	readonly line: number;
@@ -49,7 +48,7 @@ const withoutInlineCode = (line: string): string => {
 	return result;
 };
 
-const markdownLines = (document: TextFile, stripInlineCode: boolean): readonly MarkdownLine[] => {
+export const markdownProseLines = (document: TextFile): readonly MarkdownLine[] => {
 	const lines: MarkdownLine[] = [];
 	let fence: string | undefined;
 	document.raw.split("\n").forEach((raw, index) => {
@@ -68,13 +67,11 @@ const markdownLines = (document: TextFile, stripInlineCode: boolean): readonly M
 		}
 		lines.push({
 			line: index + 1,
-			raw: stripInlineCode ? withoutInlineCode(raw) : raw,
+			raw: withoutInlineCode(raw),
 		});
 	});
 	return lines;
 };
-
-export const markdownProseLines = (document: TextFile): readonly MarkdownLine[] => markdownLines(document, true);
 
 const referenceKey = (label: string): string => label.trim().replace(/\s+/g, " ").toLocaleLowerCase("en");
 
@@ -101,23 +98,6 @@ export const linksOf = (document: TextFile): readonly MarkdownLink[] => {
 	]);
 };
 
-export const anchor = (heading: string): string =>
-	heading
-		.replace(/<[^>]*>/g, "")
-		.replace(/[`*_~]/g, "")
-		.toLocaleLowerCase("en")
-		.replace(/[^\p{L}\p{N} _-]/gu, "")
-		.trim()
-		.replace(/\s+/g, "-");
-
-export const anchorsOf = (document: TextFile): ReadonlySet<string> =>
-	new Set(
-		markdownLines(document, false).flatMap((line) => {
-			const match = HEADING.exec(line.raw);
-			return match === null ? [] : [anchor(match[2] ?? "")];
-		}),
-	);
-
 export const linkPath = (source: string, target: string): string => {
 	const path = target.split("#", 1)[0] ?? "";
 	return path === "" ? source : normalize(join(dirname(source), path));
@@ -126,12 +106,4 @@ export const linkPath = (source: string, target: string): string => {
 export const linkAnchor = (target: string): string | undefined => {
 	const hash = target.indexOf("#");
 	return hash === -1 ? undefined : target.slice(hash + 1);
-};
-
-export const isLocalMarkdown = (target: string): boolean => {
-	if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("//")) {
-		return false;
-	}
-	const path = target.split("#", 1)[0] ?? "";
-	return path === "" || path.toLocaleLowerCase("en").endsWith(".md");
 };

@@ -1,10 +1,10 @@
 import { binaries, instance } from "@antumbra/server-storage/instance.ts";
 import { migrations } from "@antumbra/server-storage/migrations.ts";
-import { LiveServer } from "@shivaedev/contract/LiveServer.ts";
+import { Effect, Layer, Redacted } from "effect";
+import { liveServerLayer } from "@shivaedev/contract/live-server/layer.ts";
 import { migrateAppPostgres } from "@shivaedev/local-postgres/server/migrateAppPostgres.ts";
 import { migratePostgres } from "@shivaedev/sql/migrations.ts";
 import { postgresLayer } from "@shivaedev/sql/postgresLayer.ts";
-import { Effect, Layer, Redacted } from "effect";
 import { compatiblePostgres } from "#postgres-version.ts";
 
 export const prepareDatabase = Effect.fn("Storage.prepareDatabase")((directory: string) =>
@@ -20,6 +20,6 @@ export const prepareDatabase = Effect.fn("Storage.prepareDatabase")((directory: 
 	}).pipe(Effect.provide(binaries)),
 );
 
-export const storage = (url: Redacted.Redacted<string>) => LiveServer.layer.pipe(Layer.provideMerge(postgresLayer(url)));
+export const storage = (url: Redacted.Redacted<string>) => liveServerLayer.pipe(Layer.provideMerge(postgresLayer(url)));
 
 export const ownedStorage = (directory: string) => Layer.unwrap(Effect.map(prepareDatabase(directory), storage));

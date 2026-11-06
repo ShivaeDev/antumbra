@@ -1,7 +1,7 @@
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Queue } from "effect";
-import { RunnerFabric } from "#fabric.ts";
 import { RunnerLog } from "#log.ts";
+import { RunnerFabric } from "#service.ts";
 import { fixture, start } from "#test/fixture.ts";
 
 it.effect("releases attached provider resources when the fabric layer closes", () =>

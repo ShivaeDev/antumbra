@@ -1,11 +1,11 @@
 import { runGh } from "@antumbra/edge-github/command.ts";
 import { GhProcess } from "@antumbra/edge-github/process.ts";
-import { GitHubAppError } from "@shivaedev/github/errors.ts";
-import { GitHub } from "@shivaedev/github/GitHub.ts";
-import { GitHubConfig } from "@shivaedev/github/GitHubConfig.ts";
-import { GitHubToken } from "@shivaedev/github/GitHubToken.ts";
 import { Config, ConfigProvider, Effect, Layer, Option, Redacted } from "effect";
 import { FetchHttpClient } from "effect/http";
+import { GitHubAppError } from "@shivaedev/github/errors.ts";
+import { GitHubConfig } from "@shivaedev/github/GitHubConfig.ts";
+import { GitHubToken } from "@shivaedev/github/GitHubToken.ts";
+import { GitHub } from "@shivaedev/github/github/service.ts";
 
 const credential = Effect.fn("GitHubCredentials.acquire")(
 	function* (executable: string, hostname: string) {

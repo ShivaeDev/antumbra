@@ -1,5 +1,6 @@
 import process from "node:process";
-import { NodeRuntime, NodeServices } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Cause, Clock, Console, Effect, type FileSystem, Result } from "effect";
 import { conditionalGet, currentRepo } from "#pr/adapters/gh.ts";
 import { load, save, statePath } from "#pr/adapters/state.ts";

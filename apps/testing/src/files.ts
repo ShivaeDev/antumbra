@@ -1,5 +1,5 @@
 import { Files } from "@antumbra/server/files.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Effect, FileSystem, Layer } from "effect";
 
 export const layer = Layer.effect(

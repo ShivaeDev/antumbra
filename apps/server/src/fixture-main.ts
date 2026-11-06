@@ -1,11 +1,13 @@
 import { replayPostgresFixture } from "@antumbra/legacy-fixture/replay.ts";
 import { LegacyModel, legacyModel } from "@antumbra/legacy-fixture/v1/model.ts";
 import { legacySource } from "@antumbra/server/fixture/source.ts";
-import { NodeCrypto, NodeRuntime, NodeServices } from "@effect/platform-node";
-import { SessionPolicy } from "@shivaedev/identity/server/SessionPolicy.ts";
-import { appHost } from "@shivaedev/server/appHost.ts";
+import * as NodeCrypto from "@effect/platform-node/NodeCrypto";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Config, Console, Effect, FileSystem, Layer, Logger, Path, Redacted } from "effect";
 import * as HttpServer from "effect/http/HttpServer";
+import { SessionPolicy } from "@shivaedev/identity/server/SessionPolicy.ts";
+import { appHost } from "@shivaedev/server/appHost.ts";
 import { artifactFiles } from "#adapters/artifacts/layer.ts";
 import { ArtifactStorage } from "#adapters/artifacts/storage.ts";
 import { definition } from "#definition.ts";

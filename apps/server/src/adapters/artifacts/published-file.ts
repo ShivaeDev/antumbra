@@ -1,5 +1,6 @@
 import { ArtifactPublicationFailed } from "@antumbra/domain-artifacts/ports/errors.ts";
-import { Crypto, Effect, FileSystem, Path } from "effect";
+import { Effect, FileSystem, Path } from "effect";
+import { SecureRandom } from "effect/crypto";
 import { digestBytes } from "#adapters/artifacts/content.ts";
 import { syncOpened } from "#adapters/artifacts/filesystem-durability.ts";
 
@@ -45,14 +46,14 @@ const writeSynced = (target: string, bytes: Uint8Array) =>
 
 export const installPublished = (destination: string, bytes: Uint8Array, digest: string) =>
 	Effect.gen(function* () {
-		const crypto = yield* Crypto.Crypto;
+		const random = yield* SecureRandom.SecureRandom;
 		const fs = yield* FileSystem.FileSystem;
 		const path = yield* Path.Path;
 		if (yield* fs.exists(destination)) {
 			yield* ensureExistingDurable(destination, digest, bytes.length);
 			return;
 		}
-		const temporary = path.join(path.dirname(destination), `.publish-${yield* crypto.randomUUIDv4()}`);
+		const temporary = path.join(path.dirname(destination), `.publish-${yield* random.uuidV4()}`);
 		const cleanup = fs.remove(temporary, { force: true }).pipe(Effect.catchCause(() => Effect.void));
 		yield* Effect.gen(function* () {
 			yield* writeSynced(temporary, bytes);

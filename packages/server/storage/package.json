@@ -3,13 +3,13 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#example/*": "./test/example/*",
 		"#test/*": "./test/*",
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts",
@@ -17,7 +17,6 @@
 		"typecheck:compat": "tsc6 --noEmit"
 	},
 	"dependencies": {
-		"effect": "catalog:",
 		"@antumbra/domain-agents": "workspace:*",
 		"@antumbra/domain-artifacts": "workspace:*",
 		"@antumbra/domain-backends": "workspace:*",
@@ -41,19 +40,20 @@
 		"@antumbra/platform-vocabulary": "workspace:*",
 		"@shivaedev/changes": "catalog:",
 		"@shivaedev/events": "catalog:",
+		"@shivaedev/identity": "catalog:",
 		"@shivaedev/local-postgres": "catalog:",
 		"@shivaedev/service": "catalog:",
 		"@shivaedev/sql": "catalog:",
-		"@shivaedev/identity": "catalog:"
+		"effect": "catalog:"
 	},
 	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"@effect/platform-node": "catalog:",
 		"@effect/vitest": "catalog:",
+		"@shivaedev/test-story": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@effect/platform-node": "catalog:",
-		"@shivaedev/test-story": "catalog:",
-		"@antumbra/app-testing": "workspace:*"
+		"vitest": "catalog:"
 	}
 }

@@ -31,17 +31,17 @@ const SessionInputComposer = ({
 	const fileInput = useRef<HTMLInputElement>(null);
 	const draft = useSessionInput(api, drafts, sessionId, canAttachImages, onError);
 	const ready =
-		blocked === undefined &&
-		!draft.sending &&
-		(draft.images.length === 0 || canAttachImages === true) &&
-		(draft.text.trim() !== "" || draft.images.length > 0);
+		blocked === undefined
+		&& !draft.sending
+		&& (draft.images.length === 0 || canAttachImages === true)
+		&& (draft.text.trim() !== "" || draft.images.length > 0);
 	const attaches = canAttachImages ? "Attach a file" : "This backend cannot receive images";
 	return (
 		<div className="flex min-w-0 flex-col gap-1">
 			<SessionAttachments disabled={draft.sending} images={draft.images} onMove={draft.move} onRemove={draft.remove} />
 			<div className="flex min-w-0 items-end gap-2">
 				<input
-					accept="image/jpeg,image/png,image/webp"
+					accept="image/jpeg, image/png, image/webp"
 					aria-label="Choose images to attach"
 					className="sr-only"
 					disabled={blocked !== undefined || draft.sending}

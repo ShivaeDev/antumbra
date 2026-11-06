@@ -21,11 +21,11 @@ export class ArtifactSource extends Context.Service<
 			readonly path: string;
 		}) => Effect.Effect<ArtifactBytes, ArtifactSourceNotOwned | ArtifactContentInvalid | ArtifactPublicationFailed>;
 	}
->()("@antumbra/server/ArtifactSource") {}
+>()("@antumbra/domain-artifacts/ArtifactSource") {}
 export class ArtifactFiles extends Context.Service<
 	ArtifactFiles,
 	{
 		readonly publish: (source: ArtifactBytes) => Effect.Effect<PublishedArtifact, ArtifactPublicationFailed>;
 		readonly read: (input: PublishedArtifact & { readonly id: ArtifactId }) => Effect.Effect<string, StoredArtifactContentInvalid>;
 	}
->()("@antumbra/server/ArtifactFiles") {}
+>()("@antumbra/domain-artifacts/ArtifactFiles") {}

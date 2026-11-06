@@ -3,32 +3,32 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#test/*": "./test/*",
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
+	"dependencies": {
+		"@antumbra/platform-runner": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/runner-ports": "workspace:*",
+		"@antumbra/runner-tools": "workspace:*",
+		"@shivaedev/service": "catalog:",
+		"effect": "catalog:"
+	},
 	"devDependencies": {
+		"@effect/sql-sqlite-node": "catalog:",
 		"@effect/vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
-		"vitest": "catalog:",
-		"@effect/sql-sqlite-node": "catalog:"
-	},
-	"dependencies": {
-		"@antumbra/platform-runner": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:",
-		"@antumbra/runner-ports": "workspace:*",
-		"@antumbra/runner-tools": "workspace:*",
-		"@shivaedev/service": "catalog:"
+		"vitest": "catalog:"
 	}
 }

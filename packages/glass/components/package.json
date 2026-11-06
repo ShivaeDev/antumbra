@@ -3,49 +3,49 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
-	"devDependencies": {
-		"@types/node": "catalog:",
-		"@types/react": "catalog:",
-		"@typescript/native": "catalog:",
-		"typescript": "catalog:",
-		"@effect/vitest": "catalog:",
-		"vitest": "catalog:",
-		"happy-dom": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/domain-backends": "workspace:*"
-	},
 	"dependencies": {
-		"@antumbra/platform-feature": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
 		"@effect/atom-react": "catalog:",
-		"effect": "catalog:",
-		"react": "catalog:",
 		"@fontsource-variable/inter": "catalog:",
 		"@radix-ui/react-dialog": "catalog:",
 		"@radix-ui/react-select": "catalog:",
 		"@radix-ui/react-separator": "catalog:",
 		"@radix-ui/react-slot": "catalog:",
+		"@shivaedev/form": "catalog:",
 		"class-variance-authority": "catalog:",
 		"clsx": "catalog:",
+		"effect": "catalog:",
 		"lucide-react": "catalog:",
 		"mermaid": "catalog:",
 		"radix-ui": "catalog:",
+		"react": "catalog:",
 		"react-markdown": "catalog:",
 		"remark-gfm": "catalog:",
 		"sonner": "catalog:",
 		"tailwind-merge": "catalog:",
-		"tailwindcss": "catalog:",
-		"@shivaedev/form": "catalog:"
+		"tailwindcss": "catalog:"
+	},
+	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/domain-backends": "workspace:*",
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"happy-dom": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

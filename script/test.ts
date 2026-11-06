@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
-import { NodeRuntime, NodeServices } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Config, Effect } from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import { localTestLockPath, withTestLock } from "#test/lock.ts";

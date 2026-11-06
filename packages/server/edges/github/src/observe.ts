@@ -1,6 +1,6 @@
 import type { Observation } from "@antumbra/platform-vocabulary/change-host.ts";
-import { GitHub } from "@shivaedev/github/GitHub.ts";
 import { Effect } from "effect";
+import { GitHub } from "@shivaedev/github/github/service.ts";
 import { clientError } from "#client-error.ts";
 import { type GhError, GhOutputInvalid, GhUnavailable } from "#errors.ts";
 import { mapPullRequest } from "#mapping.ts";

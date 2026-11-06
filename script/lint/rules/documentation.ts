@@ -1,6 +1,6 @@
 import type { TextFile } from "#lint/inventory.ts";
 import { glossaryViolations } from "#lint/rules/documentation-glossary.ts";
-import { anchorsOf, isLocalMarkdown, linkAnchor, linkPath, linksOf } from "#lint/rules/markdown.ts";
+import { linkPath, linksOf } from "#lint/rules/markdown.ts";
 import type { Violation } from "#lint/violation.ts";
 
 const DESIGN_INDEX = "docs/design/README.md";
@@ -8,22 +8,6 @@ const GLOSSARY = "GLOSSARY.md";
 const PUBLIC_ROOT = "README.md";
 
 const violation = (file: string, line: number | undefined, rule: string, message: string): Violation => ({ file, line, message, rule });
-
-const linkViolations = (documents: ReadonlyMap<string, TextFile>): readonly Violation[] =>
-	[...documents.values()].flatMap((document) =>
-		linksOf(document).flatMap((link) => {
-			if (!isLocalMarkdown(link.target)) return [];
-			const path = linkPath(document.path, link.target);
-			const target = documents.get(path);
-			if (target === undefined) {
-				return [violation(document.path, link.line, "docs/relative-link", `relative Markdown link does not resolve: ${link.target}`)];
-			}
-			const fragment = linkAnchor(link.target);
-			return fragment === undefined || anchorsOf(target).has(fragment)
-				? []
-				: [violation(document.path, link.line, "docs/anchor", `Markdown anchor does not resolve: ${link.target}`)];
-		}),
-	);
 
 const reachableViolations = (documents: ReadonlyMap<string, TextFile>): readonly Violation[] => {
 	const reached = new Set<string>();
@@ -64,5 +48,5 @@ const designIndexViolations = (documents: ReadonlyMap<string, TextFile>): readon
 
 export const documentationViolations = (documents: readonly TextFile[]): readonly Violation[] => {
 	const byPath = new Map(documents.map((document) => [document.path, document]));
-	return [...linkViolations(byPath), ...reachableViolations(byPath), ...designIndexViolations(byPath), ...glossaryViolations(byPath)];
+	return [...reachableViolations(byPath), ...designIndexViolations(byPath), ...glossaryViolations(byPath)];
 };

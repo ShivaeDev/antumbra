@@ -1,5 +1,5 @@
 import type { AgentBackend } from "@antumbra/runner-ports/backend.ts";
-import { NodeRuntime } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import { Cause, Effect, Layer, Logger, type Scope } from "effect";
 import { application } from "#application.ts";
 import { type Options, options } from "#options.ts";

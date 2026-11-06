@@ -1,31 +1,8 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
 	"markdown": {
 		"parser": {
 			"frontmatter": true
-		}
-	},
-	"files": {
-		"includes": [
-			"**",
-			"!**/dist",
-			"!**/out",
-			"!**/coverage",
-			"!**/release",
-			"!!.worktrees",
-			"!!.local",
-			"!!.fixtures",
-			"!packages/runner/backends/codex/src/schema"
-		]
-	},
-	"formatter": {
-		"enabled": true,
-		"indentStyle": "tab",
-		"lineWidth": 150
-	},
-	"css": {
-		"parser": {
-			"tailwindDirectives": true
 		}
 	},
 	"plugins": [
@@ -34,41 +11,9 @@
 			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts", "!**/adapters/**"]
 		},
 		{
-			"path": "./script/lint/plugins/ambient-runtime.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
-		},
-		{
-			"path": "./script/lint/plugins/type-assertions.grit",
-			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
-		},
-		{
 			"path": "./script/lint/plugins/imports.grit",
 			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"]
 		}
 	],
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"preset": "recommended",
-			"complexity": {
-				"noExcessiveCognitiveComplexity": "error"
-			},
-			"style": {
-				"noNestedTernary": "error"
-			}
-		}
-	},
-	"overrides": [
-		{
-			"includes": ["packages/platform/**", "packages/server/**", "packages/runner/**", "packages/glass/**"],
-			"linter": {
-				"rules": {
-					"performance": {
-						"noBarrelFile": "error",
-						"noReExportAll": "error"
-					}
-				}
-			}
-		}
-	]
+	"extends": ["@shivaedev/quality/biome/preset.json"]
 }

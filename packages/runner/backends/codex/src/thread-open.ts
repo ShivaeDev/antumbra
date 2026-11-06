@@ -15,7 +15,6 @@ const threadPolicy = (options: OpenSessionOptions) => ({
 		: { baseInstructions: options.constrainedPrompt, sandbox: "read-only" }),
 });
 
-// Codex omits `dynamicTools` when a thread has no tools.
 const dynamicTools = (tools: ReadonlyArray<DirectTool>) =>
 	tools.length === 0
 		? {}

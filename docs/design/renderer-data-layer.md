@@ -122,7 +122,7 @@ dialog, behind the `Drafts` interface; the shell owns the storage and the render
 has not changed since the send captured it.
 
 The width of the session pane beside a subject is the one value the renderer stores itself, in `localStorage` through
-`packages/glass/renderer/src/adapters/pane-width.ts`. It is a per-viewer convenience: a browser that refuses storage costs the reader one drag and
+`packages/glass/components/src/adapters/pane-width.ts`. It is a per-viewer convenience: a browser that refuses storage costs the reader one drag and
 nothing else.
 
 Both are glass state, not domain truth: neither is a fact about any Agent, and losing either costs the words in the box or the width of a pane. They

@@ -1,6 +1,7 @@
 import { globSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { NodeRuntime, NodeServices } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Console, Data, Effect, Schema } from "effect";
 import { ChildProcess, ChildProcessSpawner } from "effect/process";
 import { typecheckGroups } from "#typecheck/groups.ts";

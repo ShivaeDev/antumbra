@@ -4,8 +4,8 @@ import type { AgentBackend, OpenSessionOptions, SessionInput } from "@antumbra/r
 import { noSessionAudit } from "@antumbra/runner-ports/session-audit.ts";
 import { callWhileOpen } from "@antumbra/runner-ports/tool-call.ts";
 import { type Cause, Deferred, Effect, Layer, Option, Queue, Scope, Stream } from "effect";
-import { layer } from "#fabric.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity, ServerTools } from "#ports.ts";
+import { RunnerFabric } from "#service.ts";
 import { file } from "#test/database.ts";
 
 export const start: Extract<Operation, { type: "Start" }> = {
@@ -111,6 +111,6 @@ export const fixture = Effect.gen(function* () {
 			blocked = true;
 		}),
 		opens: () => opens,
-		live: layer.pipe(Layer.provideMerge(dependencies)),
+		live: RunnerFabric.layer.pipe(Layer.provideMerge(dependencies)),
 	};
 });

@@ -1,10 +1,10 @@
 import { makeGitHubHost } from "@antumbra/edge-github/host.ts";
 import { githubClient } from "@antumbra/server/adapters/github/client.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
+import { ConfigProvider, Effect, Layer } from "effect";
 import { type FakeHttpReply, type FakeHttpRequest, fakeHttpService } from "@shivaedev/test-story/server/fakeHttpService.ts";
 import { routeOutbound } from "@shivaedev/test-story/server/routeOutbound.ts";
 import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
-import { ConfigProvider, Effect, Layer } from "effect";
 import { githubCli } from "#test-support/github-cli.ts";
 
 export const createGitHubFixture = Effect.fn("GitHubStory.create")(function* () {

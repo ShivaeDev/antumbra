@@ -11,7 +11,7 @@ export interface Serving {
 
 export type Reach = Effect.Effect<Serving>;
 
-export class Connection extends Context.Service<Connection, Reach>()("@antumbra/glass/Connection") {}
+export class Connection extends Context.Service<Connection, Reach>()("@antumbra/glass-client/Connection") {}
 export type Dialing = RpcClient.Protocol | Connection;
 
 export const addressOf = (reach: Reach): Effect.Effect<string> => Effect.map(reach, ({ port }) => `ws://127.0.0.1:${port}/rpc?auth=frame`);

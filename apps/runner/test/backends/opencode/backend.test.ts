@@ -1,5 +1,5 @@
 import type { OpenSessionOptions } from "@antumbra/runner-ports/backend.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { afterEach, vi } from "vitest";

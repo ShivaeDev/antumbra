@@ -19,5 +19,5 @@ export const bundledCodex: Effect.Effect<Option.Option<string>> = Effect.gen(fun
 		const command = join(bundle.value, "Contents", "Resources", "codex");
 		accessSync(command, constants.X_OK);
 		return Option.some(command);
-	}).pipe(Effect.catch(() => Effect.succeed(Option.none())));
+	}).pipe(Effect.catchTag("UnknownError", () => Effect.succeed(Option.none())));
 });

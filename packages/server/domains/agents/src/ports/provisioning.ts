@@ -9,4 +9,4 @@ export class Provisioning extends Context.Service<
 	{
 		readonly prepare: (agentId: AgentId, requestId: Request, runnerId: string) => Effect.Effect<string, BirthHeld>;
 	}
->()("@antumbra/port/provisioning") {}
+>()("@antumbra/domain-agents/provisioning") {}

@@ -3,17 +3,22 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#test/*": "./test/*",
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"dependencies": {
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/runner-ports": "workspace:*",
+		"effect": "catalog:"
 	},
 	"devDependencies": {
 		"@effect/vitest": "catalog:",
@@ -21,10 +26,5 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:",
-		"@antumbra/runner-ports": "workspace:*"
 	}
 }

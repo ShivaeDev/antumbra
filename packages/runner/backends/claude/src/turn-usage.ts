@@ -27,7 +27,6 @@ const counted = (model: SdkModelUsage): Counted => ({
 	outputTokens: model.outputTokens,
 });
 
-// A running total that went backwards is the counter starting over, so the whole of it belongs to this turn.
 const step = (cumulative: number, already: number): number => (cumulative < already ? cumulative : cumulative - already);
 
 const spentSince = (cumulative: Counted, already: Counted): Counted => ({

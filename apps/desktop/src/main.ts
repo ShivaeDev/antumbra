@@ -1,4 +1,4 @@
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Effect, FileSystem, Layer, ManagedRuntime, Ref, Stream } from "effect";
 import { app } from "electron";
 import { lifecycle, ShellLifecycle, ShellLifecycleLayer } from "#adapters/app-lifecycle.ts";

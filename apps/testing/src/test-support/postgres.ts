@@ -1,10 +1,10 @@
 import { postgresTests } from "@antumbra/app-testing/postgres-testing.ts";
 import { createInstanceEngine, createIsolationEngine } from "@antumbra/app-testing/test-support/postgres-control.ts";
 import { binaries } from "@antumbra/server-storage/instance.ts";
-import { NodeServices } from "@effect/platform-node";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Clock, Layer } from "effect";
 import * as TestClock from "effect/testing/TestClock";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 
 export const postgres = storyKit({
 	name: "Antumbra PostgreSQL",

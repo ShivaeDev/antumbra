@@ -69,8 +69,6 @@ const itemEvents = (raw: RawPayload, params: unknown, project: typeof itemStarte
 		onSome: ({ item }) => project(raw, item),
 	});
 
-// Codex item/completed carries transcript content; turn/completed does not.
-// Codex exposes background terminals through explicit requests, not a push stream.
 export const toAgentEvents = (notification: RpcNotification, threadModel: string): AgentEvent[] => {
 	const raw = rawOf(notification.method, notification.params);
 	switch (notification.method) {

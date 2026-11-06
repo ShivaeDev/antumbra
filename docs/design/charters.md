@@ -69,7 +69,7 @@ expected result and applicable standing conduct. A standalone Agent has its own 
 does not have. This keeps responsibility explicit without making every conversation a unit of planned work.
 
 The same continuity principles apply: on wake, recover the current task, own Board and binding rulings; on steer, incorporate the admiral's direction.
-[Charter delivery](../../packages/domain/src/charter.ts) preserves the caller's words and supplies the available Berths. Caller-owned context remains
+[Charter delivery](../../apps/server/src/agents/charter.ts) preserves the caller's words and supplies the available Berths. Caller-owned context remains
 the caller's responsibility rather than being inferred from a role name.
 
 ## Context and delivery

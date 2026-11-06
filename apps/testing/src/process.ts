@@ -9,13 +9,14 @@ import { Request } from "@antumbra/platform-vocabulary/id.ts";
 import { prepareDatabase } from "@antumbra/server/storage.ts";
 import { AgentsContract } from "@antumbra/server-agents/contract.ts";
 import { RoleSettingsContract } from "@antumbra/server-role-settings/contract.ts";
-import { NodeServices, NodeSocket } from "@effect/platform-node";
-import { makeClient } from "@shivaedev/contract/bind.ts";
-import { mountLive } from "@shivaedev/react/client/mountLive.ts";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as NodeWS from "@effect/platform-node/NodeWS";
 import { Deferred, Effect, FileSystem, Option, Redacted, Schema, Stream } from "effect";
 import { ChildProcess } from "effect/process";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
+import { makeClient } from "@shivaedev/contract/bind.ts";
+import { mountLive } from "@shivaedev/react/client/mountLive.ts";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 
 export const flagship = VoyageId.make(FLAGSHIP_REQUEST);
 const hail = Request.make("process-hail");
@@ -54,7 +55,7 @@ const create = Effect.fn("ServerProcessStory.create")(function* () {
 		const child = yield* spawn(["--data", directory, "--files", join(directory, "files"), "--port", "0"], databaseUrl);
 		const line = yield* Stream.runHead(Stream.splitLines(Stream.decodeText(child.stdout)));
 		const { port, token, runnerToken, socketPath } = yield* Schema.decodeUnknownEffect(readiness)(Option.getOrUndefined(line));
-		const options = { url: `http://127.0.0.1:${port}/rpc`, bearerToken: token, webSocketConstructor: NodeSocket.layerWebSocketConstructorWS };
+		const options = { url: `http://127.0.0.1:${port}/rpc`, bearerToken: token, webSocketConstructor: NodeWS.layerWebSocketConstructor };
 		const settings = makeClient(RoleSettingsContract.middleware(Owner), options);
 		const nativeRunner = makeClient(RunnerContract, { ...options, url: `ws+unix://${socketPath}:/rpc`, bearerToken: runnerToken });
 		const nativeSettings = makeClient(RoleSettingsContract.middleware(Owner), { ...options, url: `ws+unix://${socketPath}:/rpc` });

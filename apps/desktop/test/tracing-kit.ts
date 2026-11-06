@@ -1,7 +1,7 @@
 import { applicationStory } from "@antumbra/app-testing/application-story.ts";
-import { NodeServices } from "@effect/platform-node";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Clock, Effect, FileSystem, Path } from "effect";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { ShellState, ShellStateLayer } from "#adapters/shell-state.ts";
 import { selectDevTracing } from "#adapters/tracing.ts";
 

@@ -1,4 +1,4 @@
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { beforeEach, vi } from "vitest";
@@ -6,7 +6,7 @@ import { findOnLoginPath } from "#adapters/login-shell.ts";
 import { backends } from "#backends.ts";
 
 vi.mock("#adapters/login-shell.ts", () => ({ findOnLoginPath: vi.fn() }));
-vi.mock("#backends/codex/chatgpt-bundle.ts", () => ({ bundledCodex: Effect.succeed(Option.none()) }));
+vi.mock("#adapters/codex/chatgpt-bundle.ts", () => ({ bundledCodex: Effect.succeed(Option.none()) }));
 
 beforeEach(() => {
 	vi.mocked(findOnLoginPath).mockReturnValue(Effect.succeed(Option.none()));

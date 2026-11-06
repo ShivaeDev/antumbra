@@ -1,6 +1,6 @@
 import type { ChangeRef, Observation } from "@antumbra/platform-vocabulary/change-host.ts";
-import type { GitHub } from "@shivaedev/github/GitHub.ts";
 import { Effect, Option } from "effect";
+import type { GitHub } from "@shivaedev/github/github/service.ts";
 import type { GhError } from "#errors.ts";
 import { observeGroup } from "#observe.ts";
 import { chunked, type LocatedPullRequestRef, OBSERVE_CHUNK_SIZE } from "#query.ts";

@@ -1,7 +1,7 @@
 import type { Registration } from "@antumbra/platform-runner/log.ts";
 import type { Operation, OperationResult } from "@antumbra/platform-runner/operations.ts";
-import { RunnerFabric } from "@antumbra/runner-fabric/fabric.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
+import { RunnerFabric } from "@antumbra/runner-fabric/service.ts";
 import { Deferred, Effect, Scope, Stream } from "effect";
 import { listModels } from "#catalogue.ts";
 import { connected, RunnerClient } from "#connection.ts";

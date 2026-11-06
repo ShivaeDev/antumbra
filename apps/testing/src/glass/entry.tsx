@@ -2,17 +2,18 @@ import { apiOf } from "@antumbra/app-testing/api.ts";
 import { type Glass, served } from "@antumbra/glass-client/connect.ts";
 import { ClientConnection } from "@antumbra/glass-client/connection.ts";
 import { lostConnection } from "@antumbra/glass-client/query.ts";
+import { Provider } from "@antumbra/glass-client/Provider.tsx";
 import { TooltipProvider } from "@antumbra/glass-components/shadcn/tooltip.tsx";
-import { NodeServices } from "@effect/platform-node";
-import { Activity, type ConnectionStatus } from "@shivaedev/contract/clientActivity.ts";
-import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Context, Effect, Layer, type Scope, Stream, SubscriptionRef } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import type { Reactivity } from "effect/reactivity/Reactivity";
 import type { SqlClient } from "effect/sql/SqlClient";
 import type { ReactNode } from "react";
+import { Activity, type ConnectionStatus } from "@shivaedev/contract/clientActivity.ts";
+import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { definition, layer } from "#app.ts";
 import type { ApplicationServices } from "#application-story.ts";
 import { ScriptedArtifacts } from "#artifacts.ts";
@@ -21,14 +22,6 @@ import { mount, settle } from "#glass/dom.ts";
 import { postgresTests } from "#postgres-testing.ts";
 
 export type Api = Glass<typeof definition.features>["api"];
-
-type Provider = (props: { readonly children: ReactNode }) => ReactNode;
-
-const dressed = (Connected: Provider, screen: ReactNode): ReactNode => (
-	<Connected>
-		<TooltipProvider>{screen}</TooltipProvider>
-	</Connected>
-);
 
 type Services = ApplicationServices;
 
@@ -53,7 +46,15 @@ const create = Effect.fn("GlassStory.create")(function* () {
 	const gone = yield* SubscriptionRef.make(false);
 	const glass = served(definition.features, Effect.succeed(dropping(definition.features, api, gone)));
 	const status = Atom.make<ConnectionStatus>("live");
-	const state = (connectionStatus: ConnectionStatus) => ({ connectionStatus, liveHints: 0, liveInvalidations: 0, refreshingAtoms: 0, rpcCalls: 0 });
+	const state = (connectionStatus: ConnectionStatus) => ({
+		commands: 0,
+		connectionStatus,
+		initialQueries: 0,
+		liveHints: 0,
+		liveInvalidations: 0,
+		refreshingAtoms: 0,
+		rpcCalls: 0,
+	});
 	const client = {
 		[Activity]: Object.assign(
 			Stream.map(SubscriptionRef.changes(gone), (away) => state(away ? "reconnecting" : "live")),
@@ -80,7 +81,15 @@ const create = Effect.fn("GlassStory.create")(function* () {
 	yield* Effect.addFinalizer(() => Effect.sync(() => glass.registry.dispose()));
 	const { container, root } = yield* mount();
 	const render = (screen: ReactNode) =>
-		settle(() => root.render(dressed(glass.Provider, <ClientConnection value={client}>{screen}</ClientConnection>))).pipe(Effect.as(container));
+		settle(() =>
+			root.render(
+				<Provider connection={glass}>
+					<TooltipProvider>
+						<ClientConnection value={client}>{screen}</ClientConnection>
+					</TooltipProvider>
+				</Provider>,
+			),
+		).pipe(Effect.as(container));
 	const run = <Value, Failure, Requirements>(effect: Effect.Effect<Value, Failure, Requirements>) => effect.pipe(Effect.provideContext(services));
 	const artifacts = yield* run(ScriptedArtifacts);
 	return { api: glass.api, artifacts, render, run, server };

@@ -1,12 +1,7 @@
-import { Crypto, Effect, type FileSystem, Option, type PlatformError } from "effect";
+import { Effect, type FileSystem, Option, type PlatformError } from "effect";
+import { Digest } from "effect/crypto";
 
-const hex = (bytes: Uint8Array): string => Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
-
-export const digestBytes = (bytes: Uint8Array) =>
-	Crypto.Crypto.pipe(
-		Effect.flatMap((crypto) => crypto.digest("SHA-256", bytes)),
-		Effect.map(hex),
-	);
+export const digestBytes = (bytes: Uint8Array) => Digest.Digest.pipe(Effect.flatMap((digest) => digest.digestHex(Digest.sha256, bytes)));
 
 const concatenate = (chunks: ReadonlyArray<Uint8Array>, length: number): Uint8Array => {
 	const bytes = new Uint8Array(length);

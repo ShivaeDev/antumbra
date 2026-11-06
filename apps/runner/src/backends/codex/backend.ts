@@ -3,7 +3,7 @@ import { CodexServers, codexBackend } from "@antumbra/runner-backends-codex/back
 import { classifyCodexCapacity } from "@antumbra/runner-backends-codex/capacity.ts";
 import { makeBackendCapacityController } from "@antumbra/runner-ports/backend-capacity.ts";
 import { Effect, Option } from "effect";
-import { bundledCodex } from "#backends/codex/chatgpt-bundle.ts";
+import { bundledCodex } from "#adapters/codex/chatgpt-bundle.ts";
 import { spawnLineProcess } from "#backends/codex/process.ts";
 import { makeCodexServers } from "#backends/codex/server.ts";
 

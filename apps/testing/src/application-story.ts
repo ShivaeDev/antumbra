@@ -5,12 +5,13 @@ import { postgresDefinition } from "@antumbra/server/postgres-definition.ts";
 import { ServerRuntime } from "@antumbra/server/runtime.ts";
 import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
 import { type Observation, observation } from "@antumbra/server-storage/observe.ts";
-import { NodeServices } from "@effect/platform-node";
-import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Context, Effect, Layer } from "effect";
 import type { Reactivity } from "effect/reactivity/Reactivity";
 import type { SqlClient } from "effect/sql/SqlClient";
+import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
+import type { StoryCrypto } from "@shivaedev/test-story/server/storyIt.ts";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { eventually } from "#answers.ts";
 import { definition, layer } from "#app.ts";
 import { ScriptedArtifacts } from "#artifacts.ts";
@@ -35,7 +36,7 @@ export type App = TestApp<typeof definition.features> & {
 };
 
 const create = Effect.fn("ApplicationStory.create")(function* () {
-	const services = Context.merge(yield* Effect.context<Reactivity | SqlClient>(), yield* Layer.build(layer));
+	const services = Context.merge(yield* Effect.context<Reactivity | SqlClient | StoryCrypto>(), yield* Layer.build(layer));
 	const app = yield* Effect.gen(function* () {
 		const parts = yield* sqlKit(definition);
 		const api = yield* apiOf(definition);

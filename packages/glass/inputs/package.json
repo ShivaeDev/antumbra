@@ -3,40 +3,40 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts --config ../../../apps/testing/src/glass/config.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
-	"devDependencies": {
-		"@effect/atom-react": "catalog:",
-		"@types/node": "catalog:",
-		"@types/react": "catalog:",
-		"@typescript/native": "catalog:",
-		"typescript": "catalog:",
-		"@effect/vitest": "catalog:",
-		"vitest": "catalog:",
-		"happy-dom": "catalog:",
-		"@antumbra/app-testing": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*"
-	},
 	"dependencies": {
-		"@shivaedev/react": "catalog:",
-		"@shivaedev/form": "catalog:",
 		"@antumbra/domain-inputs": "workspace:*",
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"effect": "catalog:",
-		"react": "catalog:",
-		"lucide-react": "catalog:",
 		"@antumbra/platform-access": "workspace:*",
-		"@shivaedev/identity": "catalog:"
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@shivaedev/form": "catalog:",
+		"@shivaedev/identity": "catalog:",
+		"@shivaedev/react": "catalog:",
+		"effect": "catalog:",
+		"lucide-react": "catalog:",
+		"react": "catalog:"
+	},
+	"devDependencies": {
+		"@antumbra/app-testing": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@effect/atom-react": "catalog:",
+		"@effect/vitest": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"happy-dom": "catalog:",
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

@@ -11,7 +11,11 @@ vi.mock("electron", () => ({ app: { isPackaged: false } }));
 
 const SERVER_ARGS = ["/server.js", "--data", "/data/server", "--files", "/data"];
 
-const bundleOf = (command: ChildProcess.Command): string => (command._tag === "StandardCommand" ? (command.args[0] ?? "") : "");
+const bundleOf = (command: ChildProcess.Command): string => {
+	const word = command._tag === "StandardCommand" ? command.args[0] : undefined;
+	if (word === undefined) return "";
+	return typeof word === "string" ? word : Redacted.value(word);
+};
 
 interface Spawns {
 	readonly ends: Queue.Queue<Deferred.Deferred<ChildProcessSpawner.ExitCode>>;

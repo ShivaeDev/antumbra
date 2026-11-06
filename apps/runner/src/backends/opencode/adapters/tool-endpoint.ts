@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { NodeHttpServer } from "@effect/platform-node";
+import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import { Effect, type Scope } from "effect";
 import { HttpServer, HttpServerRequest, HttpServerResponse } from "effect/http";
 import { LOOPBACK } from "#backends/opencode/adapters/loopback.ts";

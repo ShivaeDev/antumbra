@@ -1,5 +1,5 @@
 import { runGh } from "@antumbra/edge-github/command.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { ghProcessLayer } from "#adapters/github/process.ts";

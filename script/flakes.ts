@@ -1,5 +1,6 @@
 import { join } from "node:path";
-import { NodeRuntime, NodeServices } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Config, Console, Effect, FileSystem } from "effect";
 import { commentOnIssue, ensureLabel, openIssue, openIssues } from "#flakes/adapters/gh.ts";
 import { directory } from "#flakes/adapters/reporter.ts";

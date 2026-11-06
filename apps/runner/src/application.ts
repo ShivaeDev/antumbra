@@ -1,8 +1,8 @@
 import { layer as capacity } from "@antumbra/runner-fabric/capacity.ts";
-import { layer as fabric } from "@antumbra/runner-fabric/fabric.ts";
 import { RunnerLog } from "@antumbra/runner-fabric/log.ts";
 import { BackendRegistry, InputResolver, RunnerIdentity } from "@antumbra/runner-fabric/ports.ts";
 import { recover } from "@antumbra/runner-fabric/recover.ts";
+import { RunnerFabric } from "@antumbra/runner-fabric/service.ts";
 import type { AgentBackend } from "@antumbra/runner-ports/backend.ts";
 import { Effect, Layer } from "effect";
 import { resolveInput } from "#adapters/inputs.ts";
@@ -39,5 +39,5 @@ export const application = (options: Options, backends: ReadonlyMap<string, Agen
 				},
 				makeLocalRunner(paths),
 			);
-		}).pipe(Effect.provide(Layer.merge(fabric, capacity).pipe(Layer.provideMerge(services))));
+		}).pipe(Effect.provide(Layer.merge(RunnerFabric.layer, capacity).pipe(Layer.provideMerge(services))));
 	});

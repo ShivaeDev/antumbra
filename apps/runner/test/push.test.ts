@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { cloneMirror, refreshMirror } from "@antumbra/runner-git/mirrors.ts";
 import { pushBranch } from "@antumbra/runner-git/push.ts";
 import { addWorktree, inspectWorktree } from "@antumbra/runner-git/worktrees.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { ChildProcessSpawner } from "effect/process";

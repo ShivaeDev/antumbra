@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { NodeHttpServer } from "@effect/platform-node";
+import * as NodeHttpServer from "@effect/platform-node/NodeHttpServer";
 import { Effect } from "effect";
 import { HttpServer } from "effect/http";
 

@@ -5,17 +5,18 @@ import { Effect, Schema } from "effect";
 import { mapPullRequest } from "#mapping.ts";
 import { decodeObserveResponse, type ObservedNode, type PullRequestNode } from "#payload.ts";
 import { buildObservePlan } from "#query.ts";
-// Recorded from GitHub for pull request 970, which carries an issue comment, 999, which carries a review, and an unresolved number.
 import recordedFeedback from "#test/fixtures/feedback-response.json";
-// Recorded from GitHub for pull requests 23, 24, 27, 32, and an unresolved number.
 import recorded from "#test/fixtures/observe-response.json";
 
 const RECORDED = JSON.stringify(recorded);
 
 const FEEDBACK = JSON.stringify(recordedFeedback);
 
+const RECORDED_FEEDBACK_PULL_REQUESTS = { issueComment: 970, review: 999, unresolved: 999999 };
+const RECORDED_PULL_REQUESTS = [23, 24, 27, 32, 9999];
+
 const FEEDBACK_PLAN = buildObservePlan(
-	[970, 999, 999999].map((number) => ({
+	Object.values(RECORDED_FEEDBACK_PULL_REQUESTS).map((number) => ({
 		name: "antumbra",
 		number,
 		owner: "ShivaeDev",
@@ -31,7 +32,7 @@ const feedbackOf = (index: number) => {
 };
 
 const PLAN = buildObservePlan(
-	[23, 24, 27, 32, 9999].map((number) => ({
+	RECORDED_PULL_REQUESTS.map((number) => ({
 		name: "antumbra",
 		number,
 		owner: "ShivaeDev",

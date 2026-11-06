@@ -1,7 +1,7 @@
 import { Owner, Runner } from "@antumbra/platform-access/policy.ts";
 import { InputStorage } from "@antumbra/server-inputs/storage.ts";
-import { permissionLayer } from "@shivaedev/identity/server/permissions.ts";
 import { Effect, Layer, Path } from "effect";
+import { permissionLayer } from "@shivaedev/identity/server/permissionLayer.ts";
 import { artifactContentHandlers } from "#adapters/artifacts/content-layer.ts";
 import { artifactSource } from "#adapters/artifacts/source.ts";
 import { inputDeliveryLayer } from "#adapters/inputs/delivery.ts";

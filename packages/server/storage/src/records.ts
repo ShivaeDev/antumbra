@@ -132,6 +132,6 @@ const create = Effect.gen(function* () {
 		stoppedLoop: yield* stoppedLoop,
 	};
 });
-export class Records extends Context.Service<Records, Effect.Success<typeof create>>()("@antumbra/storage/Records") {
+export class Records extends Context.Service<Records, Effect.Success<typeof create>>()("@antumbra/server-storage/Records") {
 	static readonly layer = Layer.effect(Records, create);
 }

@@ -13,12 +13,12 @@ import { rebuild } from "@antumbra/server-storage/rebuild.ts";
 import { Records } from "@antumbra/server-storage/records.ts";
 import { ReposHistory } from "@antumbra/server-storage/repos/service.ts";
 import { SettingsHistory } from "@antumbra/server-storage/settings/service.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import * as SqliteClient from "@effect/sql-sqlite-node/SqliteClient";
-import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
-import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { Effect, FileSystem, Layer, Path, Schema } from "effect";
 import { SqlClient } from "effect/sql";
+import { withIsolatedDatabase } from "@shivaedev/test-sql/server/withIsolatedDatabase.ts";
+import { storyKit } from "@shivaedev/test-story/server/storyKit.ts";
 import { postgresTests } from "#postgres-testing.ts";
 
 export interface LegacyFact {

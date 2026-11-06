@@ -1,7 +1,7 @@
 import { type LocalRunnerRoots, makeLocalRunner as makeResources } from "@antumbra/runner-git/resources/local.ts";
 import type { ProvisionRequest } from "@antumbra/runner-git/resources/model.ts";
 import { workBranch } from "@antumbra/runner-git/resources/naming.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Effect, Layer } from "effect";
 import { gitProcess } from "#adapters/git.ts";
 import { machine, machineLayer } from "#adapters/machine.ts";

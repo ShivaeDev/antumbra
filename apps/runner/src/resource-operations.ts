@@ -6,7 +6,7 @@ import { pushBranch } from "@antumbra/runner-git/push.ts";
 import { toRunnerError } from "@antumbra/runner-git/resources/git-runtime.ts";
 import type { RunnerError } from "@antumbra/runner-git/resources/model.ts";
 import { namesResources } from "@antumbra/runner-git/resources/naming.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Effect, Layer } from "effect";
 import { readArtifact } from "#adapters/artifacts.ts";
 import type { FileFailure } from "#adapters/file-error.ts";

@@ -1,8 +1,8 @@
 import type { AgentEvent } from "@antumbra/platform-vocabulary/session-events/events.ts";
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Option, Queue, Stream } from "effect";
-import { RunnerFabric } from "#fabric.ts";
 import { RunnerLog } from "#log.ts";
+import { RunnerFabric } from "#service.ts";
 import { fixture, start } from "#test/fixture.ts";
 
 it.effect("logs native start and charter acceptance before answering and reuses the request", () =>

@@ -68,7 +68,6 @@ export const TokenUsageNotification = Schema.Struct({
 	turnId: Schema.String,
 });
 
-// Codex may add reroute reasons, so the reason is read as the free word it is rather than the one-value enum the pin declares.
 export const ModelReroutedNotification = Schema.Struct({
 	fromModel: Schema.String,
 	reason: Schema.String,
@@ -77,7 +76,6 @@ export const ModelReroutedNotification = Schema.Struct({
 	turnId: Schema.String,
 });
 
-// A settings update is the one frame that names the model a thread runs on; the rest of the settings are the caller's own.
 export const ThreadSettingsUpdatedNotification = Schema.Struct({
 	threadId: Schema.String,
 	threadSettings: Schema.Struct({ model: Schema.String }),
@@ -85,7 +83,6 @@ export const ThreadSettingsUpdatedNotification = Schema.Struct({
 
 export const ThreadScoped = Schema.Struct({ threadId: Schema.String });
 
-// Only Codex spawn metadata carries a parent thread id; other names may be absent.
 const SpawnSource = Schema.Struct({
 	subAgent: Schema.Struct({
 		thread_spawn: Schema.Struct({
@@ -101,7 +98,6 @@ export const SpawnedThread = Schema.Struct({
 	thread: Schema.Struct({ id: Schema.String, source: SpawnSource }),
 });
 
-// Codex reports active, idle, notLoaded, and systemError thread states; activeFlags are extensible.
 export const ThreadStatus = Schema.Union([
 	Schema.Struct({
 		activeFlags: Schema.Array(Schema.String),
@@ -112,7 +108,6 @@ export const ThreadStatus = Schema.Union([
 	Schema.Struct({ type: Schema.Literal("systemError") }),
 ]);
 
-// Codex ancestor-filtered listings return spawn metadata, status, and a continuation cursor.
 export const ThreadListResponse = Schema.Struct({
 	data: Schema.Array(
 		Schema.Struct({
@@ -124,7 +119,6 @@ export const ThreadListResponse = Schema.Struct({
 	nextCursor: Schema.optional(Schema.NullOr(Schema.String)),
 });
 
-// Codex status notifications carry the waiting flags for active threads.
 export const ThreadStatusNotification = Schema.Struct({
 	status: ThreadStatus,
 	threadId: Schema.String,

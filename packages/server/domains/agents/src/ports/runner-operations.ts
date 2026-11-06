@@ -22,4 +22,4 @@ export class RunnerOperations extends Context.Service<
 		readonly runnerFor: (backend: string) => Effect.Effect<string>;
 		readonly start: (runnerId: string, order: StartOrder) => Effect.Effect<string | null>;
 	}
->()("@antumbra/port/runnerOperations") {}
+>()("@antumbra/domain-agents/runnerOperations") {}

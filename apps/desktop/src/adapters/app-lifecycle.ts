@@ -1,11 +1,11 @@
 import { Owner } from "@antumbra/platform-access/policy.ts";
 import { LifecycleRpc } from "@antumbra/platform-runner/lifecycle.ts";
 import { AgentsContract } from "@antumbra/server-agents/contract.ts";
-import { NodeSocket } from "@effect/platform-node";
-import { makeClient } from "@shivaedev/contract/bind.ts";
-import { mountLive } from "@shivaedev/react/client/mountLive.ts";
+import * as NodeWS from "@effect/platform-node/NodeWS";
 import { Context, Effect, Layer, Stream } from "effect";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
+import { makeClient } from "@shivaedev/contract/bind.ts";
+import { mountLive } from "@shivaedev/react/client/mountLive.ts";
 import { ServerProcess } from "#adapters/server-process.ts";
 
 const connecting = Effect.gen(function* () {
@@ -17,7 +17,7 @@ const connecting = Effect.gen(function* () {
 		group: AgentsContract.middleware(Owner).merge(LifecycleRpc),
 		url: `ws+unix://${socketPath}:/rpc`,
 		bearerToken: token,
-		webSocketConstructor: NodeSocket.layerWebSocketConstructorWS,
+		webSocketConstructor: NodeWS.layerWebSocketConstructor,
 		registry,
 	});
 	const release = yield* mountLive(client.api).pipe(Effect.provideService(AtomRegistry.AtomRegistry, registry));

@@ -1,10 +1,10 @@
 import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
 import { Records } from "@antumbra/server-storage/records.ts";
-import { defineService } from "@shivaedev/service/defineService.ts";
 import { Effect } from "effect";
-import { observe } from "#commands/observe.ts";
-import { release } from "#commands/release.ts";
-import { providers } from "#queries/providers.ts";
+import { defineService } from "@shivaedev/service/defineService.ts";
+import { observe } from "#observe.ts";
+import { providers } from "#providers.ts";
+import { release } from "#release.ts";
 export const Capacity = defineService({
 	id: "@antumbra/server-capacity/Capacity",
 	requires: [Records, ExecutionHistory],

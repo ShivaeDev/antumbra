@@ -3,17 +3,30 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#test/*": "./test/*",
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts",
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
+	},
+	"dependencies": {
+		"@antumbra/domain-agents": "workspace:*",
+		"@antumbra/domain-mail": "workspace:*",
+		"@antumbra/domain-sessions": "workspace:*",
+		"@antumbra/domain-settings": "workspace:*",
+		"@antumbra/platform-feature": "workspace:*",
+		"@antumbra/platform-vocabulary": "workspace:*",
+		"@antumbra/server-storage": "workspace:*",
+		"@shivaedev/changes": "catalog:",
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/service": "catalog:",
+		"effect": "catalog:"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",
@@ -21,18 +34,5 @@
 		"@typescript/native": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
-	},
-	"dependencies": {
-		"@antumbra/platform-vocabulary": "workspace:*",
-		"@shivaedev/changes": "catalog:",
-		"@shivaedev/contract": "catalog:",
-		"@shivaedev/service": "catalog:",
-		"effect": "catalog:",
-		"@antumbra/domain-mail": "workspace:*",
-		"@antumbra/domain-agents": "workspace:*",
-		"@antumbra/domain-sessions": "workspace:*",
-		"@antumbra/domain-settings": "workspace:*",
-		"@antumbra/platform-feature": "workspace:*",
-		"@antumbra/server-storage": "workspace:*"
 	}
 }

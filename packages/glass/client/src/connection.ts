@@ -5,7 +5,15 @@ import * as Atom from "effect/reactivity/Atom";
 import { createContext, createElement, useContext } from "react";
 
 export const RECONNECTING = "Reconnecting to the server…";
-const live = { connectionStatus: "live" as const, liveHints: 0, liveInvalidations: 0, refreshingAtoms: 0, rpcCalls: 0 };
+const live = {
+	commands: 0,
+	connectionStatus: "live" as const,
+	initialQueries: 0,
+	liveHints: 0,
+	liveInvalidations: 0,
+	refreshingAtoms: 0,
+	rpcCalls: 0,
+};
 const idle = {
 	[Activity]: Object.assign(Stream.succeed(live), { connectionStatus: Atom.make(live.connectionStatus), current: Effect.succeed(live) }),
 };

@@ -1,10 +1,10 @@
 import { ExecutionHistory } from "@antumbra/server-storage/execution/service.ts";
 import { Records } from "@antumbra/server-storage/records.ts";
-import { defineService } from "@shivaedev/service/defineService.ts";
 import { Effect } from "effect";
-import { clear } from "#commands/clear.ts";
-import { record } from "#commands/record.ts";
-import { pending } from "#queries/pending.ts";
+import { defineService } from "@shivaedev/service/defineService.ts";
+import { clear } from "#clear.ts";
+import { pending } from "#pending.ts";
+import { record } from "#record.ts";
 export const Lifecycle = defineService({
 	id: "@antumbra/server-lifecycle/Lifecycle",
 	requires: [Records, ExecutionHistory],

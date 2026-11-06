@@ -3,7 +3,7 @@ import { accessSync } from "node:fs";
 import { expect, it } from "@effect/vitest";
 import { Effect, Option } from "effect";
 import { vi } from "vitest";
-import { bundledCodex } from "#backends/codex/chatgpt-bundle.ts";
+import { bundledCodex } from "#adapters/codex/chatgpt-bundle.ts";
 
 vi.mock("node:os", () => ({ platform: () => "darwin" }));
 vi.mock("node:child_process", () => ({ execFileSync: vi.fn(() => "/installed/ChatGPT.app/\n") }));

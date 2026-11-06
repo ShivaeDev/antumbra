@@ -25,21 +25,6 @@ export const decodeGritCases = Schema.decodeUnknownSync(
 	}),
 );
 
-export const decodeCommentCases = Schema.decodeUnknownSync(
-	Schema.Struct({
-		allowed: Schema.Array(NamedSource),
-		flagged: Schema.Array(
-			Schema.Struct({
-				content: Schema.String,
-				line: Schema.Number,
-				name: Schema.String,
-				path: Schema.optional(Schema.String),
-				rule: Schema.String,
-			}),
-		),
-	}),
-);
-
 export const decodeLintTrees = Schema.decodeUnknownSync(
 	Schema.Struct({
 		clean: Schema.Array(SeedFile),

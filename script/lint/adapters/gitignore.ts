@@ -39,6 +39,5 @@ const matcherVerdict = (matcher: IgnoreMatcher, boundary: string | undefined, pa
 	return result.unignored ? "kept" : "unknown";
 };
 
-// The deepest gitignore with an opinion wins.
 export const verdictFor = (scope: IgnoreScope, path: string, directory: boolean): Verdict =>
 	scope.matchers.map((matcher) => matcherVerdict(matcher, scope.boundary, path, directory)).findLast((verdict) => verdict !== "unknown") ?? "unknown";

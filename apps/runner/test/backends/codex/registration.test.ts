@@ -3,7 +3,7 @@ import { Effect, Option } from "effect";
 import { vi } from "vitest";
 import { codexCommand, makeCodexBackend } from "#backends/codex/backend.ts";
 
-vi.mock("#backends/codex/chatgpt-bundle.ts", () => ({ bundledCodex: Effect.succeed(Option.none()) }));
+vi.mock("#adapters/codex/chatgpt-bundle.ts", () => ({ bundledCodex: Effect.succeed(Option.none()) }));
 
 it.effect("a discovered CLI provides a backend with capacity and image input", () =>
 	Effect.scoped(

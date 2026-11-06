@@ -1,16 +1,16 @@
 import { serialization } from "@antumbra/platform-access/serialization.ts";
 import { RunnerRpc } from "@antumbra/platform-runner/rpc.ts";
-import { NodeSocket } from "@effect/platform-node";
-import { authenticateSocket } from "@shivaedev/contract/socketAuthentication.ts";
-import { Context, Effect, Latch, Layer } from "effect";
+import * as NodeWS from "@effect/platform-node/NodeWS";
+import { Context, Effect, Latch, Layer, Schedule } from "effect";
 import * as RpcClient from "effect/rpc/RpcClient";
 import { RpcClientError } from "effect/rpc/RpcClientError";
 import * as Socket from "effect/socket/Socket";
+import { authenticateSocket } from "@shivaedev/contract/socketAuthentication.ts";
 
 const makeClient = RpcClient.make(RunnerRpc);
 const authenticatedSocket = (url: string, token: string) =>
 	Layer.effect(Socket.Socket, authenticateSocket(token)).pipe(
-		Layer.provide(Layer.effect(Socket.Socket, Socket.makeWebSocket(`${url}?auth=frame`)).pipe(Layer.provide(NodeSocket.layerWebSocketConstructorWS))),
+		Layer.provide(Layer.effect(Socket.Socket, Socket.makeWebSocket(`${url}?auth=frame`)).pipe(Layer.provide(NodeWS.layerWebSocketConstructor))),
 	);
 export class RunnerClient extends Context.Service<
 	RunnerClient,
@@ -45,6 +45,9 @@ export const connected = <A, E extends { _tag: string }, R>(effect: Effect.Effec
 		const client = yield* RunnerClient;
 		return yield* client.connected.pipe(
 			Effect.andThen(effect),
-			Effect.retry({ while: (error) => error instanceof RpcClientError && error.reason._tag !== "RpcClientDefect" }),
+			Effect.retry({
+				schedule: Schedule.spaced("1 second"),
+				while: (error) => error instanceof RpcClientError && error.reason._tag !== "RpcClientDefect",
+			}),
 		);
 	});

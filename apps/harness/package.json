@@ -12,15 +12,6 @@
 		"typecheck": "tsc --noEmit",
 		"typecheck:compat": "tsc6 --noEmit"
 	},
-	"devDependencies": {
-		"@tailwindcss/vite": "catalog:",
-		"@types/node": "catalog:",
-		"@types/react": "catalog:",
-		"@typescript/native": "catalog:",
-		"@vitejs/plugin-react": "catalog:",
-		"typescript": "catalog:",
-		"vite": "catalog:"
-	},
 	"dependencies": {
 		"@antumbra/glass-client": "workspace:*",
 		"@antumbra/glass-components": "workspace:*",
@@ -29,5 +20,14 @@
 		"@antumbra/platform-shell": "workspace:*",
 		"@antumbra/server": "workspace:*",
 		"effect": "catalog:"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@typescript/native": "catalog:",
+		"@vitejs/plugin-react": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:"
 	}
 }

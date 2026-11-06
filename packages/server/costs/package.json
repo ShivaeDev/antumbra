@@ -3,11 +3,11 @@
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
-	"exports": {
-		"./*": "./src/*"
-	},
 	"imports": {
 		"#*": "./src/*"
+	},
+	"exports": {
+		"./*": "./src/*"
 	},
 	"scripts": {
 		"test": "node ../../../script/test.ts",
@@ -16,17 +16,17 @@
 	},
 	"dependencies": {
 		"@antumbra/domain-costs": "workspace:*",
-		"@shivaedev/service": "catalog:",
-		"@shivaedev/contract": "catalog:",
+		"@antumbra/server-storage": "workspace:*",
 		"@shivaedev/changes": "catalog:",
-		"effect": "catalog:",
-		"@antumbra/server-storage": "workspace:*"
+		"@shivaedev/contract": "catalog:",
+		"@shivaedev/service": "catalog:",
+		"effect": "catalog:"
 	},
 	"devDependencies": {
 		"@antumbra/app-testing": "workspace:*",
-		"vitest": "catalog:",
 		"@types/node": "catalog:",
 		"@typescript/native": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

@@ -38,7 +38,6 @@ export const window = Effect.fn("HostedStory.window")(function* (serving: Servin
 				};
 			}),
 		api: glass.api,
-		Provider: glass.Provider,
 		seen: () => [...seen],
 		count: (expected: number) =>
 			eventually(

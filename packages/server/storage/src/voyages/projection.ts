@@ -1,9 +1,9 @@
 import { VOYAGE_AGENT_ROLES } from "@antumbra/platform-vocabulary/agent-role.ts";
 import { Voyage, type VoyageEvent, VoyageProgress } from "@antumbra/platform-vocabulary/voyage.ts";
+import { Array, Effect } from "effect";
+import { SqlClient } from "effect/sql";
 import { invalidationKeys } from "@shivaedev/changes/keys.ts";
 import { invalidateOnCommit } from "@shivaedev/sql/transact.ts";
-import { Effect } from "effect";
-import { SqlClient } from "effect/sql";
 
 export const apply = Effect.fn("VoyageHistory.apply")(function* ({
 	value,
@@ -25,7 +25,7 @@ export const apply = Effect.fn("VoyageHistory.apply")(function* ({
 			quietedAt: null,
 		});
 		yield* sql`insert into "voyage" ${sql.insert({ ...row, opened_order: streamVersion })}`;
-		const roles = VOYAGE_AGENT_ROLES.map((role) => ({
+		const roles = Array.map(VOYAGE_AGENT_ROLES, (role) => ({
 			...value[role],
 			id: `${value.id}/${role}`,
 			role,

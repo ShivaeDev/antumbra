@@ -16,6 +16,7 @@
 		"packages/*/*/src",
 		"packages/*/*/test",
 		"packages/*/*/*/src",
-		"packages/*/*/*/test"
+		"packages/*/*/*/test",
+		"quality.config.ts"
 	]
 }

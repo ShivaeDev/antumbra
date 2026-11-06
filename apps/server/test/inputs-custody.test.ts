@@ -6,7 +6,7 @@ import { imagePath } from "@antumbra/server-inputs/adapters/custody.ts";
 import { digestRequest } from "@antumbra/server-inputs/adapters/digest.ts";
 import { prepare } from "@antumbra/server-inputs/adapters/prepare.ts";
 import { transcriptThumbnail } from "@antumbra/server-inputs/adapters/thumbnail.ts";
-import { NodeServices } from "@effect/platform-node";
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect } from "vitest";

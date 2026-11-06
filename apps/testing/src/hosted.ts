@@ -6,17 +6,18 @@ import { application } from "@antumbra/server/application.ts";
 import { rpc } from "@antumbra/server/rpc.ts";
 import { Backends } from "@antumbra/server-backends/service.ts";
 import { SettingsContract } from "@antumbra/server-settings/contract.ts";
-import { NodeServices, NodeSocket } from "@effect/platform-node";
-import { makeClient } from "@shivaedev/contract/bind.ts";
-import { LiveServer } from "@shivaedev/contract/LiveServer.ts";
-import { trustedOrigins } from "@shivaedev/identity/server/adapters/trustedOrigins.ts";
-import { localOwner } from "@shivaedev/identity/server/localOwner.ts";
-import { SessionPolicy } from "@shivaedev/identity/server/SessionPolicy.ts";
-import { appHost } from "@shivaedev/server/appHost.ts";
+import * as NodeServices from "@effect/platform-node/NodeServices";
+import * as NodeSocket from "@effect/platform-node/NodeSocket";
 import { ConfigProvider, Context, Effect, Exit, FileSystem, Layer, Path, Redacted, Scope } from "effect";
 import { HttpServer } from "effect/http";
 import { Reactivity } from "effect/reactivity/Reactivity";
 import { SqlClient } from "effect/sql";
+import { makeClient } from "@shivaedev/contract/bind.ts";
+import { liveServerLayer } from "@shivaedev/contract/live-server/layer.ts";
+import { trustedOrigins } from "@shivaedev/identity/server/adapters/trustedOrigins.ts";
+import { localOwner } from "@shivaedev/identity/server/localOwner.ts";
+import { SessionPolicy } from "@shivaedev/identity/server/SessionPolicy.ts";
+import { appHost } from "@shivaedev/server/appHost.ts";
 import { ports } from "#app.ts";
 import { credentials } from "#hosted/credentials.ts";
 import { rollbackCount } from "#hosted/rollback-count.ts";
@@ -41,7 +42,7 @@ export const hosted = Effect.fn("ApplicationStory.hosted")(function* () {
 		sessions: Layer.succeed(SessionPolicy, { ...local.sessions, origin: trustedOrigins({ allow: [], missing: "allow", sameOrigin: {} }) }),
 		config: { host: "127.0.0.1", port: 0, socketPath },
 	}).pipe(
-		Layer.provideMerge(LiveServer.layer),
+		Layer.provideMerge(liveServerLayer),
 		Layer.provide(NodeServices.layer),
 		Layer.provide(
 			ConfigProvider.layer(

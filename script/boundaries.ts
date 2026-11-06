@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { NodeRuntime } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import { Cause, Console, Effect } from "effect";
 import { cruiseBoundaries } from "#boundaries/adapters/cruise.ts";
 import { boundaryInventoryFailures, expectedBoundarySources } from "#boundaries/inventory.ts";

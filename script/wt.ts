@@ -1,5 +1,5 @@
 import process from "node:process";
-import { NodeRuntime } from "@effect/platform-node";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import { Cause, Console, Effect } from "effect";
 import { makeParentDirectory, runGit } from "#wt/adapters/git.ts";
 import { newNameError, usage, worktreePathForRoot } from "#wt/program.ts";

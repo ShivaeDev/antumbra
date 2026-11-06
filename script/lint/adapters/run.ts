@@ -1,4 +1,5 @@
-import { NodeFileSystem, NodeRuntime } from "@effect/platform-node";
+import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
+import * as NodeRuntime from "@effect/platform-node/NodeRuntime";
 import { Cause, Console, Effect, type FileSystem, Runtime } from "effect";
 
 export const runMain = <Value, Error>(program: Effect.Effect<Value, Error, FileSystem.FileSystem>): void => {
